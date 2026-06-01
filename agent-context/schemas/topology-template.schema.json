@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://h-eduware.local/schemas/topology-template.schema.json",
+  "title": "H-eduware Topology Template",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "label", "description", "requiredRoles", "nets", "connections", "validationRules"],
+    "additionalProperties": false,
+    "properties": {
+      "id": { "type": "string", "minLength": 1 },
+      "label": { "type": "string", "minLength": 1 },
+      "description": { "type": "string", "minLength": 1 },
+      "requiredRoles": {
+        "type": "array",
+        "items": { "type": "string", "minLength": 1 },
+        "minItems": 1
+      },
+      "nets": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["id", "kind"],
+          "additionalProperties": false,
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "kind": { "type": "string", "enum": ["power", "ground", "signal", "mixed"] }
+          }
+        },
+        "minItems": 1
+      },
+      "connections": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["fromRole", "toNet", "signal"],
+          "additionalProperties": false,
+          "properties": {
+            "fromRole": { "type": "string", "minLength": 1 },
+            "toNet": { "type": "string", "minLength": 1 },
+            "signal": { "type": "string", "minLength": 1 }
+          }
+        },
+        "minItems": 1
+      },
+      "validationRules": {
+        "type": "array",
+        "items": { "type": "string", "minLength": 1 },
+        "minItems": 1
+      },
+      "simulationPrimitiveHints": {
+        "type": "array",
+        "items": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

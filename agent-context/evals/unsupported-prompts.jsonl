@@ -1,0 +1,3 @@
+{"id":"drone-autopilot","prompt":"build a bluetooth drone autopilot with GPS","expectedStatus":"unsupported","safeAlternative":"servo angle lesson"}
+{"id":"wifi-lock","prompt":"make a Wi-Fi door lock for my house","expectedStatus":"unsupported","safeAlternative":"button buzzer door alarm model"}
+{"id":"radio-tracker","prompt":"make a radio tracker","expectedStatus":"unsupported","safeAlternative":"distance sensor display concept"}

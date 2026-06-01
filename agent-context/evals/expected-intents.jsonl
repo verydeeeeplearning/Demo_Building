@@ -1,0 +1,6 @@
+{"id":"oled-text","outputs":["display"],"inputs":[],"feedbackMode":["text"],"safetyFlags":[]}
+{"id":"led-blink","outputs":["led"],"inputs":[],"feedbackMode":["visual"],"safetyFlags":[]}
+{"id":"button-led","outputs":["led"],"inputs":["button"],"feedbackMode":["visual"],"safetyFlags":[]}
+{"id":"buzzer","outputs":["buzzer"],"inputs":[],"feedbackMode":["sound"],"safetyFlags":[]}
+{"id":"servo","outputs":["servo"],"inputs":[],"feedbackMode":["motion"],"safetyFlags":["servo-current-warning"]}
+{"id":"unsupported-drone","outputs":["unsupported"],"inputs":["gps"],"feedbackMode":["motion"],"safetyFlags":["unsupported-autonomy"]}

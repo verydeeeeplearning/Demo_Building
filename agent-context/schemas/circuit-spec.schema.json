@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://h-eduware.local/schemas/circuit-spec.schema.json",
+  "title": "CircuitSpec",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "id", "title", "learnerLevel", "goal", "parts", "connections", "behaviors", "validation"],
+  "properties": {
+    "version": { "const": "2026-05-31" },
+    "id": { "type": "string" },
+    "title": { "type": "string" },
+    "learnerLevel": { "enum": ["elementary", "middle_high", "university", "unknown"] },
+    "goal": { "type": "string" },
+    "assumptions": { "type": "array", "items": { "type": "string" } },
+    "parts": { "type": "array", "items": { "type": "object" } },
+    "connections": { "type": "array", "items": { "type": "object" } },
+    "behaviors": { "type": "array", "items": { "type": "object" } },
+    "simulation": { "type": "object" },
+    "explanations": { "type": "array", "items": { "type": "object" } },
+    "validation": { "type": "object" }
+  }
+}

@@ -1,0 +1,6 @@
+{"id":"oled-text","family":"display-output","expectedFailureClass":"none","expectedPrimitives":["display_static_text","current_flow_animation"],"expectedStatus":"valid"}
+{"id":"led-blink","family":"light-output","expectedFailureClass":"none","expectedPrimitives":["blink_timer","current_flow_animation"],"expectedStatus":"valid"}
+{"id":"button-led","family":"digital-input","expectedFailureClass":"none","expectedPrimitives":["digital_on_off","current_flow_animation"],"expectedStatus":"valid"}
+{"id":"buzzer","family":"sound-output","expectedFailureClass":"none","expectedPrimitives":["buzzer_pulse","current_flow_animation"],"expectedStatus":"valid"}
+{"id":"servo","family":"motion-output","expectedFailureClass":"none","expectedPrimitives":["servo_angle","current_flow_animation"],"expectedStatus":"valid"}
+{"id":"short-5v-gnd","family":"unsafe","expectedFailureClass":"unsafe-request","expectedPrimitives":["fault_visualization"],"expectedStatus":"invalid"}

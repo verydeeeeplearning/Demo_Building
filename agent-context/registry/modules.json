@@ -1,0 +1,20 @@
+[
+  {
+    "id": "oled-i2c-096",
+    "type": "display",
+    "protocol": "i2c",
+    "simulationPrimitive": "display_static_text"
+  },
+  {
+    "id": "piezo-buzzer",
+    "type": "sound",
+    "protocol": "gpio",
+    "simulationPrimitive": "buzzer_pulse"
+  },
+  {
+    "id": "micro-servo",
+    "type": "motion",
+    "protocol": "pwm",
+    "simulationPrimitive": "servo_angle"
+  }
+]

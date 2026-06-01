@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://h-eduware.local/schemas/electrical-model.schema.json",
+  "title": "ElectricalModel",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["partId", "electricalModel"],
+  "properties": {
+    "partId": { "type": "string" },
+    "electricalModel": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": { "type": "string" },
+        "nominalCurrentMilliamp": { "type": "number" },
+        "requiresCurrentLimiting": { "type": "boolean" }
+      }
+    }
+  }
+}

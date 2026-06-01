@@ -1,0 +1,16 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+.local/
+artifacts/
+.artifacts/
+.omc/
+.omx/
+qa-artifacts/
+coverage/
+*.log
+.env
+.env.*
+manual-ui-current.png
+progress.txt

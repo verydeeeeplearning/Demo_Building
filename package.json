@@ -1,0 +1,37 @@
+{
+  "name": "h-eduware",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "agent:dev": "tsx server/index.ts",
+    "build": "vite build",
+    "test": "npm run test:unit",
+    "test:unit": "node --test tests/unit/*.test.js && tsx --test tests/unit/*.test.ts",
+    "eval:generalization": "tsx --test tests/unit/generalizationEval.test.ts",
+    "eval:generalization:report": "tsx server/context/generalizationEvalReportCli.ts --pretty",
+    "audit:capabilities": "tsx server/context/capabilityPromotionReport.ts --pretty",
+    "qa:context-artifacts": "tsx server/qa/contextQaArtifactBundleCli.ts",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run test:unit && npm run typecheck && npm run build && npm run test:e2e",
+    "check:live": "H_EDUWARE_AGENT_MODE=live tsx --test tests/unit/*.live.test.ts"
+  },
+  "dependencies": {
+    "@langchain/core": "^1.1.48",
+    "@langchain/openai": "^1.4.7",
+    "deepagents": "^1.10.2",
+    "langchain": "^1.4.2",
+    "three": "^0.184.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@types/node": "^25.9.1",
+    "pngjs": "^7.0.0",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.14"
+  }
+}
