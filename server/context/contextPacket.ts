@@ -1345,10 +1345,10 @@ export async function buildContextPacket(input: BuildContextPacketInput): Promis
   const message = input.message;
   const conversationContext = input.conversationContext;
   const contextualMessage = buildContextualRoutingMessage(input);
-  const [index, rawCapabilityMatches, routingMap, visualLibraryMentions] = await Promise.all([
+  const [index, rawCapabilityMatches, contextV2Index, visualLibraryMentions] = await Promise.all([
     loadContextIndex(),
     matchCapabilities(contextualMessage),
-    loadContextRoutingMap(),
+    loadContextV2Index(),
     detectVisualLibraryPartMentions(contextualMessage)
   ]);
   const capabilityMatches = pruneCapabilityMatchesForExplicitHardware(rawCapabilityMatches, contextualMessage);
@@ -1370,9 +1370,9 @@ export async function buildContextPacket(input: BuildContextPacketInput): Promis
     ambiguity: intentHints.ambiguity.length > 0,
     unsafe: unsupportedSignals.length > 0
   });
-  const selectedBundles = contextRouteV2
-    ? await Promise.all(contextRouteV2.bundleIds.map((bundleId) => loadContextBundleV2(bundleId)))
-    : [];
+  const selectedBundles = await Promise.all(
+    contextRouteV2.bundleIds.map((bundleId) => loadContextBundleV2(bundleId))
+  );
   const selectedBundlesAreBuildReady = selectedBundles.length > 0
     && selectedBundles.every((bundle) => bundle.manifest.supportLevel === 'supported');
   const explicitPartIds = detectExplicitHardwarePartIds(contextualMessage, visualLibraryMentions);
@@ -1384,30 +1384,18 @@ export async function buildContextPacket(input: BuildContextPacketInput): Promis
       visualLibraryMentions
     })
   ]);
-  const contextRoute = contextRouteV2
-    ? buildContextRouteV2({
-      route: contextRouteV2,
-      intentSignals,
-      capabilityMatches,
-      supportGaps
-    })
-    : selectContextRoute({
-      routingMap,
-      intentHints,
-      capabilityMatches,
-      unsupportedSignals,
-      supportGaps
-    });
-  const retrievalPlan = contextRouteV2 ? buildRetrievalPlanV2({
+  const contextRoute = buildContextRouteV2({
+    route: contextRouteV2,
+    intentSignals,
+    capabilityMatches,
+    supportGaps
+  });
+  const retrievalPlan = buildRetrievalPlanV2({
     contextRoute,
     route: contextRouteV2,
-    routingMap,
+    heavySourceIds: contextV2Index.heavySourceIds,
     index,
     selectedBundles
-  }) : buildRetrievalPlan({
-    contextRoute,
-    routingMap,
-    index
   });
   const shouldLoadRegistry = includesSource(retrievalPlan, 'registry:part-capabilities') || selectedBundlesAreBuildReady;
   const shouldLoadSimulationPrimitives = includesSource(retrievalPlan, 'simulation:primitives')
@@ -1692,13 +1680,23 @@ async function selectContextRouteV2(input: {
   intentSignals: string[];
   ambiguity: boolean;
   unsafe: boolean;
-}): Promise<ContextV2Route | null> {
+}): Promise<ContextV2Route> {
   const [index, routes] = await Promise.all([
     loadContextV2Index(),
     loadContextV2Routes()
   ]);
   const v2CapabilityIds = new Set(index.bundles.map((bundle) => bundle.capabilityId));
-  return [...routes.routes]
+
+  // Unsafe requests always take the safety route regardless of capability match
+  // (mirrors the former v1 unsupported-safety fallback).
+  if (input.unsafe) {
+    const safety = routes.routes.find((candidate) => candidate.when.unsafe);
+    if (safety) {
+      return safety;
+    }
+  }
+
+  const matched = [...routes.routes]
     .sort((a, b) => a.priority - b.priority)
     .find((candidate) => {
       if (input.unsafe && !candidate.when.unsafe) return false;
@@ -1731,7 +1729,13 @@ async function selectContextRouteV2(input: {
         return false;
       }
       return true;
-    }) ?? null;
+    });
+
+  // Total router: never returns null — fall back to the general supported-hardware
+  // route so the single (v2) router always resolves a request.
+  return matched
+    ?? routes.routes.find((candidate) => candidate.routeId === 'supported-hardware-general')
+    ?? routes.routes[0];
 }
 
 function capabilityIdsMatch(
@@ -1900,13 +1904,13 @@ function buildRetrievalPlan({
 function buildRetrievalPlanV2({
   contextRoute,
   route,
-  routingMap,
+  heavySourceIds,
   index,
   selectedBundles
 }: {
   contextRoute: ContextRoute;
   route: ContextV2Route;
-  routingMap: ContextRoutingMap;
+  heavySourceIds: string[];
   index: ContextIndex;
   selectedBundles: ContextBundleV2[];
 }): RetrievalPlan {
@@ -1928,7 +1932,7 @@ function buildRetrievalPlanV2({
   }
 
   const selected = new Set(sourceIds);
-  const omittedSourceIds = routingMap.heavySourceIds
+  const omittedSourceIds = heavySourceIds
     .map((sourceId) => resolveContextSourceId(sourceId, index)?.sourceId ?? sourceId)
     .filter((sourceId) => !selected.has(sourceId));
   const budget = budgetForV2Route(route, selectedBundles);
@@ -1943,6 +1947,11 @@ function buildRetrievalPlanV2({
 }
 
 function budgetForV2Route(route: ContextV2Route, selectedBundles: ContextBundleV2[]): RetrievalPlan['budget'] {
+  // An explicit budget on a (bundle-less) policy/fallback route wins, so migrated
+  // routes keep their intended budget label instead of defaulting to 'minimal'.
+  if (route.budget) {
+    return route.budget;
+  }
   if (route.policyOnly) {
     return 'minimal';
   }

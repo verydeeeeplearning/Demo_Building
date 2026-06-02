@@ -124,6 +124,7 @@ export const ContextBundleManifestV2Schema = z.object({
 const ContextV2IndexSchema = z.object({
   version: z.string().min(1),
   root: z.literal('agent-context/v2'),
+  heavySourceIds: z.array(z.string().min(1)).default([]),
   bundles: z.array(z.object({
     bundleId: z.string().min(1),
     capabilityId: z.string().min(1),
@@ -151,6 +152,7 @@ const ContextV2RouteSchema = z.object({
   bundleIds: z.array(z.string()).default([]),
   alwaysInclude: z.array(z.string()).default([]),
   maxPromptChars: z.number().int().positive(),
+  budget: ContextRetrievalBudgetSchema.optional(),
   reason: z.string().min(1)
 });
 

@@ -21,6 +21,59 @@
       "reason": "Ambiguous prompts need only safety, clarification, and truthfulness policy."
     },
     {
+      "routeId": "unsupported-safety",
+      "priority": 20,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [],
+        "supportLevels": ["unsupported"],
+        "modalities": [],
+        "unsafe": true
+      },
+      "bundleIds": [],
+      "alwaysInclude": [
+        "memory:agent-rules",
+        "policy:safety",
+        "policy:unsupported",
+        "policy:truthfulness",
+        "data:capability-graph",
+        "reference:electrical-limits",
+        "reference:validation-rules"
+      ],
+      "maxPromptChars": 7000,
+      "budget": "minimal",
+      "reason": "Unsafe or unsupported requests need policy, capability, and validation rationale, not render or simulation catalogs."
+    },
+    {
+      "routeId": "supported-hardware-general",
+      "priority": 100,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [],
+        "supportLevels": ["supported"],
+        "modalities": []
+      },
+      "bundleIds": [],
+      "alwaysInclude": [
+        "memory:agent-rules",
+        "policy:safety",
+        "policy:truthfulness",
+        "data:capability-graph",
+        "data:topology-templates",
+        "registry:part-capabilities",
+        "reference:board-topology",
+        "reference:protocol-rules",
+        "reference:validation-rules",
+        "reference:simulation-recipes",
+        "reference:rendering-footprints",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 38000,
+      "budget": "full",
+      "reason": "Supported hardware fallback loads the complete bounded synthesis, validation, rendering, and simulation bundle."
+    },
+    {
       "routeId": "v2-addressable-led-display-output",
       "priority": 24,
       "policyOnly": false,

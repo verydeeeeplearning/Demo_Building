@@ -1,6 +1,11 @@
 {
   "version": "2026-06-01",
   "root": "agent-context/v2",
+  "heavySourceIds": [
+    "registry:part-capabilities",
+    "simulation:primitives",
+    "rendering:render-footprints"
+  ],
   "bundles": [
     {
       "bundleId": "digital-light-output",

@@ -73,7 +73,13 @@ test('v2 context index and routes load bundle-first retrieval metadata', async (
   assert.ok(routes.routes.some((route) => route.routeId === 'v2-led-array-display-output'));
   assert.ok(routes.routes.some((route) => route.routeId === 'v2-addressable-led-display-output'));
   assert.ok(routes.routes.some((route) => route.routeId === 'v2-spi-display-output'));
-  assert.ok(routes.routes.every((route) => route.bundleIds.length > 0 || route.policyOnly === true));
+  // Every route provides context via curated bundles or an explicit source list
+  // (policy-only routes and the migrated safety/general fallback routes use
+  // alwaysInclude rather than bundleIds).
+  assert.ok(routes.routes.every((route) => route.bundleIds.length > 0 || route.alwaysInclude.length > 0));
+  // The v1 safety/general fallback routes now live in v2 (single router).
+  assert.ok(routes.routes.some((route) => route.routeId === 'unsupported-safety' && route.when.unsafe === true));
+  assert.ok(routes.routes.some((route) => route.routeId === 'supported-hardware-general'));
 });
 
 test('v2 bundle loader returns summary and manifest without loading heavy shared data', async () => {
