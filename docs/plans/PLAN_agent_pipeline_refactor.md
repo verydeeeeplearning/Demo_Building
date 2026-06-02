@@ -169,9 +169,9 @@ Default gates mocked/cassette (no live OpenAI). Unit ≥90% new pure logic; char
 - Phase 2.5: ✅ 100% (safetyOverlay.ts — review-only→build-ready only with a valid human-reviewed overlay + complete; cycle-breaker preserved; TS 373/373). Unblocks Phase 5.
 - Phase 3: ✅ core (single-run collapse — one createDeepAgent via deterministic intent; TS 375/375). Token-lean renderer + under-pull → Phase 6 live.
 - Phase 4: ✅ core (structured-output reliability — never-502 retry+fallback; Path B subagent removal; TS 378/378). Cassette first-shot rate → Phase 6 live.
-- Phase 5: 🟡 5.1 readiness proven (composition covers corpus 37/37 → 40 enumerated routes retirable). 5.2 (delete routes + flip default `next`) **gated by live smoke + reviewer** — not done autonomously.
-- Phase 6: 🟡 6.3 live-smoke harness built (`check:live`, never-502 gate) + kill-switch verified. Live verification + observability middleware + promotion **need the API key + reviewer** — not done autonomously.
-- **Overall: 7/9 stories complete (default-test-verified); 2 remaining are live-model + human-reviewer gated by the plan's own design.**
+- Phase 5: 🟡 5.1 readiness proven; **live switch DONE** — under `next`, `buildContextPacket` uses composition (live corpus 37/37; legacy 33/37 unchanged). 5.2 (delete routes + flip default `next`) **gated by live smoke + reviewer**.
+- Phase 6: 🟡 **6.2 observability middleware DONE** (`wrapToolCall` → `agent.tool.call`, synthesis agent, flag-gated); 6.3 live-smoke harness + kill-switch ready. Live verification + promotion **need the API key + reviewer**.
+- **Overall: 7/9 stories fully complete; US-P5/US-P6 substantially advanced (live composition switch + observability landed) with only the live-validation + reviewer-gated promotion remaining (TS 384, build green).**
 
 ### Autonomous completion boundary
 All flag-gated mechanisms are built, tested (TS 380 + 1 live-skip, JS 110), and committed; default stays `legacy` (production unchanged). The remaining work — switching the live path to composition, observability middleware, running the live smoke to confirm first-shot ≥95%, the destructive route deletion, and flipping the default to `next` — requires live-model validation (the user's `OPENAI_API_KEY`) and a human reviewer sign-off, exactly as the plan's Phase 5/6 gates mandate. Run `npm run check:live` to begin that validation.
