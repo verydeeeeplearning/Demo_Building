@@ -14,6 +14,8 @@ type AgentLogLevel = 'silent' | 'info' | 'debug';
 type AgentLogEvent =
   | 'agent.request.received'
   | 'context.packet.built'
+  | 'context.compose.shadow'
+  | 'context.compose.shadow.failed'
   | 'prompt.budget.exceeded'
   | 'requirement.analysis.completed'
   | 'agent.synthesis.attempt'

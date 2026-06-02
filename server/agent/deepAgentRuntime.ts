@@ -5,8 +5,10 @@ import { createDeepAgent, type SubAgent } from 'deepagents';
 import { toolStrategy } from 'langchain';
 import { z } from 'zod';
 
-import { getPartRegistry, readContextDoc } from '../context/contextLayer.ts';
+import { getPartRegistry, loadTopologyTemplates, readContextDoc } from '../context/contextLayer.ts';
 import { buildContextPacket } from '../context/contextPacket.ts';
+import { getComposeMode } from '../context/composeMode.ts';
+import { runShadowComposition } from '../context/generatedComposition.ts';
 import {
   contextPacketLogSummary,
   createAgentTraceId,
@@ -232,6 +234,40 @@ export async function buildAgentPromptBudgetAudits(request: AgentMessageRequest)
   };
 }
 
+async function observeShadowComposition(input: {
+  traceId: string;
+  sessionId: string;
+  contextPacket: Awaited<ReturnType<typeof buildContextPacket>>;
+}): Promise<void> {
+  const mode = getComposeMode();
+  if (mode === 'off') {
+    return;
+  }
+  try {
+    const shadow = await runShadowComposition({
+      candidateParts: input.contextPacket.candidateParts,
+      loadTemplates: () => loadTopologyTemplates()
+    });
+    logAgentEvent('context.compose.shadow', {
+      traceId: input.traceId,
+      sessionId: input.sessionId,
+      mode,
+      status: shadow.status,
+      topologyId: shadow.composition?.topologyId ?? null,
+      complete: shadow.composition?.complete ?? false,
+      buildReadyScope: shadow.composition?.buildReadyScope ?? null,
+      blockingCount: shadow.composition?.blockingConditions.length ?? 0
+    });
+  } catch (error) {
+    logAgentEvent('context.compose.shadow.failed', {
+      traceId: input.traceId,
+      sessionId: input.sessionId,
+      mode,
+      errorMessage: error instanceof Error ? error.message : String(error)
+    });
+  }
+}
+
 async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptions = {}): Promise<AgentRunResult> {
   const { apiKey, modelName } = requireLiveConfig();
   const sessionId = request.sessionId ?? `session-${randomUUID()}`;
@@ -243,6 +279,10 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
     sessionId,
     ...contextPacketLogSummary(contextPacket)
   });
+  // Phase 2b shadow: in shadow/on mode, run the L2 generated composition
+  // alongside the live packet for logging/diffing ONLY. Guarded + default-off so
+  // it can never alter the response or break a request.
+  await observeShadowComposition({ traceId, sessionId, contextPacket });
   const [operatingMemory, coordinatorPrompt] = await Promise.all([
     readContextDoc('agent-operating-memory'),
     readContextDoc('context-index')

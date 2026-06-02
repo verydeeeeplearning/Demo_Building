@@ -1,6 +1,6 @@
 # Low-Voltage Power Rail
 
-Use this bundle when the student asks for a breadboard power supply module, battery clip, AA holder, 1S LiPo battery, DC barrel jack, 2-pin screw terminal power connector, or 7805 regulator to power breadboard rails.
+Use this bundle for a breadboard power supply module, battery clip, AA holder, 1S LiPo battery, DC barrel jack, 2-pin screw terminal, or 7805 regulator powering breadboard rails.
 
 Current support level: supported.
 
