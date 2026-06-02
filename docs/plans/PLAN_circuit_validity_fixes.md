@@ -131,3 +131,50 @@ All fixes are in the **deterministic** layer (validation taxonomy, composition s
 - **Tests (offline, no live OpenAI):** `modalityFulfillment.test.ts`, `compositionModalityCoverage.test.ts`, `intentFulfillmentRegression.test.ts` (13 trace cases via real packet+gate), `cameraFit.test.ts`. Suite: 421 pass / 1 skip; typecheck + build green.
 - **Commits:** `3547a26` (RC-A + RC-B + Phase 2.5), plus the RC-D + docs commit.
 - **Live re-validation is the only open item** (Phase 4) and is intentionally not run here — it requires a fresh user-supplied key (all previously-exposed keys must be revoked); default tests never call live OpenAI.
+
+## 10. Live re-validation results (gpt-5.4-mini, reasoning=low, `next`) — 2026-06-03
+
+Ran the full 37-case corpus live. **Valid rate 56% → 83.3% (30/36)**; completion 37/37, candidates 37/37, first-shot 97.3%. The 13 RC-A/RC-B targets all behaved as designed except two, which surfaced a **new deterministic root cause (RC-F)**.
+
+| Metric | Baseline | Now |
+|---|---|---|
+| valid (of synth) | 20/36 ≈ 56% | **30/36 ≈ 83.3%** |
+| invalid | ~10 | **2** (both RC-F) |
+| unsupported | — | 5 |
+| completion / candidates / first-shot | 37/37 / 37/37 / 97% | 37/37 / 37/37 / 97.3% |
+
+### 7-case disposition (every remaining not-valid case, trace-backed)
+
+| # | Case | Live status | Root cause (authoritative trace) | Disposition |
+|---|---|---|---|---|
+| 1 | `joystick-display-readout` | **invalid** | **RC-F**: built a CORRECT joystick+OLED circuit; gate demanded `analog-sensor`+`digital-sensor` (unioned from sibling caps). | **FIX (RC-F)** → valid |
+| 2 | `digital-input-display-readout` | **invalid** | **RC-F**: built a CORRECT ttp223 digital circuit; gate demanded `analog-sensor`+`analog`. | **FIX (RC-F)** → valid |
+| 3 | `addressable-led-display-output` | unsupported (19ms, no model) | **RC-E**: deterministic clarification-required (ambiguous WS2812 count). | **Correct — document, no change** |
+| 4 | `bare-seven-segment-display-output` | unsupported | Built a valid 7-seg circuit but flagged "exact 0–9 segment-code table" as an unsupported request item (overclaim refusal, like led-array #14). | **Borderline-correct — document; optional prompt-tune to accept "show a number"** |
+| 5 | `clocked-data-sensor-display-readout` | unsupported | Protocol-readout; plan §4 #16 flipped valid on an earlier run → **model variance** suspected. | **Confirm via 2–3 live re-runs** |
+| 6 | `uart-communication-module-readout` | unsupported | Communication-module readout; suspected genuine-unsupported or variance. | **Confirm via re-runs** |
+| 7 | `spi-communication-module-readout` | unsupported | plan §4 #17 flipped valid earlier → **model variance** suspected. | **Confirm via re-runs** |
+
+**Net:** RC-F (2) is the only remaining *deterministic* defect. Fixing it → **32/36 ≈ 88.9% ≥ 85% target**. Cases 3–4 are correct/borderline behavior (not bugs). Cases 5–7 are protocol-readout variance to confirm (no code change unless a re-run shows a consistent deterministic block).
+
+### RC-F — intent-modality **over-union** (HIGH impact, deterministic)
+**Where:** intent derivation `server/context/contextPacket.ts` `inferIntentHints` (~:2074-2086) sets `intentSpec.{input,output}Modalities` to the **union of EVERY matched capability**; the gate `applyIntentFulfillmentGate` (`server/agent/circuitTools.ts`) then treats that flat union **conjunctively** (each modality must be fulfilled).
+
+**The bug (offline-confirmed, no model):** a focused request matches sibling readout capabilities. "조이스틱 위치를 OLED에 표시" matches `analog-sensor-display-readout` (ranked PRIMARY — itself a mis-ranking), `digital-input-display-readout`, `joystick-display-readout`, `display-text-output`; `intentSpec.input = {analog-sensor, analog, digital-input, digital-sensor, joystick}`. No single valid circuit fulfills all five input families, so the agent's correct joystick circuit is rejected for missing `analog-sensor`/`digital-sensor` it never needed. Same for "OLED에 센서 상태 표시" (ttp223 digital circuit rejected for missing `analog-sensor`/`analog`).
+
+**Fix (recommended — option B, input disjunction):** keep OUTPUT modalities conjunctive (the deliverable must be present), but treat concrete **INPUT modalities as a disjunction** — when any concrete input is requested, require **≥1** of the unioned input families to be fulfilled (not all). Surgical, in the gate only, reuses `modalityFulfillment.ts`.
+- Why B over C: a joystick circuit fulfils ≥1 input → PASS; a ttp223 circuit → PASS; **a dropped-input circuit (OLED only) fulfils 0 inputs → still FAIL** (caught); motor→LED fails on the conjunctive output union. Disjunction is strictly *weaker* than the current conjunction, so it can only turn false-FAILs into PASSes — it **cannot** regress any of the 30 currently-valid cases.
+- Why NOT C (per-capability satisfaction): `display-text-output` co-matches with EMPTY input modalities, so an OLED-only circuit would *trivially satisfy* it and the gate would stop catching dropped inputs — a real strictness hole. B avoids it.
+- **Accepted trade-off:** B is laxer for a genuinely multi-input request (student wants sensor AND button, agent wires only one). No such capability exists in the corpus; if one is added later, layer keyword-evidenced strictness on top.
+- **Secondary (R­C-F.2):** scope RC-B composition coverage to the PRIMARY capability only (not all top-k), so sibling caps don't inject spurious candidates (e.g. `soil-moisture`/`ttp223` into the joystick set). Low priority — currently harmless (agent ignores them) but cleaner.
+- **Optional (R­C-F.3):** investigate the primary mis-ranking (`analog-sensor-display-readout` ranked above `joystick-display-readout` for a joystick message) in `matchCapabilities`. Not required if the gate fix (option C) lands, since the gate no longer depends on which sibling is "primary".
+
+### Phase 5 — RC-F fix plan (TDD, offline-first)
+- **RED**: offline gate test — a joystick circuit (joystick-module+oled) and a ttp223 circuit (ttp223+oled) built for their messages PASS `applyIntentFulfillmentGate` under the real packet; a genuinely-degraded circuit (requested motion, built LED-only) still FAILS. Extend `intentFulfillmentRegression.test.ts` to drive the agent-realized circuit (not the use-all-candidates upper bound) so it would have caught RC-F.
+- **GREEN**: implement option C — pass matched-capability modality groups to the gate; accept if any group is fully satisfied.
+- **REFACTOR**: keep one taxonomy (reuse `modalityFulfillment.ts`); no duplicate vocab.
+- **Gate**: corpus 37/37 parity; `test:unit`+typecheck+build green; legacy path unchanged.
+- **Phase 6 — live re-validation**: re-run the corpus; expect `joystick-display` + `digital-input-display` → valid (≈88.9%); 2–3 re-runs of cases 5–7 to classify variance vs genuine; document cases 3–4 as correct.
+
+### Open security item
+The OpenAI key used for this live run was supplied via gitignored `.local/agent.env` and **must be revoked** by the user (it was also pasted in chat). No key is committed.

@@ -521,9 +521,21 @@ export function applyIntentFulfillmentGate(
   const usedParts = spec.components
     .map((component) => partsById.get(component.partId))
     .filter((part): part is PartCapability => Boolean(part));
-  const missingInputModalities = unique(intentSpec.inputModalities)
-    .filter(requiresConcreteInputFulfillment)
-    .filter((modality) => !usedParts.some((part) => partFulfillsInputModality(part, modality)));
+  // RC-F: a focused request co-matches sibling capabilities, so intentSpec.inputModalities is the
+  // UNION of every matched capability's inputs (e.g. a joystick request unions analog-sensor +
+  // digital-sensor + joystick). Requiring all of them conjunctively falsely rejects a correct
+  // single-purpose circuit (the agent's joystick circuit rejected for missing analog-sensor it never
+  // needed). Treat concrete INPUT modalities as a DISJUNCTION: when any concrete input is requested,
+  // require >=1 to be fulfilled. OUTPUT modalities stay conjunctive (the deliverable must be present).
+  // Dropping the input entirely still fails (0 fulfilled); this is strictly weaker than the old
+  // conjunction, so it can only accept previously-false-rejected circuits, never regress a valid one.
+  const concreteInputModalities = unique(intentSpec.inputModalities).filter(requiresConcreteInputFulfillment);
+  const someInputFulfilled = concreteInputModalities.some((modality) =>
+    usedParts.some((part) => partFulfillsInputModality(part, modality))
+  );
+  const missingInputModalities = concreteInputModalities.length === 0 || someInputFulfilled
+    ? []
+    : concreteInputModalities;
   const missingOutputModalities = unique(intentSpec.outputModalities)
     .filter(requiresConcreteOutputFulfillment)
     .filter((modality) => !usedParts.some((part) => partFulfillsOutputModality(part, modality)));
@@ -2341,10 +2353,6 @@ const SERVO_ACTUATOR_PART_IDS = new Set(['micro-servo', 'mg996r-servo']);
 const HIGH_TORQUE_SERVO_PART_IDS = new Set(['mg996r-servo']);
 const LOW_SIDE_DISCRETE_DRIVER_PART_IDS = new Set(['2n2222-npn']);
 const LOW_SIDE_MOSFET_MODULE_PART_IDS = new Set(['irf520-mosfet']);
-const LOW_SIDE_DRIVER_PART_IDS = new Set([
-  ...LOW_SIDE_DISCRETE_DRIVER_PART_IDS,
-  ...LOW_SIDE_MOSFET_MODULE_PART_IDS
-]);
 const LOW_SIDE_INTEGRATED_LOAD_PART_IDS = new Set(['vibration-motor']);
 const LOW_SIDE_LOAD_PART_IDS = new Set([
   'dc-motor-130',
@@ -2797,8 +2805,8 @@ function validateAnalogInputPaths(
 
 function validateAnalogSensorDisplayPaths(
   spec: CircuitSpec,
-  partsById: Map<string, PartCapability>,
-  componentsById: Map<string, CircuitSpec['components'][number]>
+  _partsById: Map<string, PartCapability>,
+  _componentsById: Map<string, CircuitSpec['components'][number]>
 ) {
   const errors: string[] = [];
   const hasDisplay = hasI2cTextDisplay(spec);
@@ -8525,12 +8533,6 @@ function nearestGridValue(value: number, start: number, end: number, pitch: numb
   const clamped = Math.max(start, Math.min(end, value));
   const steps = Math.round((clamped - start) / pitch);
   return Number((start + steps * pitch).toFixed(6));
-}
-
-function nearestRowValue(value: number, rows: number[]) {
-  return rows.reduce((best, row) =>
-    Math.abs(value - row) < Math.abs(value - best) ? row : best
-  , rows[0] ?? value);
 }
 
 function explainConnection(connection: CircuitSpec['connections'][number]) {
