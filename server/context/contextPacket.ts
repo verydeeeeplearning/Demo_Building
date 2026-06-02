@@ -40,6 +40,9 @@ import {
   buildSupportBundleEvidence,
   bundleEvidenceBlocksSynthesis
 } from './supportBundleEvidence.ts';
+// Type-only import: the pipeline-mode flag is resolved by the caller and passed via deps, so the
+// context layer keeps no runtime dependency on the agent layer.
+import type { AgentPipelineMode } from '../agent/agentPipelineMode.ts';
 
 type BuildContextPacketInput = Pick<AgentMessageRequest, 'message' | 'locale' | 'conversationContext'>;
 
@@ -48,6 +51,9 @@ type BuildContextPacketInput = Pick<AgentMessageRequest, 'message' | 'locale' | 
 type PartRegistrySource = () => Promise<PartCapability[]>;
 export type ContextPacketDeps = {
   registrySource?: PartRegistrySource;
+  // Pipeline mode (legacy|shadow|next). `legacy` (default) preserves the exact current routing;
+  // shadow|next enable tier-aware route selection (Phase 1). Resolved by the caller.
+  pipelineMode?: AgentPipelineMode;
 };
 
 type ContextV2Route = ContextV2Routes['routes'][number];
@@ -1350,6 +1356,7 @@ export async function buildContextPacket(
   deps: ContextPacketDeps = {}
 ): Promise<ContextPacket> {
   const registrySource = deps.registrySource ?? getPartRegistry;
+  const pipelineMode = deps.pipelineMode ?? 'legacy';
   const locale = input.locale ?? 'ko';
   const message = input.message;
   const conversationContext = input.conversationContext;
@@ -1377,7 +1384,8 @@ export async function buildContextPacket(
     capabilityMatches,
     intentSignals,
     ambiguity: intentHints.ambiguity.length > 0,
-    unsafe: unsupportedSignals.length > 0
+    unsafe: unsupportedSignals.length > 0,
+    pipelineMode
   });
   const selectedBundles = await Promise.all(
     contextRouteV2.bundleIds.map((bundleId) => loadContextBundleV2(bundleId))
@@ -1432,8 +1440,23 @@ export async function buildContextPacket(
       bundle.manifest.allowedParts.length > 0 ? bundle.manifest.allowedParts : bundle.manifest.requiredParts
     ))
     : null;
+  // Phase 1 (flag-gated): the legacy filter restricts candidates to the selected bundle's parts,
+  // which (a) drops an explicitly-named primary output when a wrong/compositional bundle wins (the
+  // OLED bug) and (b) pulls in EVERY surface of a compositional bundle when only a surface matched.
+  // In shadow|next, candidates = base parts + request-named (explicit) parts + the bundle's parts,
+  // EXCEPT a compositional-context bundle contributes only what the student named (bounded to
+  // request-named parts) — so a prototyping/wiring bundle never adds the surfaces they did not ask
+  // for. legacy mode keeps the exact current filter.
+  const baseCandidateIds = new Set(['arduino-uno', 'breadboard-half']);
+  const selectedRouteIsCompositional = contextRouteV2.tier === 'compositional-context';
   const rawCandidateParts = selectCandidateParts(registry, searchedParts, intentHints, unsupportedSignals, capabilityMatches, explicitPartIds)
-    .filter((part) => !selectedBundlePartIds || selectedBundlePartIds.has(part.id));
+    .filter((part) => {
+      if (!selectedBundlePartIds) return true;
+      if (pipelineMode === 'legacy') return selectedBundlePartIds.has(part.id);
+      if (explicitPartIds.has(part.id) || baseCandidateIds.has(part.id)) return true;
+      if (selectedRouteIsCompositional) return false;
+      return selectedBundlePartIds.has(part.id);
+    });
   const explicitBundlePartIds = explicitOptionalPartIdsForV2(selectedBundles, explicitPartIds);
   const candidateParts = selectedBundles.length > 0
     ? compactCandidatePartsForV2(rawCandidateParts, selectedBundles, explicitBundlePartIds)
@@ -1689,6 +1712,7 @@ async function selectContextRouteV2(input: {
   intentSignals: string[];
   ambiguity: boolean;
   unsafe: boolean;
+  pipelineMode: AgentPipelineMode;
 }): Promise<ContextV2Route> {
   const [index, routes] = await Promise.all([
     loadContextV2Index(),
@@ -1705,8 +1729,17 @@ async function selectContextRouteV2(input: {
     }
   }
 
-  const matched = [...routes.routes]
-    .sort((a, b) => a.priority - b.priority)
+  // Tier-aware ordering (Phase 1, flag-gated): a compositional-context route (a prototyping
+  // surface, wiring, or passive that merely accompanies a build) must not out-rank the
+  // primary-output route the request actually wants. In legacy mode, sort by priority alone (exact
+  // current behavior). In shadow|next, rank primary-output routes ahead of compositional-context
+  // routes, then by priority — so a compositional route only wins when no primary route matches.
+  const tierRank = (route: ContextV2Route) => (route.tier === 'compositional-context' ? 1 : 0);
+  const orderedRoutes = input.pipelineMode === 'legacy'
+    ? [...routes.routes].sort((a, b) => a.priority - b.priority)
+    : [...routes.routes].sort((a, b) => tierRank(a) - tierRank(b) || a.priority - b.priority);
+
+  const matched = orderedRoutes
     .find((candidate) => {
       if (input.unsafe && !candidate.when.unsafe) return false;
       if (candidate.when.ambiguity && !input.ambiguity) return false;

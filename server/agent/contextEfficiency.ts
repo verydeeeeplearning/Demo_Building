@@ -19,6 +19,7 @@ import { toJsonSchema } from '@langchain/core/utils/json_schema';
 
 import { buildContextPacket } from '../context/contextPacket.ts';
 import { getPartRegistry } from '../context/contextLayer.ts';
+import type { AgentPipelineMode } from './agentPipelineMode.ts';
 import type { PartCapability } from './schemas.ts';
 import { createHeduwareAgentTools } from './deepAgentTools.ts';
 
@@ -27,6 +28,8 @@ export type ContextEfficiencyRequest = {
   locale?: 'ko' | 'en';
   // Phase 0.5 seam: inject a doubled/synthetic registry to prove O(request)-not-O(catalog) growth.
   registrySource?: () => Promise<PartCapability[]>;
+  // Phase 1: measure under a specific pipeline mode (legacy|shadow|next) without touching env.
+  pipelineMode?: AgentPipelineMode;
 };
 
 export type ContextEfficiencyMeasurement = {
@@ -121,7 +124,10 @@ export async function measureContextEfficiency(
   const registry: PartCapability[] = await registrySource();
 
   const startedAt = process.hrtime.bigint();
-  const packet = await buildContextPacket({ message: request.message, locale }, { registrySource });
+  const packet = await buildContextPacket(
+    { message: request.message, locale },
+    { registrySource, pipelineMode: request.pipelineMode }
+  );
   const elapsedNs = Number(process.hrtime.bigint() - startedAt);
 
   const tools = createHeduwareAgentTools({});

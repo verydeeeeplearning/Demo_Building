@@ -11,6 +11,7 @@ import type { AgentRuntimeDeps, DeepAgentFactory, ModelPort } from './agentRunti
 import { getPartRegistry, loadTopologyTemplates, readContextDoc } from '../context/contextLayer.ts';
 import { buildContextPacket } from '../context/contextPacket.ts';
 import { getComposeMode } from '../context/composeMode.ts';
+import { getAgentPipelineMode } from './agentPipelineMode.ts';
 import { runShadowComposition } from '../context/generatedComposition.ts';
 import {
   contextPacketLogSummary,
@@ -278,7 +279,7 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
   const deepAgentFactory = options.deps?.deepAgentFactory ?? createDeepAgent;
   const sessionId = request.sessionId ?? `session-${randomUUID()}`;
   const traceId = options.traceId ?? createAgentTraceId();
-  const contextPacket = await buildContextPacket(request);
+  const contextPacket = await buildContextPacket(request, { pipelineMode: getAgentPipelineMode() });
   const baseMetadata = langSmithMetadata({ traceId, request, contextPacket });
   logAgentEvent('context.packet.built', {
     traceId,

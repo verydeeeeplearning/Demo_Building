@@ -110,6 +110,11 @@ const ContextV2IndexSchema = z.object({
 const ContextV2RouteSchema = z.object({
   routeId: z.string().min(1),
   priority: z.number().int(),
+  // Tier separates primary-output routes (the request's actual goal) from compositional-context
+  // routes (surfaces/wiring/passives that merely accompany a build). Additive; defaults so legacy
+  // routes stay valid. Tier-aware selection (Agent Pipeline Refactor, Phase 1) prevents a
+  // compositional route from out-ranking the primary route and dropping the needed output part.
+  tier: z.enum(['primary-output', 'compositional-context']).default('primary-output'),
   policyOnly: z.boolean().default(false),
   when: z.object({
     capabilityIds: z.array(z.string()).default([]),
