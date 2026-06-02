@@ -23,6 +23,12 @@
 import { matchCapabilities } from './capabilityGraph.ts';
 import { getPartRegistry, loadContextV2Routes, loadTopologyTemplates } from './contextLayer.ts';
 import { assembleGeneratedComposition, selectComposableTopology, type GeneratedComposition } from './generatedComposition.ts';
+import {
+  partFulfillsInputModality,
+  partFulfillsOutputModality,
+  requiresConcreteInputFulfillment,
+  requiresConcreteOutputFulfillment
+} from '../agent/modalityFulfillment.ts';
 import type { CapabilityGraphEntry, PartCapability, TopologyTemplate } from '../agent/schemas.ts';
 
 const BASE_PART_IDS = ['arduino-uno', 'breadboard-half'];
@@ -101,6 +107,32 @@ export async function selectContextByComposition(
     }
   }
 
+  // RC-B — required-modality coverage. A capability's input device (or a needed output) is often a
+  // 1-of-N choice listed in `optionalParts`, so the loop above (required + wiring/named only) can
+  // leave a REQUIRED modality with no candidate. For each driving capability, guarantee every
+  // required input/output modality is covered by adding the optional part that covers the MOST
+  // still-uncovered required modalities (stable order tie-break). This reuses the Phase 1 taxonomy,
+  // so a single device satisfies the whole declared family (e.g. a digital sensor covers both
+  // `digital-input` and `digital-sensor`) and stays request-scoped (O(request), not O(catalog)).
+  for (const capability of primaryCapabilities.slice(0, topK)) {
+    coverRequiredModalities(
+      capability.optionalParts,
+      byId,
+      candidateIds,
+      consideredPartIds,
+      capability.inputModalities.filter(requiresConcreteInputFulfillment),
+      partFulfillsInputModality
+    );
+    coverRequiredModalities(
+      capability.optionalParts,
+      byId,
+      candidateIds,
+      consideredPartIds,
+      capability.outputModalities.filter(requiresConcreteOutputFulfillment),
+      partFulfillsOutputModality
+    );
+  }
+
   const candidateParts = [...candidateIds]
     .map((id) => byId.get(id))
     .filter((part): part is PartCapability => part !== undefined);
@@ -118,6 +150,47 @@ export async function selectContextByComposition(
     candidatesConsidered: new Set([...BASE_PART_IDS, ...consideredPartIds]).size,
     composition
   };
+}
+
+// Ensure every required modality is covered by ≥1 candidate, drawing deterministic representatives
+// from `optionalIds`. Greedy maximum-coverage: each round adds the optional that covers the most
+// still-uncovered required modalities (first such part wins on ties → stable order). This minimizes
+// added parts so a single device can satisfy a multi-modality family the gate treats conjunctively
+// (e.g. a digital sensor covers `digital-input` AND `digital-sensor`). Mutates candidateIds /
+// consideredPartIds in place. No-op when the required modalities are already covered.
+function coverRequiredModalities(
+  optionalIds: string[],
+  byId: Map<string, PartCapability>,
+  candidateIds: Set<string>,
+  consideredPartIds: Set<string>,
+  requiredModalities: string[],
+  fulfills: (part: PartCapability, modality: string) => boolean
+): void {
+  if (requiredModalities.length === 0) return;
+
+  const isCovered = (modality: string): boolean =>
+    [...candidateIds].some((id) => {
+      const part = byId.get(id);
+      return part ? fulfills(part, modality) : false;
+    });
+
+  let uncovered = requiredModalities.filter((modality) => !isCovered(modality));
+  while (uncovered.length > 0) {
+    let best: { id: string; count: number } | null = null;
+    for (const id of optionalIds) {
+      if (candidateIds.has(id)) continue;
+      const part = byId.get(id);
+      if (!part) continue;
+      const count = uncovered.filter((modality) => fulfills(part, modality)).length;
+      if (count > 0 && (best === null || count > best.count)) {
+        best = { id, count };
+      }
+    }
+    if (best === null) break; // no optional can cover the remaining modalities — leave them uncovered
+    candidateIds.add(best.id);
+    consideredPartIds.add(best.id);
+    uncovered = uncovered.filter((modality) => !isCovered(modality));
+  }
 }
 
 // A part is "named" when its id or any alias (>=3 chars) appears in the normalized message. Bounded

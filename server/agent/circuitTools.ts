@@ -31,6 +31,12 @@ import {
   type TopologyTemplate,
   type ValidationReport
 } from './schemas.ts';
+import {
+  partFulfillsInputModality,
+  partFulfillsOutputModality,
+  requiresConcreteInputFulfillment,
+  requiresConcreteOutputFulfillment
+} from './modalityFulfillment.ts';
 
 const SIGNAL_COLORS: Record<string, string> = {
   power: '#ff4d3d',
@@ -546,122 +552,8 @@ export function applyIntentFulfillmentGate(
   });
 }
 
-function requiresConcreteInputFulfillment(modality: string) {
-  return [
-    'analog',
-    'analog-sensor',
-    'button',
-    'digital-input',
-    'digital-sensor',
-    'joystick',
-    'light-sensor',
-    'matrix-input',
-    'potentiometer',
-    'rotary-encoder',
-    'temperature-humidity-sensor'
-  ].includes(modality);
-}
-
-function requiresConcreteOutputFulfillment(modality: string) {
-  return [
-    'addressable-led-display',
-    'bare-seven-segment-display',
-    'display',
-    'hbridge-motor',
-    'led-array-display',
-    'light',
-    'motion',
-    'relay-output',
-    'sound',
-    'spi-display',
-    'stepper-motion',
-    'switched-load'
-  ].includes(modality);
-}
-
-function partFulfillsInputModality(part: PartCapability, modality: string) {
-  const capabilities = new Set(part.capabilities);
-  const protocols = new Set(part.protocols);
-  const aliases = part.aliases.join(' ').toLowerCase();
-
-  switch (modality) {
-    case 'analog':
-      return part.kind === 'input' && protocols.has('analog-input');
-    case 'analog-sensor':
-      return capabilities.has('analog-sensor')
-        || capabilities.has('resistive-sensor')
-        || capabilities.has('light-sensor')
-        || (part.kind === 'input' && protocols.has('analog-input') && capabilities.has('threshold-input'));
-    case 'button':
-      return part.id === 'button-tactile' || capabilities.has('digital-input-switch') || aliases.includes('button');
-    case 'digital-input':
-      return part.kind === 'input' && (
-        capabilities.has('digital-input-switch')
-        || capabilities.has('digital-input-state-source')
-        || capabilities.has('digital-output-sensor')
-        || capabilities.has('powered-digital-sensor')
-      );
-    case 'digital-sensor':
-      return part.kind === 'input' && (
-        capabilities.has('digital-sensor')
-        || capabilities.has('powered-digital-sensor')
-        || capabilities.has('digital-output-sensor')
-        || capabilities.has('temperature-humidity-sensor')
-        || capabilities.has('protocol-sensor')
-      );
-    case 'joystick':
-      return part.id === 'joystick-module' || capabilities.has('joystick');
-    case 'light-sensor':
-      return capabilities.has('light-sensor');
-    case 'matrix-input':
-      return part.id.includes('keypad') || capabilities.has('matrix-input');
-    case 'potentiometer':
-      return part.id.includes('pot') || aliases.includes('potentiometer') || aliases.includes('trimmer');
-    case 'rotary-encoder':
-      return part.id === 'rotary-encoder' || capabilities.has('rotary-encoder');
-    case 'temperature-humidity-sensor':
-      return capabilities.has('temperature-humidity-sensor');
-    default:
-      return false;
-  }
-}
-
-function partFulfillsOutputModality(part: PartCapability, modality: string) {
-  const capabilities = new Set(part.capabilities);
-
-  switch (modality) {
-    case 'addressable-led-display':
-      return capabilities.has('addressable-led-display') || part.id.includes('neopixel') || part.id.includes('ws2812');
-    case 'bare-seven-segment-display':
-      return part.id === '7seg-1digit' || capabilities.has('bare-seven-segment-display');
-    case 'display':
-      return capabilities.has('display-text') || capabilities.has('display-output');
-    case 'hbridge-motor':
-      return part.id.includes('driver') && (part.id.includes('l298') || part.id.includes('l293'));
-    case 'led-array-display':
-      return capabilities.has('led-array-display') || part.id.includes('matrix') || part.id.includes('tm1637');
-    case 'light':
-      return part.kind === 'output' && (
-        capabilities.has('visual-indicator')
-        || capabilities.has('digital-output-load')
-        || capabilities.has('powered-light-module')
-      );
-    case 'motion':
-      return part.kind === 'output' && (part.id.includes('servo') || capabilities.has('servo-actuator'));
-    case 'relay-output':
-      return part.id.includes('relay') || capabilities.has('relay-module');
-    case 'sound':
-      return part.kind === 'output' && (part.id.includes('buzzer') || capabilities.has('sound-output'));
-    case 'spi-display':
-      return capabilities.has('spi-display') || ['tft-18', 'nokia-5110', 'epaper-213'].includes(part.id);
-    case 'stepper-motion':
-      return part.id.includes('stepper') || part.id.includes('uln2003');
-    case 'switched-load':
-      return capabilities.has('switched-load') || part.id.includes('motor') || part.id.includes('fan') || part.id.includes('pump') || part.id.includes('solenoid');
-    default:
-      return false;
-  }
-}
+// Intent-modality fulfillment predicates live in ./modalityFulfillment.ts (single source of truth,
+// shared with composition selection). RC-A widened the generic↔specific mapping there.
 
 function coverageAllowsValidCircuitSynthesis(contextCoverage: ContextCoverageReport) {
   if (contextCoverage.sufficientFor?.length > 0) {
