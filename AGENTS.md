@@ -80,18 +80,17 @@ Access 1002k tokens of past work via get_observations([IDs]) or mem-search skill
 - Treat `Spec/H-eduware_master_statement.md` as binding product scope.
 - Treat `Spec/H-eduware_design_system.md` as binding visual and interaction language.
 - Treat `Spec/flux_ai_ui_ux_analysis.md` as the layout reference only.
-- For the approved RALPLAN roadmap for Context Layer, validation, and Deepagents workflow improvements, use `docs/superpowers/plans/2026-06-01-context-validation-deepagents-workflow.md`.
-- Current Context Layer and Deepagents planning documents:
-  - `docs/superpowers/plans/2026-06-01-context-layer-source-bundle-collection.md`: source-of-truth bundle collection pipeline and promotion gate plan.
-  - `docs/superpowers/plans/2026-06-01-deepagents-source-bundle-workflow.md`: Deepagents workflow plan for consuming source bundles and enforcing synthesis eligibility.
-  - `docs/superpowers/plans/2026-06-01-agent-context-v2-information-architecture.md`: hierarchical bundle-first `agent-context/v2` plan for source-of-truth structure and context bloat control.
+- For the current Context Layer architecture (single v2 router, L0 part bundles → L2 topology composition → L3 capability bundles, v1 removed), use `docs/plans/PLAN_layered_context_architecture.md` and its adversarial review `docs/plans/REVIEW_layered_context_architecture_2026-06-02.md`.
 - Keep the hackathon boundary: one polished Arduino + I2C OLED breadboard demo, not a general circuit simulator.
 
-## Coworking handoff document
+## Documentation map
 
-- Use `docs/coworking_handoff_2026-05-31.md` as the shared handoff document for recent Deepagents, Context Layer, generalized simulation, browser verification, and UI evidence work.
-- When adding future coworking notes, update that same document instead of creating a duplicate handoff file unless the user explicitly asks for a new dated handoff.
-- Keep additions focused on what changed, why it changed, where the relevant files are, and how to verify the work.
+- See `docs/README.md` for the index of living reference documents (observability,
+  Deepagents architecture anchor, Korean UX copy guide, solver-gate design) and the
+  active plans under `docs/plans/`.
+- Keep additions focused on what changed, why it changed, where the relevant files are,
+  and how to verify the work. Update the living reference docs in place instead of adding
+  dated snapshots unless the user explicitly asks for one.
 
 ## Stack
 
