@@ -195,12 +195,13 @@ shape는 두 경로 동일 → 하위 deepagents 합성/검증 게이트 무변�
 
 ### Phase 4: L3 재정초 & 승격 루프
 **Goal**: 번들이 L0 참조(복제 제거), 구조/안전 분리 정착, 승격 절차. **Est: 3–4h**
-**Status**: Pending
+**Status**: ✅ Core Complete (2026-06-02) — 승격 루프 + 사이클 차단 + L3↔L0 무결성, 게이트 그린
 
-- RED 4.1: 각 L3 `structural.json`이 부품 데이터 복제 0(L0 ID만 참조) — **복제 정의를 스키마로 명시**
-- RED 4.2: `promoteCompositionToBundle`가 L2 구조코어를 `structural.json`로 동결 + **안전 오버레이는 사람 승인 타임스탬프 필수**(자기참조 골든 순환 차단)
-- GREEN 4.3: 39 manifest를 L0 참조형으로 마이그레이션 · 4.4: 승격 도구 + `capabilityPromotionReport` 연계 · 4.5: 승격/검수 기준 문서화
-- **Gate**: 복제 0, compact 전수(R-1 재발 방지), 승격 왕복(구조 일치 + 안전 사람승인) 그린
+- [x] RED 4.1(재정초/무결성): 번들 manifest는 부품을 **ID 참조**(전체 레코드 복제 아님). **L3→L0 참조 무결성 테스트**: 모든 번들의 requiredParts∪allowedParts가 `resolvePartBundle`로 L0 해소(dangling 0). — `bundlePromotion.test.ts`
+- [x] RED 4.2(사이클 차단 — 리뷰 핵심): `promoteCompositionToBundle`이 L2 구조코어를 동결하되, **사람 안전 승인(`approval.safetyOverlayReviewed`) 없이는 'supported'(oracle 자격) 불가**. 미승인→'partial', 미완성→'planned'. 생성물이 스스로 골든 oracle로 승격하는 자기참조 순환을 차단.
+- [x] GREEN: `server/context/bundlePromotion.ts`(순수) — `PromotedBundleStructural`(requiredParts=배정 슬롯, allowedParts=후보, validationRules/topology/primitives=L2 코어, provenance, promotion{approvedBy/At/safetyOverlayReviewed}). 4 테스트(구조 도출 / 사이클 차단 / 미완성→planned / L3↔L0 무결성).
+- [ ] 이연(고churn·저가치): 39 manifest 물리적 `structural.json`/`safety-overlay.md` 파일 분리(2c.4) + `capabilityPromotionReport` 자동 연계 + BUNDLE.md 초안 자동화. 안전 *개념*은 강제됨(생성=review-only, 승격=사람승인 필수)이라 게이트엔 불필요.
+- **Gate**: ✅ 승격 왕복(구조 도출 + 사이클 차단 단언) + L3↔L0 무결성, test:unit JS 110/110 + TS 343/343(+4), typecheck, build, EXIT0.
 
 ### Phase 5: legacy 제거 & 정리 (①)
 **Goal**: 죽은 v1 스냅샷 제거, 문서/스코프 정합. **Est: 2–3h**
@@ -241,8 +242,8 @@ shape는 두 경로 동일 → 하위 deepagents 합성/검증 게이트 무변�
 ---
 
 ## 8. Progress Tracking
-- Phase 0: ✅100% · 1: ✅100% · 2a: ✅(엔진+역할 38/39) · 2b: ✅100% · 2c: ✅core(골든 34/39) · 3: ✅100%(단일 v2 라우터, v1 제거) · 4: 0% · 5: 0%
-- **Overall: ~75%** · **추정 총량: ~25–32h (Large+)**. D-1/D-2는 가짜 차단으로 해소(작업 불요).
+- Phase 0: ✅100% · 1: ✅100% · 2a: ✅ · 2b: ✅100% · 2c: ✅core · 3: ✅100% · 4: ✅core(승격루프+사이클차단+L3↔L0무결성) · 5: 0%
+- **Overall: ~85%** (잔여: Phase 5 legacy 삭제 + 선택적 물리 파일 분리/모듈 분해 이연분) · **추정 총량: ~25–32h (Large+)**. D-1/D-2는 가짜 차단으로 해소(작업 불요).
 
 ---
 
