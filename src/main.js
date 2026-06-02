@@ -612,19 +612,19 @@ function renderSolverGateStatus(circuit) {
   if (!gate) {
     return '';
   }
-  const safeEquivalent = gate.mode === 'safe_equivalent_simulation';
-  const placeholder = gate.mode === 'placeholder_part_simulation';
-  if (gate.buildReady === true && !safeEquivalent && !placeholder) {
+  const adjustmentKind = solverGateAdjustmentKind(gate);
+  const reviewAdjustment = isReviewAdjustmentKind(adjustmentKind);
+  if (!reviewAdjustment) {
     return '';
   }
-  const titleKey = safeEquivalent
-    ? 'solverGate.safeEquivalentTitle'
-    : placeholder ? 'solverGate.placeholderTitle' : 'solverGate.diagnosticTitle';
-  const bodyKey = safeEquivalent
-    ? 'solverGate.safeEquivalentBody'
-    : placeholder ? 'solverGate.placeholderBody' : 'solverGate.diagnosticBody';
 
+  const title = t(`solverGate.adjustment.${adjustmentKind}.title`, {}, state.locale);
+  const body = t(`solverGate.adjustment.${adjustmentKind}.body`, {}, state.locale);
   const activityLabel = studentFacingSolverGateActivity(gate, state.locale);
+  const claimScope = studentFacingBuildReadyScope(gate, state.locale);
+  const controlNotes = studentFacingSolverGateControlNotes(gate, state.locale)
+    .map((note) => `<p><span>${escapeHtml(activityLabel)}</span> ${escapeHtml(note)}</p>`)
+    .join('');
   const reasons = (gate.notVerified || circuit.buildRunnableReport?.reasons || [])
     .slice(0, 2)
     .map((reason) => `<p><span>${escapeHtml(activityLabel)}</span> ${escapeHtml(studentFacingSolverGateReason(reason, state.locale))}</p>`)
@@ -632,28 +632,131 @@ function renderSolverGateStatus(circuit) {
 
   return `
     <section class="render-warning-panel solver-gate-panel" data-testid="solver-gate-status">
-      <strong>${escapeHtml(t(titleKey, {}, state.locale))}</strong>
-      <p><span>${escapeHtml(activityLabel)}</span> ${escapeHtml(t(bodyKey, {}, state.locale))}</p>
+      <strong>${escapeHtml(title)}</strong>
+      <p><span>${escapeHtml(activityLabel)}</span> ${escapeHtml(body)}</p>
+      ${claimScope ? `<p><span>${escapeHtml(activityLabel)}</span> ${escapeHtml(claimScope)}</p>` : ''}
+      ${controlNotes}
       ${reasons}
     </section>
   `;
 }
 
 function studentFacingSolverGateActivity(gate, locale) {
-  if (gate.mode === 'safe_equivalent_simulation') {
-    return locale === 'ko' ? '안전 대체' : 'Safe equivalent';
+  const kind = solverGateAdjustmentKind(gate);
+  return t(`solverGate.adjustment.${kind}.label`, {}, locale);
+}
+
+function solverGateAdjustmentKind(gate = {}) {
+  const explicitKind = normalizeSolverGateAdjustmentKind(
+    gate.presentationAdjustment?.kind || gate.mode
+  );
+  if (isReviewAdjustmentKind(explicitKind)) {
+    return explicitKind;
   }
-  if (gate.mode === 'placeholder_part_simulation') {
-    return locale === 'ko' ? '3D 대체 표시' : '3D placeholder';
+  if (explicitKind === 'none' && solverGateBuildReady(gate)) {
+    return 'none';
   }
-  return locale === 'ko' ? '3D 검토' : '3D review';
+  if (gate.visibleSimulation === true && !solverGateBuildReady(gate)) {
+    return normalizeSolverGateAdjustmentKind(gate.simulationActivity) === 'state_only'
+      ? 'state_only'
+      : 'diagnostic_simulation';
+  }
+  return 'none';
+}
+
+function normalizeSolverGateAdjustmentKind(kind) {
+  const value = String(kind || '').trim();
+  if (value === 'diagnostic') {
+    return 'diagnostic_simulation';
+  }
+  if (value === 'placeholder') {
+    return 'placeholder_part_simulation';
+  }
+  if (value === 'safe_equivalent') {
+    return 'safe_equivalent_simulation';
+  }
+  if ([
+    'diagnostic_simulation',
+    'placeholder_part_simulation',
+    'safe_equivalent_simulation',
+    'state_only',
+    'none'
+  ].includes(value)) {
+    return value;
+  }
+  return '';
+}
+
+function isReviewAdjustmentKind(kind) {
+  return [
+    'diagnostic_simulation',
+    'placeholder_part_simulation',
+    'safe_equivalent_simulation',
+    'state_only'
+  ].includes(kind);
+}
+
+function solverGateBuildReady(gate = {}) {
+  if (gate.buildReadyScope === 'none') {
+    return false;
+  }
+  if (gate.buildReadyScope === 'displayed_equivalent') {
+    return gate.presentationAdjustment?.displayedEquivalentBuildReady === true
+      || gate.buildReady === true;
+  }
+  if (gate.buildReadyScope === 'original') {
+    return gate.buildReady === true;
+  }
+  return gate.buildReady === true;
+}
+
+function solverGateRunEnabled(gate = {}) {
+  if (gate.buildReadyScope === 'none') {
+    return false;
+  }
+  if (gate.controls && typeof gate.controls.runEnabled === 'boolean') {
+    return gate.controls.runEnabled === true;
+  }
+  return solverGateBuildReady(gate);
+}
+
+function solverGateCurrentAnimationEnabled(gate = {}) {
+  if (gate.controls && typeof gate.controls.currentAnimationEnabled === 'boolean') {
+    return gate.controls.currentAnimationEnabled === true;
+  }
+  return solverGateRunEnabled(gate);
+}
+
+function studentFacingBuildReadyScope(gate, locale) {
+  const scope = gate?.buildReadyScope;
+  if (scope === 'original' || scope === 'displayed_equivalent' || scope === 'none') {
+    return t(`solverGate.claimScope.${scope}`, {}, locale);
+  }
+  if (solverGateAdjustmentKind(gate) === 'safe_equivalent_simulation') {
+    return t('solverGate.claimScope.displayed_equivalent', {}, locale);
+  }
+  if (!solverGateBuildReady(gate)) {
+    return t('solverGate.claimScope.none', {}, locale);
+  }
+  return '';
+}
+
+function studentFacingSolverGateControlNotes(gate, locale) {
+  const notes = [];
+  if (!solverGateRunEnabled(gate)) {
+    notes.push(t('solverGate.controls.runOff', {}, locale));
+  }
+  if (!solverGateCurrentAnimationEnabled(gate)) {
+    notes.push(t('solverGate.controls.currentOff', {}, locale));
+  }
+  return [...new Set(notes)];
 }
 
 function studentFacingSolverGateReason(reason, locale) {
   const raw = String(reason || '').trim();
   if (!raw) {
     return locale === 'ko'
-      ? '추가 확인이 끝날 때까지 실행을 막아 둡니다.'
+      ? '추가 확인이 끝날 때까지 실행은 꺼져 있습니다.'
       : 'Run stays off until the remaining checks are complete.';
   }
 
@@ -666,6 +769,11 @@ function studentFacingSolverGateReason(reason, locale) {
     return locale === 'ko'
       ? '전류 흐름 애니메이션은 확인된 경로가 준비될 때까지 꺼져 있습니다.'
       : 'Current-flow animation stays off until a checked path is available.';
+  }
+  if (/blocked|degraded|hard gate|cannot proceed/i.test(raw)) {
+    return locale === 'ko'
+      ? '안전하게 볼 수 있도록 장면을 자동으로 검토 상태로 조정했습니다.'
+      : 'The scene was automatically adjusted into a safe review state.';
   }
   if (/simulation status is unsupported|simulation[-_ ]?primitive/i.test(raw)) {
     return locale === 'ko'
@@ -680,7 +788,7 @@ function studentFacingSolverGateReason(reason, locale) {
   if (/build[- ]?ready|runnable|build-ready claim/i.test(raw)) {
     return locale === 'ko'
       ? '조립 가능 상태로 표시하려면 추가 검토가 필요합니다.'
-      : 'Build-ready status needs one more review before it can be shown.';
+      : 'Assembly-ready status needs one more review before it can be shown.';
   }
   if (/diagnostic render|render is diagnostic only/i.test(raw)) {
     return locale === 'ko'
@@ -1217,8 +1325,8 @@ async function submitAgentMessage(message) {
             ? '좋아요. 방금 검증한 회로 초안으로 구성해 볼게요.'
             : 'Okay. I will build the validated circuit draft.'
           : state.locale === 'ko'
-            ? '좋아요. 먼저 3D 진단 시뮬레이션으로 보여드릴게요. 조립 가능 여부와 전류 흐름은 검증된 것만 표시하겠습니다.'
-            : 'Okay. I will show the 3D diagnostic simulation first. Build-ready and current-flow claims will stay restricted to verified evidence.'
+            ? '좋아요. 먼저 검토용 3D 장면으로 보여드릴게요. 조립과 전류 흐름 조작은 확인된 범위 안에서만 켜겠습니다.'
+            : 'Okay. I will show the 3D review scene first. Assembly and current-flow controls will stay within the checked scope.'
       })
     };
     confirmCurrentAgentResult();
@@ -1342,13 +1450,16 @@ function nextAgentThreadMessages(message) {
 
 function canBuildAgentResult(result) {
   if (result?.solverGateResult) {
-    return result.solverGateResult.buildReady === true && result.buildRunnableReport?.runnable === true;
+    if (result.solverGateResult.controls || result.solverGateResult.buildReadyScope) {
+      return solverGateBuildReady(result.solverGateResult);
+    }
+    return solverGateBuildReady(result.solverGateResult) && result.buildRunnableReport?.runnable === true;
   }
   return result?.buildRunnableReport?.runnable === true;
 }
 
 function canShowAgentScene(result) {
-  if (result?.solverGateResult?.visibleSimulation === true) {
+  if (solverGateVisibleScene(result?.solverGateResult)) {
     return true;
   }
   return Array.isArray(result?.renderPlan?.parts) && result.renderPlan.parts.length > 0;
@@ -1359,7 +1470,7 @@ function canShowLoadedProjectScene() {
     return false;
   }
   const circuit = activeCircuit();
-  if (circuit?.solverGateResult?.visibleSimulation === true) {
+  if (solverGateVisibleScene(circuit?.solverGateResult)) {
     return true;
   }
   return Array.isArray(circuit?.parts) && circuit.parts.length > 0;
@@ -1371,7 +1482,10 @@ function canRunLoadedProject() {
   }
   const circuit = activeCircuit();
   if (circuit?.solverGateResult) {
-    return circuit.solverGateResult.buildReady === true && circuit?.buildRunnableReport?.runnable === true;
+    if (circuit.solverGateResult.controls || circuit.solverGateResult.buildReadyScope) {
+      return solverGateRunEnabled(circuit.solverGateResult);
+    }
+    return solverGateBuildReady(circuit.solverGateResult) && circuit?.buildRunnableReport?.runnable === true;
   }
   if (circuit?.buildRunnableReport) {
     return circuit.buildRunnableReport.runnable === true;
@@ -1385,6 +1499,13 @@ function canRunLoadedProject() {
       );
   }
   return circuit?.source === 'demo';
+}
+
+function solverGateVisibleScene(gate) {
+  if (!gate) {
+    return false;
+  }
+  return gate.visibleSimulation === true || isReviewAdjustmentKind(solverGateAdjustmentKind(gate));
 }
 
 function confirmCurrentAgentResult() {
@@ -1480,6 +1601,12 @@ function studentFacingEventSummary(summary, locale) {
     return locale === 'ko'
       ? '아직 검증 자료가 부족해 회로를 만들기 전에 지원 범위를 확인했습니다.'
       : 'Checked that this request needs more verified context before circuit synthesis.';
+  }
+
+  if (/blocked|degraded|hard gate|cannot proceed|strict .*gate/i.test(raw)) {
+    return locale === 'ko'
+      ? '안전하게 볼 수 있도록 장면을 자동으로 검토 상태로 조정했습니다.'
+      : 'Automatically adjusted the scene into a safe review state.';
   }
 
   if (/structured circuit draft|deepagents|coordinator|subagent|tool call|trace|stack/i.test(raw)) {

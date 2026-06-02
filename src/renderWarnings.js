@@ -1,5 +1,5 @@
 export function renderWarningTitle(locale = 'ko') {
-  return locale === 'en' ? 'Render warnings' : '화면 표시 경고';
+  return locale === 'en' ? 'Display review notes' : '화면 검토 메모';
 }
 
 export function renderWarningsMarkdown(warnings = [], locale = 'ko') {
@@ -28,8 +28,8 @@ ${rows}
 export function renderWarningMessage(warning, locale) {
   if (isInternalDiagnosticWarning(warning)) {
     return locale === 'ko'
-      ? '이 장면은 검토용 3D 보기입니다. 조립이나 전류 흐름 실행은 충분한 자료가 확인될 때까지 꺼져 있습니다.'
-      : 'This is a review-only 3D view. Build and current-flow controls stay off until enough evidence is checked.';
+      ? '이 장면은 검토용 3D 보기로 자동 조정되었습니다. 조립이나 전류 흐름 실행은 충분한 자료가 확인될 때까지 꺼져 있습니다.'
+      : 'This scene was automatically adjusted into a 3D review view. Assembly and current-flow controls stay off until enough evidence is checked.';
   }
 
   if (locale !== 'ko') {

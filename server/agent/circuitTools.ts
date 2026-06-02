@@ -1024,6 +1024,10 @@ export function buildSolverGateResult(
     verifiedClaims?: string[];
     notVerified?: string[];
     repairSummary?: string[];
+    presentationAdjustment?: SolverGateResult['presentationAdjustment'];
+    buildReadyScope?: SolverGateResult['buildReadyScope'];
+    safeToRenderEvidence?: string[];
+    controls?: SolverGateResult['controls'];
   } = {}
 ): SolverGateResult {
   const visibleSimulation = renderPlan.parts.length > 0;
@@ -1036,33 +1040,36 @@ export function buildSolverGateResult(
   const degradedSolverStages = unique(renderSolverAttempts
     .filter((attempt) => attempt.result === 'degraded')
     .map((attempt) => attempt.stage));
-  const notVerified = unique([
-    ...(!visibleSimulation ? ['visible 3D scene is not yet available because the render plan has no parts'] : []),
-    ...(!buildReady ? ['build-ready claim is not verified'] : []),
-    ...(!buildReady && degradedSolverStages.length > 0 ? [`render solver degraded stage(s): ${degradedSolverStages.join(', ')}`] : []),
-    ...buildRunnable.reasons,
-    ...(options.notVerified ?? []),
-    'bench test has not been performed'
-  ]);
   const hasCurrentEvidence = simulationPlan.currentPaths.some((path) =>
-    ['load-current', 'supply-current', 'sensing-divider'].includes(path.kind)
+    simulationPlan.status === 'valid' && ['load-current', 'supply-current', 'sensing-divider'].includes(path.kind)
   );
   const hasSignalEvidence = simulationPlan.currentPaths.some((path) =>
-    ['signal-activity', 'bus-activity'].includes(path.kind)
+    simulationPlan.status === 'valid' && ['signal-activity', 'bus-activity'].includes(path.kind)
   );
+  const stateEvidence = solverStateEvidence(validationReport, renderPlan, simulationPlan);
   const hasPlaceholderVisualWarning = visualWarnings.some((warning) =>
     warning.code === 'MISSING_RENDER_FOOTPRINT'
   );
-  const simulationActivity = buildReady && hasCurrentEvidence
+  const simulationActivity = hasCurrentEvidence
     ? 'verified_current'
-    : buildReady && hasSignalEvidence
+    : hasSignalEvidence
       ? 'verified_signal'
-      : buildReady && simulationPlan.status === 'valid' && simulationPlan.expectedStates.length > 0
+      : stateEvidence.length > 0
         ? 'state_only'
         : 'diagnostic';
   const mode = options.mode ?? (buildReady
     ? repairedSolverStages.length > 0 ? 'auto_repaired_simulation' : 'verified_build_simulation'
     : hasPlaceholderVisualWarning ? 'placeholder_part_simulation' : 'diagnostic_simulation');
+  const buildReadyScope = options.buildReadyScope ?? inferBuildReadyScope(mode, buildReady);
+  const notVerified = unique([
+    ...(!visibleSimulation ? ['visible 3D scene is not yet available because the render plan has no parts'] : []),
+    ...(!buildReady ? ['build-ready claim is not verified'] : []),
+    ...(mode === 'safe_equivalent_simulation' ? ['original request is not build-ready; build-ready claims apply only to the displayed safe equivalent'] : []),
+    ...(!buildReady && degradedSolverStages.length > 0 ? [`render solver adjusted ${degradedSolverStages.join(', ')} stage(s) for review-only presentation`] : []),
+    ...buildRunnable.reasons,
+    ...(options.notVerified ?? []),
+    'bench test has not been performed'
+  ]);
   const repairLevel = options.repairLevel ?? (
     hasPlaceholderVisualWarning ? 'placeholder' : inferSolverRepairLevel(renderSolverAttempts)
   );
@@ -1070,12 +1077,38 @@ export function buildSolverGateResult(
     ...(visibleSimulation ? [`render plan exposes ${renderPlan.parts.length} visible part(s)`] : []),
     ...(repairedSolverStages.length > 0 ? [`render solver repaired ${repairedSolverStages.join(', ')} stage(s)`] : []),
     ...(options.verifiedClaims ?? []),
-    ...(buildReady && validationReport.status === 'valid' ? ['circuit validation status is valid'] : []),
-    ...(buildReady && simulationPlan.status === 'valid' ? ['simulation plan status is valid'] : []),
-    ...(buildReady ? ['build-ready runnable gate passed'] : []),
-    ...(buildReady && simulationPlan.currentPaths.length > 0 ? [`${simulationPlan.currentPaths.length} current/signal path(s) are available`] : []),
-    ...(buildReady && simulationPlan.expectedStates.length > 0 ? [`${simulationPlan.expectedStates.length} expected state(s) are available`] : [])
+    ...(buildReady && validationReport.status === 'valid' ? [`${solverClaimSubject(mode)} validation status is valid`] : []),
+    ...(buildReady && simulationPlan.status === 'valid' ? [`${solverClaimSubject(mode)} simulation plan status is valid`] : []),
+    ...(buildReady ? [`${solverClaimSubject(mode)} build-ready runnable gate passed`] : []),
+    ...(simulationPlan.status === 'valid' && simulationPlan.currentPaths.length > 0 ? [`${simulationPlan.currentPaths.length} current/signal path(s) are available`] : []),
+    ...(stateEvidence.length > 0 ? stateEvidence.map((evidence) => `state/context evidence: ${evidence}`) : [])
   ]);
+  const safeToRenderEvidence = options.safeToRenderEvidence ?? solverSafeToRenderEvidence({
+    validationReport,
+    renderPlan,
+    simulationPlan,
+    mode,
+    stateEvidence
+  });
+  const controls = options.controls ?? solverGateControls({
+    buildReady,
+    visibleSimulation,
+    simulationActivity,
+    buildReadyScope
+  });
+  const presentationAdjustment = options.presentationAdjustment ?? solverPresentationAdjustment({
+    mode,
+    simulationActivity,
+    sourceSpecId: options.sourceSpecId,
+    equivalentSpecId: options.equivalentSpecId,
+    buildReady,
+    renderPlan,
+    visualWarnings,
+    stateEvidence,
+    verifiedClaims,
+    notVerified,
+    hardwareWarnings: unique([...validationReport.warnings, ...simulationPlan.warnings])
+  });
 
   const attempts = renderSolverAttempts.length > 0
     ? [...renderSolverAttempts]
@@ -1085,8 +1118,8 @@ export function buildSolverGateResult(
       attempt: attempts.length + 1,
       stage: 'degrade',
       action: visibleSimulation
-        ? 'Expose the available scene as diagnostic while preserving strict build-ready blocking reasons.'
-        : 'No visible scene is available yet; preserve blocking reasons until diagnostic/safe-equivalent rendering is implemented.',
+        ? 'Expose the available scene as an automatically adjusted review view while keeping build-ready claims strict.'
+        : 'No visible scene is available yet; keep strict evidence reasons until a diagnostic or safe-equivalent scene can be rendered.',
       result: 'degraded',
       warnings: notVerified
     });
@@ -1109,8 +1142,189 @@ export function buildSolverGateResult(
     hardwareWarnings: unique([...validationReport.warnings, ...simulationPlan.warnings]),
     repairSummary: options.repairSummary?.length
       ? unique([...options.repairSummary, ...solverRepairSummary(buildReady, visibleSimulation, repairedSolverStages, degradedSolverStages)])
-      : solverRepairSummary(buildReady, visibleSimulation, repairedSolverStages, degradedSolverStages)
+      : solverRepairSummary(buildReady, visibleSimulation, repairedSolverStages, degradedSolverStages),
+    presentationAdjustment,
+    buildReadyScope,
+    safeToRenderEvidence,
+    controls
   });
+}
+
+function inferBuildReadyScope(
+  mode: SolverGateResult['mode'],
+  buildReady: boolean
+): SolverGateResult['buildReadyScope'] {
+  if (!buildReady) {
+    return 'none';
+  }
+  return mode === 'safe_equivalent_simulation' ? 'displayed_equivalent' : 'original';
+}
+
+function solverClaimSubject(mode: SolverGateResult['mode']) {
+  return mode === 'safe_equivalent_simulation' ? 'displayed safe equivalent' : 'circuit';
+}
+
+function solverGateControls(input: {
+  buildReady: boolean;
+  visibleSimulation: boolean;
+  simulationActivity: SolverGateResult['simulationActivity'];
+  buildReadyScope: SolverGateResult['buildReadyScope'];
+}): SolverGateResult['controls'] {
+  const hasVerifiedActivity = input.simulationActivity === 'verified_current' || input.simulationActivity === 'verified_signal';
+  const buildReadyClaimIsScoped = input.buildReadyScope === 'original' || input.buildReadyScope === 'displayed_equivalent';
+  return {
+    runEnabled: input.buildReady && buildReadyClaimIsScoped && hasVerifiedActivity,
+    currentAnimationEnabled: input.buildReady && buildReadyClaimIsScoped && hasVerifiedActivity,
+    hardwareMoveEnabled: false,
+    visualMoveEnabled: input.visibleSimulation,
+    shareEnabled: input.visibleSimulation
+  };
+}
+
+function solverStateEvidence(
+  validationReport: ValidationReport,
+  _renderPlan: RenderPlan,
+  simulationPlan: SimulationPlan
+): string[] {
+  const evidence: string[] = [];
+  if (simulationPlan.status === 'valid' && simulationPlan.expectedStates.length > 0) {
+    evidence.push(`${simulationPlan.expectedStates.length} expected state(s) are available`);
+  }
+  const contextWarnings = unique([...validationReport.warnings, ...simulationPlan.warnings])
+    .map(stateEvidenceFromWarning)
+    .filter((item): item is string => Boolean(item));
+  return unique([...evidence, ...contextWarnings]);
+}
+
+function stateEvidenceFromWarning(warning: string): string | null {
+  if (!/STATE_ONLY|CONTEXT_ONLY|CONTEXT_STATE_ONLY|PIN-?MAP|LAYOUT_CONTEXT/i.test(warning)) {
+    return null;
+  }
+  return warning.split(':')[0]?.trim() || warning;
+}
+
+function solverSafeToRenderEvidence(input: {
+  validationReport: ValidationReport;
+  renderPlan: RenderPlan;
+  simulationPlan: SimulationPlan;
+  mode: SolverGateResult['mode'];
+  stateEvidence: string[];
+}): string[] {
+  if (input.renderPlan.parts.length === 0) {
+    return [];
+  }
+
+  return unique([
+    `render plan exposes ${input.renderPlan.parts.length} visible part(s)`,
+    ...(input.validationReport.status === 'valid'
+      ? ['validation evidence is available for claim scoping']
+      : [`validation status ${input.validationReport.status} is preserved as review-only evidence`]),
+    ...(input.simulationPlan.status === 'valid'
+      ? ['simulation evidence is available for activity scoping']
+      : [`simulation status ${input.simulationPlan.status} is preserved as review-only evidence`]),
+    ...((input.renderPlan.warnings ?? []).length > 0 ? ['render warnings are preserved for visible review overlays'] : []),
+    ...(input.mode === 'safe_equivalent_simulation'
+      ? ['original unsafe request is separated from the displayed safe equivalent']
+      : []),
+    ...(input.mode === 'placeholder_part_simulation'
+      ? ['placeholder metadata disables exact geometry and pin-geometry claims']
+      : []),
+    ...input.stateEvidence.map((evidence) => `state/context evidence: ${evidence}`)
+  ]);
+}
+
+function solverPresentationAdjustment(input: {
+  mode: SolverGateResult['mode'];
+  simulationActivity: SolverGateResult['simulationActivity'];
+  sourceSpecId?: string;
+  equivalentSpecId?: string;
+  buildReady: boolean;
+  renderPlan: RenderPlan;
+  visualWarnings: RenderWarning[];
+  stateEvidence: string[];
+  verifiedClaims: string[];
+  notVerified: string[];
+  hardwareWarnings: string[];
+}): SolverGateResult['presentationAdjustment'] {
+  if (input.mode === 'safe_equivalent_simulation') {
+    return {
+      kind: 'safe_equivalent_simulation',
+      originalSpecId: input.sourceSpecId ?? 'original-request',
+      equivalentSpecId: input.equivalentSpecId ?? 'displayed-safe-equivalent',
+      originalBuildReady: false,
+      displayedEquivalentBuildReady: input.buildReady,
+      blockedOriginalReasons: input.notVerified.filter((reason) => /original|unsafe|not build-ready|not converted/i.test(reason)).length > 0
+        ? input.notVerified.filter((reason) => /original|unsafe|not build-ready|not converted/i.test(reason))
+        : ['original request is outside the safe classroom build-ready scope'],
+      equivalenceClaims: input.verifiedClaims,
+      nonEquivalentWarnings: input.hardwareWarnings,
+      reason: 'The original request is not build-ready; the visible build-ready scope belongs only to the displayed safe equivalent.'
+    };
+  }
+
+  if (input.mode === 'placeholder_part_simulation') {
+    const placeholderPartIds = placeholderPartIdsForRenderPlan(input.renderPlan, input.visualWarnings);
+    return {
+      kind: 'placeholder_part_simulation',
+      placeholderPartIds,
+      placeholderFootprintId: 'stage-generic-part-profile',
+      missingEvidence: placeholderMissingEvidence(input.visualWarnings, placeholderPartIds),
+      exactGeometryClaim: false,
+      pinGeometryClaim: false,
+      reason: 'A safe generic placeholder is visible while exact footprint and pin-geometry evidence remain unverified.'
+    };
+  }
+
+  if (input.simulationActivity === 'state_only') {
+    return {
+      kind: 'state_only',
+      stateEvidence: input.stateEvidence,
+      reason: 'Static state/context evidence is meaningful, but current-flow animation is not claimed.'
+    };
+  }
+
+  if (input.buildReady) {
+    return {
+      kind: 'none',
+      reason: 'verified_build'
+    };
+  }
+
+  return {
+    kind: 'diagnostic_simulation',
+    reason: 'A safe review scene is visible while strict build-ready and runtime claims remain gated.',
+    visibleOverlays: unique(input.visualWarnings.map((warning) => warning.code))
+  };
+}
+
+function placeholderPartIdsForRenderPlan(
+  renderPlan: RenderPlan,
+  visualWarnings: RenderWarning[]
+): string[] {
+  return unique([
+    ...visualWarnings
+      .filter((warning) => warning.code === 'MISSING_RENDER_FOOTPRINT' && warning.componentId)
+      .map((warning) => warning.componentId as string),
+    ...renderPlan.parts
+      .filter((part) => !part.footprint)
+      .map((part) => part.id)
+  ]);
+}
+
+function placeholderMissingEvidence(
+  visualWarnings: RenderWarning[],
+  placeholderPartIds: string[]
+): string[] {
+  const warningEvidence = visualWarnings
+    .filter((warning) => warning.code === 'MISSING_RENDER_FOOTPRINT')
+    .map((warning) => `${warning.code}${warning.componentId ? ` on ${warning.componentId}` : ''}: ${warning.message}`);
+  if (warningEvidence.length > 0) {
+    return unique(warningEvidence);
+  }
+  if (placeholderPartIds.length > 0) {
+    return placeholderPartIds.map((id) => `exact footprint and pin geometry are missing for ${id}`);
+  }
+  return ['exact footprint and pin geometry are missing'];
 }
 
 function inferSolverRepairLevel(attempts: SolverAttempt[]): SolverGateResult['repairLevel'] {
@@ -1134,13 +1348,13 @@ function solverRepairSummary(
     summary.push(`Solver automatically repaired ${repairedSolverStages.join(', ')} stage(s) before returning the scene.`);
   }
   if (degradedSolverStages.length > 0) {
-    summary.push(`Solver degraded ${degradedSolverStages.join(', ')} stage(s) and withheld affected build-ready claims.`);
+    summary.push(`Solver adjusted ${degradedSolverStages.join(', ')} stage(s) and marked affected claims as review-only.`);
   }
   if (summary.length === 0 && buildReady) {
     summary.push('No solver repair was required; all strict gates passed.');
   }
   if (summary.length === 0 && !buildReady && visibleSimulation) {
-    summary.push('Diagnostic scene is visible while strict build-ready blocking remains in effect.');
+    summary.push('Review scene is visible while strict build-ready claims remain under automatic adjustment.');
   }
   if (summary.length === 0) {
     summary.push('No visible scene is available yet; diagnostic/safe-equivalent rendering is still required.');

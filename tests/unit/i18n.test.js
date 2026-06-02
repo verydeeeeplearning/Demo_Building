@@ -31,6 +31,15 @@ test('i18n defaults to Korean and falls back to English only for missing keys', 
   assert.equal(t('solverGate.diagnosticTitle', {}, 'en'), '3D diagnostic simulation');
   assert.equal(t('solverGate.safeEquivalentTitle'), '안전한 대체 시뮬레이션');
   assert.equal(t('solverGate.safeEquivalentTitle', {}, 'en'), 'Safe equivalent simulation');
+  assert.equal(t('solverGate.adjustment.diagnostic_simulation.label'), '검토용 3D 진단');
+  assert.equal(t('solverGate.adjustment.diagnostic_simulation.title', {}, 'en'), '3D diagnostic review scene');
+  assert.equal(t('solverGate.adjustment.placeholder_part_simulation.label'), '자리 맞춤 중');
+  assert.equal(t('solverGate.adjustment.placeholder_part_simulation.body', {}, 'en'), 'The scene uses safe generic geometry for parts that still need exact footprint review.');
+  assert.equal(t('solverGate.adjustment.safe_equivalent_simulation.label'), '안전 대체 회로');
+  assert.equal(t('solverGate.adjustment.safe_equivalent_simulation.body', {}, 'en'), 'The original request is replaced with a safe low-voltage circuit, and claims apply only to the displayed equivalent.');
+  assert.equal(t('solverGate.adjustment.state_only.title'), '상태 확인 3D 진단 시뮬레이션');
+  assert.equal(t('solverGate.adjustment.state_only.body', {}, 'en'), 'The scene shows useful board, pin, layout, or output state for inspection while current animation stays off.');
+  assert.equal(t('solverGate.claimScope.displayed_equivalent'), '표시된 안전 대체 회로 기준으로만 조립 가능 여부를 검토합니다.');
   assert.equal(t('files.explorerKicker'), '프로젝트 문서');
   assert.equal(t('inspector.kicker'), '회로 설명');
   assert.equal(t('inspector.partsTitle'), '부품함');
@@ -52,6 +61,10 @@ test('i18n defaults to Korean and falls back to English only for missing keys', 
   assert.equal(t('publicShare.import', {}, 'en'), 'Start from this circuit');
   assert.equal(t('publicShare.simulationAvailable'), '시뮬레이션 가능');
   assert.equal(t('publicShare.simulationAvailable', {}, 'en'), 'Simulation available');
+  assert.equal(t('publicShare.adjustment.diagnostic_simulation.label'), '검토용 3D 진단 가능');
+  assert.equal(t('publicShare.adjustment.placeholder_part_simulation.label', {}, 'en'), 'Adjusted placeholder available');
+  assert.equal(t('publicShare.adjustment.safe_equivalent_simulation.body'), '원래 요청 대신 안전한 대체 회로를 보여줍니다.');
+  assert.equal(t('publicShare.adjustment.state_only.body', {}, 'en'), 'A static state and layout scene is available for inspection.');
   assert.equal(t('does.not.exist'), 'does.not.exist');
 });
 

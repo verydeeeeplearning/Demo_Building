@@ -93,6 +93,70 @@ function assertClean(guards) {
   expect(guards.pageErrors).toEqual([]);
 }
 
+const INTERNAL_ADJUSTMENT_COPY_PATTERN = /diagnostic_simulation|placeholder_part_simulation|safe_equivalent_simulation|state_only|build-ready claim|current or signal path|context bundle evidence|support bundle|context-support-gap|canonical context|part-capability|simulation-primitive|validation status is|simulation status is|blocked|degraded/i;
+
+function solverGateWithAdditiveFields(solverGateResult, overrides = {}) {
+  const safeEquivalent = solverGateResult.mode === 'safe_equivalent_simulation';
+  const placeholder = solverGateResult.mode === 'placeholder_part_simulation';
+  const runEnabled = solverGateResult.buildReady === true && !safeEquivalent && !placeholder;
+  const presentationAdjustment = overrides.presentationAdjustment ?? {
+    kind: solverGateResult.simulationActivity === 'state_only' ? 'state_only' : solverGateResult.mode,
+    reason: 'Fixture exposes the Phase 1 presentation adjustment contract.'
+  };
+
+  return {
+    ...solverGateResult,
+    presentationAdjustment,
+    buildReadyScope: overrides.buildReadyScope ?? (safeEquivalent ? 'displayed_equivalent' : runEnabled ? 'original' : 'none'),
+    safeToRenderEvidence: overrides.safeToRenderEvidence ?? solverGateResult.verifiedClaims?.filter((claim) => /render|visible|placeholder|state/i.test(claim)) ?? [],
+    controls: {
+      runEnabled,
+      currentAnimationEnabled: runEnabled && solverGateResult.simulationActivity !== 'state_only',
+      hardwareMoveEnabled: false,
+      visualMoveEnabled: solverGateResult.visibleSimulation === true,
+      shareEnabled: solverGateResult.visibleSimulation === true,
+      ...(overrides.controls ?? {})
+    }
+  };
+}
+
+async function waitForAssistantSettled(page) {
+  await expect(page.getByTestId('ai-typing')).toHaveCount(0);
+  await expect.poll(async () => ((await page.locator('.message.assistant').last().textContent()) ?? '').trim().length).toBeGreaterThan(5);
+}
+
+async function loadAgentFixtureIntoPcb(page, fixture, message, options = {}) {
+  await page.route('http://127.0.0.1:8787/api/agent/health', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true, defaultMode: 'deepagents-live', provider: 'openai', model: 'test-model', hasServerKey: true })
+    });
+  });
+  await page.route('http://127.0.0.1:8787/api/agent/message', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(fixture)
+    });
+  });
+
+  await dismissWelcome(page);
+  await page.locator('#idea-input').fill(message);
+  await page.locator('[data-action="send-idea"]').getByRole('button').click();
+  await waitForAssistantSettled(page);
+
+  if (options.confirmBuild) {
+    const confirmButton = page.locator('[data-action="confirm"]');
+    await expect(confirmButton).toBeVisible();
+    await page.locator('#idea-input').fill('좋아 구현 부탁해');
+    await page.locator('[data-action="send-idea"]').getByRole('button').click();
+    await waitForAssistantSettled(page);
+  }
+
+  await page.locator('[data-tab="PCB"]').click();
+}
+
 async function dismissWelcome(page) {
   await page.goto('/');
   await page.getByTestId('welcome-dismiss').click();
@@ -303,7 +367,7 @@ function validLookingButServerBlockedAgentResultFixture() {
       currentPathCount: 0,
       expectedStateCount: fixture.simulationPlan.expectedStates.length
     },
-    solverGateResult: {
+    solverGateResult: solverGateWithAdditiveFields({
       visibleSimulation: true,
       mode: 'diagnostic_simulation',
       buildReady: false,
@@ -322,7 +386,15 @@ function validLookingButServerBlockedAgentResultFixture() {
       visualWarnings: [],
       hardwareWarnings: [],
       repairSummary: ['Initial adapter preserved strict build-ready blocking while exposing solver-gate diagnostics.']
-    }
+    }, {
+      presentationAdjustment: {
+        kind: 'state_only',
+        stateEvidence: ['LED expected blinking state', 'Arduino Uno and breadboard context are visible'],
+        reason: 'Expected state and board context are available even though build-ready is false.'
+      },
+      buildReadyScope: 'none',
+      safeToRenderEvidence: ['render plan exposes 4 visible part(s)', '1 expected state(s) are available']
+    })
   };
 }
 
@@ -476,7 +548,7 @@ function unsupportedUnsafeAgentResultFixture() {
       ...fixture.simulationPlan,
       runText: 'SAFE EQUIVALENT LED ON'
     },
-    solverGateResult: {
+    solverGateResult: solverGateWithAdditiveFields({
       ...fixture.solverGateResult,
       mode: 'safe_equivalent_simulation',
       repairLevel: 'safe_equivalent',
@@ -492,7 +564,25 @@ function unsupportedUnsafeAgentResultFixture() {
         'bench test has not been performed'
       ],
       repairSummary: ['Original unsafe request was replaced with a safe low-voltage equivalent simulation.']
-    }
+    }, {
+      presentationAdjustment: {
+        kind: 'safe_equivalent_simulation',
+        originalSpecId: 'unsafe-mains-request',
+        equivalentSpecId: 'unsafe-mains-request-safe-equivalent-led',
+        originalBuildReady: false,
+        displayedEquivalentBuildReady: true,
+        blockedOriginalReasons: ['220V mains wiring', 'direct outlet connection'],
+        equivalenceClaims: ['low-voltage LED output demonstrates the classroom-safe behavior'],
+        nonEquivalentWarnings: ['The original mains circuit is not shown or built.'],
+        reason: 'Unsafe original request is replaced by a safe low-voltage equivalent.'
+      },
+      buildReadyScope: 'displayed_equivalent',
+      controls: {
+        runEnabled: false,
+        currentAnimationEnabled: false
+      },
+      safeToRenderEvidence: ['safe low-voltage equivalent circuit was validated instead of the unsafe original request']
+    })
   };
 }
 
@@ -604,7 +694,7 @@ function plannedContextGapAgentResultFixture() {
       currentPathCount: 0,
       expectedStateCount: 0
     },
-    solverGateResult: {
+    solverGateResult: solverGateWithAdditiveFields({
       visibleSimulation: true,
       mode: 'diagnostic_simulation',
       buildReady: false,
@@ -626,7 +716,159 @@ function plannedContextGapAgentResultFixture() {
       }],
       hardwareWarnings: ['Current-flow animation is blocked until the circuit has sufficient context coverage.'],
       repairSummary: ['Diagnostic scene is visible while strict build-ready blocking remains in effect.']
-    }
+    }, {
+      presentationAdjustment: {
+        kind: 'diagnostic_simulation',
+        reason: 'Safe renderable context exists while synthesis evidence is incomplete.',
+        visibleOverlays: ['review-only hardware marker']
+      },
+      buildReadyScope: 'none',
+      safeToRenderEvidence: ['render plan exposes 1 visible part(s)']
+    })
+  };
+}
+
+function placeholderPartAgentResultFixture() {
+  return {
+    sessionId: 'session-placeholder-e2e',
+    mode: 'live',
+    assistantMessages: [
+      '정확한 3D 외형 자료가 아직 준비되지 않은 부품이라 등록된 대체 부품 형태로 먼저 보여줄게요. 실행과 전류 흐름은 확인된 자료가 준비될 때까지 꺼둘게요.'
+    ],
+    supportedAlternatives: [supportedLedAlternativeFixture('placeholder-part')],
+    agentEvents: [
+      {
+        type: 'validation',
+        name: 'placeholder-part-simulation',
+        status: 'warning',
+        summary: 'Registered placeholder geometry is available while exact footprint evidence is incomplete.'
+      }
+    ],
+    clarification: '정확한 부품 외형 자료를 추가하거나, 지원되는 LED starter 회로로 진행할 수 있어요.',
+    contextTrace: [
+      { sourceId: 'visual-library:placeholder-module', sourceType: 'data', reason: 'Registered generic placeholder geometry.', usedFields: ['placeholderFootprintId', 'safeToRender'] },
+      { sourceId: 'registry:part-capabilities:known-sensor-module', sourceType: 'registry', reason: 'Known classroom-safe module category.', usedFields: ['supportTier', 'missingEvidence'] }
+    ],
+    contextCoverage: {
+      status: 'insufficient',
+      score: 0.7,
+      sufficientFor: ['clarification_response', 'placeholder_part_simulation'],
+      synthesisEligibility: {
+        status: 'ineligible',
+        reason: 'Exact render footprint evidence is not complete yet.'
+      },
+      requiredSourceTypes: ['memory', 'registry', 'rendering'],
+      presentSourceTypes: ['memory', 'registry', 'rendering'],
+      missingSourceTypes: [],
+      warnings: ['Exact 3D footprint and pin geometry evidence are incomplete for this module.']
+    },
+    requirementMarkdown: '# Placeholder part simulation\n\nA registered placeholder part is visible for review while exact geometry remains unverified.',
+    circuitSpec: {
+      id: 'known-sensor-placeholder',
+      title: 'Known Sensor Placeholder',
+      intent: { primaryGoal: 'inspect a classroom-safe sensor module placeholder', input: 'sensor module', output: 'context view', controller: 'arduino-uno' },
+      components: [
+        { id: 'placeholder-sensor', partId: 'known-sensor-module', label: 'Sensor module placeholder', designator: 'S1' }
+      ],
+      connections: [],
+      behavior: { runText: 'PLACEHOLDER VIEW' },
+      assumptions: ['The generic placeholder is registered and safe to render.'],
+      unsupportedItems: [],
+      clarificationNeeds: ['Add exact footprint and pin geometry evidence before claiming a build-ready circuit.']
+    },
+    validationReport: {
+      version: '2026-06-01',
+      status: 'invalid',
+      errors: ['Exact footprint evidence is incomplete for the requested module.'],
+      warnings: ['The placeholder view is for visual context only.'],
+      validatedCurrentPathIds: [],
+      sourceVersion: '2026-06-01'
+    },
+    renderPlan: {
+      title: 'Known Sensor Placeholder',
+      runText: 'PLACEHOLDER VIEW',
+      parts: [
+        {
+          id: 'placeholder-sensor',
+          type: 'unsupported',
+          label: 'Sensor module placeholder',
+          description: 'Registered generic placeholder for a classroom-safe module whose exact 3D footprint is not ready.',
+          placeholderFootprintId: 'placeholder-generic-module',
+          exactGeometryClaim: false,
+          pinGeometryClaim: false,
+          pins: [],
+          position: { x: 0, y: 0.2, z: 0 }
+        }
+      ],
+      connections: [],
+      floatingCards: [],
+      warnings: [{
+        code: 'MISSING_RENDER_FOOTPRINT',
+        componentId: 'placeholder-sensor',
+        message: 'Exact footprint is unavailable; registered placeholder geometry is shown.'
+      }],
+      layout: {
+        endpoints: {},
+        solverAttempts: [{
+          attempt: 1,
+          stage: 'placement',
+          action: 'Use registered placeholder geometry while exact footprint evidence is incomplete.',
+          result: 'degraded',
+          warnings: ['exact geometry claim is not verified', 'pin geometry claim is not verified']
+        }]
+      }
+    },
+    simulationPlan: {
+      status: 'invalid',
+      runText: 'PLACEHOLDER VIEW',
+      currentPaths: [],
+      expectedStates: [],
+      warnings: ['Exact simulation primitive evidence is incomplete for this placeholder part.']
+    },
+    buildRunnableReport: {
+      status: 'blocked',
+      runnable: false,
+      reasons: ['exact geometry claim is not verified', 'pin geometry claim is not verified'],
+      validationStatus: 'invalid',
+      simulationStatus: 'invalid',
+      renderWarningCount: 1,
+      renderBlockingWarningCount: 0,
+      renderPartCount: 1,
+      currentPathCount: 0,
+      expectedStateCount: 0
+    },
+    solverGateResult: solverGateWithAdditiveFields({
+      visibleSimulation: true,
+      mode: 'placeholder_part_simulation',
+      buildReady: false,
+      simulationActivity: 'diagnostic',
+      benchConfirmed: false,
+      repairLevel: 'placeholder',
+      attempts: [{
+        attempt: 1,
+        stage: 'placement',
+        action: 'Use registered placeholder geometry while exact footprint evidence is incomplete.',
+        result: 'degraded',
+        warnings: ['exact geometry claim is not verified', 'pin geometry claim is not verified']
+      }],
+      verifiedClaims: ['render plan exposes 1 visible part(s)', 'registered placeholder footprint placeholder-generic-module is available'],
+      notVerified: ['exact geometry claim is not verified', 'pin geometry claim is not verified', 'bench test has not been performed'],
+      visualWarnings: [{
+        code: 'MISSING_RENDER_FOOTPRINT',
+        componentId: 'placeholder-sensor',
+        message: 'Exact footprint is unavailable; registered placeholder geometry is shown.'
+      }],
+      hardwareWarnings: ['Exact simulation primitive evidence is incomplete for this placeholder part.'],
+      repairSummary: ['A registered placeholder footprint is shown while exact geometry remains review-only.']
+    }, {
+      presentationAdjustment: {
+        kind: 'placeholder_part_simulation',
+        placeholderPartIds: ['placeholder-sensor'],
+        reason: 'Registered placeholder geometry is available while exact footprint evidence is missing.'
+      },
+      buildReadyScope: 'none',
+      safeToRenderEvidence: ['registered placeholder footprint placeholder-generic-module is available']
+    })
   };
 }
 
@@ -1350,6 +1592,87 @@ test('planned context gaps show student-friendly decision text without internal 
 
   assertClean(guards);
 });
+
+for (const adjustmentCase of [
+  {
+    name: 'diagnostic_simulation',
+    fixture: () => plannedContextGapAgentResultFixture(),
+    message: 'Show MCP3008 ADC channel value on the OLED display',
+    expectedMode: 'diagnostic_simulation',
+    expectedActivity: 'diagnostic',
+    expectedStatusText: /3D 진단|diagnostic/i,
+    minPixels: 1000
+  },
+  {
+    name: 'placeholder_part_simulation',
+    fixture: () => placeholderPartAgentResultFixture(),
+    message: 'Show this known classroom sensor module even though its exact 3D model is not ready',
+    expectedMode: 'placeholder_part_simulation',
+    expectedActivity: 'diagnostic',
+    expectedStatusText: /자리 맞춤|대체 부품|placeholder/i,
+    minPixels: 1000
+  },
+  {
+    name: 'safe_equivalent_simulation',
+    fixture: () => unsupportedUnsafeAgentResultFixture(),
+    message: '220V 콘센트에 직접 연결해서 LED 켜고 싶어',
+    expectedMode: 'safe_equivalent_simulation',
+    expectedActivity: 'verified_current',
+    expectedStatusText: /안전|대체|safe|equivalent/i,
+    minPixels: 2000
+  },
+  {
+    name: 'state_only',
+    fixture: () => validLookingButServerBlockedAgentResultFixture(),
+    message: 'LED 깜빡이기',
+    expectedMode: 'diagnostic_simulation',
+    expectedActivity: 'state_only',
+    expectedStatusText: /상태 확인|3D 진단|3D 검토|state|diagnostic|review/i,
+    minPixels: 2000,
+    confirmBuild: true
+  }
+]) {
+  test(`Phase 1 adjustment matrix presents ${adjustmentCase.name} without enabling unsupported controls`, async ({ page }) => {
+    const guards = attachGuards(page);
+    const fixture = adjustmentCase.fixture();
+
+    expect(fixture.solverGateResult.visibleSimulation).toBe(true);
+    expect(fixture.solverGateResult.mode).toBe(adjustmentCase.expectedMode);
+    expect(fixture.solverGateResult.simulationActivity).toBe(adjustmentCase.expectedActivity);
+    expect(fixture.solverGateResult.controls).toMatchObject({
+      runEnabled: false,
+      currentAnimationEnabled: false
+    });
+    expect(fixture.solverGateResult.safeToRenderEvidence.length).toBeGreaterThan(0);
+    if (adjustmentCase.name === 'state_only') {
+      expect(fixture.solverGateResult.buildReady).toBe(false);
+      expect(fixture.simulationPlan.currentPaths).toHaveLength(0);
+      expect(fixture.simulationPlan.expectedStates.length).toBeGreaterThan(0);
+      expect(fixture.buildRunnableReport.expectedStateCount).toBeGreaterThan(0);
+      expect(fixture.solverGateResult.presentationAdjustment).toMatchObject({
+        kind: 'state_only'
+      });
+    }
+
+    await loadAgentFixtureIntoPcb(page, fixture, adjustmentCase.message, {
+      confirmBuild: adjustmentCase.confirmBuild === true
+    });
+
+    await expectVisibleNonBlankStage(page, adjustmentCase.minPixels);
+    await expect(page.getByTestId('solver-gate-status')).toBeVisible();
+    await expect(page.getByTestId('solver-gate-status')).toContainText(adjustmentCase.expectedStatusText);
+    await expect(page.getByTestId('solver-gate-status')).not.toContainText(INTERNAL_ADJUSTMENT_COPY_PATTERN);
+    await expect(page.locator('.message.assistant').last()).not.toContainText(INTERNAL_ADJUSTMENT_COPY_PATTERN);
+    if (await page.getByTestId('render-warning-panel').isVisible().catch(() => false)) {
+      await expect(page.getByTestId('render-warning-panel')).not.toContainText(INTERNAL_ADJUSTMENT_COPY_PATTERN);
+    }
+    await expect(page.getByTestId('simulation-toggle')).toBeDisabled();
+    await expect(page.getByTestId('simulation-step')).toBeDisabled();
+    await expect(page.locator('[data-action="run"]')).toBeDisabled();
+
+    assertClean(guards);
+  });
+}
 
 test('AI chat sends recent conversation context across requirement follow-ups', async ({ page }) => {
   const guards = attachGuards(page);

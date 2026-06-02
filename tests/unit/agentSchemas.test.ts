@@ -5,12 +5,16 @@ import {
   AgentConversationContextSchema,
   AgentMessageRequestSchema,
   AgentRunResultSchema,
+  BuildRunnableReportSchema,
   CircuitSpecSchema,
   IntentSpecV2Schema,
   PartCapabilitySchema,
+  RenderPlanSchema,
   SimulationPlanSchema,
-  SolverGateResultSchema
+  SolverGateResultSchema,
+  ValidationReportSchema
 } from '../../server/agent/schemas.ts';
+import { buildSolverGateResult } from '../../server/agent/circuitTools.ts';
 
 test('part capabilities require electrical limits, render footprint, and simulation model', () => {
   const capability = PartCapabilitySchema.parse({
@@ -166,6 +170,18 @@ test('solver gate result schema separates visible simulation from build-ready cl
   assert.equal(diagnostic.visibleSimulation, true);
   assert.equal(diagnostic.buildReady, false);
   assert.equal(diagnostic.benchConfirmed, false);
+  assert.equal(diagnostic.buildReadyScope, 'none');
+  assert.equal(diagnostic.presentationAdjustment.kind, 'diagnostic_simulation');
+  assert.equal(diagnostic.controls.runEnabled, false);
+  assert.equal(diagnostic.controls.currentAnimationEnabled, false);
+  assert.equal(diagnostic.controls.visualMoveEnabled, true);
+  assert.ok(diagnostic.safeToRenderEvidence.some((item) => /visible render plan/i.test(item)));
+  assert.equal(diagnostic.buildReadyScope, 'none');
+  assert.equal(diagnostic.presentationAdjustment.kind, 'diagnostic_simulation');
+  assert.equal(diagnostic.controls.runEnabled, false);
+  assert.equal(diagnostic.controls.currentAnimationEnabled, false);
+  assert.equal(diagnostic.controls.visualMoveEnabled, true);
+  assert.ok(diagnostic.safeToRenderEvidence.some((evidence) => /visible render plan/i.test(evidence)));
 
   assert.throws(() => SolverGateResultSchema.parse({
     ...diagnostic,
@@ -180,6 +196,178 @@ test('solver gate result schema separates visible simulation from build-ready cl
     mode: 'verified_build_simulation',
     notVerified: []
   }), /visible simulation/i);
+});
+
+test('solver gate result schema scopes safe equivalents to the displayed circuit', () => {
+  const safeEquivalent = SolverGateResultSchema.parse({
+    visibleSimulation: true,
+    mode: 'safe_equivalent_simulation',
+    buildReady: true,
+    simulationActivity: 'verified_current',
+    benchConfirmed: false,
+    sourceSpecId: 'unsafe-original',
+    equivalentSpecId: 'safe-equivalent-led',
+    repairLevel: 'safe_equivalent',
+    attempts: [],
+    verifiedClaims: ['displayed safe equivalent build-ready runnable gate passed'],
+    notVerified: ['original request is not build-ready'],
+    visualWarnings: [],
+    hardwareWarnings: [],
+    repairSummary: ['Original unsafe request was replaced with a safe low-voltage equivalent simulation.'],
+    presentationAdjustment: {
+      kind: 'safe_equivalent_simulation',
+      originalSpecId: 'unsafe-original',
+      equivalentSpecId: 'safe-equivalent-led',
+      originalBuildReady: false,
+      displayedEquivalentBuildReady: true,
+      blockedOriginalReasons: ['original request is unsafe'],
+      equivalenceClaims: ['low-voltage LED output demonstrates the safe classroom behavior'],
+      nonEquivalentWarnings: ['mains wiring is not shown'],
+      reason: 'The safe equivalent is displayed instead of the unsafe original.'
+    },
+    buildReadyScope: 'displayed_equivalent',
+    safeToRenderEvidence: ['safe low-voltage equivalent circuit is renderable'],
+    controls: {
+      runEnabled: true,
+      currentAnimationEnabled: true,
+      hardwareMoveEnabled: false,
+      visualMoveEnabled: true,
+      shareEnabled: true
+    }
+  });
+
+  assert.equal(safeEquivalent.buildReadyScope, 'displayed_equivalent');
+  assert.equal(safeEquivalent.presentationAdjustment.kind, 'safe_equivalent_simulation');
+  assert.equal(safeEquivalent.presentationAdjustment.originalBuildReady, false);
+
+  assert.throws(() => SolverGateResultSchema.parse({
+    ...safeEquivalent,
+    buildReadyScope: 'original'
+  }), /original request/i);
+});
+
+test('solver gate result schema migrates safe-equivalent scope to displayed equivalent', () => {
+  const safeEquivalent = SolverGateResultSchema.parse({
+    visibleSimulation: true,
+    mode: 'safe_equivalent_simulation',
+    buildReady: true,
+    simulationActivity: 'verified_current',
+    benchConfirmed: false,
+    sourceSpecId: 'unsafe-original',
+    equivalentSpecId: 'safe-equivalent-led',
+    repairLevel: 'safe_equivalent',
+    attempts: [],
+    verifiedClaims: ['safe low-voltage equivalent circuit was validated'],
+    notVerified: ['original unsafe request was not converted into wiring or build-ready hardware'],
+    visualWarnings: [],
+    hardwareWarnings: [],
+    repairSummary: ['Original unsafe request was replaced with a safe equivalent.']
+  });
+
+  assert.equal(safeEquivalent.buildReadyScope, 'displayed_equivalent');
+  assert.equal(safeEquivalent.presentationAdjustment.kind, 'safe_equivalent_simulation');
+  assert.equal(safeEquivalent.presentationAdjustment.originalBuildReady, false);
+  assert.equal(safeEquivalent.presentationAdjustment.displayedEquivalentBuildReady, true);
+  assert.equal(safeEquivalent.controls.runEnabled, true);
+
+  assert.throws(() => SolverGateResultSchema.parse({
+    ...safeEquivalent,
+    buildReadyScope: 'original'
+  }), /Safe-equivalent.*original|displayed equivalent/i);
+});
+
+test('placeholder solver gate metadata disables exact geometry and pin claims', () => {
+  const placeholder = SolverGateResultSchema.parse({
+    visibleSimulation: true,
+    mode: 'placeholder_part_simulation',
+    buildReady: false,
+    simulationActivity: 'diagnostic',
+    benchConfirmed: false,
+    repairLevel: 'placeholder',
+    attempts: [],
+    verifiedClaims: ['render plan exposes 1 visible part(s)'],
+    notVerified: ['build-ready claim is not verified'],
+    visualWarnings: [{
+      code: 'MISSING_RENDER_FOOTPRINT',
+      componentId: 'mystery-sensor',
+      message: 'Mystery sensor has no exact footprint in the catalog.'
+    }],
+    hardwareWarnings: [],
+    repairSummary: ['Placeholder scene is visible for review.']
+  });
+
+  assert.equal(placeholder.presentationAdjustment.kind, 'placeholder_part_simulation');
+  assert.deepEqual(placeholder.presentationAdjustment.placeholderPartIds, ['mystery-sensor']);
+  assert.equal(placeholder.presentationAdjustment.exactGeometryClaim, false);
+  assert.equal(placeholder.presentationAdjustment.pinGeometryClaim, false);
+  assert.equal(placeholder.buildReadyScope, 'none');
+  assert.equal(placeholder.controls.hardwareMoveEnabled, false);
+
+  assert.throws(() => SolverGateResultSchema.parse({
+    ...placeholder,
+    presentationAdjustment: {
+      ...placeholder.presentationAdjustment,
+      exactGeometryClaim: true
+    }
+  }), /Invalid input|false/i);
+});
+
+test('solver gate derives state-only activity from state evidence without build-ready', () => {
+  const validationReport = ValidationReportSchema.parse({
+    status: 'valid',
+    errors: [],
+    warnings: [],
+    validatedCurrentPathIds: []
+  });
+  const renderPlan = RenderPlanSchema.parse({
+    title: 'Static state fixture',
+    runText: 'STATIC STATE',
+    parts: [{
+      id: 'oled-display',
+      type: 'oled',
+      label: 'OLED display',
+      description: 'Static display state fixture',
+      pins: [],
+      position: { x: 0, y: 0.25, z: 0 }
+    }],
+    connections: [],
+    floatingCards: [],
+    warnings: []
+  });
+  const simulationPlan = SimulationPlanSchema.parse({
+    status: 'valid',
+    runText: 'STATIC STATE',
+    currentPaths: [],
+    expectedStates: [{
+      componentId: 'oled-display',
+      state: 'shows STATIC STATE',
+      explanation: 'The display readout is meaningful without a current-flow path.'
+    }],
+    warnings: []
+  });
+  const buildRunnableReport = BuildRunnableReportSchema.parse({
+    status: 'blocked',
+    runnable: false,
+    reasons: ['layout is review-only until hardware placement evidence is complete'],
+    validationStatus: 'valid',
+    simulationStatus: 'valid',
+    renderWarningCount: 0,
+    renderBlockingWarningCount: 0,
+    renderPartCount: 1,
+    currentPathCount: 0,
+    expectedStateCount: 1
+  });
+
+  const gate = buildSolverGateResult(validationReport, renderPlan, simulationPlan, buildRunnableReport);
+
+  assert.equal(gate.buildReady, false);
+  assert.equal(gate.simulationActivity, 'state_only');
+  assert.equal(gate.presentationAdjustment.kind, 'state_only');
+  assert.equal(gate.buildReadyScope, 'none');
+  assert.equal(gate.controls.runEnabled, false);
+  assert.equal(gate.controls.currentAnimationEnabled, false);
+  assert.equal(gate.controls.visualMoveEnabled, true);
+  assert.ok(gate.safeToRenderEvidence.some((evidence) => /state\/context evidence/i.test(evidence)));
 });
 
 test('agent result schema fixes the server response contract', () => {

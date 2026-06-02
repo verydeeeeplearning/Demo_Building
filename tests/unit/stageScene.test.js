@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import test from 'node:test';
 
+import * as stageSceneModule from '../../src/stageScene.js';
 import {
   CURRENT_PATH_STYLES,
   stageAnimatedWireDescriptors,
@@ -20,6 +22,58 @@ function roundedPoint(point) {
     x: Number(point.x.toFixed(2)),
     y: Number(point.y.toFixed(2)),
     z: Number(point.z.toFixed(2))
+  };
+}
+
+function routeHashForCircuit(circuit) {
+  const endpoints = stageEndpointMap(circuit);
+  const routeSnapshot = (circuit.connections ?? []).map((connection, index) => {
+    const fromId = connection.from.partId ?? connection.from.componentId;
+    const toId = connection.to.partId ?? connection.to.componentId;
+    const from = endpoints[`${fromId}:${connection.from.pin}`];
+    const to = endpoints[`${toId}:${connection.to.pin}`];
+    return {
+      id: connection.id,
+      points: stageConnectionRoutePoints(connection, from, to, index).map(roundedPoint)
+    };
+  });
+
+  return createHash('sha256')
+    .update(JSON.stringify(routeSnapshot))
+    .digest('hex');
+}
+
+function descriptorPositionsById(circuit) {
+  const specializedParts = Object.values(stageSpecializedPartDescriptors(circuit)).filter(Boolean);
+  const allParts = [
+    ...specializedParts,
+    ...stageGenericPartDescriptors(circuit),
+    ...stageLibraryPartDescriptors(circuit)
+  ];
+
+  return Object.fromEntries(allParts.map((part) => [part.id, roundedPoint(part.position)]));
+}
+
+function phase2StageDebugSnapshot(circuit) {
+  const directSnapshotHelpers = [
+    stageSceneModule.stageDebugSnapshot,
+    stageSceneModule.createStageDebugSnapshot,
+    stageSceneModule.stageSceneDebugSnapshot
+  ];
+
+  for (const helper of directSnapshotHelpers) {
+    if (typeof helper !== 'function') {
+      continue;
+    }
+    const snapshot = helper(circuit);
+    if (snapshot?.partPositions && snapshot?.wireRouteHash) {
+      return snapshot;
+    }
+  }
+
+  return {
+    partPositions: descriptorPositionsById(circuit),
+    wireRouteHash: routeHashForCircuit(circuit)
   };
 }
 

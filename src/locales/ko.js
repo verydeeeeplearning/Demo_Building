@@ -106,7 +106,38 @@ export const ko = {
     safeEquivalentTitle: '안전한 대체 시뮬레이션',
     safeEquivalentBody: '원래 위험한 요청은 만들지 않고, 검증된 저전압 대체 회로만 표시합니다.',
     placeholderTitle: '대체 부품 시뮬레이션',
-    placeholderBody: '일부 부품은 일반화된 형태로 표시되며, 실제 부품 치수 검증은 제한됩니다.'
+    placeholderBody: '일부 부품은 일반화된 형태로 표시되며, 실제 부품 치수 검증은 제한됩니다.',
+    adjustment: {
+      diagnostic_simulation: {
+        label: '검토용 3D 진단',
+        title: '검토용 3D 진단 시뮬레이션',
+        body: '하드웨어 장면은 계속 보이고, 자동 검토가 끝날 때까지 조립과 전류 흐름 조작은 검토 상태로 둡니다.'
+      },
+      placeholder_part_simulation: {
+        label: '자리 맞춤 중',
+        title: '자리 맞춤 장면',
+        body: '정확한 외형 확인이 더 필요한 부품은 안전한 일반 형태로 자동 표시합니다.'
+      },
+      safe_equivalent_simulation: {
+        label: '안전 대체 회로',
+        title: '안전 대체 회로',
+        body: '원래 요청 대신 안전한 저전압 대체 회로를 보여주며, 표시된 대체 회로에 대해서만 설명합니다.'
+      },
+      state_only: {
+        label: '상태 확인',
+        title: '상태 확인 3D 진단 시뮬레이션',
+        body: '전류 애니메이션은 켜지 않고, 보드와 핀, 배치, 출력 상태를 살펴볼 수 있게 보여줍니다.'
+      }
+    },
+    claimScope: {
+      original: '요청한 회로 기준으로 조립 가능 여부를 검토합니다.',
+      displayed_equivalent: '표시된 안전 대체 회로 기준으로만 조립 가능 여부를 검토합니다.',
+      none: '이 검토 장면에는 조립 가능 완료 표시를 붙이지 않습니다.'
+    },
+    controls: {
+      runOff: '자동 검토가 끝날 때까지 실행은 꺼져 있습니다.',
+      currentOff: '확인된 경로가 준비될 때까지 전류 흐름 애니메이션은 꺼져 있습니다.'
+    }
   },
   parts: {
     railKicker: '부품함',
@@ -249,6 +280,24 @@ export const ko = {
     simulationAvailable: '시뮬레이션 가능',
     diagnosticAvailable: '3D 진단 가능',
     diagnosticBody: '3D 진단 장면은 볼 수 있지만, 실행과 전류 흐름 시뮬레이션은 검토가 필요합니다.',
+    adjustment: {
+      diagnostic_simulation: {
+        label: '검토용 3D 진단 가능',
+        body: '안전한 3D 진단 장면은 볼 수 있고, 자동 검토 중에는 실행과 전류 흐름 조작을 꺼 둡니다.'
+      },
+      placeholder_part_simulation: {
+        label: '자리 맞춤 장면 가능',
+        body: '정확한 부품 외형을 검토하는 동안 안전한 일반 형태로 장면을 보여줍니다.'
+      },
+      safe_equivalent_simulation: {
+        label: '안전 대체 회로 가능',
+        body: '원래 요청 대신 안전한 대체 회로를 보여줍니다.'
+      },
+      state_only: {
+        label: '상태 확인 장면 가능',
+        body: '정적인 상태와 배치 장면을 살펴볼 수 있습니다.'
+      }
+    },
     simulationUnavailable: '시뮬레이션 없음',
     parts: '부품',
     context: '근거',

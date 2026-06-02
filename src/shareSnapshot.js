@@ -1,3 +1,5 @@
+import { t } from './i18n.js';
+
 const SECRET_PATTERNS = [
   /sk-proj-[A-Za-z0-9_-]{10,}/g,
   /sk-[A-Za-z0-9_-]{10,}/g,
@@ -16,8 +18,9 @@ export function createShareSnapshot(project, options = {}) {
   const solverGateResult = circuit.solverGateResult || null;
   const requirementMarkdown = firstMarkdown(project) || '';
   const source = options.source || inferSource(circuit);
-  const status = shareStatus(validationReport, simulationPlan, source, runnableReport);
+  const status = shareStatus(validationReport, simulationPlan, source, runnableReport, solverGateResult);
   const validationStatus = validationStatusForShare(status);
+  const locale = options.locale === 'en' ? 'en' : 'ko';
   const title = boundedText(circuit.title || circuit.circuitSpec?.title || options.title || 'H-eduware circuit', 80);
   const summary = boundedText(
     options.summary || circuit.circuitSpec?.intent?.primaryGoal || summaryFromMarkdown(requirementMarkdown) || `${title} circuit shared from H-eduware.`,
@@ -28,15 +31,15 @@ export function createShareSnapshot(project, options = {}) {
   const publicRenderPlan = renderPlanFromCircuit(circuit);
   const simulationAvailable = status === 'valid'
     && simulationPlan?.status === 'valid'
-    && runnableGateAllowsShare(runnableReport, source, validationReport);
-  const diagnosticVisible = !simulationAvailable
-    && solverGateResult?.visibleSimulation === true
-    && Array.isArray(publicRenderPlan?.parts)
-    && publicRenderPlan.parts.length > 0;
+    && runnableGateAllowsShare(runnableReport, source, validationReport, solverGateResult)
+    && solverGateCurrentAnimationAllowed(solverGateResult);
+  const reviewAdjustmentKind = !simulationAvailable && visibleReviewScene(solverGateResult, publicRenderPlan)
+    ? shareAdjustmentKind(solverGateResult)
+    : '';
   const snapshot = {
     schemaVersion: 1,
     createdAt: options.createdAt || new Date().toISOString(),
-    locale: options.locale === 'en' ? 'en' : 'ko',
+    locale,
     title,
     summary,
     status,
@@ -63,8 +66,8 @@ export function createShareSnapshot(project, options = {}) {
       runText: simulationPlan?.runText || circuit.runText || undefined,
       explanation: simulationAvailable
         ? simulationExplanation(currentPaths, expectedStates)
-        : diagnosticVisible
-          ? '3D diagnostic scene is available, but current-flow simulation is not verified for this shared snapshot.'
+        : reviewAdjustmentKind
+          ? shareAdjustmentBody(reviewAdjustmentKind, locale)
         : 'Current-flow simulation is not available for this shared snapshot.',
       currentPathCount: simulationAvailable ? Math.min(currentPaths.length, 60) : 0
     },
@@ -83,12 +86,14 @@ export function createShareMarkdown(snapshot, locale = 'ko') {
     .map((component) => `- ${redactShareText(component.name)} (${redactShareText(component.type)})`)
     .join('\n') || '- No public parts listed.';
   const runnable = snapshotShareRunnable(snapshot);
-  const diagnosticVisible = snapshotDiagnosticVisible(snapshot);
+  const reviewAdjustmentKind = !snapshotSimulationAvailable(snapshot)
+    ? snapshotReviewAdjustmentKind(snapshot)
+    : '';
   const validation = runnable ? snapshot.validation?.status || snapshot.status || 'draft' : 'invalid';
-  const simulation = runnable && snapshot.simulation?.available
+  const simulation = snapshotSimulationAvailable(snapshot)
     ? redactShareText(snapshot.simulation.explanation)
-    : diagnosticVisible
-      ? '3D diagnostic scene is available, but Run and current-flow simulation need review.'
+    : reviewAdjustmentKind
+      ? shareAdjustmentBody(reviewAdjustmentKind, normalizedLocale)
     : 'Simulation is not marked as available for this shared snapshot.';
   const heading = normalizedLocale === 'en'
     ? `# Circuit I designed: ${title}`
@@ -133,11 +138,11 @@ function firstMarkdown(project) {
     || '';
 }
 
-function shareStatus(validationReport, simulationPlan, source, runnableReport) {
+function shareStatus(validationReport, simulationPlan, source, runnableReport, solverGateResult) {
   if (!validationReport) {
     return source === 'demo' ? 'valid' : 'draft';
   }
-  if (!runnableGateAllowsShare(runnableReport, source, validationReport)) {
+  if (!runnableGateAllowsShare(runnableReport, source, validationReport, solverGateResult)) {
     return 'invalid';
   }
   if (validationReport.status === 'valid' && (!simulationPlan || simulationPlan.status === 'valid')) {
@@ -149,7 +154,17 @@ function shareStatus(validationReport, simulationPlan, source, runnableReport) {
   return 'invalid';
 }
 
-function runnableGateAllowsShare(runnableReport, source, validationReport) {
+function runnableGateAllowsShare(runnableReport, source, validationReport, solverGateResult) {
+  if (solverGateResult?.buildReadyScope === 'none') {
+    return false;
+  }
+  if (solverGateResult?.controls && typeof solverGateResult.controls.runEnabled === 'boolean') {
+    return solverGateResult.controls.runEnabled === true;
+  }
+  if (solverGateResult?.buildReadyScope === 'displayed_equivalent') {
+    return solverGateResult.presentationAdjustment?.displayedEquivalentBuildReady === true
+      || solverGateResult.buildReady === true;
+  }
   if (runnableReport) {
     return runnableReport.runnable === true;
   }
@@ -157,17 +172,96 @@ function runnableGateAllowsShare(runnableReport, source, validationReport) {
 }
 
 function snapshotShareRunnable(snapshot) {
+  const gate = snapshot?.solverGateResult;
+  if (gate?.buildReadyScope === 'none') {
+    return false;
+  }
+  if (gate?.controls && typeof gate.controls.runEnabled === 'boolean') {
+    return gate.controls.runEnabled === true;
+  }
+  if (gate?.buildReadyScope === 'displayed_equivalent') {
+    return gate.presentationAdjustment?.displayedEquivalentBuildReady === true
+      || gate.buildReady === true;
+  }
   if (snapshot?.buildRunnableReport) {
     return snapshot.buildRunnableReport.runnable === true;
   }
   return snapshot?.source === 'demo';
 }
 
-function snapshotDiagnosticVisible(snapshot) {
-  return snapshot?.solverGateResult?.visibleSimulation === true
-    && snapshot?.solverGateResult?.buildReady !== true
-    && Array.isArray(snapshot?.renderPlan?.parts)
-    && snapshot.renderPlan.parts.length > 0;
+function snapshotSimulationAvailable(snapshot) {
+  if (snapshot?.simulation?.available !== true) {
+    return false;
+  }
+  return solverGateCurrentAnimationAllowed(snapshot?.solverGateResult) && snapshotShareRunnable(snapshot);
+}
+
+function snapshotReviewAdjustmentKind(snapshot) {
+  if (!visibleReviewScene(snapshot?.solverGateResult, snapshot?.renderPlan)) {
+    return '';
+  }
+  return shareAdjustmentKind(snapshot.solverGateResult);
+}
+
+function visibleReviewScene(solverGateResult, renderPlan) {
+  const explicitKind = normalizeAdjustmentKind(solverGateResult?.presentationAdjustment?.kind || solverGateResult?.mode);
+  return (solverGateResult?.visibleSimulation === true || isReviewAdjustmentKind(explicitKind))
+    && Array.isArray(renderPlan?.parts)
+    && renderPlan.parts.length > 0;
+}
+
+function solverGateCurrentAnimationAllowed(solverGateResult) {
+  if (solverGateResult?.buildReadyScope === 'none') {
+    return false;
+  }
+  if (solverGateResult?.controls && typeof solverGateResult.controls.currentAnimationEnabled === 'boolean') {
+    return solverGateResult.controls.currentAnimationEnabled === true;
+  }
+  if (solverGateResult?.controls && typeof solverGateResult.controls.runEnabled === 'boolean') {
+    return solverGateResult.controls.runEnabled === true;
+  }
+  return solverGateResult ? solverGateResult.buildReady === true : true;
+}
+
+function shareAdjustmentKind(solverGateResult = {}) {
+  const explicitKind = normalizeAdjustmentKind(
+    solverGateResult.presentationAdjustment?.kind || solverGateResult.mode
+  );
+  if (isReviewAdjustmentKind(explicitKind)) {
+    return explicitKind;
+  }
+  return normalizeAdjustmentKind(solverGateResult.simulationActivity) === 'state_only'
+    ? 'state_only'
+    : 'diagnostic_simulation';
+}
+
+function normalizeAdjustmentKind(kind) {
+  const value = String(kind || '').trim();
+  if (value === 'diagnostic') return 'diagnostic_simulation';
+  if (value === 'placeholder') return 'placeholder_part_simulation';
+  if (value === 'safe_equivalent') return 'safe_equivalent_simulation';
+  if ([
+    'diagnostic_simulation',
+    'placeholder_part_simulation',
+    'safe_equivalent_simulation',
+    'state_only'
+  ].includes(value)) {
+    return value;
+  }
+  return '';
+}
+
+function isReviewAdjustmentKind(kind) {
+  return [
+    'diagnostic_simulation',
+    'placeholder_part_simulation',
+    'safe_equivalent_simulation',
+    'state_only'
+  ].includes(kind);
+}
+
+function shareAdjustmentBody(kind, locale) {
+  return t(`publicShare.adjustment.${kind}.body`, {}, locale);
 }
 
 function sanitizeBuildRunnableReport(report) {

@@ -106,7 +106,38 @@ export const en = {
     safeEquivalentTitle: 'Safe equivalent simulation',
     safeEquivalentBody: 'The original unsafe request is not built; only the verified low-voltage equivalent is shown.',
     placeholderTitle: 'Placeholder part simulation',
-    placeholderBody: 'Some hardware is shown with generalized geometry, so exact physical dimensions remain limited.'
+    placeholderBody: 'Some hardware is shown with generalized geometry, so exact physical dimensions remain limited.',
+    adjustment: {
+      diagnostic_simulation: {
+        label: '3D diagnostic review',
+        title: '3D diagnostic review scene',
+        body: 'The hardware scene stays visible while automatic checks keep assembly and current-flow controls in review.'
+      },
+      placeholder_part_simulation: {
+        label: 'Adjusted placement',
+        title: 'Adjusted placeholder scene',
+        body: 'The scene uses safe generic geometry for parts that still need exact footprint review.'
+      },
+      safe_equivalent_simulation: {
+        label: 'Safe equivalent',
+        title: 'Safe equivalent circuit',
+        body: 'The original request is replaced with a safe low-voltage circuit, and claims apply only to the displayed equivalent.'
+      },
+      state_only: {
+        label: 'State check',
+        title: 'State check 3D diagnostic scene',
+        body: 'The scene shows useful board, pin, layout, or output state for inspection while current animation stays off.'
+      }
+    },
+    claimScope: {
+      original: 'Assembly review applies to the requested circuit.',
+      displayed_equivalent: 'Assembly review applies to the displayed safe equivalent.',
+      none: 'No assembly-ready claim is shown for this review scene.'
+    },
+    controls: {
+      runOff: 'Run stays off while the automatic review is incomplete.',
+      currentOff: 'Current-flow animation stays off until a checked path is ready.'
+    }
   },
   parts: {
     railKicker: 'Part library',
@@ -249,6 +280,24 @@ export const en = {
     simulationAvailable: 'Simulation available',
     diagnosticAvailable: '3D diagnostic available',
     diagnosticBody: 'A 3D diagnostic scene is available, but Run and current-flow simulation need review.',
+    adjustment: {
+      diagnostic_simulation: {
+        label: '3D diagnostic review available',
+        body: 'A safe 3D diagnostic scene is available while automatic checks keep Run and current-flow controls off.'
+      },
+      placeholder_part_simulation: {
+        label: 'Adjusted placeholder available',
+        body: 'A safe scene is available with generic part geometry while exact footprints are reviewed.'
+      },
+      safe_equivalent_simulation: {
+        label: 'Safe equivalent available',
+        body: 'A safe equivalent circuit is shown instead of the original request.'
+      },
+      state_only: {
+        label: 'State check available',
+        body: 'A static state and layout scene is available for inspection.'
+      }
+    },
     simulationUnavailable: 'No simulation',
     parts: 'Parts',
     context: 'Evidence',

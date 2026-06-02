@@ -3248,7 +3248,7 @@ test('build runnable gate blocks valid simulations with no current or signal pat
   assert.doesNotMatch(markdown, /arduino-uno:D9 -> resistor-1:1/);
 });
 
-test('solver gate preserves visible simulation while keeping build-ready strict', async () => {
+test('solver gate exposes state-only review scenes when expected state evidence exists without build-ready', async () => {
   const spec = ledCircuit();
   const validation = await validateCircuitSpec(spec);
   const renderPlan = await compileRenderPlan(spec, validation);
@@ -3260,11 +3260,21 @@ test('solver gate preserves visible simulation while keeping build-ready strict'
   const solverGate = buildSolverGateResult(validation, renderPlan, simulationPlan, runnableReport);
 
   assert.equal(renderPlan.parts.length > 0, true);
+  assert.equal(simulationPlan.currentPaths.length, 0);
+  assert.equal(simulationPlan.expectedStates.length > 0, true);
   assert.equal(runnableReport.runnable, false);
   assert.equal(solverGate.visibleSimulation, true);
   assert.equal(solverGate.buildReady, false);
   assert.equal(solverGate.mode, 'diagnostic_simulation');
+  assert.equal(solverGate.simulationActivity, 'state_only');
+  assert.equal(solverGate.presentationAdjustment.kind, 'state_only');
+  assert.equal(solverGate.buildReadyScope, 'none');
+  assert.equal(solverGate.controls.runEnabled, false);
+  assert.equal(solverGate.controls.currentAnimationEnabled, false);
+  assert.equal(solverGate.controls.visualMoveEnabled, true);
+  assert.ok(solverGate.safeToRenderEvidence.some((evidence) => /visible part/i.test(evidence)));
   assert.equal(solverGate.benchConfirmed, false);
+  assert.ok(solverGate.verifiedClaims.some((claim) => /expected state/i.test(claim)));
   assert.ok(solverGate.notVerified.some((reason) => /build-ready/i.test(reason)));
 });
 

@@ -15,15 +15,15 @@ test('render warnings markdown explains missing visual footprints for students',
     }
   ], 'en');
 
-  assert.match(markdown, /^# Render warnings/);
+  assert.match(markdown, /^# Display review notes/);
   assert.match(markdown, /MISSING_RENDER_FOOTPRINT/);
   assert.match(markdown, /mystery-module/);
   assert.match(markdown, /validated electrically/);
 });
 
 test('render warning title is localized without exposing raw debug wording first', () => {
-  assert.equal(renderWarningTitle('ko'), '화면 표시 경고');
-  assert.equal(renderWarningTitle('en'), 'Render warnings');
+  assert.equal(renderWarningTitle('ko'), '화면 검토 메모');
+  assert.equal(renderWarningTitle('en'), 'Display review notes');
 });
 
 test('render warnings markdown explains placement DRC issues in readable Korean', () => {
@@ -35,7 +35,7 @@ test('render warnings markdown explains placement DRC issues in readable Korean'
     }
   ], 'ko');
 
-  assert.match(markdown, /^# 화면 표시 경고/);
+  assert.match(markdown, /^# 화면 검토 메모/);
   assert.match(markdown, /전기적으로 검증된 회로라도/);
   assert.match(markdown, /부품: led-1/);
   assert.match(markdown, /BREADBOARD_PLACEMENT_OUT_OF_BOUNDS/);

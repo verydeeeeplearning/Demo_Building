@@ -486,7 +486,62 @@ export const SolverGateModeSchema = z.enum([
   'placeholder_part_simulation'
 ]);
 
-export const SolverGateResultSchema = z.object({
+export const BuildReadyScopeSchema = z.enum(['original', 'displayed_equivalent', 'none']);
+
+const SolverGateControlsDefaults = {
+  runEnabled: false,
+  currentAnimationEnabled: false,
+  hardwareMoveEnabled: false,
+  visualMoveEnabled: false,
+  shareEnabled: false
+};
+
+export const SolverGateControlsSchema = z.object({
+  runEnabled: z.boolean(),
+  currentAnimationEnabled: z.boolean(),
+  hardwareMoveEnabled: z.boolean(),
+  visualMoveEnabled: z.boolean(),
+  shareEnabled: z.boolean()
+}).catchall(z.boolean()).default(SolverGateControlsDefaults);
+
+export const PresentationAdjustmentSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('none'),
+    reason: z.literal('verified_build')
+  }),
+  z.object({
+    kind: z.literal('diagnostic_simulation'),
+    reason: z.string().min(1),
+    visibleOverlays: z.array(z.string().min(1)).default([])
+  }),
+  z.object({
+    kind: z.literal('placeholder_part_simulation'),
+    placeholderPartIds: z.array(z.string().min(1)).default([]),
+    placeholderFootprintId: z.string().min(1).default('stage-generic-part-profile'),
+    missingEvidence: z.array(z.string().min(1)).default([]),
+    exactGeometryClaim: z.literal(false).default(false),
+    pinGeometryClaim: z.literal(false).default(false),
+    reason: z.string().min(1)
+  }),
+  z.object({
+    kind: z.literal('safe_equivalent_simulation'),
+    originalSpecId: z.string().min(1),
+    equivalentSpecId: z.string().min(1),
+    originalBuildReady: z.literal(false).default(false),
+    displayedEquivalentBuildReady: z.boolean(),
+    blockedOriginalReasons: z.array(z.string().min(1)).default([]),
+    equivalenceClaims: z.array(z.string().min(1)).default([]),
+    nonEquivalentWarnings: z.array(z.string().min(1)).default([]),
+    reason: z.string().min(1)
+  }),
+  z.object({
+    kind: z.literal('state_only'),
+    stateEvidence: z.array(z.string().min(1)).default([]),
+    reason: z.string().min(1)
+  })
+]);
+
+const SolverGateResultObjectSchema = z.object({
   visibleSimulation: z.boolean(),
   mode: SolverGateModeSchema,
   buildReady: z.boolean(),
@@ -505,7 +560,11 @@ export const SolverGateResultSchema = z.object({
     message: z.string().min(1)
   })).default([]),
   hardwareWarnings: z.array(z.string().min(1)).default([]),
-  repairSummary: z.array(z.string().min(1)).default([])
+  repairSummary: z.array(z.string().min(1)).default([]),
+  presentationAdjustment: PresentationAdjustmentSchema,
+  buildReadyScope: BuildReadyScopeSchema,
+  safeToRenderEvidence: z.array(z.string().min(1)).default([]),
+  controls: SolverGateControlsSchema
 }).superRefine((result, context) => {
   if (
     result.buildReady &&
@@ -533,7 +592,191 @@ export const SolverGateResultSchema = z.object({
       path: ['notVerified']
     });
   }
+  if (result.visibleSimulation && result.safeToRenderEvidence.length === 0) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Visible solver results must include safe-to-render evidence',
+      path: ['safeToRenderEvidence']
+    });
+  }
+  if (result.mode === 'safe_equivalent_simulation' && result.buildReadyScope === 'original') {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Safe-equivalent solver results must never scope build-ready claims to the original request',
+      path: ['buildReadyScope']
+    });
+  }
+  if (result.buildReady && result.mode === 'safe_equivalent_simulation' && result.buildReadyScope !== 'displayed_equivalent') {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Safe-equivalent build-ready claims must be scoped to the displayed equivalent',
+      path: ['buildReadyScope']
+    });
+  }
+  if (result.buildReady && result.mode !== 'safe_equivalent_simulation' && result.buildReadyScope !== 'original') {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Original build-ready results must scope build-ready claims to the original circuit',
+      path: ['buildReadyScope']
+    });
+  }
+  if (!result.buildReady && result.buildReadyScope !== 'none') {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Non-build-ready solver results must not expose a build-ready claim scope',
+      path: ['buildReadyScope']
+    });
+  }
+  if (result.mode === 'safe_equivalent_simulation') {
+    if (result.presentationAdjustment.kind !== 'safe_equivalent_simulation') {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Safe-equivalent solver results require safe-equivalent presentation provenance',
+        path: ['presentationAdjustment']
+      });
+    } else if (result.presentationAdjustment.displayedEquivalentBuildReady !== result.buildReady) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Safe-equivalent presentation readiness must match the displayed equivalent build-ready flag',
+        path: ['presentationAdjustment', 'displayedEquivalentBuildReady']
+      });
+    }
+  }
+  if (result.mode === 'placeholder_part_simulation' && result.presentationAdjustment.kind !== 'placeholder_part_simulation') {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Placeholder solver results require explicit placeholder claim-limitation metadata',
+      path: ['presentationAdjustment']
+    });
+  }
 });
+
+export const SolverGateResultSchema = z.preprocess(
+  applySolverGateMigrationDefaults,
+  SolverGateResultObjectSchema
+);
+
+function applySolverGateMigrationDefaults(input: unknown) {
+  if (!isRecord(input)) {
+    return input;
+  }
+
+  const result = { ...input };
+  const mode = typeof result.mode === 'string' ? result.mode : 'diagnostic_simulation';
+  const buildReady = result.buildReady === true;
+  const visibleSimulation = result.visibleSimulation === true;
+  const simulationActivity = typeof result.simulationActivity === 'string'
+    ? result.simulationActivity
+    : 'diagnostic';
+
+  if (result.buildReadyScope === undefined) {
+    result.buildReadyScope = mode === 'safe_equivalent_simulation' && buildReady
+      ? 'displayed_equivalent'
+      : buildReady ? 'original' : 'none';
+  }
+  if (result.safeToRenderEvidence === undefined) {
+    result.safeToRenderEvidence = legacySafeToRenderEvidence(result, visibleSimulation);
+  }
+  if (result.controls === undefined) {
+    result.controls = legacySolverGateControls(buildReady, visibleSimulation, simulationActivity);
+  }
+  if (result.presentationAdjustment === undefined) {
+    result.presentationAdjustment = legacyPresentationAdjustment(result, mode, buildReady, simulationActivity);
+  }
+
+  return result;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string' && item.length > 0)
+    : [];
+}
+
+function legacySafeToRenderEvidence(result: Record<string, unknown>, visibleSimulation: boolean): string[] {
+  const evidence: string[] = [];
+  if (visibleSimulation) {
+    evidence.push('legacy solver result exposed a visible render plan');
+  }
+  if (Array.isArray(result.visualWarnings) && result.visualWarnings.length > 0) {
+    evidence.push('legacy solver result preserved render warnings for review');
+  }
+  return evidence;
+}
+
+function legacySolverGateControls(
+  buildReady: boolean,
+  visibleSimulation: boolean,
+  simulationActivity: unknown
+) {
+  const hasVerifiedActivity = simulationActivity === 'verified_current' || simulationActivity === 'verified_signal';
+  return {
+    runEnabled: buildReady && hasVerifiedActivity,
+    currentAnimationEnabled: buildReady && hasVerifiedActivity,
+    hardwareMoveEnabled: false,
+    visualMoveEnabled: visibleSimulation,
+    shareEnabled: visibleSimulation
+  };
+}
+
+function legacyPresentationAdjustment(
+  result: Record<string, unknown>,
+  mode: string,
+  buildReady: boolean,
+  simulationActivity: unknown
+) {
+  if (mode === 'safe_equivalent_simulation') {
+    return {
+      kind: 'safe_equivalent_simulation',
+      originalSpecId: typeof result.sourceSpecId === 'string' ? result.sourceSpecId : 'legacy-original-spec',
+      equivalentSpecId: typeof result.equivalentSpecId === 'string' ? result.equivalentSpecId : 'legacy-displayed-equivalent-spec',
+      originalBuildReady: false,
+      displayedEquivalentBuildReady: buildReady,
+      blockedOriginalReasons: stringArray(result.notVerified),
+      equivalenceClaims: stringArray(result.verifiedClaims),
+      nonEquivalentWarnings: stringArray(result.hardwareWarnings),
+      reason: 'Legacy safe-equivalent result scopes claims to the displayed equivalent.'
+    };
+  }
+  if (mode === 'placeholder_part_simulation') {
+    const placeholderPartIds = Array.isArray(result.visualWarnings)
+      ? result.visualWarnings
+        .filter((warning) => isRecord(warning) && warning.code === 'MISSING_RENDER_FOOTPRINT' && typeof warning.componentId === 'string')
+        .map((warning) => (warning as { componentId: string }).componentId)
+      : [];
+    return {
+      kind: 'placeholder_part_simulation',
+      placeholderPartIds,
+      placeholderFootprintId: 'stage-generic-part-profile',
+      missingEvidence: ['exact render footprint evidence is missing'],
+      exactGeometryClaim: false,
+      pinGeometryClaim: false,
+      reason: 'Legacy placeholder result uses safe generic geometry without exact geometry or pin claims.'
+    };
+  }
+  if (simulationActivity === 'state_only') {
+    return {
+      kind: 'state_only',
+      stateEvidence: ['legacy solver result reported state-only simulation activity'],
+      reason: 'Static state/context evidence is available without current-flow animation claims.'
+    };
+  }
+  if (buildReady) {
+    return {
+      kind: 'none',
+      reason: 'verified_build'
+    };
+  }
+  return {
+    kind: 'diagnostic_simulation',
+    reason: 'Legacy diagnostic result exposes a review-only scene while preserving strict gate evidence.',
+    visibleOverlays: []
+  };
+}
 
 export const SupportedAlternativeSchema = z.object({
   id: z.string().min(1),
@@ -760,7 +1003,10 @@ export type AgentArtifactSnapshot = z.infer<typeof AgentArtifactSnapshotSchema>;
 export type AgentEvent = z.infer<typeof AgentEventSchema>;
 export type AgentRunResult = z.infer<typeof AgentRunResultSchema>;
 export type BuildRunnableReport = z.infer<typeof BuildRunnableReportSchema>;
+export type BuildReadyScope = z.infer<typeof BuildReadyScopeSchema>;
+export type PresentationAdjustment = z.infer<typeof PresentationAdjustmentSchema>;
 export type SolverAttempt = z.infer<typeof SolverAttemptSchema>;
+export type SolverGateControls = z.infer<typeof SolverGateControlsSchema>;
 export type SolverGateResult = z.infer<typeof SolverGateResultSchema>;
 export type SupportedAlternative = z.infer<typeof SupportedAlternativeSchema>;
 export type CapabilityGraphEntry = z.infer<typeof CapabilityGraphEntrySchema>;
