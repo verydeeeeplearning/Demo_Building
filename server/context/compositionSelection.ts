@@ -81,9 +81,11 @@ export async function selectContextByComposition(
   const candidateIds = new Set<string>(BASE_PART_IDS);
   const consideredPartIds = new Set<string>();
 
-  // Top-k primary capabilities drive the build: their required parts are always candidates; their
-  // optional parts join only when they are generic wiring (e.g. jumper wires) — never speculative
-  // alternatives that could pull in parts the student did not ask for.
+  const normalizedMessage = input.message.normalize('NFKC').toLowerCase();
+
+  // Top-k primary capabilities drive the build: their required parts are always candidates. Their
+  // optional parts join only when they are generic wiring (e.g. jumper wires) OR the student named
+  // them explicitly (e.g. "BMP280") — never speculative alternatives the student did not ask for.
   for (const capability of primaryCapabilities.slice(0, topK)) {
     for (const partId of capability.requiredParts) {
       consideredPartIds.add(partId);
@@ -91,7 +93,9 @@ export async function selectContextByComposition(
     }
     for (const partId of capability.optionalParts) {
       consideredPartIds.add(partId);
-      if (byId.get(partId)?.kind === 'wiring') {
+      const part = byId.get(partId);
+      if (!part) continue;
+      if (part.kind === 'wiring' || partIsNamed(part, normalizedMessage)) {
         candidateIds.add(partId);
       }
     }
@@ -114,6 +118,15 @@ export async function selectContextByComposition(
     candidatesConsidered: new Set([...BASE_PART_IDS, ...consideredPartIds]).size,
     composition
   };
+}
+
+// A part is "named" when its id or any alias (>=3 chars) appears in the normalized message. Bounded
+// to the matched capabilities' optional parts, so this stays request-scoped (not a catalog scan).
+function partIsNamed(part: PartCapability, normalizedMessage: string): boolean {
+  return [part.id, ...part.aliases]
+    .map((token) => token.normalize('NFKC').toLowerCase())
+    .filter((token) => token.length >= 3)
+    .some((token) => normalizedMessage.includes(token));
 }
 
 /** Exposed for tests/diagnostics: which primary capabilities a message retrieves (top-k). */

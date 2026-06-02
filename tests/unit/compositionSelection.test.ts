@@ -80,3 +80,11 @@ void test('2.3 the top primary capability drives the build (OLED -> display-text
   assert.equal(selection.primaryCapabilityId, 'display-text-output');
   assert.ok(selection.candidatePartIds.includes('oled-i2c-096'));
 });
+
+void test('2.3 an explicitly-named optional part is selected (e.g. a named sensor)', async () => {
+  const selection = await selectContextByComposition({ message: 'BMP280 기압을 OLED에 보여줘' });
+  assert.ok(selection.candidatePartIds.includes('bmp280'), 'a named optional sensor is included');
+  assert.ok(selection.candidatePartIds.includes('oled-i2c-096'), 'the display is still included');
+  // An UNnamed optional alternative is NOT pulled in speculatively.
+  assert.ok(!selection.candidatePartIds.includes('mpu6050'), 'an unnamed optional sibling is excluded');
+});
