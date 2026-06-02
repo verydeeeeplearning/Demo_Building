@@ -1,6 +1,6 @@
 # Improvement Plan: Circuit Validity (trace-based, deterministic-pipeline fixes)
 
-**Status**: Proposed
+**Status**: Implemented (offline) — Phases 1, 2, 2.5, 3 done & green; Phase 4 live re-validation pending a fresh user key.
 **Started**: 2026-06-03
 **Basis**: Live validation of the `next` pipeline (gpt-5.4-mini, reasoning=low) + **trace-based** root-cause analysis of every not-valid case. This plan is grounded in agent-trace evidence, not hypotheses.
 
@@ -40,11 +40,11 @@ So a **correct circuit with the right output part is marked `INTENT_OUTPUT_NOT_F
 
 **Fix:** composition must guarantee each of the capability's **required modalities** (input + output) is covered. When `requiredParts` does not cover a required input/output modality, select a **deterministic default representative** optional part that fulfills it (e.g. first by a stable order) and add it to candidates. Reuses the RC-A modality taxonomy to test coverage.
 
-### RC-C — Runtime exception on a complex case (TBD)
-`hbridge-motor-output` threw a deepagents/langgraph exception mid-run (the first 18-trace crashed there). To be characterized by the robust 18-trace re-run; likely a tool/recursion edge. (Lower frequency.)
+### RC-C — Runtime exception on a complex case (CHARACTERIZED; live-repro-required)
+`hbridge-motor-output` threw a deepagents/langgraph exception in the **first** 18-trace — but that run had **no per-case `try/catch`**, so a single mid-run exception killed the whole run before `writeFile`. After hardening `scripts/liveTrace.mts` with per-case `try/catch`, the re-run captured the hbridge trace cleanly and it was an ordinary **RC-A** case (`INTENT_OUTPUT_NOT_FULFILLED: motion`), now fixed by Phase 1. So RC-C was a **harness fragility**, not a distinct pipeline defect: the run-killing crash is gone (the harness now records the per-case error and continues), and the case itself validates after RC-A. Any *genuine* residual model/langgraph exception is low-frequency and only reproducible **live** (it needs the real model); there is no deterministic offline repro, so no speculative code change is made here. Status: closed as harness-fixed + RC-A-fixed; re-watch live in Phase 4.
 
-### RC-D — Render DRC false-block (`CAMERA_CLIPPING`) (secondary)
-Several cases carry `SIMULATION_BLOCKED_BY_RENDER_DRC: CAMERA_CLIPPING (fitted camera distance too short for scene radius)`. This is a **render/camera-fit** issue blocking simulation, independent of electrical correctness. Fix: fit camera distance to scene radius (render plan), so a valid circuit isn't blocked by a viewport heuristic.
+### RC-D — Render DRC false-block (`CAMERA_CLIPPING`) (FIXED, offline)
+Several valid cases carried `SIMULATION_BLOCKED_BY_RENDER_DRC: CAMERA_CLIPPING (fitted camera distance too short for scene radius)`. Root cause (deterministic, `server/agent/circuitTools.ts` `compileCameraFit`): the fitted camera `distance` was clamped to a **max of 40**, but `auditRenderCameraFit` requires `distance ≥ (radius / sin(fov/2)) · 1.03 ≈ 3.16 · radius`. For a scene `radius > ~12.6` the required distance exceeds 40, so the clamp **guaranteed** a false clip on a valid large scene. Fix: the clamp ceiling now grows with the desired distance (`Math.max(40, desiredDistance)`) — a **no-op for every small scene** (`desiredDistance < 40`), only lifting the cap when the scene genuinely needs it. Locked by `tests/unit/cameraFit.test.ts`.
 
 ## 4. Per-case categorization (the 18 originally-not-valid cases)
 
@@ -95,20 +95,22 @@ All fixes are in the **deterministic** layer (validation taxonomy, composition s
 ### Phase 2.5 — corpus hardening (so the gate catches this class)
 - The corpus mustInclude was derived from `requiredParts`, so input-gap cases passed candidate-check while failing the real build. Add `mustInclude` of an input-modality part for input-readout cases, and add a **buildability** assertion class (the captured invalid cases as fixtures) so RC-A/B regressions are caught offline.
 
-### Phase 3 — RC-C runtime exception + RC-D render DRC
-- **RED**: reproduce the hbridge exception deterministically (fake model/cassette) if it is pipeline-side; render-fit test asserting camera distance ≥ scene radius for a multi-part scene.
-- **GREEN**: guard/fix the exception; fit camera to scene radius in the render plan.
-- **Gate**: TDD; no `CAMERA_CLIPPING` false-block on valid circuits.
+### Phase 3 — RC-C runtime exception + RC-D render DRC ✅ DONE (offline)
+- **RC-D GREEN**: camera-fit clamp ceiling now grows with the desired distance (`compileCameraFit`), so a valid large scene is never falsely `CAMERA_CLIPPING`-blocked; no-op for small scenes. `tests/unit/cameraFit.test.ts` (RED proved the clip at radius ~16, GREEN clears it). `compileCameraFit`/`auditRenderCameraFit` exported for the unit test.
+- **RC-C**: closed as harness-fragility + RC-A (see §3 RC-C). No deterministic offline repro; re-watch live in Phase 4. No speculative change.
+- **Gate**: TDD; full `test:unit` 421 pass / 1 skip, typecheck + build green — no render regression from the global camera change (small scenes unchanged).
 
-### Phase 4 — Live re-validation
-- Re-run the 18 not-valid cases (and the full corpus) live under `next` (`scripts/liveValidate.mts`). **Target:** the RC-A/B cases become `valid`/`runnable`; measure the new valid rate vs the 56% baseline. Cases that remain not-valid for genuine support reasons (RC-E) are documented, not forced.
+### Phase 4 — Live re-validation (harness ready; needs a fresh user key)
+- The offline gate (`tests/unit/intentFulfillmentRegression.test.ts`) already proves all **13** deterministic cases validate via the REAL `buildContextPacket(next)` + REAL intent-fulfillment gate — no model required. This is the strongest offline evidence the RC-A/RC-B fixes land exactly the trace-captured cases.
+- Live confirmation of the **end-to-end valid rate** (agent + model) still needs a run of `scripts/liveValidate.mts` under `next`. It is **not run here**: the previously-pasted OpenAI keys must be revoked, and default tests must never call live OpenAI. To measure the new rate, supply a fresh key in gitignored `.local/agent.env` and run `npx tsx scripts/liveValidate.mts` (and `scripts/liveTrace.mts <ids>` for any residual). Expected: RC-A/B cases flip to `valid`/`runnable`; RC-E (2) stays correctly unsupported; the 3 variance cases pass intermittently.
 
 ## 6. Success criteria
-- [ ] RC-A: a correct tft-18 / dc-motor / 7-seg / led-array circuit validates `valid` (no false `INTENT_OUTPUT_NOT_FULFILLED`).
-- [ ] RC-B: every input-readout capability offers ≥1 input device in candidates; the agent never needs a non-candidate part.
-- [ ] Corpus still 37/37 candidate-correct; growth still O(request).
-- [ ] Live valid rate up from **56% → ≥85%** (RC-A fixes the 6 motor/display cases; RC-B fixes the 7 input/sensor cases; RC-E's 2 stay correctly unsupported).
-- [ ] `npm run test:unit`, `typecheck`, `build` green; no regression on legacy.
+- [x] RC-A: a correct tft-18 / dc-motor / 7-seg / stepper / h-bridge / relay circuit validates `valid` (no false `INTENT_OUTPUT_NOT_FULFILLED`). — `modalityFulfillment.test.ts` + `intentFulfillmentRegression.test.ts`.
+- [x] RC-B: every input-readout capability offers ≥1 input device in candidates; the agent never needs a non-candidate part. — `compositionModalityCoverage.test.ts` + `intentFulfillmentRegression.test.ts`.
+- [x] Corpus still 37/37 candidate-correct; growth still O(request). — `liveCompositionIntegration.test.ts`, `compositionSelection.test.ts`, `contextEfficiencyCharacterization.test.ts`.
+- [x] RC-D: a valid large scene is not falsely `CAMERA_CLIPPING`-blocked. — `cameraFit.test.ts`.
+- [ ] Live valid rate up from **56% → ≥85%** — projected from the 13-case offline proof; final number pending a live `scripts/liveValidate.mts` run with a fresh user key (Phase 4). RC-E's 2 stay correctly unsupported.
+- [x] `npm run test:unit` (421 pass / 1 skip), `typecheck`, `build` green; legacy path unchanged (RC-B gated to `next`; RC-A/RC-D are global correctness fixes locked by golden/regression tests).
 
 ## 7. Risk & rollback
 | Risk | Mitigation |
@@ -120,3 +122,12 @@ All fixes are in the **deterministic** layer (validation taxonomy, composition s
 ## 8. Notes
 - Diagnosis is trace-based: `.local/trace-results.json` holds the captured circuits + authoritative errors per case. Re-capture with `npx tsx scripts/liveTrace.mts <case-ids>` (source `.local/agent.env`).
 - These are deterministic-layer fixes; they raise validity independent of model/reasoning. Model/reasoning is a separate lever (high reasoning alone did not fix these).
+
+## 9. Implementation summary (what shipped)
+- **Classification correction:** `joystick-display-readout` and `rotary-encoder-display-readout` were filed under RC-B but are actually **RC-A-input** — their input device is already in `requiredParts`; the bug was the `digital-input` taxonomy missing `digital-button-input` / `quadrature-input-source`. Phase 1 fixes them. Net deterministic count is unchanged: **RC-A = 8 (6 output + 2 input), RC-B = 5 (true composition gaps) = 13**.
+- **New module** `server/agent/modalityFulfillment.ts` — the single modality-fulfillment taxonomy (generic ⊇ specific), shared by the validation gate (`circuitTools.ts`) and composition selection (`compositionSelection.ts`). `circuitTools.ts` deleted its 4 local copies (no duplicate vocabulary).
+- **Composition coverage** (`compositionSelection.ts`): per driving capability, greedily add the optional part covering the most still-uncovered required input/output modalities (stable order, request-scoped). One device can satisfy a conjunctive family.
+- **RC-D** (`circuitTools.ts` `compileCameraFit`): clamp ceiling grows with the desired distance; no-op for small scenes.
+- **Tests (offline, no live OpenAI):** `modalityFulfillment.test.ts`, `compositionModalityCoverage.test.ts`, `intentFulfillmentRegression.test.ts` (13 trace cases via real packet+gate), `cameraFit.test.ts`. Suite: 421 pass / 1 skip; typecheck + build green.
+- **Commits:** `3547a26` (RC-A + RC-B + Phase 2.5), plus the RC-D + docs commit.
+- **Live re-validation is the only open item** (Phase 4) and is intentionally not run here — it requires a fresh user-supplied key (all previously-exposed keys must be revoked); default tests never call live OpenAI.

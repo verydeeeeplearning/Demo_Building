@@ -7258,18 +7258,20 @@ function includeBoundsPoint(
   extents.maxZ = Math.max(extents.maxZ, point.z);
 }
 
-function compileCameraFit(bounds: RenderSceneBounds): RenderCameraFit {
+export function compileCameraFit(bounds: RenderSceneBounds): RenderCameraFit {
   const fov = 38;
   const fovRadians = fov * Math.PI / 180;
   const distanceForRadius = bounds.radius > 0
     ? bounds.radius / Math.sin(fovRadians / 2)
     : 0;
   const horizontalSpan = Math.max(bounds.size.x, bounds.size.z);
-  const distance = clampNumber(
-    Math.max(4.8, distanceForRadius * 1.12, horizontalSpan * 1.45),
-    4.8,
-    40
-  );
+  // RC-D: the framing the audit demands grows with the scene radius (~3.16 * radius). A fixed upper
+  // clamp of 40 would cap the distance BELOW that for large scenes (radius > ~12.6), producing a
+  // false CAMERA_CLIPPING block on otherwise-valid circuits. Let the ceiling grow with the desired
+  // distance so the clamp never cuts below the radius-driven framing — a no-op for small scenes
+  // (desiredDistance < 40), only lifting the cap when the scene genuinely needs it.
+  const desiredDistance = Math.max(4.8, distanceForRadius * 1.12, horizontalSpan * 1.45);
+  const distance = clampNumber(desiredDistance, 4.8, Math.max(40, desiredDistance));
   const directionLength = Math.hypot(0.62, 0.52, 0.58);
   const direction = {
     x: 0.62 / directionLength,
@@ -7295,7 +7297,7 @@ function compileCameraFit(bounds: RenderSceneBounds): RenderCameraFit {
   };
 }
 
-function auditRenderCameraFit(bounds: RenderSceneBounds, camera: RenderCameraFit): RenderWarning[] {
+export function auditRenderCameraFit(bounds: RenderSceneBounds, camera: RenderCameraFit): RenderWarning[] {
   const distance = distanceBetween(camera.position, camera.target);
   const fovRadians = camera.fov * Math.PI / 180;
   const requiredDistance = bounds.radius > 0
