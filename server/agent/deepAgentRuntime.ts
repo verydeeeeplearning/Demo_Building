@@ -159,6 +159,50 @@ export async function runAgentWithScriptedDrafts(input: {
   });
 }
 
+// Phase 3 — deterministic intent derivation. Replaces the requirement-analysis LLM call (the first
+// of two createDeepAgent runs) with a pure mapping over the context packet's already-deterministic
+// signals (anchor invariant 3: intent stays deterministic). Route distribution vs the LLM baseline
+// is validated by Phase 6 live smoke; the corpus locks the structural mapping here.
+export function deriveRequirementAnalysis(
+  request: AgentMessageRequest,
+  contextPacket: Awaited<ReturnType<typeof buildContextPacket>>
+): RequirementAnalysis {
+  const unsupported = contextPacket.unsupportedSignals.length > 0;
+  const eligible = contextPacket.contextCoverage.synthesisEligibility.status === 'eligible';
+  const route: RequirementAnalysis['route'] = unsupported
+    ? 'unsupported_or_gap'
+    : eligible
+      ? 'synthesize_circuit'
+      : 'clarify_requirements';
+
+  const eligibilityReason = contextPacket.contextCoverage.synthesisEligibility.reason;
+  const summary = unsupported
+    ? `Request falls outside the build-ready scope: ${contextPacket.unsupportedSignals[0]}.`
+    : eligible
+      ? 'Context coverage is sufficient for circuit synthesis.'
+      : `Context coverage is insufficient for synthesis: ${eligibilityReason}`;
+
+  return RequirementAnalysisSchema.parse({
+    route,
+    confidence: eligible || unsupported ? 0.9 : 0.6,
+    summary,
+    assistantMessage: summary,
+    clarification: null,
+    blockingReason: unsupported
+      ? contextPacket.unsupportedSignals[0]
+      : route === 'clarify_requirements'
+        ? eligibilityReason
+        : null,
+    circuitGoal: {
+      input: null,
+      output: null,
+      behavior: request.message,
+      controller: null
+    },
+    agentEvents: []
+  });
+}
+
 function defaultScriptedRequirementAnalysis(request: AgentMessageRequest): RequirementAnalysis {
   return RequirementAnalysisSchema.parse({
     route: 'synthesize_circuit',
@@ -277,9 +321,10 @@ async function observeShadowComposition(input: {
 async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptions = {}): Promise<AgentRunResult> {
   const modelPort = options.deps?.modelPort ?? createDefaultModelPort();
   const deepAgentFactory = options.deps?.deepAgentFactory ?? createDeepAgent;
+  const pipelineMode = getAgentPipelineMode();
   const sessionId = request.sessionId ?? `session-${randomUUID()}`;
   const traceId = options.traceId ?? createAgentTraceId();
-  const contextPacket = await buildContextPacket(request, { pipelineMode: getAgentPipelineMode() });
+  const contextPacket = await buildContextPacket(request, { pipelineMode });
   const baseMetadata = langSmithMetadata({ traceId, request, contextPacket });
   logAgentEvent('context.packet.built', {
     traceId,
@@ -305,16 +350,21 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
     allowedContextSourceIds: contextPacket.retrievalPlan.sourceIds,
     supportBundles: contextPacket.supportBundles
   };
-  const requirementAnalysis = await runRequirementAnalysisAgent({
-    traceId,
-    sessionId,
-    request,
-    contextPacket,
-    model,
-    toolOptions,
-    metadata: baseMetadata,
-    deepAgentFactory
-  });
+  // Phase 3 single-run: in shadow|next, derive the requirement route deterministically instead of
+  // running a second deep agent — collapsing the two createDeepAgent runs into the one synthesis
+  // run. legacy keeps the LLM requirement-analysis agent.
+  const requirementAnalysis = pipelineMode === 'legacy'
+    ? await runRequirementAnalysisAgent({
+        traceId,
+        sessionId,
+        request,
+        contextPacket,
+        model,
+        toolOptions,
+        metadata: baseMetadata,
+        deepAgentFactory
+      })
+    : deriveRequirementAnalysis(request, contextPacket);
   logAgentEvent('requirement.analysis.completed', {
     traceId,
     sessionId,
