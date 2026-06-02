@@ -12,6 +12,7 @@ import { getPartRegistry, loadTopologyTemplates, readContextDoc } from '../conte
 import { buildContextPacket } from '../context/contextPacket.ts';
 import { getComposeMode } from '../context/composeMode.ts';
 import { getAgentPipelineMode } from './agentPipelineMode.ts';
+import { createObservabilityMiddleware } from './observabilityMiddleware.ts';
 import { runShadowComposition } from '../context/generatedComposition.ts';
 import {
   contextPacketLogSummary,
@@ -407,7 +408,18 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
     subagents,
     responseFormat: toolStrategy(LiveAgentDraftSchema),
     systemPrompt: synthesisSystemPrompt,
-    name: 'h-eduware-deepagent'
+    name: 'h-eduware-deepagent',
+    middleware: pipelineMode !== 'legacy'
+      ? [createObservabilityMiddleware((event) => {
+          logAgentEvent('agent.tool.call', {
+            traceId,
+            sessionId,
+            tool: event.tool,
+            status: event.status,
+            ...(event.error !== undefined ? { error: event.error } : {})
+          });
+        })]
+      : undefined
   });
 
   return runAgentDraftRepairLoop({

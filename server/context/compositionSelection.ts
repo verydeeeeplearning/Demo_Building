@@ -33,6 +33,8 @@ export type CompositionSelection = {
   primaryCapabilityId: string | null;
   /** Selected candidate part ids (sorted). */
   candidatePartIds: string[];
+  /** The resolved candidate parts (same set as candidatePartIds), for direct packet use. */
+  candidateParts: PartCapability[];
   /**
    * How many parts the selection examined for THIS request — bounded by the retrieved capabilities'
    * part lists, INDEPENDENT of catalog size. This is the O(request) signal the growth test asserts.
@@ -107,6 +109,7 @@ export async function selectContextByComposition(
   return {
     primaryCapabilityId: primaryCapabilities[0]?.id ?? null,
     candidatePartIds: candidateParts.map((part) => part.id).sort(),
+    candidateParts,
     // Bounded by what the request retrieved (base + considered capability parts), not the catalog.
     candidatesConsidered: new Set([...BASE_PART_IDS, ...consideredPartIds]).size,
     composition

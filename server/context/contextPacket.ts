@@ -43,6 +43,7 @@ import {
 // Type-only import: the pipeline-mode flag is resolved by the caller and passed via deps, so the
 // context layer keeps no runtime dependency on the agent layer.
 import type { AgentPipelineMode } from '../agent/agentPipelineMode.ts';
+import { selectContextByComposition } from './compositionSelection.ts';
 
 type BuildContextPacketInput = Pick<AgentMessageRequest, 'message' | 'locale' | 'conversationContext'>;
 
@@ -1458,9 +1459,19 @@ export async function buildContextPacket(
       return selectedBundlePartIds.has(part.id);
     });
   const explicitBundlePartIds = explicitOptionalPartIdsForV2(selectedBundles, explicitPartIds);
-  const candidateParts = selectedBundles.length > 0
+  let candidateParts = selectedBundles.length > 0
     ? compactCandidatePartsForV2(rawCandidateParts, selectedBundles, explicitBundlePartIds)
     : rawCandidateParts;
+  // Phase 5 (flag-gated, `next` only): make composition selection the candidate authority on the
+  // live path — it covers the full corpus (37/37) by taking the top primary capability's parts
+  // directly. `shadow` keeps the tier path and observes composition separately; `next` adopts it.
+  // Replace (not merge) so a wrongly-included surface from the route path is dropped.
+  if (pipelineMode === 'next') {
+    const composed = await selectContextByComposition({ message: contextualMessage }, { registrySource });
+    if (composed.candidateParts.length > 0) {
+      candidateParts = composed.candidateParts;
+    }
+  }
   const simulationPrimitives = selectedBundles.length > 0
     ? selectSimulationPrimitivesById(allSimulationPrimitives, selectedBundles.flatMap((bundle) => bundle.manifest.simulationPrimitives))
     : selectSimulationPrimitives(allSimulationPrimitives, capabilityMatches, candidateParts);
