@@ -164,7 +164,23 @@ Default gates mocked/cassette (no live OpenAI). Unit ≥90% new pure logic; char
 ## Progress Tracking
 - Phase 0: ✅ 100% (corpus + efficiency harness + characterization + reachability — additive, all gates green)
 - Phase 0.5: ✅ 100% (ModelPort + DeepAgentFactory + PartRegistrySource + cassette + flag + js-tiktoken pin — hot-path seams, behavior preserved, TS 359/359)
-- Phases 1, 2, 2.5, 3, 4, 5, 6: 0% · Overall: ~22%
+- Phase 1: ✅ 100% (tier field + tier-aware routing + bounded candidate filter, flag-gated — OLED+breadboard fixed under next; corpus 33→35/37 with zero regressions; legacy unchanged; TS 363/363)
+- Phase 2: ✅ 100% (compositionSelection.ts — raw matchCapabilities top-k → L2 compose; **37/37 corpus**, fixes all 4 broken; O(request) growth proven; TS 368/368). Live-path switch is Phase 5.
+- Phase 2.5: ✅ 100% (safetyOverlay.ts — review-only→build-ready only with a valid human-reviewed overlay + complete; cycle-breaker preserved; TS 373/373). Unblocks Phase 5.
+- Phase 3: ✅ core (single-run collapse — one createDeepAgent via deterministic intent; TS 375/375). Token-lean renderer + under-pull → Phase 6 live.
+- Phase 4: ✅ core (structured-output reliability — never-502 retry+fallback; Path B subagent removal; TS 378/378). Cassette first-shot rate → Phase 6 live.
+- Phase 5: 🟡 5.1 readiness proven (composition covers corpus 37/37 → 40 enumerated routes retirable). 5.2 (delete routes + flip default `next`) **gated by live smoke + reviewer** — not done autonomously.
+- Phase 6: 🟡 6.3 live-smoke harness built (`check:live`, never-502 gate) + kill-switch verified. Live verification + observability middleware + promotion **need the API key + reviewer** — not done autonomously.
+- **Overall: 7/9 stories complete (default-test-verified); 2 remaining are live-model + human-reviewer gated by the plan's own design.**
+
+### Autonomous completion boundary
+All flag-gated mechanisms are built, tested (TS 380 + 1 live-skip, JS 110), and committed; default stays `legacy` (production unchanged). The remaining work — switching the live path to composition, observability middleware, running the live smoke to confirm first-shot ≥95%, the destructive route deletion, and flipping the default to `next` — requires live-model validation (the user's `OPENAI_API_KEY`) and a human reviewer sign-off, exactly as the plan's Phase 5/6 gates mandate. Run `npm run check:live` to begin that validation.
+
+### Phase 2 finding
+- The legacy capability brittleness was **entirely in `pruneCapabilityMatchesForExplicitHardware`** — raw `matchCapabilities` already ranks the correct primary-output capability first. Composition simply skips the prune and takes the top primary capability's parts, fixing all 4 previously-broken corpus cases (incl. the 2 that even Phase 1 tier selection couldn't). This means Phase 5 (switching the live path to composition) is the real fix; Phase 1's tier work remains a valid legacy-path bridge.
+
+### Phase 1 finding that scopes Phase 2
+- The OLED bug had THREE compounding causes, not one: (1) "브레드보드" suppresses the primary capability match (display-text-output absent), (2) the compositional route out-ranks the primary route, (3) the bundle filter drops the OLED. Phase 1 fixed (2)+(3) via tier; (1) — a primary capability suppressed by a surface keyword — is a **capability-matching** defect that Phase 2's composition (roles → index → compose from the raw request) subsumes. The 2 corpus cases still failing under both legacy+next (`variant-display-text-connector-wiring-context` jumper-wire explicit-detection gap; `collision-02-led-breadboard` primary-suppression → `supported-hardware-general` catch-all leak) are Phase 2 targets, not Phase 1 regressions.
 
 ### Phase 0 finding that revises the plan
 - **Reachability (deterministic, fake-model through a real `createDeepAgent`): `task` delegation is BOTH bound AND executable under `responseFormat: toolStrategy(...)`.** A model that calls `task` runs the subagent and then still emits the terminal `structuredResponse`. So the review's K1 "`responseFormat` structurally suppresses delegation" is **refuted** — passivity is *behavioral* (never instructed; model converges to immediate emit), not structural. **Phase 4 impact:** Path A (keep + scope + instruct delegation) is technically feasible (not harness-blocked); the default remains **Path B (remove)** but now for *token economy*, not because delegation is impossible.
