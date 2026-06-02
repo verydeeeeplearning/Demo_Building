@@ -42,6 +42,14 @@ import {
 } from './supportBundleEvidence.ts';
 
 type BuildContextPacketInput = Pick<AgentMessageRequest, 'message' | 'locale' | 'conversationContext'>;
+
+// Phase 0.5 seam: the part registry is injectable so tests can double/grow the catalog (the
+// catalog-growth test doubles it). Production passes nothing -> the real cached `getPartRegistry`.
+type PartRegistrySource = () => Promise<PartCapability[]>;
+export type ContextPacketDeps = {
+  registrySource?: PartRegistrySource;
+};
+
 type ContextV2Route = ContextV2Routes['routes'][number];
 
 const BASE_CONTEXT_IDS = [
@@ -1337,7 +1345,11 @@ const ACTIVE_UNSAFE_PATTERNS = [
   { pattern: /heater|히터|난방|발열|가열|fire|화재/i, signal: 'unsafe thermal or hazardous load' }
 ];
 
-export async function buildContextPacket(input: BuildContextPacketInput): Promise<ContextPacket> {
+export async function buildContextPacket(
+  input: BuildContextPacketInput,
+  deps: ContextPacketDeps = {}
+): Promise<ContextPacket> {
+  const registrySource = deps.registrySource ?? getPartRegistry;
   const locale = input.locale ?? 'ko';
   const message = input.message;
   const conversationContext = input.conversationContext;
@@ -1400,7 +1412,7 @@ export async function buildContextPacket(input: BuildContextPacketInput): Promis
   const shouldLoadRenderFootprints = includesSource(retrievalPlan, 'rendering:render-footprints')
     && (selectedBundles.length === 0 || selectedBundlesAreBuildReady);
   const [registry, searchedParts, allSimulationPrimitives, allRenderFootprints] = await Promise.all([
-    shouldLoadRegistry ? getPartRegistry() : Promise.resolve([] as PartCapability[]),
+    shouldLoadRegistry ? registrySource() : Promise.resolve([] as PartCapability[]),
     shouldLoadRegistry && selectedBundles.length === 0
       ? searchPartCapabilities(expandSearchQuery(contextualMessage))
       : Promise.resolve([] as PartCapability[]),

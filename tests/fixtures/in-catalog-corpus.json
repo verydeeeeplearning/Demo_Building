@@ -1,0 +1,593 @@
+{
+  "description": "In-catalog request corpus: capability-base + compositional-variant + keyword-collision. Sole parity gate for the agent-pipeline refactor.",
+  "generatedFrom": [
+    "agent-context/data/capability-graph.json",
+    "agent-context/registry/part-capabilities.json"
+  ],
+  "cases": [
+    {
+      "id": "base-low-voltage-power-rail",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "브레드보드 전원 모듈",
+      "expectedCapabilityId": "low-voltage-power-rail",
+      "mustIncludePartIds": [
+        "breadboard-half",
+        "breadboard-psu"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-display-text-output",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "텍스트 표시",
+      "expectedCapabilityId": "display-text-output",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "oled-i2c-096"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-digital-light-output",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "LED 켜기",
+      "expectedCapabilityId": "digital-light-output",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "led-5mm",
+        "resistor-220"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-button-controlled-light-output",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "버튼으로 LED",
+      "expectedCapabilityId": "button-controlled-light-output",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "button-tactile",
+        "led-5mm",
+        "resistor-220"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-sound-alert-output",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "부저",
+      "expectedCapabilityId": "sound-alert-output",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "piezo-buzzer"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-servo-motion-output",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "서보",
+      "expectedCapabilityId": "servo-motion-output",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "micro-servo"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-low-side-switched-load-output",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "DC 모터",
+      "expectedCapabilityId": "low-side-switched-load-output",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "irf520-mosfet",
+        "dc-motor-130"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-stepper-motor-output",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "스테퍼 모터",
+      "expectedCapabilityId": "stepper-motor-output",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "uln2003-driver",
+        "stepper-28byj48"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-hbridge-motor-output",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "L298N으로 DC 모터 방향 제어",
+      "expectedCapabilityId": "hbridge-motor-output",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "l298n-driver",
+        "dc-motor-130"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-relay-low-voltage-output",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "릴레이로 저전압 LED 켜기",
+      "expectedCapabilityId": "relay-low-voltage-output",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "relay-1ch",
+        "led-5mm",
+        "resistor-220"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-analog-led-dimmer",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "가변저항",
+      "expectedCapabilityId": "analog-led-dimmer",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "potentiometer-10k",
+        "led-5mm",
+        "resistor-220"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-distance-sensor-display",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "초음파 센서",
+      "expectedCapabilityId": "distance-sensor-display",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "ultrasonic-hc-sr04",
+        "oled-i2c-096"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-dht11-temperature-humidity-display",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "DHT11 온습도 센서",
+      "expectedCapabilityId": "dht11-temperature-humidity-display",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "dht11",
+        "oled-i2c-096"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-dht22-temperature-humidity-display",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "DHT22 온습도 값을 OLED에 표시",
+      "expectedCapabilityId": "dht22-temperature-humidity-display",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "dht22",
+        "oled-i2c-096"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-i2c-sensor-display-readout",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "BMP280 값을 OLED에 표시",
+      "expectedCapabilityId": "i2c-sensor-display-readout",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "oled-i2c-096"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-clocked-data-sensor-display-readout",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "로드셀 값을 OLED에 표시",
+      "expectedCapabilityId": "clocked-data-sensor-display-readout",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "hx711-loadcell",
+        "oled-i2c-096"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-spi-sensor-display-readout",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "RFID 태그 값을 OLED에 표시",
+      "expectedCapabilityId": "spi-sensor-display-readout",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "rc522-rfid",
+        "oled-i2c-096"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-uart-sensor-display-readout",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "GPS 모듈 값을 OLED에 표시",
+      "expectedCapabilityId": "uart-sensor-display-readout",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "gps-neo6m",
+        "oled-i2c-096"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-uart-communication-module-readout",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "SIM800L GSM module status를 OLED에 표시",
+      "expectedCapabilityId": "uart-communication-module-readout",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "oled-i2c-096"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-spi-communication-module-readout",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "USB host shield 상태를 OLED에 표시",
+      "expectedCapabilityId": "spi-communication-module-readout",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "oled-i2c-096"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-rs485-communication-module-readout",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "MAX485 transceiver 상태를 OLED에 표시",
+      "expectedCapabilityId": "rs485-communication-module-readout",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "rs485-module",
+        "oled-i2c-096"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-light-sensor-triggered-output",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "빛 센서",
+      "expectedCapabilityId": "light-sensor-triggered-output",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "photoresistor-ldr",
+        "led-5mm",
+        "resistor-220"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-analog-sensor-display-readout",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "센서값 표시",
+      "expectedCapabilityId": "analog-sensor-display-readout",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "oled-i2c-096"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-analog-sensor-threshold-output",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "센서값 기준 LED",
+      "expectedCapabilityId": "analog-sensor-threshold-output",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "led-5mm",
+        "resistor-220"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-digital-input-display-readout",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "OLED에 센서 상태 표시",
+      "expectedCapabilityId": "digital-input-display-readout",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "oled-i2c-096"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-digital-input-threshold-output",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "센서가 감지하면 LED 켜기",
+      "expectedCapabilityId": "digital-input-threshold-output",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "led-5mm",
+        "resistor-220"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-matrix-input-display-readout",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "멤브레인 키패드 값을 표시",
+      "expectedCapabilityId": "matrix-input-display-readout",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "oled-i2c-096"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-joystick-display-readout",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "조이스틱 위치를 OLED에 표시",
+      "expectedCapabilityId": "joystick-display-readout",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "joystick-module",
+        "oled-i2c-096"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-rotary-encoder-display-readout",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "로터리 엔코더 값을 표시",
+      "expectedCapabilityId": "rotary-encoder-display-readout",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "rotary-encoder",
+        "oled-i2c-096"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-bare-seven-segment-display-output",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "1자리 세븐세그먼트에 숫자 표시",
+      "expectedCapabilityId": "bare-seven-segment-display-output",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "7seg-1digit",
+        "resistor-220"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-led-array-display-output",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "7세그먼트에 숫자 표시",
+      "expectedCapabilityId": "led-array-display-output",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "7seg-4digit-tm1637"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-addressable-led-display-output",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "네오픽셀 링에 무지개 패턴 표시",
+      "expectedCapabilityId": "addressable-led-display-output",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "neopixel-ring-12"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "base-spi-display-output",
+      "kind": "capability-base",
+      "locale": "ko",
+      "message": "SPI TFT에 글자 표시",
+      "expectedCapabilityId": "spi-display-output",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "breadboard-half",
+        "tft-18"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Role-slot baseline: expects the capability's required parts."
+    },
+    {
+      "id": "variant-display-text-prototyping-surface-context",
+      "kind": "compositional-variant",
+      "locale": "ko",
+      "message": "아두이노 브레드보드에 I2C OLED로 텍스트를 표시하고 싶어",
+      "expectedCapabilityId": "display-text-output",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "oled-i2c-096",
+        "breadboard-half"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": true,
+      "notes": "Primary output (OLED text) must survive when a compositional surface is named."
+    },
+    {
+      "id": "variant-display-text-connector-wiring-context",
+      "kind": "compositional-variant",
+      "locale": "ko",
+      "message": "아두이노 점퍼 와이어로 I2C OLED로 텍스트를 표시하고 싶어",
+      "expectedCapabilityId": "display-text-output",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "oled-i2c-096",
+        "jumper-wire"
+      ],
+      "mustExcludePartIds": [],
+      "knownBadLegacy": false,
+      "notes": "Primary output (OLED text) must survive when a compositional surface is named."
+    },
+    {
+      "id": "collision-01-oled-breadboard",
+      "kind": "keyword-collision",
+      "locale": "ko",
+      "message": "아두이노 브레드보드에 I2C OLED로 이벤트 이름 텍스트를 표시하고 싶어",
+      "expectedCapabilityId": "display-text-output",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "oled-i2c-096"
+      ],
+      "mustExcludePartIds": [
+        "perfboard-5x7",
+        "pcb-blank-single",
+        "proto-shield-uno"
+      ],
+      "knownBadLegacy": true,
+      "notes": "Case #1: \"브레드보드\" mis-routes to v2-prototyping-surface-context and drops the OLED + controller."
+    },
+    {
+      "id": "collision-02-led-breadboard",
+      "kind": "keyword-collision",
+      "locale": "ko",
+      "message": "브레드보드에 LED 하나를 저항이랑 같이 켜고 싶어",
+      "expectedCapabilityId": "digital-light-output",
+      "mustIncludePartIds": [
+        "arduino-uno",
+        "led-5mm",
+        "resistor-220"
+      ],
+      "mustExcludePartIds": [
+        "perfboard-5x7",
+        "pcb-blank-single"
+      ],
+      "knownBadLegacy": false,
+      "notes": "Sibling collision: LED output named with a breadboard surface."
+    }
+  ]
+}

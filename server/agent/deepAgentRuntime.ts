@@ -1,9 +1,12 @@
 import { randomUUID } from 'node:crypto';
 
 import { ChatOpenAI } from '@langchain/openai';
+import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { createDeepAgent, type SubAgent } from 'deepagents';
 import { toolStrategy } from 'langchain';
 import { z } from 'zod';
+
+import type { AgentRuntimeDeps, DeepAgentFactory, ModelPort } from './agentRuntimePorts.ts';
 
 import { getPartRegistry, loadTopologyTemplates, readContextDoc } from '../context/contextLayer.ts';
 import { buildContextPacket } from '../context/contextPacket.ts';
@@ -84,6 +87,8 @@ type DraftProviderInput = {
 type DraftProvider = (input: DraftProviderInput) => Promise<LiveAgentDraft>;
 type AgentRunOptions = {
   traceId?: string;
+  // Injectable seams (Phase 0.5). Production passes nothing -> real ChatOpenAI + createDeepAgent.
+  deps?: AgentRuntimeDeps;
 };
 
 export class AgentConfigurationError extends Error {
@@ -269,7 +274,8 @@ async function observeShadowComposition(input: {
 }
 
 async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptions = {}): Promise<AgentRunResult> {
-  const { apiKey, modelName } = requireLiveConfig();
+  const modelPort = options.deps?.modelPort ?? createDefaultModelPort();
+  const deepAgentFactory = options.deps?.deepAgentFactory ?? createDeepAgent;
   const sessionId = request.sessionId ?? `session-${randomUUID()}`;
   const traceId = options.traceId ?? createAgentTraceId();
   const contextPacket = await buildContextPacket(request);
@@ -291,11 +297,7 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
   const runtimeContextIndex = compactRuntimeContextIndex(coordinatorPrompt);
   const registrySummary = buildRegistrySummary(contextPacket.candidateParts);
 
-  const model = new ChatOpenAI({
-    model: modelName,
-    apiKey,
-    ...modelGenerationOptions(modelName)
-  });
+  const model = modelPort.createModel();
   const toolOptions = {
     contextCoverage: contextPacket.contextCoverage,
     candidateParts: contextPacket.candidateParts,
@@ -309,7 +311,8 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
     contextPacket,
     model,
     toolOptions,
-    metadata: baseMetadata
+    metadata: baseMetadata,
+    deepAgentFactory
   });
   logAgentEvent('requirement.analysis.completed', {
     traceId,
@@ -336,7 +339,7 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
     extraPromptBlocks: [renderSubagentPromptBudgetText(subagents)]
   });
 
-  const agent = createDeepAgent({
+  const agent = deepAgentFactory({
     model,
     tools: createHeduwareAgentTools(toolOptions),
     subagents,
@@ -397,15 +400,17 @@ async function runRequirementAnalysisAgent({
   contextPacket,
   model,
   toolOptions,
-  metadata
+  metadata,
+  deepAgentFactory
 }: {
   traceId: string;
   sessionId: string;
   request: AgentMessageRequest;
   contextPacket: Awaited<ReturnType<typeof buildContextPacket>>;
-  model: ChatOpenAI;
+  model: BaseChatModel;
   toolOptions: Parameters<typeof createHeduwareAgentTools>[0];
   metadata: Record<string, unknown>;
+  deepAgentFactory: DeepAgentFactory;
 }): Promise<RequirementAnalysis> {
   const systemPrompt = buildRequirementAnalysisSystemPrompt({
     locale: request.locale ?? 'ko',
@@ -419,7 +424,7 @@ async function runRequirementAnalysisAgent({
     userPrompt
   });
 
-  const analyzer = createDeepAgent({
+  const analyzer = deepAgentFactory({
     model,
     tools: createHeduwareAgentTools(toolOptions),
     responseFormat: toolStrategy(RequirementAnalysisSchema),
@@ -458,6 +463,21 @@ function requireLiveConfig() {
   }
 
   return { apiKey, modelName };
+}
+
+// Production ModelPort: reads live config and constructs the real ChatOpenAI model. Tests inject a
+// fake ModelPort instead, so the live config + network are never touched.
+function createDefaultModelPort(): ModelPort {
+  return {
+    createModel(): BaseChatModel {
+      const { apiKey, modelName } = requireLiveConfig();
+      return new ChatOpenAI({
+        model: modelName,
+        apiKey,
+        ...modelGenerationOptions(modelName)
+      });
+    }
+  };
 }
 
 function modelGenerationOptions(modelName: string) {
