@@ -184,14 +184,15 @@ shape는 두 경로 동일 → 하위 deepagents 합성/검증 게이트 무변�
 
 ### Phase 3: 단일 라우터 & v1 활성 라우팅 제거 (②) — *Phase 2c 증명 후*
 **Goal**: 이중 경로 → 단일. 미적중은 L2(정적 폴백 제거). **Est: 3–4h (위험 단계, 별도 브랜치)**
-**Status**: Pending
+**Status**: 🟡 In Progress — 특성화 안전망 완료, v1 제거 surgery는 추가 특성화 후 진행
 
-- RED 3.1: 단일 라우터 — 적중→curated, 미적중→generated
-- RED 3.2: `supported-hardware-general` 정적 폴백 미호출 단언
-- RED 3.3: **`server/` 스코프** v1 라우팅 심볼 참조 0(legacy 디렉터리 제외)
-- GREEN 3.4: `contextPacket.ts:1348-1411` 단일 경로 재작성 · 3.5: `loadContextRoutingMap`/v1 빌더 제거 + `agent-context/routing/context-routing-map.json` 삭제 · **3.6: 동반 수정 — `agent-context/index.json` routing 섹션, `contextLayerStructure.test.ts:95`(라우팅맵 존재 단언), `contextRouting.test.ts` 재작성** · 3.7: `buildRetrievalPlanV2`의 routingMap(heavySourceIds) 의존 제거
+- [x] **3-pre 특성화(behavior lock)**: `routingCharacterization.test.ts`(3) — 9 케이스의 routeId/budget/maxPromptChars + 안전 unsafe 경로의 정확한 sourceIds 잠금. commit `fd4f2f7`. v1 제거가 동작 보존인지 증명하는 안전망.
+- [x] **3-조사**: v1 고유 route 3개 식별 — `unsupported-safety`(when unsafe, **안전 critical**), `planned-capability-gap`(planned/partial), `supported-hardware-general`(supported catch-all). v2엔 unsafe/general/planned route 부재. v1 route의 grouped `load`→v2 flat `alwaysInclude` 변환 매핑 확보. `buildRetrievalPlanV2`의 유일 v1 의존 = `routingMap.heavySourceIds`(:1931).
+- [ ] ⚠️ **발견된 위험(faithfulness gap)**: `budgetForV2Route`는 번들 없는 route에 항상 `'minimal'` 라벨 반환 → general(full)/planned(summary)을 v2로 옮기면 **budget 라벨이 조용히 minimal로 바뀜**. 현재 특성화 9케이스는 이 두 fallback route를 발동 안 시켜 회귀 미감지. **선행 필요**: planned 케이스 + 강제 general-fallback 케이스를 특성화에 추가 + `budgetForV2Route`가 정책 route의 명시 budget 존중하도록 수정.
+- [ ] GREEN 3.4: 단일 경로 재작성 · 3.5: v1 빌더 제거 + `context-routing-map.json` 삭제 · 3.6: 동반 수정(`index.json` routing, `contextLayerStructure.test.ts:95`, `contextRouting.test.ts`) · 3.7: heavySourceIds를 v2 index로 이전
 - REFACTOR 3.8: `contextPacket.ts`(3,673줄) 모듈 분해(별도 커밋)
-- **Gate**: `server/` v1 참조 0, 동반 테스트 그린, `npm run check` 그린, 요청당 라우팅 로드 1회
+- **Gate**: `server/` v1 참조 0, 동반 테스트 그린, **특성화(확장본) 불변**, `npm run check` 그린, 요청당 라우팅 로드 1회
+- **메모**: 라이브 검증 불가 + 안전 라우팅 변경이라, 특성화 확장으로 OLD==NEW를 증명한 뒤에만 v1 삭제. 무모한 일괄 제거 금지(reviewers 최고위험 단계).
 
 ### Phase 4: L3 재정초 & 승격 루프
 **Goal**: 번들이 L0 참조(복제 제거), 구조/안전 분리 정착, 승격 절차. **Est: 3–4h**
@@ -241,8 +242,8 @@ shape는 두 경로 동일 → 하위 deepagents 합성/검증 게이트 무변�
 ---
 
 ## 8. Progress Tracking
-- Phase 0: ✅100% · 1: ✅100% · 2a: ✅(엔진+역할 38/39) · 2b: ✅100% · 2c: ✅core(골든 34/39, 물리 파일분리만 Phase4 이연) · 3: 0% · 4: 0% · 5: 0%
-- **Overall: ~60%** · **추정 총량: ~25–32h (Large+)**. D-1/D-2는 가짜 차단으로 해소(작업 불요).
+- Phase 0: ✅100% · 1: ✅100% · 2a: ✅(엔진+역할 38/39) · 2b: ✅100% · 2c: ✅core(골든 34/39) · 3: 🟡특성화 안전망(v1 surgery 대기) · 4: 0% · 5: 0%
+- **Overall: ~62%** · **추정 총량: ~25–32h (Large+)**. D-1/D-2는 가짜 차단으로 해소(작업 불요).
 
 ---
 
