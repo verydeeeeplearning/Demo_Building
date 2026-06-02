@@ -1,9 +1,0 @@
-{
-  "SDA": ["A4/SDA", "data line", "i2c data", "A4", "데이터", "데이터선", "I2C 데이터"],
-  "SCL": ["A5/SCL", "clock line", "i2c clock", "A5", "클럭", "클럭선", "I2C 클럭"],
-  "GND": ["ground", "-", "0V", "negative", "접지", "그라운드", "마이너스"],
-  "VCC": ["5V", "3V3", "+", "power", "VIN", "전원", "플러스", "양극"],
-  "D9": ["pin 9", "PWM", "servo signal", "9번 핀", "서보 신호", "PWM 핀"],
-  "D8": ["pin 8", "digital output", "8번 핀", "디지털 출력"],
-  "D2": ["pin 2", "button input", "2번 핀", "버튼 입력", "디지털 입력"]
-}

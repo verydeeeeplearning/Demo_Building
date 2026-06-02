@@ -1,3 +1,0 @@
-{"id":"led-with-resistor","prompt":"blink an LED with a resistor","expectedStatus":"valid","expectedCurrentPathIds":["led-forward-current"]}
-{"id":"oled-i2c","prompt":"show text on a little OLED screen","expectedStatus":"valid","expectedCurrentPathIds":["oled-module-current"]}
-{"id":"button-led","prompt":"turn on an LED when I press a button","expectedStatus":"valid","expectedCurrentPathIds":["led-forward-current"]}

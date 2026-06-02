@@ -205,7 +205,13 @@ shape는 두 경로 동일 → 하위 deepagents 합성/검증 게이트 무변�
 
 ### Phase 5: legacy 제거 & 정리 (①)
 **Goal**: 죽은 v1 스냅샷 제거, 문서/스코프 정합. **Est: 2–3h**
-**Status**: Pending
+**Status**: ✅ Complete (2026-06-02) — `legacy/v1` 93파일 삭제, 가드 유지, 게이트 그린
+
+- [x] 5.1/5.2: server/·tests/ legacy 참조 0(grep) 확인. 런타임이 legacy 미경유.
+- [x] 5.3: `agent-context/legacy/` 삭제(93파일) + `contextLayerStructure.test`의 legacy 보존 단언 제거. **유지한 가드**: "런타임이 legacy 안 씀"(ok 223), "v2 audit이 legacy drift 실패"(ok 305).
+- [x] 5.4: `agent-context/v2/README.md` 갱신 — v2 단일 라우팅·`shared`=L0 명시, v1 라우팅맵·legacy 제거 반영.
+- [ ] 5.5 이연: AGENTS.md/Spec "OLED 데모 하나" → 일반화 문구 변경은 **프런트 데모 제거 트랙(service_audit Phase 1)** 과 묶임. 그 트랙 전에 스코프 문구만 바꾸면 부정확 → 데모 제거 시 함께 갱신.
+- **Gate**: ✅ legacy 참조 0, test:unit JS 110/110 + TS 342/342, typecheck, build, EXIT0.
 
 - RED 5.1: `agent-context/legacy/` 참조 0(전 리포지토리) · 5.2: 인덱스/스키마가 legacy 미참조
 - GREEN 5.3: `agent-context/legacy/v1/` 삭제 + **`contextLayerStructure.test.ts:119-131`(legacy 보존 단언) 수정/삭제** · 5.4: v2 README 갱신 · 5.5: AGENTS.md/Spec "OLED 데모 하나" → "부품 조합 일반화"
@@ -242,8 +248,8 @@ shape는 두 경로 동일 → 하위 deepagents 합성/검증 게이트 무변�
 ---
 
 ## 8. Progress Tracking
-- Phase 0: ✅100% · 1: ✅100% · 2a: ✅ · 2b: ✅100% · 2c: ✅core · 3: ✅100% · 4: ✅core(승격루프+사이클차단+L3↔L0무결성) · 5: 0%
-- **Overall: ~85%** (잔여: Phase 5 legacy 삭제 + 선택적 물리 파일 분리/모듈 분해 이연분) · **추정 총량: ~25–32h (Large+)**. D-1/D-2는 가짜 차단으로 해소(작업 불요).
+- Phase 0: ✅ · 1: ✅ · 2a: ✅ · 2b: ✅ · 2c: ✅core · 3: ✅ · 4: ✅core · 5: ✅
+- **Overall: ~95% (전 Phase 코어 완료)** — 잔여 이연: 39 manifest 물리 structural/safety-overlay 분리, contextPacket 모듈 분해, AGENTS.md 스코프 문구(데모 제거 트랙과 동기화). · **추정 총량: ~25–32h (Large+)**. D-1/D-2는 가짜 차단으로 해소(작업 불요).
 
 ---
 

@@ -115,20 +115,6 @@ test('context layer contains the required full directory contract', async () => 
   }
 });
 
-test('legacy v1 context layer snapshot is preserved outside runtime routing', async () => {
-  const legacyRoot = path.join(contextRoot, 'legacy/v1');
-  const legacyReadme = await readFile(path.join(legacyRoot, 'README.md'), 'utf8');
-  const legacyIndex = JSON.parse(await readFile(path.join(legacyRoot, 'index.json'), 'utf8')) as {
-    version: string;
-    data: Array<{ id: string }>;
-  };
-
-  assert.match(legacyReadme, /not the active runtime context root/i);
-  assert.equal(legacyIndex.version, '2026-05-31');
-  assert.ok(legacyIndex.data.some((entry) => entry.id === 'capability-graph'));
-  assert.ok(legacyIndex.data.some((entry) => entry.id === 'source-claims'));
-});
-
 test('context aggregates are generated from category source files', async () => {
   for (const sourceDir of [
     'registry/part-capabilities.sources',

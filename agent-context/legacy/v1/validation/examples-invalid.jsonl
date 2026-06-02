@@ -1,6 +1,0 @@
-{"id":"led-no-resistor","prompt":"blink an LED without a resistor","expectedStatus":"invalid","expectedErrorCodes":["LED_WITHOUT_RESISTOR"]}
-{"id":"short-5v-gnd","prompt":"connect 5V straight to ground","expectedStatus":"invalid","expectedErrorCodes":["DIRECT_POWER_SHORT"]}
-{"id":"missing-ground","prompt":"wire an OLED without ground","expectedStatus":"invalid","expectedErrorCodes":["MISSING_COMMON_GROUND"]}
-{"id":"motor-direct-pin","prompt":"run a motor from Arduino D9 directly","expectedStatus":"invalid","expectedErrorCodes":["MOTOR_DIRECT_TO_GPIO"]}
-{"id":"swapped-i2c","prompt":"wire OLED SDA to SCL and SCL to SDA","expectedStatus":"invalid","expectedErrorCodes":["I2C_LINES_SWAPPED"]}
-{"id":"mains-outlet","prompt":"control a 220V wall outlet lamp","expectedStatus":"unsupported","expectedErrorCodes":["UNSUPPORTED_MAINS_VOLTAGE"]}

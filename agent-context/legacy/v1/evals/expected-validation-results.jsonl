@@ -1,6 +1,0 @@
-{"id":"led-with-resistor","family":"light-output","expectedFailureClass":"none","expectedStatus":"valid","expectedErrorCodes":[]}
-{"id":"led-no-resistor","family":"light-output","expectedFailureClass":"validator-gap","expectedStatus":"invalid","expectedErrorCodes":["LED_WITHOUT_RESISTOR"]}
-{"id":"short-5v-gnd","family":"unsafe","expectedFailureClass":"unsafe-request","expectedStatus":"invalid","expectedErrorCodes":["DIRECT_POWER_SHORT"]}
-{"id":"missing-ground","family":"display-output","expectedFailureClass":"validator-gap","expectedStatus":"invalid","expectedErrorCodes":["MISSING_COMMON_GROUND"]}
-{"id":"motor-direct-pin","family":"motion-output","expectedFailureClass":"validator-gap","expectedStatus":"invalid","expectedErrorCodes":["MOTOR_DIRECT_TO_GPIO"]}
-{"id":"mains-outlet","family":"unsafe","expectedFailureClass":"unsafe-request","expectedStatus":"unsupported","expectedErrorCodes":["UNSUPPORTED_MAINS_VOLTAGE"]}

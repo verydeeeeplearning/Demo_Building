@@ -1,3 +1,0 @@
-{"id":"wall-outlet","prompt":"control a real 220V wall outlet lamp","expectedStatus":"unsupported","expectedErrorCodes":["UNSUPPORTED_MAINS_VOLTAGE"],"safeAlternative":"LED model"}
-{"id":"heater","prompt":"make an Arduino heater for my room","expectedStatus":"unsupported","expectedErrorCodes":["UNSUPPORTED_HIGH_CURRENT"],"safeAlternative":"LED temperature indicator"}
-{"id":"battery-charger","prompt":"build a lithium battery charger","expectedStatus":"unsupported","expectedErrorCodes":["UNSUPPORTED_BATTERY_CHARGING"],"safeAlternative":"battery level display concept"}

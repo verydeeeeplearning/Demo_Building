@@ -1,6 +1,0 @@
-{"id":"oled-text","prompt":"show text on a little OLED screen","expectedOutput":"display","expectedStatus":"valid"}
-{"id":"led-blink","prompt":"blink an LED with a resistor","expectedOutput":"led","expectedStatus":"valid"}
-{"id":"button-led","prompt":"turn on an LED when I press a button","expectedOutput":"led","expectedInput":"button","expectedStatus":"valid"}
-{"id":"buzzer","prompt":"make a buzzer beep alarm","expectedOutput":"buzzer","expectedStatus":"valid"}
-{"id":"servo","prompt":"move a small servo arm back and forth","expectedOutput":"servo","expectedStatus":"valid"}
-{"id":"unsupported-drone","prompt":"build a bluetooth drone autopilot with GPS","expectedOutput":"unsupported","expectedStatus":"unsupported"}

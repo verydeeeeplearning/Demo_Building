@@ -1,9 +1,0 @@
-{
-  "version": "2026-05-31",
-  "strict": {
-    "maxEducationalVoltage": 6,
-    "maxGpioCurrentMilliamp": 20,
-    "mainsVoltageKeywords": ["mains", "wall outlet", "220v", "110v", "ac lamp", "house power"],
-    "unsupportedKeywords": ["drone", "gps", "bluetooth autopilot", "battery charger", "heater"]
-  }
-}
