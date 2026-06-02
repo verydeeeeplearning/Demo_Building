@@ -49,10 +49,6 @@ export async function matchCapabilities(query: string, root = DEFAULT_CONTEXT_RO
     .map((entry) => entry.capability);
 }
 
-export function clearCapabilityGraphCache() {
-  cachedGraph = null;
-}
-
 function scoreCapability(capability: CapabilityGraphEntry, normalizedQuery: string, terms: string[]) {
   const negativeEvidenceHits = evidenceHits(capability.negativeEvidence, normalizedQuery, terms);
   const requiredEvidenceHits = evidenceHits(

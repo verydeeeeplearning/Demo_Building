@@ -845,9 +845,6 @@ export function createStageDebugSnapshot(circuit, options = {}) {
   };
 }
 
-export const stageDebugSnapshot = createStageDebugSnapshot;
-export const stageSceneDebugSnapshot = createStageDebugSnapshot;
-
 export function stagePartPositionSnapshot(circuit) {
   const specializedParts = Object.values(stageSpecializedPartDescriptors(circuit)).filter(Boolean);
   const descriptors = [

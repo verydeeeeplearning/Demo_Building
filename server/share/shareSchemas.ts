@@ -143,7 +143,4 @@ export const StoredShareSchema = z.object({
 });
 
 export type ShareSnapshot = z.infer<typeof ShareSnapshotSchema>;
-export type ShareCreateRequest = z.infer<typeof ShareCreateRequestSchema>;
-export type ShareCreateResponse = z.infer<typeof ShareCreateResponseSchema>;
-export type ShareReadResponse = z.infer<typeof ShareReadResponseSchema>;
 export type StoredShare = z.infer<typeof StoredShareSchema>;

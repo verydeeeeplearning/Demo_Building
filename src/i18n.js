@@ -39,10 +39,6 @@ export function t(key, values = {}, locale = currentLocale) {
   return interpolate(value, values);
 }
 
-export function localeDirection(locale = currentLocale) {
-  return normalizeLocale(locale) === 'ko' ? 'ko' : 'en';
-}
-
 function readStoredLocale() {
   try {
     return normalizeLocale(globalThis.localStorage?.getItem(LOCALE_STORAGE_KEY));

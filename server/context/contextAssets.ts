@@ -111,13 +111,6 @@ export async function loadBreadboardGrid(root = DEFAULT_CONTEXT_ROOT): Promise<B
   return grid;
 }
 
-export function clearContextAssetCache() {
-  cachedPrimitives = null;
-  cachedFootprints = null;
-  cachedTopologyTemplates = null;
-  cachedBreadboardGrid = null;
-}
-
 async function readIndexedData(root: string, id: string) {
   const indexContent = await readFile(path.join(root, 'index.json'), 'utf8');
   const index = JSON.parse(indexContent) as {

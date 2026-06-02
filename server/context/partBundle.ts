@@ -109,8 +109,3 @@ export async function resolvePartBundle(partId: string, root?: string): Promise<
   }
   return bundles.find((bundle) => bundle.partId === partId) ?? null;
 }
-
-export function clearPartBundleCache(): void {
-  cachedBundles = null;
-  cachedBundlesById = null;
-}

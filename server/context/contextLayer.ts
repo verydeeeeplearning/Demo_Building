@@ -16,18 +16,15 @@ import {
   type SimulationPrimitive
 } from '../agent/schemas.ts';
 import {
-  clearCapabilityGraphCache,
   loadCapabilityGraph,
   matchCapabilities
 } from './capabilityGraph.ts';
 import {
-  clearPinAliasCache,
   loadPinAliases,
   resolvePinAlias,
   type ResolvedPinAlias
 } from './pinAliases.ts';
 import {
-  clearContextAssetCache,
   loadBreadboardGrid,
   loadRenderFootprints,
   loadSimulationPrimitives,
@@ -968,16 +965,6 @@ export async function auditCapabilityPromotionGaps(root = DEFAULT_CONTEXT_ROOT):
     visualLibrary,
     reports: [...reports].sort((a, b) => a.capabilityId.localeCompare(b.capabilityId))
   };
-}
-
-export function clearContextCache() {
-  cachedIndex = null;
-  cachedParts = null;
-  cachedContextV2Index = null;
-  cachedContextV2Routes = null;
-  clearCapabilityGraphCache();
-  clearPinAliasCache();
-  clearContextAssetCache();
 }
 
 export {

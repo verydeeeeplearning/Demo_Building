@@ -29,10 +29,6 @@ export function createAgentTraceId(prefix = 'agent') {
   return `${prefix}-${randomUUID()}`;
 }
 
-export function agentLoggingEnabled() {
-  return resolveLogLevel() !== 'silent';
-}
-
 export function logAgentEvent(
   event: AgentLogEvent,
   payload: AgentLogPayload = {}

@@ -75,11 +75,6 @@ export async function resolvePinAlias(
   return null;
 }
 
-export function clearPinAliasCache() {
-  cachedAliases = null;
-  cachedParts = null;
-}
-
 async function loadPartRegistry(root: string): Promise<PartCapability[]> {
   if (cachedParts && root === DEFAULT_CONTEXT_ROOT) {
     return cachedParts;
