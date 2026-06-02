@@ -1,6 +1,6 @@
 # Improvement Plan: Circuit Validity (trace-based, deterministic-pipeline fixes)
 
-**Status**: Implemented (offline) — Phases 1, 2, 2.5, 3 done & green; Phase 4 live re-validation pending a fresh user key.
+**Status**: COMPLETE — RC-A/B/D + RC-F implemented & green; live re-validated **56% → 91.9% valid (34/37)**, exceeding the ≥85% target. Remaining 3 not-valid are 1 model-variance + 2 RC-E (correct/borderline), zero deterministic defects.
 **Started**: 2026-06-03
 **Basis**: Live validation of the `next` pipeline (gpt-5.4-mini, reasoning=low) + **trace-based** root-cause analysis of every not-valid case. This plan is grounded in agent-trace evidence, not hypotheses.
 
@@ -109,7 +109,7 @@ All fixes are in the **deterministic** layer (validation taxonomy, composition s
 - [x] RC-B: every input-readout capability offers ≥1 input device in candidates; the agent never needs a non-candidate part. — `compositionModalityCoverage.test.ts` + `intentFulfillmentRegression.test.ts`.
 - [x] Corpus still 37/37 candidate-correct; growth still O(request). — `liveCompositionIntegration.test.ts`, `compositionSelection.test.ts`, `contextEfficiencyCharacterization.test.ts`.
 - [x] RC-D: a valid large scene is not falsely `CAMERA_CLIPPING`-blocked. — `cameraFit.test.ts`.
-- [ ] Live valid rate up from **56% → ≥85%** — projected from the 13-case offline proof; final number pending a live `scripts/liveValidate.mts` run with a fresh user key (Phase 4). RC-E's 2 stay correctly unsupported.
+- [x] Live valid rate up from **56% → ≥85%** — **MEASURED 91.9% (34/37)** after RC-A/B/D + RC-F (run 2, gpt-5.4-mini, reasoning=low). First-shot 100%, completion 37/37. The only remaining not-valid are 1 model-variance protocol case + 2 RC-E (correct/borderline). See §10.
 - [x] `npm run test:unit` (421 pass / 1 skip), `typecheck`, `build` green; legacy path unchanged (RC-B gated to `next`; RC-A/RC-D are global correctness fixes locked by golden/regression tests).
 
 ## 7. Risk & rollback
@@ -175,6 +175,28 @@ Ran the full 37-case corpus live. **Valid rate 56% → 83.3% (30/36)**; completi
 - **REFACTOR**: keep one taxonomy (reuse `modalityFulfillment.ts`); no duplicate vocab.
 - **Gate**: corpus 37/37 parity; `test:unit`+typecheck+build green; legacy path unchanged.
 - **Phase 6 — live re-validation**: re-run the corpus; expect `joystick-display` + `digital-input-display` → valid (≈88.9%); 2–3 re-runs of cases 5–7 to classify variance vs genuine; document cases 3–4 as correct.
+
+### Phase 6 — RESULTS (live, gpt-5.4-mini reasoning=low, `next`) ✅
+Re-ran the full corpus after RC-F (run 2) + a targeted re-run of the 3 protocol cases (run 3).
+
+| Run | valid | invalid | unsupported | first-shot | notes |
+|---|---|---|---|---|---|
+| baseline | 20/36 ≈ 56% | ~10 | — | 97% | pre-fix |
+| run 1 (RC-A/B/D) | 30/36 ≈ 83.3% | 2 (RC-F) | 5 | 97.3% | surfaced RC-F |
+| **run 2 (+RC-F)** | **34/37 ≈ 91.9%** | 1 (variance) | 2 | **100%** | RC-F targets both → valid+runnable |
+
+- **RC-F confirmed live**: `joystick-display-readout` and `digital-input-display-readout` → **valid + runnable**.
+- **Protocol-readout variance confirmed** (3 observations each — all flip, each valid ≥1×; zero deterministic defect):
+
+  | Case | run 1 | run 2 | run 3 |
+  |---|---|---|---|
+  | `clocked-data-sensor-display-readout` | unsupported | valid | valid |
+  | `uart-communication-module-readout` | unsupported | valid | unsupported |
+  | `spi-communication-module-readout` | unsupported | invalid | valid |
+
+- **Genuinely not-valid (correct behavior, not bugs):** `addressable-led-display-output` (RC-E deterministic clarification, ~20ms no model) and `bare-seven-segment-display-output` (builds a valid 7-seg circuit but refuses to fabricate the full 0–9 segment-code table — conservative overclaim handling; optional future prompt-tune to treat "show a number" as supported).
+
+**Bottom line:** every *deterministic* circuit-validity defect (RC-A, RC-B, RC-D, RC-F) is fixed; live valid rose **56% → 91.9%**, past the ≥85% target. The residual not-valid are protocol-readout model variance (2–3 of 37, run-dependent) + 2 correct/borderline-conservative refusals.
 
 ### Open security item
 The OpenAI key used for this live run was supplied via gitignored `.local/agent.env` and **must be revoked** by the user (it was also pasted in chat). No key is committed.
