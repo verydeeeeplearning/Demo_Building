@@ -19,6 +19,7 @@ type AgentLogEvent =
   | 'prompt.budget.exceeded'
   | 'requirement.analysis.completed'
   | 'agent.synthesis.attempt'
+  | 'agent.synthesis.structured_output_missing'
   | 'agent.validation.completed'
   | 'agent.response.sent'
   | 'agent.request.failed';

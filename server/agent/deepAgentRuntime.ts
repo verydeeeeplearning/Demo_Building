@@ -132,6 +132,10 @@ export async function runAgentWithScriptedDrafts(input: {
   drafts: unknown[];
   sessionId?: string;
   requirementAnalysis?: unknown;
+  // Optional overrides (Phase 4 throw-path tests): inject a draft provider directly (e.g. one that
+  // throws AgentStructuredOutputError) and enable the deterministic structured-output fallback.
+  draftProvider?: DraftProvider;
+  structuredOutputFallback?: boolean;
 }): Promise<AgentRunResult> {
   const request = AgentMessageRequestSchema.parse({ ...input.request, mode: 'live' });
   const sessionId = input.sessionId ?? `session-${randomUUID()}`;
@@ -142,20 +146,23 @@ export async function runAgentWithScriptedDrafts(input: {
     : defaultScriptedRequirementAnalysis(request);
   let draftIndex = 0;
 
+  const scriptedProvider: DraftProvider = async () => {
+    if (draftIndex >= input.drafts.length) {
+      throw new Error('Scripted draft provider ran out of drafts before the repair loop completed.');
+    }
+    const draft = LiveAgentDraftSchema.parse(input.drafts[draftIndex]);
+    draftIndex += 1;
+    return draft;
+  };
+
   return runAgentDraftRepairLoop({
     traceId,
     sessionId,
     request,
     contextPacket,
     requirementAnalysis,
-    draftProvider: async () => {
-      if (draftIndex >= input.drafts.length) {
-        throw new Error('Scripted draft provider ran out of drafts before the repair loop completed.');
-      }
-      const draft = LiveAgentDraftSchema.parse(input.drafts[draftIndex]);
-      draftIndex += 1;
-      return draft;
-    }
+    draftProvider: input.draftProvider ?? scriptedProvider,
+    structuredOutputFallback: input.structuredOutputFallback
   });
 }
 
@@ -374,7 +381,11 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
     blockingReason: requirementAnalysis.blockingReason
   });
 
-  const subagents = createSubagents(toolOptions);
+  // Phase 4 Path B: the subagents are never instructed and the model converges to an immediate
+  // emit (Phase 0 reachability proved delegation is reachable but behaviorally unused), so in
+  // shadow|next we drop them to cut the `task`-tool subagent-description token weight. legacy keeps
+  // them for provable no-change.
+  const subagents = pipelineMode === 'legacy' ? createSubagents(toolOptions) : [];
   const synthesisSystemPrompt = buildSystemPrompt({
     locale: request.locale ?? 'ko',
     operatingMemory: runtimeOperatingMemory,
@@ -405,6 +416,7 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
     request,
     contextPacket,
     requirementAnalysis,
+    structuredOutputFallback: pipelineMode !== 'legacy',
     draftProvider: async ({ attempt, previousErrors }) => {
       logAgentEvent('agent.synthesis.attempt', {
         traceId,
@@ -923,6 +935,42 @@ function studentValidationReason(errors: string[], locale: 'ko' | 'en') {
     : 'a wiring or part issue that must be fixed first.';
 }
 
+// Phase 4 — deterministic structured-output fallback. When the agent never emits a structured
+// draft (the AGENT_STRUCTURED_OUTPUT_MISSING 502 path), build a deterministic draft instead of
+// throwing: a preflight draft for non-synthesis routes, otherwise a clarification draft. This layers
+// on the existing recoverDraftFromAgentMessages salvage inside parseLiveAgentDraft. Never null.
+function buildStructuredOutputFallbackDraft(
+  request: AgentMessageRequest,
+  contextPacket: Awaited<ReturnType<typeof buildContextPacket>>,
+  requirementAnalysis: RequirementAnalysis
+): LiveAgentDraft {
+  const preflight = buildPreflightDraftFromAnalysis(request, contextPacket, requirementAnalysis);
+  if (preflight) {
+    return preflight;
+  }
+  const locale = request.locale ?? 'ko';
+  const fallback = buildClarificationPreflightDraft(request, contextPacket, {
+    ...requirementAnalysis,
+    route: 'clarify_requirements',
+    assistantMessage: locale === 'ko'
+      ? '이번에는 검증된 회로를 합성하지 못했어요. 목표와 사용할 부품을 한 문장으로 알려주시면 다시 시도할게요.'
+      : 'I could not synthesize a verified circuit this time. Tell me the goal and the parts in one sentence and I will retry.'
+  });
+  if (!fallback) {
+    throw new Error('Structured-output fallback could not build a clarification draft.');
+  }
+  return fallback;
+}
+
+function structuredOutputFallbackEvent(maxAttempts: number): AgentEvent {
+  return AgentEventSchema.parse({
+    type: 'coordinator',
+    name: 'structured-output-fallback',
+    status: 'warning',
+    summary: `Agent did not emit a structured draft after ${maxAttempts} attempt(s); returned a deterministic fallback instead of a 502.`
+  });
+}
+
 async function runAgentDraftRepairLoop({
   traceId,
   sessionId,
@@ -930,7 +978,8 @@ async function runAgentDraftRepairLoop({
   contextPacket,
   requirementAnalysis,
   draftProvider,
-  maxAttempts = 2
+  maxAttempts = 2,
+  structuredOutputFallback = false
 }: {
   traceId: string;
   sessionId: string;
@@ -939,6 +988,9 @@ async function runAgentDraftRepairLoop({
   requirementAnalysis: RequirementAnalysis;
   draftProvider: DraftProvider;
   maxAttempts?: number;
+  // Phase 4 (flag-gated): catch AGENT_STRUCTURED_OUTPUT_MISSING and fall back deterministically
+  // instead of surfacing a 502. legacy leaves the throw unguarded (provably unchanged).
+  structuredOutputFallback?: boolean;
 }): Promise<AgentRunResult> {
   const preflightDraft = buildPreflightDraftFromAnalysis(request, contextPacket, requirementAnalysis);
   if (preflightDraft) {
@@ -969,7 +1021,38 @@ async function runAgentDraftRepairLoop({
   let previousErrors: string[] = [];
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    const draft = await draftProvider({ attempt, previousErrors });
+    let draft: LiveAgentDraft;
+    try {
+      draft = await draftProvider({ attempt, previousErrors });
+    } catch (error) {
+      // Phase 4 reliability: a missing structured draft is recoverable, not a 502.
+      if (structuredOutputFallback && error instanceof AgentStructuredOutputError) {
+        logAgentEvent('agent.synthesis.structured_output_missing', { traceId, sessionId, attempt });
+        previousErrors = [...previousErrors, error.errorCode];
+        if (attempt < maxAttempts) {
+          repairEvents.push(validationRepairEvent(attempt, maxAttempts, previousErrors));
+          continue;
+        }
+        const fallbackDraft = buildStructuredOutputFallbackDraft(request, contextPacket, requirementAnalysis);
+        const finalizedFallback = await finalizeAgentResult({
+          sessionId,
+          request,
+          draft: fallbackDraft,
+          traceId,
+          contextPacket,
+          repairEvents: [...repairEvents, structuredOutputFallbackEvent(maxAttempts)]
+        });
+        logAgentEvent('agent.validation.completed', {
+          traceId,
+          sessionId,
+          attempt,
+          structuredOutputFallback: true,
+          ...resultLogSummary(finalizedFallback)
+        });
+        return finalizedFallback;
+      }
+      throw error;
+    }
     const finalized = await finalizeAgentResult({
       sessionId,
       request,
