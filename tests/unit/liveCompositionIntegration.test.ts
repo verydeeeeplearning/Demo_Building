@@ -40,3 +40,17 @@ void test('the OLED+breadboard packet keeps the OLED under `next` but drops it u
   assert.ok(next.candidateParts.some((p) => p.id === 'oled-i2c-096'), 'next keeps the OLED');
   assert.ok(!legacy.candidateParts.some((p) => p.id === 'oled-i2c-096'), 'legacy still drops the OLED');
 });
+
+void test('under `next`, the prompt-budget ceiling is relaxed so the composition-driven prompt fits', async () => {
+  // Live validation found the OLED cases erroring: they route to a 10k-budget enumerated route but
+  // the composition-driven prompt is ~12k. The next ceiling is relaxed to the global route max.
+  const message = '아두이노 브레드보드에 I2C OLED로 이벤트 이름 텍스트를 표시하고 싶어';
+  const next = await buildContextPacket({ message, locale: 'ko' }, { pipelineMode: 'next' });
+  const legacy = await buildContextPacket({ message, locale: 'ko' }, { pipelineMode: 'legacy' });
+  assert.equal(next.retrievalPlan.maxPromptChars, 38000, 'next relaxes the ceiling to the global max');
+  assert.ok(
+    next.retrievalPlan.maxPromptChars >= next.promptBlock.length + 4000,
+    'the next ceiling accommodates the composition prompt plus prompt overhead'
+  );
+  assert.ok(legacy.retrievalPlan.maxPromptChars < 38000, 'legacy ceiling is its (smaller) route value, unchanged');
+});

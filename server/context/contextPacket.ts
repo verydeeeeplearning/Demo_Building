@@ -1415,6 +1415,14 @@ export async function buildContextPacket(
     index,
     selectedBundles
   });
+  // Phase 5 (next): composition — not the route — is the candidate authority, so the enumerated
+  // route's char ceiling can be mismatched (e.g. the OLED cases route to a 10k-budget route yet the
+  // composition-driven prompt is ~12k). Relax the ceiling to the global route max under next. This
+  // allows nothing the legacy 'full' routes don't already allow and does NOT change the actual
+  // prompt size; the js-tiktoken token gate + Phase 3.2 prompt-slimming remain the efficiency controls.
+  if (pipelineMode === 'next') {
+    retrievalPlan.maxPromptChars = Math.max(retrievalPlan.maxPromptChars, 38000);
+  }
   const shouldLoadRegistry = includesSource(retrievalPlan, 'registry:part-capabilities') || selectedBundlesAreBuildReady;
   const shouldLoadSimulationPrimitives = includesSource(retrievalPlan, 'simulation:primitives')
     && (selectedBundles.length === 0 || selectedBundlesAreBuildReady);
