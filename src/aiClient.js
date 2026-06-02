@@ -63,6 +63,14 @@ export async function sendAgentMessage({ sessionId, message, confirmation, local
   });
 }
 
+export async function resolvePlacementIntent(intent) {
+  return fetchJson('/api/agent/placement', {
+    method: 'POST',
+    body: intent,
+    timeoutMs: 15000
+  });
+}
+
 async function getAgentHealth() {
   return fetchJson('/api/agent/health', {
     method: 'GET',

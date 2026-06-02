@@ -26,6 +26,7 @@ function createThreeScene(container, canvas, circuit, options) {
   let running = Boolean(options.running);
   let animationFrame = 0;
   const selectedTargetKey = options.selectedTargetKey || '';
+  let interactionMode = options.interactionMode || 'orbit';
   canvas.dataset.renderer = 'three';
   canvas.dataset.selectedTarget = selectedTargetKey;
 
@@ -59,6 +60,7 @@ function createThreeScene(container, canvas, circuit, options) {
 
   const root = new THREE.Group();
   scene.add(root);
+  const sceneGraph = createStageSceneGraph(root);
 
   const ambient = new THREE.AmbientLight('#ffffff', 1.3);
   scene.add(ambient);
@@ -78,14 +80,20 @@ function createThreeScene(container, canvas, circuit, options) {
 
   const stats = { solder: 0, connectors: 0 };
   const specializedParts = stageSpecializedPartDescriptors(circuit);
-  if (specializedParts.breadboard) addBreadboard(root, stats, specializedParts.breadboard);
-  if (specializedParts.arduino) addArduino(root, stats, specializedParts.arduino);
+  if (specializedParts.breadboard) {
+    addBreadboard(sceneGraph.partGroupFor(specializedParts.breadboard), stats, specializedParts.breadboard, sceneGraph);
+  }
+  if (specializedParts.arduino) {
+    addArduino(sceneGraph.partGroupFor(specializedParts.arduino), stats, specializedParts.arduino, sceneGraph);
+  }
   const oledTexture = specializedParts.oled ? createOledTexture(running ? circuit.runText : 'READY') : null;
-  if (oledTexture) addOled(root, oledTexture, stats, specializedParts.oled);
-  const genericParts = addGenericRenderPlanParts(root, circuit, stats);
-  const libraryParts = addLibraryModels(root, circuit, stats);
+  if (oledTexture) addOled(sceneGraph.partGroupFor(specializedParts.oled), oledTexture, stats, specializedParts.oled, sceneGraph);
+  const genericParts = addGenericRenderPlanParts(root, circuit, stats, sceneGraph);
+  const libraryParts = addLibraryModels(root, circuit, stats, sceneGraph);
 
-  const wireCurves = addWires(root, circuit, stats, selectedTargetKey);
+  const wireCurves = addWires(root, circuit, stats, selectedTargetKey, sceneGraph);
+  sceneGraph.hydrateVisualTransforms(options.visualTransforms, options.visualTransformRevision);
+  updateVisualPreviewWires(sceneGraph, circuit);
   const currentPathDescriptors = stageCurrentPathDescriptors(circuit);
   const animatedWireCurves = stageAnimatedWireDescriptors(circuit, wireCurves, currentPathDescriptors);
   const signalDots = animatedWireCurves.map(({ curve, color, pathDescriptor }, index) => {
@@ -107,24 +115,66 @@ function createThreeScene(container, canvas, circuit, options) {
   canvas.dataset.connectorCount = String(stats.connectors);
   canvas.dataset.genericPartCount = String(genericParts.length);
   canvas.dataset.libraryPartCount = String(libraryParts.length);
+  canvas.dataset.partGroupCount = String(sceneGraph.partGroupsById.size);
+  canvas.dataset.wireGroupCount = String(sceneGraph.wireGroupsByConnectionId.size);
+  canvas.dataset.labelGroupCount = String(sceneGraph.labelGroupsByPartId.size);
+  canvas.dataset.previewWireGroupCount = String(sceneGraph.previewWireGroupsByConnectionId.size);
   canvas.dataset.cameraFit = cameraFit ? 'server' : 'fallback';
   canvas.dataset.cameraTarget = `${cameraTarget.x.toFixed(2)},${cameraTarget.y.toFixed(2)},${cameraTarget.z.toFixed(2)}`;
   canvas.dataset.cameraDistance = camera.position.distanceTo(cameraTarget).toFixed(2);
+  const initialDebugSnapshot = createStageDebugSnapshot(circuit, {
+    interactionMode,
+    visualTransformRevision: sceneGraph.visualTransformRevision,
+    previewWireRouteHash: sceneGraph.previewWireRouteHash
+  });
+  canvas.dataset.interactionMode = initialDebugSnapshot.interactionMode;
+  canvas.dataset.visualTransformRevision = String(initialDebugSnapshot.visualTransformRevision);
+  canvas.dataset.wireRouteHash = initialDebugSnapshot.wireRouteHash;
+  canvas.dataset.previewWireRouteHash = initialDebugSnapshot.previewWireRouteHash;
+  canvas.dataset.circuitSpecHash = initialDebugSnapshot.circuitSpecHash;
+  canvas.dataset.presentationAdjustmentKind = initialDebugSnapshot.presentationAdjustmentKind;
+  canvas.__hEduwareStageDebug = () => stageRuntimeDebugSnapshot(sceneGraph, circuit, canvas);
+  canvas.__hEduwareStagePartScreenPoint = (componentId) => stagePartScreenPoint(sceneGraph, camera, canvas, componentId);
 
   const resizeObserver = new ResizeObserver(resize);
   resizeObserver.observe(container);
   resize();
 
   let dragging = false;
+  let dragMode = 'orbit';
+  let draggedPartId = '';
+  let dragStartPoint = null;
+  let dragStartOffset = null;
+  let dragLatestTransform = null;
+  let dragPlaneY = 0;
   let lastX = 0;
+  let lastY = 0;
   let dragDistance = 0;
   let targetRotation = 0;
   let hoveredTargetKey = '';
 
   canvas.addEventListener('pointerdown', (event) => {
     dragging = true;
+    dragMode = 'orbit';
+    draggedPartId = '';
     lastX = event.clientX;
+    lastY = event.clientY;
     dragDistance = 0;
+    if (interactionMode === 'visual_move' || interactionMode === 'hardware_move') {
+      const target = findInspectTarget(event);
+      if (target?.type === 'part' && target.partId && sceneGraph.partGroupsById.has(target.partId)) {
+        const basePosition = sceneGraph.basePartPosition(target.partId);
+        dragPlaneY = basePosition.y;
+        const startPoint = pointerPointOnDragPlane(event, dragPlaneY);
+        if (startPoint) {
+          dragMode = 'visual_part';
+          draggedPartId = target.partId;
+          dragStartPoint = startPoint;
+          dragStartOffset = sceneGraph.partVisualOffset(target.partId);
+          selectCircuitTargetFromStage(target);
+        }
+      }
+    }
     canvas.setPointerCapture(event.pointerId);
   });
   canvas.addEventListener('pointermove', (event) => {
@@ -132,12 +182,54 @@ function createThreeScene(container, canvas, circuit, options) {
       updateHover(event);
       return;
     }
+    if (dragMode === 'visual_part') {
+      const point = pointerPointOnDragPlane(event, dragPlaneY);
+      if (!point) {
+        return;
+      }
+      const delta = point.clone().sub(dragStartPoint);
+      const basePosition = sceneGraph.basePartPosition(draggedPartId);
+      const requestedPosition = {
+        x: basePosition.x + dragStartOffset.x + delta.x,
+        y: basePosition.y + dragStartOffset.y + delta.y,
+        z: basePosition.z + dragStartOffset.z + delta.z
+      };
+      applyVisualTransformFromStage(draggedPartId, { position: requestedPosition });
+      dragLatestTransform = { position: requestedPosition };
+      dragDistance += Math.abs(event.clientX - lastX) + Math.abs(event.clientY - lastY);
+      lastX = event.clientX;
+      lastY = event.clientY;
+      return;
+    }
     targetRotation += (event.clientX - lastX) * 0.006;
-    dragDistance += Math.abs(event.clientX - lastX);
+    dragDistance += Math.abs(event.clientX - lastX) + Math.abs(event.clientY - lastY);
     lastX = event.clientX;
+    lastY = event.clientY;
   });
   canvas.addEventListener('pointerup', () => {
+    const completedDrag = {
+      mode: dragMode,
+      partId: draggedPartId,
+      transform: dragLatestTransform
+    };
     dragging = false;
+    dragMode = 'orbit';
+    draggedPartId = '';
+    dragStartPoint = null;
+    dragStartOffset = null;
+    dragLatestTransform = null;
+    if (
+      interactionMode === 'hardware_move'
+      && completedDrag.mode === 'visual_part'
+      && completedDrag.partId
+      && completedDrag.transform
+    ) {
+      options.onHardwarePlacementIntent?.({
+        componentId: completedDrag.partId,
+        transform: completedDrag.transform,
+        debugSnapshot: stageRuntimeDebugSnapshot(sceneGraph, circuit, canvas)
+      });
+    }
   });
   canvas.addEventListener('pointerleave', () => {
     setHoveredTarget(null);
@@ -187,6 +279,35 @@ function createThreeScene(container, canvas, circuit, options) {
         oledTexture.needsUpdate = true;
       }
     },
+    debugSnapshot() {
+      return stageRuntimeDebugSnapshot(sceneGraph, circuit, canvas);
+    },
+    setInteractionMode(nextMode) {
+      interactionMode = ['visual_move', 'hardware_move'].includes(nextMode) ? nextMode : 'orbit';
+      canvas.dataset.interactionMode = interactionMode;
+      return interactionMode;
+    },
+    getPartWorldBounds(componentId) {
+      return sceneGraph.getPartWorldBounds(componentId);
+    },
+    applyVisualTransform(componentId, transform) {
+      const applied = applyVisualTransformFromStage(componentId, transform);
+      return applied;
+    },
+    undoVisualTransform(componentId, transform) {
+      const applied = sceneGraph.applyVisualTransform(componentId, transform);
+      if (applied) {
+        updateVisualPreviewWires(sceneGraph, circuit);
+        syncVisualDataset();
+      }
+      return applied;
+    },
+    resetVisualTransforms() {
+      const reset = sceneGraph.resetVisualTransforms();
+      updateVisualPreviewWires(sceneGraph, circuit);
+      syncVisualDataset();
+      return reset;
+    },
     dispose() {
       cancelAnimationFrame(animationFrame);
       resizeObserver.disconnect();
@@ -209,6 +330,8 @@ function createThreeScene(container, canvas, circuit, options) {
       });
       scene.environment?.dispose();
       renderer.dispose();
+      delete canvas.__hEduwareStageDebug;
+      delete canvas.__hEduwareStagePartScreenPoint;
       canvas.remove();
     }
   };
@@ -219,9 +342,13 @@ function createThreeScene(container, canvas, circuit, options) {
     const height = Math.max(360, Math.floor(bounds.height));
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
+    fitCameraToVisibleStageBounds(sceneGraph, camera, cameraTarget, zoomRange, cameraFit);
     camera.updateProjectionMatrix();
     renderer.render(scene, camera);
     canvas.dataset.renderReady = 'true';
+    canvas.dataset.cameraFit = cameraFit ? 'server+scene-bounds' : 'scene-bounds';
+    canvas.dataset.cameraTarget = `${cameraTarget.x.toFixed(2)},${cameraTarget.y.toFixed(2)},${cameraTarget.z.toFixed(2)}`;
+    canvas.dataset.cameraDistance = camera.position.distanceTo(cameraTarget).toFixed(2);
   }
 
   function updateHover(event) {
@@ -263,6 +390,117 @@ function createThreeScene(container, canvas, circuit, options) {
     }
     return `${target.type}:${target.connectionId || target.partId || target.id || ''}`;
   }
+
+  function pointerPointOnDragPlane(event, y) {
+    const bounds = canvas.getBoundingClientRect();
+    pointer.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
+    pointer.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
+    raycaster.setFromCamera(pointer, camera);
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -y);
+    const point = new THREE.Vector3();
+    return raycaster.ray.intersectPlane(plane, point) ? point : null;
+  }
+
+  function applyVisualTransformFromStage(componentId, transform) {
+    const before = sceneGraph.visualTransformSnapshot();
+    const applied = sceneGraph.applyVisualTransform(componentId, transform);
+    if (!applied) {
+      return false;
+    }
+    updateVisualPreviewWires(sceneGraph, circuit);
+    syncVisualDataset();
+    options.onVisualArrangementChange?.({
+      componentId,
+      transform: sceneGraph.visualTransformSnapshot()[componentId],
+      transforms: sceneGraph.visualTransformSnapshot(),
+      previousTransforms: before,
+      visualTransformRevision: sceneGraph.visualTransformRevision,
+      previewWireRouteHash: sceneGraph.previewWireRouteHash
+    });
+    return true;
+  }
+
+  function syncVisualDataset() {
+    canvas.dataset.visualTransformRevision = String(sceneGraph.visualTransformRevision);
+    canvas.dataset.previewWireRouteHash = sceneGraph.previewWireRouteHash;
+  }
+
+  function selectCircuitTargetFromStage(target) {
+    options.onSelectTarget?.(target);
+  }
+}
+
+function stagePartScreenPoint(sceneGraph, camera, canvas, componentId) {
+  const bounds = sceneGraph.getPartWorldBounds(componentId);
+  if (!bounds) {
+    return null;
+  }
+  const center = new THREE.Vector3();
+  bounds.getCenter(center);
+  center.project(camera);
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: rect.left + ((center.x + 1) / 2) * rect.width,
+    y: rect.top + ((-center.y + 1) / 2) * rect.height
+  };
+}
+
+function fitCameraToVisibleStageBounds(sceneGraph, camera, targetVector, zoomRange, cameraFit = null) {
+  const bounds = visibleStageBounds(sceneGraph);
+  if (!bounds) {
+    applyStageCameraFit(camera, targetVector, zoomRange, cameraFit);
+    return;
+  }
+  const center = new THREE.Vector3();
+  const size = new THREE.Vector3();
+  bounds.getCenter(center);
+  bounds.getSize(size);
+  const target = new THREE.Vector3(center.x, Math.max(0.18, center.y * 0.65), center.z);
+  const verticalFov = THREE.MathUtils.degToRad(camera.fov || cameraFit?.fov || 38);
+  const horizontalFov = 2 * Math.atan(Math.tan(verticalFov / 2) * Math.max(0.25, camera.aspect || 1));
+  const narrowestFov = Math.max(THREE.MathUtils.degToRad(8), Math.min(verticalFov, horizontalFov));
+  const radius = Math.max(1, size.length() / 2);
+  const flatSpan = Math.max(size.x, size.z);
+  const distance = clampNumber(
+    Math.max(5.8, (radius / Math.sin(narrowestFov / 2)) * 1.08, flatSpan * 1.45),
+    5.8,
+    42
+  );
+  const currentDirection = camera.position.clone().sub(targetVector);
+  const direction = currentDirection.lengthSq() > 0.001
+    ? currentDirection.normalize()
+    : new THREE.Vector3(0.62, 0.52, 0.58).normalize();
+  targetVector.copy(target);
+  camera.position.copy(target).add(direction.multiplyScalar(distance));
+  zoomRange.min = Math.max(3.8, distance * 0.55);
+  zoomRange.max = Math.max(zoomRange.min + 1, distance * 1.35);
+  camera.lookAt(targetVector);
+}
+
+function visibleStageBounds(sceneGraph) {
+  const bounds = new THREE.Box3();
+  let hasBounds = false;
+  const groups = [
+    ...sceneGraph.partGroupsById.values(),
+    ...sceneGraph.wireGroupsByConnectionId.values()
+  ];
+  for (const group of groups) {
+    if (!group.visible || group.children.length === 0) {
+      continue;
+    }
+    group.updateWorldMatrix(true, true);
+    const groupBounds = new THREE.Box3().setFromObject(group);
+    if (groupBounds.isEmpty()) {
+      continue;
+    }
+    bounds.union(groupBounds);
+    hasBounds = true;
+  }
+  if (!hasBounds) {
+    return null;
+  }
+  bounds.expandByScalar(0.35);
+  return bounds;
 }
 
 // Shared metallic materials so solder beads, pins, and ferrules read as the same
@@ -273,6 +511,432 @@ const HEADER_PLASTIC_MAT = new THREE.MeshStandardMaterial({ color: '#0b0b0e', ro
 const RAIL_CONTACT_MAT = new THREE.MeshStandardMaterial({ color: '#c0a14a', metalness: 0.85, roughness: 0.38 });
 // Reused across every scene rebuild, so dispose() must skip these.
 const SHARED_MATERIALS = new Set([SOLDER_MAT, PIN_METAL_MAT, HEADER_PLASTIC_MAT, RAIL_CONTACT_MAT]);
+
+export function createStageSceneGraph(root = new THREE.Group()) {
+  const partGroupsById = new Map();
+  const wireGroupsByConnectionId = new Map();
+  const labelGroupsByPartId = new Map();
+  const previewWireGroupsByConnectionId = new Map();
+  const basePartPositions = new Map();
+  const visualTransformsByPartId = new Map();
+  let previewWireRouteHash = '';
+  let visualTransformRevision = 0;
+
+  const graph = {
+    root,
+    partGroupsById,
+    wireGroupsByConnectionId,
+    labelGroupsByPartId,
+    previewWireGroupsByConnectionId,
+    get visualTransformRevision() {
+      return visualTransformRevision;
+    },
+    get previewWireRouteHash() {
+      return previewWireRouteHash;
+    },
+    setPreviewWireRouteHash(hash) {
+      previewWireRouteHash = hash || '';
+    },
+    partGroupFor(descriptor) {
+      const partId = descriptor?.id;
+      if (!partId) {
+        return root;
+      }
+      if (partGroupsById.has(partId)) {
+        return partGroupsById.get(partId);
+      }
+      const group = new THREE.Group();
+      group.name = `part:${partId}`;
+      group.userData.partId = partId;
+      group.userData.stageGraphRole = 'part';
+      group.userData.basePosition = vectorSnapshot(descriptor.position);
+      group.userData.visualPlacementBounds = visualPlacementBoundsForDescriptor(descriptor);
+      basePartPositions.set(partId, vectorSnapshot(descriptor.position));
+      tagInspectable(group, {
+        type: 'part',
+        partId,
+        id: partId,
+        label: descriptor.label,
+        hoverTargets: descriptor.hoverTargets
+      });
+      partGroupsById.set(partId, group);
+      root.add(group);
+      return group;
+    },
+    wireGroupFor(connection) {
+      const connectionId = connection?.id;
+      if (!connectionId) {
+        return root;
+      }
+      if (wireGroupsByConnectionId.has(connectionId)) {
+        return wireGroupsByConnectionId.get(connectionId);
+      }
+      const group = new THREE.Group();
+      group.name = `wire:${connectionId}`;
+      group.userData.connectionId = connectionId;
+      group.userData.stageGraphRole = 'wire';
+      tagInspectable(group, { type: 'connection', connectionId });
+      wireGroupsByConnectionId.set(connectionId, group);
+      root.add(group);
+      return group;
+    },
+    labelGroupFor(descriptor, parent = root) {
+      const partId = descriptor?.id;
+      if (!partId) {
+        return parent;
+      }
+      if (labelGroupsByPartId.has(partId)) {
+        return labelGroupsByPartId.get(partId);
+      }
+      const group = new THREE.Group();
+      group.name = `label:${partId}`;
+      group.userData.partId = partId;
+      group.userData.stageGraphRole = 'label';
+      labelGroupsByPartId.set(partId, group);
+      parent.add(group);
+      return group;
+    },
+    previewWireGroupFor(connectionId) {
+      if (!connectionId) {
+        return root;
+      }
+      if (previewWireGroupsByConnectionId.has(connectionId)) {
+        return previewWireGroupsByConnectionId.get(connectionId);
+      }
+      const group = new THREE.Group();
+      group.name = `preview-wire:${connectionId}`;
+      group.userData.connectionId = connectionId;
+      group.userData.stageGraphRole = 'preview-wire';
+      group.visible = false;
+      previewWireGroupsByConnectionId.set(connectionId, group);
+      root.add(group);
+      return group;
+    },
+    getPartWorldBounds(componentId) {
+      const group = partGroupsById.get(componentId);
+      if (!group) {
+        return null;
+      }
+      group.updateWorldMatrix(true, true);
+      const bounds = new THREE.Box3().setFromObject(group);
+      return bounds.isEmpty() ? null : bounds;
+    },
+    basePartPosition(componentId) {
+      return vectorSnapshot(basePartPositions.get(componentId));
+    },
+    partVisualOffset(componentId) {
+      const group = partGroupsById.get(componentId);
+      if (!group) {
+        return { x: 0, y: 0, z: 0 };
+      }
+      return vectorSnapshot(group.position);
+    },
+    visualTransformSnapshot() {
+      return Object.fromEntries(
+        Array.from(visualTransformsByPartId.entries())
+          .sort(([left], [right]) => String(left).localeCompare(String(right)))
+          .map(([partId, transform]) => [partId, {
+            ...transform,
+            position: vectorSnapshot(transform.position),
+            rotation: transform.rotation ? vectorSnapshot(transform.rotation) : null
+          }])
+      );
+    },
+    hydrateVisualTransforms(transforms = {}, revision = 0) {
+      const entries = Object.entries(transforms ?? {});
+      for (const [componentId, transform] of entries) {
+        this.applyVisualTransform(componentId, transform, { incrementRevision: false });
+      }
+      visualTransformRevision = Number.isFinite(revision) ? revision : entries.length ? 1 : 0;
+    },
+    applyVisualTransform(componentId, transform, options = {}) {
+      const group = partGroupsById.get(componentId);
+      const requestedPosition = transform?.position;
+      if (!group || !isFiniteVector(requestedPosition)) {
+        return false;
+      }
+      const base = basePartPositions.get(componentId) ?? { x: 0, y: 0, z: 0 };
+      const adjustedPosition = constrainVisualPosition(group, requestedPosition);
+      group.position.set(
+        adjustedPosition.x - base.x,
+        adjustedPosition.y - base.y,
+        adjustedPosition.z - base.z
+      );
+      if (isFiniteVector(transform.rotation)) {
+        group.rotation.set(transform.rotation.x, transform.rotation.y, transform.rotation.z);
+      }
+      const visualTransform = {
+        componentId,
+        position: vectorSnapshot(adjustedPosition),
+        rotation: isFiniteVector(transform.rotation) ? vectorSnapshot(transform.rotation) : null,
+        source: 'student_visual_adjustment',
+        committed: false
+      };
+      group.userData.visualTransform = visualTransform;
+      visualTransformsByPartId.set(componentId, visualTransform);
+      if (options.incrementRevision !== false) {
+        visualTransformRevision += 1;
+      }
+      return true;
+    },
+    resetVisualTransforms() {
+      let changed = false;
+      for (const group of partGroupsById.values()) {
+        if (
+          group.position.x !== 0
+          || group.position.y !== 0
+          || group.position.z !== 0
+          || group.rotation.x !== 0
+          || group.rotation.y !== 0
+          || group.rotation.z !== 0
+          || group.userData.visualTransform
+        ) {
+          changed = true;
+        }
+        group.position.set(0, 0, 0);
+        group.rotation.set(0, 0, 0);
+        delete group.userData.visualTransform;
+      }
+      visualTransformsByPartId.clear();
+      if (changed) {
+        visualTransformRevision += 1;
+      }
+      return changed;
+    }
+  };
+
+  return graph;
+}
+
+function constrainVisualPosition(group, position) {
+  const bounds = group?.userData?.visualPlacementBounds;
+  if (!bounds) {
+    return vectorSnapshot(position);
+  }
+  return {
+    x: clampNumber(position.x, bounds.minX, bounds.maxX),
+    y: clampNumber(position.y, bounds.minY, bounds.maxY),
+    z: clampNumber(position.z, bounds.minZ, bounds.maxZ)
+  };
+}
+
+function visualPlacementBoundsForDescriptor(descriptor) {
+  const position = vectorSnapshot(descriptor?.position);
+  const size = descriptor?.size ?? { width: 0.4, depth: 0.4, height: 0.2 };
+  const halfWidth = Math.max(0, (Number(size.width) || 0) / 2);
+  const halfDepth = Math.max(0, (Number(size.depth) || 0) / 2);
+  const baseY = Number.isFinite(position.y) ? position.y : 0;
+
+  if (descriptor?.id === 'breadboard') {
+    return {
+      minX: position.x,
+      maxX: position.x,
+      minY: baseY,
+      maxY: baseY,
+      minZ: position.z,
+      maxZ: position.z
+    };
+  }
+
+  const breadboard = {
+    minX: -2.8 + halfWidth,
+    maxX: 2.8 - halfWidth,
+    minZ: -1.075 + halfDepth,
+    maxZ: 1.075 - halfDepth
+  };
+  const startsOnBreadboard = position.x >= -2.8
+    && position.x <= 2.8
+    && position.z >= -1.075
+    && position.z <= 1.075;
+  if (startsOnBreadboard) {
+    return {
+      minX: Math.min(breadboard.minX, position.x),
+      maxX: Math.max(breadboard.maxX, position.x),
+      minY: baseY,
+      maxY: baseY,
+      minZ: Math.min(breadboard.minZ, position.z),
+      maxZ: Math.max(breadboard.maxZ, position.z)
+    };
+  }
+
+  return {
+    minX: -3.2 + halfWidth,
+    maxX: 3.2 - halfWidth,
+    minY: baseY,
+    maxY: baseY,
+    minZ: -2.2 + halfDepth,
+    maxZ: 2.2 - halfDepth
+  };
+}
+
+function clampNumber(value, min, max) {
+  if (!Number.isFinite(value)) {
+    return min;
+  }
+  return Math.min(Math.max(value, min), max);
+}
+
+function stageRuntimeDebugSnapshot(sceneGraph, circuit, canvas) {
+  const baseSnapshot = createStageDebugSnapshot(circuit, {
+    interactionMode: canvas.dataset.interactionMode || 'orbit',
+    visualTransformRevision: sceneGraph.visualTransformRevision,
+    previewWireRouteHash: sceneGraph.previewWireRouteHash
+  });
+  return {
+    ...baseSnapshot,
+    visualTransforms: sceneGraph.visualTransformSnapshot(),
+    partGroupIds: Array.from(sceneGraph.partGroupsById.keys()),
+    wireGroupIds: Array.from(sceneGraph.wireGroupsByConnectionId.keys()),
+    labelGroupIds: Array.from(sceneGraph.labelGroupsByPartId.keys()),
+    previewWireGroupIds: Array.from(sceneGraph.previewWireGroupsByConnectionId.keys()),
+    partWorldBounds: Object.fromEntries(
+      Array.from(sceneGraph.partGroupsById.keys()).map((partId) => [
+        partId,
+        boxSnapshot(sceneGraph.getPartWorldBounds(partId))
+      ])
+    )
+  };
+}
+
+export function createStageDebugSnapshot(circuit, options = {}) {
+  const partPositions = stagePartPositionSnapshot(circuit);
+  const wireRouteHash = stageWireRouteHash(circuit);
+  const presentationAdjustmentKind = circuit?.solverGateResult?.presentationAdjustment?.kind
+    ?? circuit?.solverGateResult?.mode
+    ?? '';
+  const circuitSpecHash = stableStageHash({
+    parts: (circuit?.parts ?? []).map((part) => ({
+      id: part.id,
+      type: part.type,
+      label: part.label,
+      designator: part.designator,
+      position: vectorSnapshot(part.position),
+      footprint: part.footprint ? {
+        id: part.footprint.id,
+        type: part.footprint.type,
+        width: part.footprint.width,
+        depth: part.footprint.depth,
+        height: part.footprint.height
+      } : null
+    })),
+    connections: (circuit?.connections ?? []).map((connection) => ({
+      id: connection.id,
+      from: endpointKey(connection.from),
+      to: endpointKey(connection.to),
+      route: (connection.route ?? []).filter(isFiniteVector).map(vectorSnapshot)
+    })),
+    layoutRevision: circuit?.layout?.revision ?? circuit?.renderPlanRevision ?? circuit?.id ?? '',
+    partPositions,
+    wireRouteHash
+  });
+
+  return {
+    interactionMode: options.interactionMode ?? 'orbit',
+    renderPlanRevision: circuit?.layout?.revision ?? circuit?.renderPlanRevision ?? circuit?.id ?? 'local-render-plan',
+    circuitSpecHash,
+    buildReady: circuit?.solverGateResult?.buildReady === true,
+    presentationAdjustmentKind,
+    partPositions,
+    visualTransformRevision: Number.isFinite(options.visualTransformRevision)
+      ? options.visualTransformRevision
+      : 0,
+    wireRouteHash,
+    previewWireRouteHash: options.previewWireRouteHash ?? ''
+  };
+}
+
+export const stageDebugSnapshot = createStageDebugSnapshot;
+export const stageSceneDebugSnapshot = createStageDebugSnapshot;
+
+export function stagePartPositionSnapshot(circuit) {
+  const specializedParts = Object.values(stageSpecializedPartDescriptors(circuit)).filter(Boolean);
+  const descriptors = [
+    ...specializedParts,
+    ...stageGenericPartDescriptors(circuit),
+    ...(shouldRenderLibraryParts(circuit) ? stageLibraryPartDescriptors(circuit) : [])
+  ].filter((descriptor) => descriptor?.id);
+
+  return Object.fromEntries(
+    descriptors
+      .sort((left, right) => String(left.id).localeCompare(String(right.id)))
+      .map((descriptor) => [descriptor.id, roundedVectorSnapshot(descriptor.position)])
+  );
+}
+
+export function stageWireRouteHash(circuit) {
+  const endpoints = stageEndpointMap(circuit);
+  const routeSnapshot = (circuit?.connections ?? []).map((connection, index) => {
+    const fromKey = endpointKey(connection.from);
+    const toKey = endpointKey(connection.to);
+    const from = endpoints[fromKey];
+    const to = endpoints[toKey];
+    const points = from && to
+      ? stageConnectionRoutePoints(connection, from, to, index).map(roundedVectorSnapshot)
+      : (connection.route ?? []).filter(isFiniteVector).map(roundedVectorSnapshot);
+    return {
+      id: connection.id,
+      from: fromKey,
+      to: toKey,
+      points
+    };
+  });
+  return stableStageHash(routeSnapshot);
+}
+
+function stableStageHash(value) {
+  const input = stableStageStringify(value);
+  let hash = 2166136261;
+  for (let index = 0; index < input.length; index += 1) {
+    hash ^= input.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0');
+}
+
+function stableStageStringify(value) {
+  if (Array.isArray(value)) {
+    return `[${value.map((entry) => stableStageStringify(entry)).join(',')}]`;
+  }
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableStageStringify(value[key])}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function boxSnapshot(box) {
+  if (!box) {
+    return null;
+  }
+  return {
+    min: roundedVectorSnapshot(box.min),
+    max: roundedVectorSnapshot(box.max),
+    size: roundedVectorSnapshot(new THREE.Vector3(
+      box.max.x - box.min.x,
+      box.max.y - box.min.y,
+      box.max.z - box.min.z
+    ))
+  };
+}
+
+function roundedVectorSnapshot(point) {
+  const vector = vectorSnapshot(point);
+  return {
+    x: Number(vector.x.toFixed(3)),
+    y: Number(vector.y.toFixed(3)),
+    z: Number(vector.z.toFixed(3))
+  };
+}
+
+function vectorSnapshot(point) {
+  return {
+    x: Number.isFinite(point?.x) ? point.x : 0,
+    y: Number.isFinite(point?.y) ? point.y : 0,
+    z: Number.isFinite(point?.z) ? point.z : 0
+  };
+}
 
 function tagInspectable(object, target) {
   if (target) {
@@ -296,7 +960,7 @@ function addSolderJoint(root, position, radius, stats) {
   return joint;
 }
 
-function addBreadboard(root, stats, descriptor) {
+function addBreadboard(root, stats, descriptor, sceneGraph = null) {
   const base = descriptor.position;
   const target = { type: 'part', partId: descriptor.id, id: descriptor.id, label: descriptor.label };
   const board = new THREE.Mesh(
@@ -323,7 +987,7 @@ function addBreadboard(root, stats, descriptor) {
       root.add(hole);
     }
   }
-  addDescriptorLabel(root, descriptor, 'Breadboard', [base.x, base.y + 0.34, base.z], 0.7);
+  addDescriptorLabel(root, descriptor, 'Breadboard', [base.x, base.y + 0.34, base.z], 0.7, sceneGraph);
 }
 
 function addRail(root, color, z, stats, base) {
@@ -344,7 +1008,7 @@ function addRail(root, color, z, stats, base) {
   }
 }
 
-function addArduino(root, stats, descriptor) {
+function addArduino(root, stats, descriptor, sceneGraph = null) {
   const base = descriptor.position;
   const target = { type: 'part', partId: descriptor.id, id: descriptor.id, label: descriptor.label };
   const board = new THREE.Mesh(
@@ -374,7 +1038,7 @@ function addArduino(root, stats, descriptor) {
 
   addPinHeader(root, base.x, base.z - 0.71, stats, target, base.y);
   addPinHeader(root, base.x, base.z + 0.67, stats, target, base.y);
-  addDescriptorLabel(root, descriptor, 'Arduino', [base.x, base.y + 0.37, base.z], 0.58);
+  addDescriptorLabel(root, descriptor, 'Arduino', [base.x, base.y + 0.37, base.z], 0.58, sceneGraph);
 }
 
 // A 2.54mm-style header strip: black plastic body, gold round pins, and a solder
@@ -403,7 +1067,7 @@ function addPinHeader(root, x, z, stats, target, baseY = 0.35) {
   }
 }
 
-function addOled(root, texture, stats, descriptor) {
+function addOled(root, texture, stats, descriptor, sceneGraph = null) {
   const base = descriptor.position;
   const target = { type: 'part', partId: descriptor.id, id: descriptor.id, label: descriptor.label };
   const board = new THREE.Mesh(
@@ -445,26 +1109,31 @@ function addOled(root, texture, stats, descriptor) {
     addSolderJoint(root, { x: px, y: base.y + 0.135, z: pz }, 0.045, stats);
   }
 
-  addDescriptorLabel(root, descriptor, 'OLED', [base.x, base.y + 0.41, base.z - 0.5], 0.44);
+  addDescriptorLabel(root, descriptor, 'OLED', [base.x, base.y + 0.41, base.z - 0.5], 0.44, sceneGraph);
 }
 
-function addLibraryModels(root, circuit, stats) {
+function addLibraryModels(root, circuit, stats, sceneGraph = null) {
+  if (!shouldRenderLibraryParts(circuit)) {
+    return [];
+  }
   const descriptors = stageLibraryPartDescriptors(circuit);
   for (const descriptor of descriptors) {
-    addGenericPart(root, descriptor, stats);
+    const partRoot = sceneGraph?.partGroupFor(descriptor) ?? root;
+    addGenericPart(partRoot, descriptor, stats, sceneGraph);
   }
   return descriptors;
 }
 
-function addGenericRenderPlanParts(root, circuit, stats) {
+function addGenericRenderPlanParts(root, circuit, stats, sceneGraph = null) {
   const descriptors = stageGenericPartDescriptors(circuit);
   for (const descriptor of descriptors) {
-    addGenericPart(root, descriptor, stats);
+    const partRoot = sceneGraph?.partGroupFor(descriptor) ?? root;
+    addGenericPart(partRoot, descriptor, stats, sceneGraph);
   }
   return descriptors;
 }
 
-function addGenericPart(root, descriptor, stats) {
+function addGenericPart(root, descriptor, stats, sceneGraph = null) {
   const target = {
     type: 'part',
     partId: descriptor.id,
@@ -500,6 +1169,35 @@ function addGenericPart(root, descriptor, stats) {
     body.position.set(position.x, position.y + 0.1, position.z);
     root.add(tagInspectable(body, target));
     addGenericLeads(root, descriptor, stats, target, [-0.45, 0.45]);
+  } else if (descriptor.shape === 'ceramic-disc-capacitor') {
+    const discHeight = Math.max(descriptor.size.height, 0.38);
+    const discRadius = Math.max(descriptor.size.width, discHeight) / 2;
+    body = new THREE.Mesh(
+      new THREE.CylinderGeometry(discRadius, discRadius, descriptor.size.depth, 32),
+      new THREE.MeshStandardMaterial({ color: descriptor.color, roughness: 0.58 })
+    );
+    body.rotation.x = Math.PI / 2;
+    body.scale.y = discHeight / Math.max(descriptor.size.width, 0.001);
+    body.position.set(position.x, position.y + discHeight * 0.58, position.z);
+    root.add(tagInspectable(body, target));
+    addFootprintLeads(root, descriptor, stats, target);
+  } else if (descriptor.shape === 'radial-electrolytic-capacitor') {
+    const capacitorHeight = Math.max(descriptor.size.height, 0.5);
+    const capacitorRadius = Math.max(descriptor.size.width, descriptor.size.depth) / 2;
+    body = new THREE.Mesh(
+      new THREE.CylinderGeometry(capacitorRadius, capacitorRadius, capacitorHeight, 32),
+      new THREE.MeshStandardMaterial({ color: descriptor.color, roughness: 0.42, metalness: 0.12 })
+    );
+    body.position.set(position.x, position.y + capacitorHeight / 2 + 0.08, position.z);
+    root.add(tagInspectable(body, target));
+
+    const stripe = new THREE.Mesh(
+      new THREE.BoxGeometry(0.035, capacitorHeight * 0.72, 0.012),
+      new THREE.MeshStandardMaterial({ color: '#e6e7eb', roughness: 0.5 })
+    );
+    stripe.position.set(position.x + capacitorRadius * 0.72, position.y + capacitorHeight / 2 + 0.08, position.z + capacitorRadius + 0.004);
+    root.add(tagInspectable(stripe, target));
+    addFootprintLeads(root, descriptor, stats, target);
   } else if (descriptor.shape === 'button') {
     body = new THREE.Mesh(
       new THREE.BoxGeometry(descriptor.size.width, descriptor.size.height, descriptor.size.depth),
@@ -565,7 +1263,7 @@ function addGenericPart(root, descriptor, stats) {
       position.x,
       position.y + descriptor.size.height + 0.24,
       position.z
-    ], Math.max(0.32, Math.min(0.56, descriptor.size.width)));
+    ], Math.max(0.32, Math.min(0.56, descriptor.size.width)), sceneGraph);
   }
 }
 
@@ -579,6 +1277,27 @@ function addGenericLeads(root, descriptor, stats, target, offsets) {
       x: descriptor.position.x + dx,
       y: descriptor.position.y - 0.02,
       z: descriptor.position.z + descriptor.size.depth / 2
+    }, 0.032, stats);
+  }
+}
+
+function addFootprintLeads(root, descriptor, stats, target) {
+  const anchors = Object.values(descriptor.footprint?.pinAnchors ?? {});
+  const leadHeight = 0.2;
+  const leadGeometry = new THREE.CylinderGeometry(0.012, 0.012, leadHeight, 8);
+  for (const anchor of anchors) {
+    if (!isFiniteVector(anchor)) {
+      continue;
+    }
+    const x = descriptor.position.x + anchor.x;
+    const z = descriptor.position.z + anchor.z;
+    const lead = new THREE.Mesh(leadGeometry, PIN_METAL_MAT);
+    lead.position.set(x, descriptor.position.y + leadHeight / 2 - 0.025, z);
+    root.add(tagInspectable(lead, target));
+    addSolderJoint(root, {
+      x,
+      y: descriptor.position.y - 0.02,
+      z
     }, 0.032, stats);
   }
 }
@@ -608,20 +1327,21 @@ function addWireConnector(root, position, color, stats, target) {
   stats.connectors += 1;
 }
 
-function addWires(root, circuit, stats, selectedTargetKey = '') {
+function addWires(root, circuit, stats, selectedTargetKey = '', sceneGraph = null) {
   const endpoints = stageEndpointMap(circuit);
 
   return circuit.connections.flatMap((connection, index) => {
+    const wireRoot = sceneGraph?.wireGroupFor(connection) ?? root;
     const target = { type: 'connection', connectionId: connection.id };
     const isSelected = selectedTargetKey === `connection:${connection.id}`;
-    const from = endpoints[`${connection.from.partId}:${connection.from.pin}`];
-    const to = endpoints[`${connection.to.partId}:${connection.to.pin}`];
+    const from = endpoints[endpointKey(connection.from)];
+    const to = endpoints[endpointKey(connection.to)];
     if (!from || !to) {
       return [];
     }
 
-    addWireConnector(root, from, connection.color, stats, target);
-    addWireConnector(root, to, connection.color, stats, target);
+    addWireConnector(wireRoot, from, connection.color, stats, target);
+    addWireConnector(wireRoot, to, connection.color, stats, target);
 
     const curve = new THREE.CatmullRomCurve3(stageConnectionRoutePoints(connection, from, to, index));
     const wire = new THREE.Mesh(
@@ -636,7 +1356,7 @@ function addWires(root, circuit, stats, selectedTargetKey = '') {
     );
     tagInspectable(wire, target);
     wire.castShadow = true;
-    root.add(wire);
+    wireRoot.add(wire);
     return [{
       curve,
       color: connection.color,
@@ -645,6 +1365,100 @@ function addWires(root, circuit, stats, selectedTargetKey = '') {
       toKey: endpointKey(connection.to)
     }];
   });
+}
+
+function updateVisualPreviewWires(sceneGraph, circuit) {
+  const transforms = sceneGraph.visualTransformSnapshot();
+  const transformedPartIds = new Set(Object.keys(transforms));
+  for (const group of sceneGraph.previewWireGroupsByConnectionId.values()) {
+    clearThreeGroup(group);
+    group.visible = false;
+  }
+  if (!transformedPartIds.size) {
+    sceneGraph.setPreviewWireRouteHash('');
+    return '';
+  }
+
+  const endpoints = stageEndpointMap(circuit);
+  const routeSnapshot = [];
+  for (const [index, connection] of (circuit?.connections ?? []).entries()) {
+    const fromKey = endpointKey(connection.from);
+    const toKey = endpointKey(connection.to);
+    const fromPartId = componentIdFromEndpoint(fromKey);
+    const toPartId = componentIdFromEndpoint(toKey);
+    const affected = transformedPartIds.has(fromPartId) || transformedPartIds.has(toPartId);
+    const from = endpoints[fromKey];
+    const to = endpoints[toKey];
+    if (!affected || !from || !to) {
+      continue;
+    }
+
+    const previewFrom = applyVisualOffsetToPoint(sceneGraph, fromPartId, from);
+    const previewTo = applyVisualOffsetToPoint(sceneGraph, toPartId, to);
+    const points = stageVisualPreviewRoutePoints(previewFrom, previewTo, index);
+    const previewGroup = sceneGraph.previewWireGroupFor(connection.id);
+    previewGroup.visible = true;
+    addPreviewWire(previewGroup, points, connection.color);
+    routeSnapshot.push({
+      id: connection.id,
+      from: fromKey,
+      to: toKey,
+      points: points.map(roundedVectorSnapshot)
+    });
+  }
+
+  const hash = routeSnapshot.length ? stableStageHash(routeSnapshot) : '';
+  sceneGraph.setPreviewWireRouteHash(hash);
+  return hash;
+}
+
+function clearThreeGroup(group) {
+  while (group.children.length) {
+    const child = group.children[0];
+    group.remove(child);
+    child.geometry?.dispose?.();
+    const materials = Array.isArray(child.material)
+      ? child.material
+      : child.material ? [child.material] : [];
+    for (const material of materials) {
+      if (SHARED_MATERIALS.has(material)) {
+        continue;
+      }
+      material.map?.dispose?.();
+      material.dispose?.();
+    }
+  }
+}
+
+function applyVisualOffsetToPoint(sceneGraph, partId, point) {
+  const offset = sceneGraph.partVisualOffset(partId);
+  return new THREE.Vector3(point.x + offset.x, point.y + offset.y, point.z + offset.z);
+}
+
+function stageVisualPreviewRoutePoints(from, to, index = 0) {
+  const fromTop = new THREE.Vector3(from.x, from.y + 0.28, from.z);
+  const toTop = new THREE.Vector3(to.x, to.y + 0.28, to.z);
+  const peak = new THREE.Vector3(
+    (from.x + to.x) / 2,
+    Math.max(from.y, to.y) + 0.72 + index * 0.05,
+    (from.z + to.z) / 2 + (index % 2 === 0 ? -0.18 : 0.18)
+  );
+  return [fromTop, peak, toTop];
+}
+
+function addPreviewWire(root, points, color = '#ffffff') {
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  const material = new THREE.LineDashedMaterial({
+    color,
+    dashSize: 0.12,
+    gapSize: 0.08,
+    transparent: true,
+    opacity: 0.72
+  });
+  const line = new THREE.Line(geometry, material);
+  line.computeLineDistances();
+  line.userData.stageGraphRole = 'preview-wire';
+  root.add(line);
 }
 
 export function stageConnectionRoutePoints(connection, from, to, index = 0) {
@@ -892,6 +1706,12 @@ export function stageLibraryPartDescriptors(circuit) {
     .map((part, index) => stagePartDescriptor(part, index, null, stageLabelLayoutForPart(circuit, part.id)));
 }
 
+function shouldRenderLibraryParts(circuit) {
+  return circuit?.showLibraryParts === true
+    || circuit?.renderLibraryParts === true
+    || circuit?.metadata?.showLibraryParts === true;
+}
+
 export function stageCurrentPathDescriptors(circuit) {
   const simulationPlan = circuit?.simulationPlan;
   if (!simulationPlan || simulationPlan.status !== 'valid') {
@@ -955,6 +1775,24 @@ const SPECIAL_PART_FALLBACK_POSITIONS = {
 };
 
 const GENERIC_PART_PROFILES = {
+  breadboard: {
+    shape: 'breadboard',
+    color: '#eeece7',
+    material: 'plastic',
+    size: { width: 5.6, depth: 2.15, height: 0.18 }
+  },
+  arduino: {
+    shape: 'arduino',
+    color: '#0a765d',
+    material: 'pcb-module',
+    size: { width: 2.05, depth: 1.28, height: 0.25 }
+  },
+  oled: {
+    shape: 'oled',
+    color: '#103950',
+    material: 'pcb-module',
+    size: { width: 1.45, depth: 0.88, height: 0.22 }
+  },
   led: {
     shape: 'led',
     color: '#ff5b59',
@@ -1067,10 +1905,11 @@ function applyStudioEnvironment(renderer, scene) {
   }
 }
 
-function addDescriptorLabel(root, descriptor, fallbackText, fallbackPosition, fallbackWidth) {
+function addDescriptorLabel(root, descriptor, fallbackText, fallbackPosition, fallbackWidth, sceneGraph = null) {
   const label = descriptor.labelLayout;
+  const labelRoot = sceneGraph?.labelGroupFor(descriptor, root) ?? root;
   addLabel(
-    root,
+    labelRoot,
     label?.text ?? fallbackText,
     label?.position ? [label.position.x, label.position.y, label.position.z] : fallbackPosition,
     label?.width ?? fallbackWidth

@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
 import test from 'node:test';
 
 import * as stageSceneModule from '../../src/stageScene.js';
@@ -13,6 +12,7 @@ import {
   stageGenericPartDescriptors,
   stageLibraryPartDescriptors,
   stageLabelLayoutForPart,
+  stagePartPositionSnapshot,
   stageSpecializedPartDescriptors,
   stageSpecializedPartPresence
 } from '../../src/stageScene.js';
@@ -25,57 +25,106 @@ function roundedPoint(point) {
   };
 }
 
-function routeHashForCircuit(circuit) {
-  const endpoints = stageEndpointMap(circuit);
-  const routeSnapshot = (circuit.connections ?? []).map((connection, index) => {
-    const fromId = connection.from.partId ?? connection.from.componentId;
-    const toId = connection.to.partId ?? connection.to.componentId;
-    const from = endpoints[`${fromId}:${connection.from.pin}`];
-    const to = endpoints[`${toId}:${connection.to.pin}`];
-    return {
-      id: connection.id,
-      points: stageConnectionRoutePoints(connection, from, to, index).map(roundedPoint)
-    };
-  });
-
-  return createHash('sha256')
-    .update(JSON.stringify(routeSnapshot))
-    .digest('hex');
-}
-
-function descriptorPositionsById(circuit) {
-  const specializedParts = Object.values(stageSpecializedPartDescriptors(circuit)).filter(Boolean);
-  const allParts = [
-    ...specializedParts,
-    ...stageGenericPartDescriptors(circuit),
-    ...stageLibraryPartDescriptors(circuit)
-  ];
-
-  return Object.fromEntries(allParts.map((part) => [part.id, roundedPoint(part.position)]));
-}
-
-function phase2StageDebugSnapshot(circuit) {
-  const directSnapshotHelpers = [
-    stageSceneModule.stageDebugSnapshot,
-    stageSceneModule.createStageDebugSnapshot,
-    stageSceneModule.stageSceneDebugSnapshot
-  ];
-
-  for (const helper of directSnapshotHelpers) {
-    if (typeof helper !== 'function') {
-      continue;
-    }
-    const snapshot = helper(circuit);
-    if (snapshot?.partPositions && snapshot?.wireRouteHash) {
-      return snapshot;
-    }
-  }
-
+function makeStageDebugCircuit() {
   return {
-    partPositions: descriptorPositionsById(circuit),
-    wireRouteHash: routeHashForCircuit(circuit)
+    parts: [
+      { id: 'breadboard', type: 'breadboard', label: 'Breadboard', position: { x: 0, y: 0, z: 0 } },
+      { id: 'arduino-uno', type: 'arduino', label: 'Arduino Uno', position: { x: -1.65, y: 0.35, z: 0.02 } },
+      { id: 'oled-display', type: 'oled', label: 'OLED', position: { x: 1.55, y: 0.45, z: -0.06 } },
+      { id: 'led-1', type: 'led', label: 'Status LED', position: { x: 0.4, y: 0.35, z: 0.55 } }
+    ],
+    connections: [
+      {
+        id: 'oled-power',
+        from: { partId: 'arduino-uno', pin: '5V' },
+        to: { partId: 'oled-display', pin: 'VCC' },
+        route: [
+          { x: -0.97, y: 0.68, z: -0.42 },
+          { x: 0.07, y: 1.08, z: -0.16 },
+          { x: 1.1, y: 0.76, z: -0.43 }
+        ]
+      },
+      {
+        id: 'oled-ground',
+        from: { partId: 'arduino-uno', pin: 'GND' },
+        to: { partId: 'oled-display', pin: 'GND' },
+        route: [
+          { x: -1.21, y: 0.68, z: -0.42 },
+          { x: -0.13, y: 1.14, z: 0.08 },
+          { x: 1.35, y: 0.76, z: -0.43 }
+        ]
+      }
+    ],
+    layout: {
+      endpoints: {
+        'arduino-uno:5V': { x: -1.12, y: 0.68, z: -0.64 },
+        'arduino-uno:GND': { x: -1.36, y: 0.68, z: -0.64 },
+        'oled-display:VCC': { x: 1.1, y: 0.72, z: -0.45 },
+        'oled-display:GND': { x: 1.35, y: 0.72, z: -0.45 }
+      }
+    },
+    solverGateResult: {
+      buildReady: false,
+      presentationAdjustment: { kind: 'safe_equivalent' }
+    }
   };
 }
+
+test('stage debug snapshot export exposes the Phase 2 contract', () => {
+  assert.equal(typeof stageSceneModule.createStageDebugSnapshot, 'function');
+
+  const circuit = makeStageDebugCircuit();
+  const snapshot = stageSceneModule.createStageDebugSnapshot(circuit);
+
+  assert.equal(snapshot.interactionMode, 'orbit');
+  assert.equal(snapshot.visualTransformRevision, 0);
+  assert.equal(snapshot.previewWireRouteHash, '');
+  assert.equal(snapshot.buildReady, false);
+  assert.equal(snapshot.presentationAdjustmentKind, 'safe_equivalent');
+  assert.equal(typeof snapshot.circuitSpecHash, 'string');
+  assert.equal(typeof snapshot.wireRouteHash, 'string');
+  assert.equal(typeof snapshot.partPositions, 'object');
+  assert.deepEqual(snapshot.partPositions['arduino-uno'], { x: -1.65, y: 0.35, z: 0.02 });
+  assert.deepEqual(snapshot.partPositions['oled-display'], { x: 1.55, y: 0.45, z: -0.06 });
+  assert.deepEqual(circuit, makeStageDebugCircuit());
+});
+
+test('stage debug snapshot is deterministic for the same circuit', () => {
+  const first = stageSceneModule.createStageDebugSnapshot(makeStageDebugCircuit());
+  const second = stageSceneModule.createStageDebugSnapshot(structuredClone(makeStageDebugCircuit()));
+
+  assert.deepEqual(first.partPositions, second.partPositions);
+  assert.equal(first.wireRouteHash, second.wireRouteHash);
+  assert.equal(first.circuitSpecHash, second.circuitSpecHash);
+  assert.equal(first.previewWireRouteHash, second.previewWireRouteHash);
+  assert.equal(first.interactionMode, second.interactionMode);
+  assert.equal(first.visualTransformRevision, second.visualTransformRevision);
+  assert.equal(first.buildReady, second.buildReady);
+});
+
+test('stage debug snapshot changes part positions and circuit hash when the render plan moves', () => {
+  const baseCircuit = makeStageDebugCircuit();
+  const movedCircuit = structuredClone(baseCircuit);
+  movedCircuit.parts.find((part) => part.id === 'oled-display').position = { x: 2.05, y: 0.45, z: -0.06 };
+
+  const before = stageSceneModule.createStageDebugSnapshot(baseCircuit);
+  const after = stageSceneModule.createStageDebugSnapshot(movedCircuit);
+
+  assert.notDeepEqual(after.partPositions, before.partPositions);
+  assert.notEqual(after.circuitSpecHash, before.circuitSpecHash);
+});
+
+test('stage debug snapshot changes wireRouteHash when route points change', () => {
+  const baseCircuit = makeStageDebugCircuit();
+  const reroutedCircuit = structuredClone(baseCircuit);
+  reroutedCircuit.connections[0].route[1] = { x: 0.3, y: 1.32, z: -0.02 };
+
+  const before = stageSceneModule.createStageDebugSnapshot(baseCircuit);
+  const after = stageSceneModule.createStageDebugSnapshot(reroutedCircuit);
+
+  assert.deepEqual(after.partPositions, before.partPositions);
+  assert.notEqual(after.wireRouteHash, before.wireRouteHash);
+});
 
 test('stage endpoint map prefers render plan layout endpoints over demo-specific fallback coordinates', () => {
   const endpoints = stageEndpointMap({
@@ -326,6 +375,66 @@ test('stage generic part descriptors prefer render plan visual style over local 
   assert.equal(descriptors[0].material, 'matte-pcb');
 });
 
+test('stage generic part descriptors preserve upright capacitor render shapes', () => {
+  const descriptors = stageGenericPartDescriptors({
+    parts: [
+      {
+        id: 'ceramic-cap-1',
+        type: 'passive',
+        label: 'Ceramic capacitor',
+        footprint: {
+          type: 'ceramic-capacitor',
+          width: 0.3,
+          depth: 0.18,
+          height: 0.18,
+          visualStyle: {
+            shape: 'ceramic-disc-capacitor',
+            color: '#c8a200',
+            material: 'ceramic-metal'
+          },
+          pinAnchors: {
+            A: { x: -0.12, y: 0.04, z: -0.08, role: 'passive-terminal' },
+            B: { x: 0.12, y: 0.04, z: 0.08, role: 'passive-terminal' }
+          },
+          labelAnchor: { x: 0, y: 0.28, z: 0 },
+          placement: { allowedSurfaces: ['breadboard'], breadboardCompatible: true, defaultOrientation: 'leads-down' },
+          simulationOverlayAnchors: []
+        }
+      },
+      {
+        id: 'electrolytic-cap-1',
+        type: 'passive',
+        label: 'Electrolytic capacitor',
+        footprint: {
+          type: 'electrolytic-capacitor',
+          width: 0.3,
+          depth: 0.3,
+          height: 0.5,
+          visualStyle: {
+            shape: 'radial-electrolytic-capacitor',
+            color: '#222266',
+            material: 'aluminum-plastic'
+          },
+          pinAnchors: {
+            '+': { x: -0.14, y: 0.08, z: -0.08, role: 'positive-terminal' },
+            '-': { x: 0.14, y: 0.08, z: 0.08, role: 'negative-terminal' }
+          },
+          labelAnchor: { x: 0, y: 0.66, z: 0 },
+          placement: { allowedSurfaces: ['breadboard'], breadboardCompatible: true, defaultOrientation: 'leads-down' },
+          simulationOverlayAnchors: []
+        }
+      }
+    ]
+  });
+
+  assert.deepEqual(
+    descriptors.map((descriptor) => descriptor.shape),
+    ['ceramic-disc-capacitor', 'radial-electrolytic-capacitor']
+  );
+  assert.equal(descriptors[0].footprint.placement.defaultOrientation, 'leads-down');
+  assert.equal(descriptors[1].footprint.placement.defaultOrientation, 'leads-down');
+});
+
 test('stage generic part descriptors carry render footprint hover targets', () => {
   const descriptors = stageGenericPartDescriptors({
     parts: [
@@ -407,6 +516,26 @@ test('stage library-only descriptors are rendered only when the render plan decl
   assert.deepEqual(descriptors.map((part) => part.id), ['photo-sensor', 'dc-motor']);
   assert.equal(descriptors[0].shape, 'sensor');
   assert.equal(descriptors[1].shape, 'motor');
+});
+
+test('stage debug position snapshot excludes library-only parts unless explicitly requested', () => {
+  const circuit = {
+    parts: [
+      { id: 'breadboard', type: 'breadboard', label: 'Breadboard' },
+      { id: 'oled-display', type: 'oled', label: 'OLED display' },
+      { id: 'photo-sensor', type: 'sensor', label: 'Light sensor', libraryOnly: true, position: { x: 2.4, y: 0.3, z: 1.4 } }
+    ]
+  };
+
+  assert.deepEqual(
+    Object.keys(stagePartPositionSnapshot(circuit)).sort(),
+    ['breadboard', 'oled-display'].sort()
+  );
+
+  assert.deepEqual(
+    Object.keys(stagePartPositionSnapshot({ ...circuit, showLibraryParts: true })).sort(),
+    ['breadboard', 'oled-display', 'photo-sensor'].sort()
+  );
 });
 
 test('stage exposes current path overlay styles by semantic kind', () => {

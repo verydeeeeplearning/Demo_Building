@@ -9471,14 +9471,14 @@
     },
     "pinAnchors": {
       "+": {
-        "x": -0.08,
+        "x": -0.14,
         "y": 0.08,
         "z": -0.08,
         "role": "positive-terminal",
         "label": "+"
       },
       "-": {
-        "x": 0.08,
+        "x": 0.14,
         "y": 0.08,
         "z": 0.08,
         "role": "negative-terminal",

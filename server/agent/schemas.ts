@@ -890,6 +890,84 @@ export const ContextPacketSchema = z.object({
   promptBlock: z.string().min(1)
 });
 
+const Vector3Schema = z.object({
+  x: z.number(),
+  y: z.number(),
+  z: z.number()
+});
+
+export const PlacementTransformSchema = z.object({
+  position: Vector3Schema,
+  rotation: Vector3Schema.optional()
+});
+
+export const PlacementIntentSchema = z.object({
+  sessionId: z.string().min(1).optional(),
+  artifactId: z.string().min(1).optional(),
+  baseRevision: z.string().min(1),
+  baseArtifact: z.object({
+    circuitSpec: CircuitSpecSchema,
+    renderPlan: RenderPlanSchema,
+    validationReport: ValidationReportSchema.optional(),
+    simulationPlan: SimulationPlanSchema.optional(),
+    buildRunnableReport: BuildRunnableReportSchema.optional(),
+    solverGateResult: SolverGateResultSchema.optional()
+  }),
+  componentId: z.string().min(1),
+  requestedTransform: PlacementTransformSchema,
+  coordinateSpace: z.literal('render_world'),
+  interactionSource: z.literal('student_drag'),
+  snapPreference: z.enum(['nearest_legal', 'preserve_surface', 'preserve_net_readability']).optional()
+}).strict();
+
+export const PlacementResolutionStatusSchema = z.enum([
+  'resolved_build_ready',
+  'resolved_review_only',
+  'adjusted_to_nearest_safe',
+  'safe_equivalent_adjusted',
+  'no_safe_visible_scene'
+]);
+
+export const PlacementResolutionSchema = z.object({
+  status: PlacementResolutionStatusSchema,
+  resolutionKind: PlacementResolutionStatusSchema,
+  revision: z.string().min(1),
+  requestedTransform: PlacementTransformSchema,
+  adjustedTransform: PlacementTransformSchema,
+  snapTarget: z.object({
+    surface: z.enum(['breadboard', 'beside_breadboard', 'stage']),
+    nodeId: z.string().min(1).optional(),
+    regionId: z.string().min(1).optional()
+  }).optional(),
+  circuitSpec: CircuitSpecSchema,
+  renderPlan: RenderPlanSchema,
+  validationReport: ValidationReportSchema.optional(),
+  simulationPlan: SimulationPlanSchema.optional(),
+  buildRunnableReport: BuildRunnableReportSchema.optional(),
+  solverGateResult: SolverGateResultSchema.optional(),
+  warnings: z.array(z.string().min(1)).default([]),
+  solverAttempts: z.array(SolverAttemptSchema).default([])
+}).strict().superRefine((resolution, context) => {
+  if (
+    resolution.status === 'no_safe_visible_scene'
+    && Array.isArray(resolution.renderPlan.parts)
+    && resolution.renderPlan.parts.length > 0
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'no_safe_visible_scene resolutions cannot include visible render-plan parts',
+      path: ['renderPlan', 'parts']
+    });
+  }
+  if (resolution.status !== resolution.resolutionKind) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'resolutionKind must mirror status for deterministic placement responses',
+      path: ['resolutionKind']
+    });
+  }
+});
+
 export const AgentRunResultSchema = z.object({
   traceId: z.string().min(1).optional(),
   sessionId: z.string().min(1),
@@ -1024,6 +1102,9 @@ export type Netlist = z.infer<typeof NetlistSchema>;
 export type PartCapability = z.infer<typeof PartCapabilitySchema>;
 export type PartRiskLevel = z.infer<typeof PartRiskLevelSchema>;
 export type PartSupportTier = z.infer<typeof PartSupportTierSchema>;
+export type PlacementIntent = z.infer<typeof PlacementIntentSchema>;
+export type PlacementResolution = z.infer<typeof PlacementResolutionSchema>;
+export type PlacementResolutionStatus = z.infer<typeof PlacementResolutionStatusSchema>;
 export type RenderFootprintEntry = z.infer<typeof RenderFootprintEntrySchema>;
 export type RenderPlan = z.infer<typeof RenderPlanSchema>;
 export type SimulationPlan = z.infer<typeof SimulationPlanSchema>;

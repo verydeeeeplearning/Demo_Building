@@ -91,7 +91,16 @@ export const ko = {
     reset: '보기 초기화',
     fit: '화면 맞춤',
     output: '동작 결과',
-    ready: '준비됨'
+    ready: '준비됨',
+    modes: {
+      orbit: '보기 회전',
+      visualMove: '부품 이동',
+      hardwareMove: '배치 확정'
+    },
+    undoArrangement: '이동 취소',
+    resetArrangement: '배치 초기화',
+    visualDirty: '시각 배치',
+    placementResolving: '배치 계산 중'
   },
   simulationControls: {
     play: '전류 보기',

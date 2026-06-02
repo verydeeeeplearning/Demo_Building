@@ -8056,7 +8056,13 @@ function requiresStrictBreadboardGridAudit(footprint: RenderFootprintEntry) {
   if (!requiresBreadboardSurfaceForPlacement(footprint)) {
     return false;
   }
-  return ['led', 'resistor', 'button'].includes(footprint.type);
+  return [
+    'button',
+    'ceramic-capacitor',
+    'electrolytic-capacitor',
+    'led',
+    'resistor'
+  ].includes(footprint.type);
 }
 
 function fitsInsideFootprint(

@@ -8,6 +8,9 @@ import {
   BuildRunnableReportSchema,
   CircuitSpecSchema,
   IntentSpecV2Schema,
+  PlacementIntentSchema,
+  PlacementResolutionSchema,
+  PlacementResolutionStatusSchema,
   PartCapabilitySchema,
   RenderPlanSchema,
   SimulationPlanSchema,
@@ -143,6 +146,164 @@ test('simulation path schema accepts semantic current and signal kinds', () => {
   });
 
   assert.deepEqual(plan.currentPaths.map((path) => path.kind), kinds);
+});
+
+test('placement schemas enforce deterministic placement resolution contract', () => {
+  const circuitSpec = CircuitSpecSchema.parse({
+    id: 'placement-demo',
+    title: 'Placement demo',
+    intent: { primaryGoal: 'place an OLED display', output: 'oled', controller: 'arduino-uno' },
+    components: [
+      { id: 'arduino-uno', partId: 'arduino-uno', label: 'Arduino Uno' },
+      { id: 'oled-display', partId: 'oled-128x64', label: 'OLED display' }
+    ],
+    connections: [],
+    behavior: { runText: 'OLED READY' },
+    assumptions: [],
+    unsupportedItems: [],
+    clarificationNeeds: []
+  });
+  const validationReport = ValidationReportSchema.parse({
+    status: 'valid',
+    errors: [],
+    warnings: [],
+    validatedCurrentPathIds: ['placement-path']
+  });
+  const renderPlan = RenderPlanSchema.parse({
+    title: 'Placement demo',
+    runText: 'OLED READY',
+    parts: [{
+      id: 'oled-display',
+      type: 'oled',
+      label: 'OLED display',
+      description: 'Visible display for placement tests',
+      pins: [],
+      position: { x: 0.5, y: 0.25, z: 0 }
+    }],
+    connections: [],
+    floatingCards: [],
+    warnings: []
+  });
+  const simulationPlan = SimulationPlanSchema.parse({
+    status: 'valid',
+    runText: 'OLED READY',
+    currentPaths: [],
+    expectedStates: [{ componentId: 'oled-display', state: 'shows OLED READY' }],
+    warnings: []
+  });
+  const buildRunnableReport = BuildRunnableReportSchema.parse({
+    status: 'runnable',
+    runnable: true,
+    reasons: [],
+    validationStatus: 'valid',
+    simulationStatus: 'valid',
+    renderWarningCount: 0,
+    renderBlockingWarningCount: 0,
+    renderPartCount: 1,
+    currentPathCount: 0,
+    expectedStateCount: 1
+  });
+  const solverGateResult = buildSolverGateResult(
+    validationReport,
+    renderPlan,
+    simulationPlan,
+    buildRunnableReport
+  );
+  const placementIntentInput = {
+    baseRevision: 'rev-12',
+    baseArtifact: {
+      circuitSpec,
+      renderPlan,
+      validationReport,
+      simulationPlan,
+      buildRunnableReport,
+      solverGateResult
+    },
+    componentId: 'oled-display',
+    requestedTransform: {
+      position: { x: 1.25, y: 0.25, z: 0.5 },
+      rotation: { x: 0, y: 0, z: 0 }
+    },
+    coordinateSpace: 'render_world',
+    interactionSource: 'student_drag',
+    snapPreference: 'nearest_legal'
+  };
+
+  const placementIntent = PlacementIntentSchema.parse(placementIntentInput);
+
+  assert.equal(placementIntent.coordinateSpace, 'render_world');
+  assert.equal(placementIntent.interactionSource, 'student_drag');
+  assert.equal(placementIntent.baseArtifact.solverGateResult?.buildReady, true);
+
+  assert.throws(() => PlacementIntentSchema.parse({
+    ...placementIntentInput,
+    coordinateSpace: 'world'
+  }));
+  assert.throws(() => PlacementIntentSchema.parse({
+    ...placementIntentInput,
+    interactionSource: 'mouse_drag'
+  }));
+
+  assert.equal(PlacementResolutionStatusSchema.parse('resolved_build_ready'), 'resolved_build_ready');
+
+  const placementResolution = PlacementResolutionSchema.parse({
+    status: 'resolved_build_ready',
+    resolutionKind: 'resolved_build_ready',
+    revision: 'rev-13',
+    requestedTransform: placementIntent.requestedTransform,
+    adjustedTransform: {
+      position: { x: 1.5, y: 0.25, z: 0.5 },
+      rotation: { x: 0, y: 0, z: 0 }
+    },
+    snapTarget: {
+      surface: 'breadboard',
+      nodeId: 'breadboard-hole-e12'
+    },
+    circuitSpec,
+    renderPlan,
+    validationReport,
+    simulationPlan,
+    buildRunnableReport,
+    solverGateResult,
+    warnings: ['snapped to the nearest legal placement'],
+    solverAttempts: [{
+      attempt: 1,
+      stage: 'placement',
+      action: 'snap to legal breadboard hole',
+      result: 'repaired',
+      warnings: []
+    }]
+  });
+
+  assert.equal(placementResolution.status, 'resolved_build_ready');
+  assert.equal(placementResolution.resolutionKind, 'resolved_build_ready');
+  assert.equal('accepted' in placementResolution, false);
+  assert.equal('blocked' in placementResolution, false);
+
+  assert.throws(() => PlacementResolutionSchema.parse({
+    ...placementResolution,
+    accepted: true
+  }));
+  assert.throws(() => PlacementResolutionSchema.parse({
+    ...placementResolution,
+    blocked: false
+  }));
+  assert.throws(() => PlacementResolutionSchema.parse({
+    ...placementResolution,
+    resolutionKind: 'resolved_review_only'
+  }), /resolutionKind/i);
+
+  assert.throws(() => PlacementResolutionSchema.parse({
+    status: 'no_safe_visible_scene',
+    resolutionKind: 'no_safe_visible_scene',
+    revision: 'rev-14',
+    requestedTransform: placementIntent.requestedTransform,
+    adjustedTransform: placementIntent.requestedTransform,
+    circuitSpec,
+    renderPlan,
+    warnings: [],
+    solverAttempts: []
+  }), /visible render plan parts|renderPlan|no_safe_visible_scene/i);
 });
 
 test('solver gate result schema separates visible simulation from build-ready claims', () => {

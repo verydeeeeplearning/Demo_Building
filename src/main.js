@@ -3,7 +3,7 @@ import {
   createDemoCircuit,
   createRequirementMarkdown
 } from './circuitMetadata.js';
-import { getAiRuntimeMode, sendAgentMessage } from './aiClient.js';
+import { getAiRuntimeMode, resolvePlacementIntent, sendAgentMessage } from './aiClient.js';
 import { createStageScene } from './stageScene.js';
 import { createLogoMark, createFaviconDataUri } from './heduwareLogo.js';
 import { mountWelcomePopup, hasSeenWelcome } from './welcomePopup.js';
@@ -44,6 +44,10 @@ const state = {
   simulationPlaying: false,
   simulationStepIndex: 0,
   selectedCurrentPathId: null,
+  interactionMode: 'orbit',
+  visualArrangement: createEmptyVisualArrangement(),
+  placementResolving: false,
+  placementError: '',
   selectedFileId: 'demo-requirements',
   aiRuntimeMode: { mode: 'agent-server-offline', ok: false, hasServerKey: false },
   agentSessionId: null,
@@ -88,6 +92,16 @@ function createLocalizedProject(locale) {
 
 function activeCircuit() {
   return state.project.circuit;
+}
+
+function createEmptyVisualArrangement(revision = 0) {
+  return {
+    transforms: {},
+    undoStack: [],
+    revision,
+    previewWireRouteHash: '',
+    dirty: false
+  };
 }
 
 function projectFiles() {
@@ -202,7 +216,7 @@ function render() {
         <button class="secondary-action" type="button" data-action="open-library" data-testid="open-library">${t('topbar.actions.library', {}, state.locale)}</button>
         <button class="secondary-action demo-action" type="button" data-action="load-demo">${t('topbar.actions.demo', {}, state.locale)}</button>
         <button class="secondary-action" type="button" data-action="share" data-testid="share-project" ${state.projectLoaded ? '' : 'disabled'}>${t('topbar.actions.share', {}, state.locale)}</button>
-        <button class="primary-action" type="button" data-action="run" ${canRunLoadedProject() ? '' : 'disabled'}>${t('topbar.actions.run', {}, state.locale)}</button>
+        <button class="primary-action" type="button" data-action="run" ${canRunCurrentSimulation() ? '' : 'disabled'}>${t('topbar.actions.run', {}, state.locale)}</button>
       </div>
     </div>
     <main class="workbench ${state.activeTab === 'PCB' ? 'is-pcb' : 'is-files'} ${state.projectLoaded ? 'has-project' : 'is-new'}">
@@ -219,10 +233,15 @@ function render() {
   if (state.activeTab === 'PCB' && circuit && (state.projectLoaded || canShowAgentScene(state.agentResult))) {
     const host = app.querySelector('[data-stage-host]');
     stageController = createStageScene(host, circuit, {
-      running: state.running,
+      running: state.running && !state.visualArrangement.dirty,
+      interactionMode: state.interactionMode,
+      visualTransforms: state.visualArrangement.transforms,
+      visualTransformRevision: state.visualArrangement.revision,
       selectedTargetKey: rawTargetKey(state.inspector.selectedRawTarget),
       onHoverTarget: updateHoveredCircuitTarget,
-      onSelectTarget: selectCircuitTarget
+      onSelectTarget: selectCircuitTarget,
+      onVisualArrangementChange: updateVisualArrangementFromStage,
+      onHardwarePlacementIntent: submitHardwarePlacementIntent
     });
   }
 }
@@ -578,7 +597,11 @@ function formatSourceBundleEvidence(contextTrace, locale = state.locale) {
 
 function renderPcbTab() {
   const circuit = activeDraftOrProjectCircuit() || activeCircuit();
-  const canRun = canRunLoadedProject();
+  const canRun = canRunCurrentSimulation();
+  const canMoveVisually = canUseVisualMove();
+  const canMoveHardware = canUseHardwareMove();
+  const visualMoveActive = state.interactionMode === 'visual_move';
+  const hardwareMoveActive = state.interactionMode === 'hardware_move';
   const selectedTarget = currentInspectorTarget();
   const selectedFlowLabel = state.inspector.selectedRawTarget
     ? selectedTarget.label
@@ -595,12 +618,33 @@ function renderPcbTab() {
       ${renderPcbWarnings(circuit.renderWarnings || [])}
       <div class="stage-toolbar" aria-label="${t('pcb.toolbarAria', {}, state.locale)}">
         <button type="button" data-action="reset-view">${t('pcb.reset', {}, state.locale)}</button>
+        <button
+          type="button"
+          class="${visualMoveActive ? 'is-active' : ''}"
+          data-action="toggle-visual-move"
+          data-testid="visual-move-toggle"
+          aria-pressed="${visualMoveActive}"
+          ${canMoveVisually ? '' : 'disabled'}
+        >${visualMoveActive ? t('pcb.modes.orbit', {}, state.locale) : t('pcb.modes.visualMove', {}, state.locale)}</button>
+        <button
+          type="button"
+          class="${hardwareMoveActive ? 'is-active' : ''}"
+          data-action="toggle-hardware-move"
+          data-testid="hardware-move-toggle"
+          aria-pressed="${hardwareMoveActive}"
+          ${canMoveHardware && !state.placementResolving ? '' : 'disabled'}
+        >${hardwareMoveActive ? t('pcb.modes.orbit', {}, state.locale) : t('pcb.modes.hardwareMove', {}, state.locale)}</button>
+        <button type="button" data-action="undo-visual-arrangement" data-testid="visual-arrangement-undo" ${canMoveVisually ? '' : 'disabled'}>${t('pcb.undoArrangement', {}, state.locale)}</button>
+        <button type="button" data-action="reset-visual-arrangement" data-testid="visual-arrangement-reset" ${canMoveVisually ? '' : 'disabled'}>${t('pcb.resetArrangement', {}, state.locale)}</button>
         <button type="button" data-action="toggle-simulation" data-testid="simulation-toggle" ${canRun ? '' : 'disabled'}>${state.simulationPlaying ? t('simulationControls.pause', {}, state.locale) : t('simulationControls.play', {}, state.locale)}</button>
         <button type="button" data-action="step-simulation" data-testid="simulation-step" ${canRun ? '' : 'disabled'}>${t('simulationControls.step', {}, state.locale)}</button>
         <span class="selected-target-chip" data-testid="selected-target-chip">
           ${t('simulationControls.selectedPath', {}, state.locale)}: <strong>${escapeHtml(selectedFlowLabel)}</strong>
         </span>
-        <span>${t('pcb.output', {}, state.locale)}: <strong data-testid="oled-output">${state.running ? circuit.runText : t('pcb.ready', {}, state.locale)}</strong></span>
+        <span class="visual-arrangement-chip" data-testid="visual-arrangement-status" ${state.visualArrangement.dirty ? '' : 'hidden'}>${t('pcb.visualDirty', {}, state.locale)}</span>
+        <span class="visual-arrangement-chip" data-testid="placement-resolving-status" ${state.placementResolving ? '' : 'hidden'}>${t('pcb.placementResolving', {}, state.locale)}</span>
+        <span class="visual-arrangement-chip is-error" data-testid="placement-error-status" ${state.placementError ? '' : 'hidden'}>${escapeHtml(state.placementError)}</span>
+        <span>${t('pcb.output', {}, state.locale)}: <strong data-testid="oled-output">${state.running && !state.visualArrangement.dirty ? circuit.runText : t('pcb.ready', {}, state.locale)}</strong></span>
         <button type="button" data-action="fit-view">${t('pcb.fit', {}, state.locale)}</button>
       </div>
     </div>
@@ -1154,7 +1198,7 @@ function bindEvents() {
   app.querySelector('[data-action="share"]')?.addEventListener('click', openShareModal);
 
   app.querySelector('[data-action="run"]').addEventListener('click', () => {
-    if (!canRunLoadedProject()) {
+    if (!canRunCurrentSimulation()) {
       return;
     }
 
@@ -1168,7 +1212,7 @@ function bindEvents() {
   });
 
   app.querySelector('[data-action="toggle-simulation"]')?.addEventListener('click', () => {
-    if (!canRunLoadedProject()) {
+    if (!canRunCurrentSimulation()) {
       return;
     }
 
@@ -1179,11 +1223,33 @@ function bindEvents() {
   });
 
   app.querySelector('[data-action="step-simulation"]')?.addEventListener('click', () => {
-    if (!canRunLoadedProject()) {
+    if (!canRunCurrentSimulation()) {
       return;
     }
     stepCurrentFlow();
   });
+
+  app.querySelector('[data-action="toggle-visual-move"]')?.addEventListener('click', () => {
+    if (!canUseVisualMove()) {
+      return;
+    }
+    state.interactionMode = state.interactionMode === 'visual_move' ? 'orbit' : 'visual_move';
+    stageController?.setInteractionMode?.(state.interactionMode);
+    render();
+  });
+
+  app.querySelector('[data-action="toggle-hardware-move"]')?.addEventListener('click', () => {
+    if (!canUseHardwareMove() || state.placementResolving) {
+      return;
+    }
+    state.interactionMode = state.interactionMode === 'hardware_move' ? 'orbit' : 'hardware_move';
+    state.placementError = '';
+    stageController?.setInteractionMode?.(state.interactionMode);
+    render();
+  });
+
+  app.querySelector('[data-action="undo-visual-arrangement"]')?.addEventListener('click', undoVisualArrangement);
+  app.querySelector('[data-action="reset-visual-arrangement"]')?.addEventListener('click', resetVisualArrangement);
 
   app.querySelector('[data-action="confirm"]')?.addEventListener('click', () => {
     confirmCurrentAgentResult();
@@ -1501,6 +1567,234 @@ function canRunLoadedProject() {
   return circuit?.source === 'demo';
 }
 
+function canRunCurrentSimulation() {
+  return canRunLoadedProject() && !state.visualArrangement.dirty;
+}
+
+function canUseVisualMove() {
+  const circuit = activeDraftOrProjectCircuit() || activeCircuit();
+  if (!circuit || !(state.projectLoaded || canShowAgentScene(state.agentResult))) {
+    return false;
+  }
+  const gateControls = circuit.solverGateResult?.controls;
+  if (gateControls && gateControls.visualMoveEnabled === false) {
+    return false;
+  }
+  return canShowLoadedProjectScene() || canShowAgentScene(state.agentResult);
+}
+
+function canUseHardwareMove() {
+  const circuit = activeDraftOrProjectCircuit() || activeCircuit();
+  if (!state.projectLoaded || !circuit?.circuitSpec || !circuit?.simulationPlan) {
+    return false;
+  }
+  const gateControls = circuit.solverGateResult?.controls;
+  if (gateControls && gateControls.hardwareMoveEnabled === false && circuit.buildRunnableReport?.runnable !== true) {
+    return false;
+  }
+  return canShowLoadedProjectScene();
+}
+
+function updateVisualArrangementFromStage(update) {
+  const nextTransforms = update.transforms ?? {};
+  const previousTransforms = update.previousTransforms ?? state.visualArrangement.transforms;
+  if (JSON.stringify(nextTransforms) !== JSON.stringify(state.visualArrangement.transforms)) {
+    state.visualArrangement.undoStack = state.visualArrangement.undoStack.concat([previousTransforms]).slice(-20);
+  }
+  state.visualArrangement.transforms = nextTransforms;
+  state.visualArrangement.revision = update.visualTransformRevision ?? state.visualArrangement.revision + 1;
+  state.visualArrangement.previewWireRouteHash = update.previewWireRouteHash ?? '';
+  state.visualArrangement.dirty = Object.keys(nextTransforms).length > 0;
+  if (state.visualArrangement.dirty) {
+    state.running = false;
+    state.simulationPlaying = false;
+    paintVisualArrangementStatus();
+  }
+}
+
+async function submitHardwarePlacementIntent({ componentId, transform }) {
+  const circuit = activeCircuit();
+  if (!canUseHardwareMove() || state.placementResolving || !componentId || !transform?.position) {
+    return;
+  }
+  state.placementResolving = true;
+  state.placementError = '';
+  state.running = false;
+  state.simulationPlaying = false;
+  paintVisualArrangementStatus();
+
+  try {
+    const resolution = await resolvePlacementIntent({
+      baseRevision: currentArtifactRevision(circuit),
+      baseArtifact: placementBaseArtifact(circuit),
+      componentId,
+      requestedTransform: {
+        position: transform.position,
+        rotation: transform.rotation
+      },
+      coordinateSpace: 'render_world',
+      interactionSource: 'student_drag',
+      snapPreference: 'nearest_legal'
+    });
+    applyPlacementResolution(resolution);
+  } catch (error) {
+    state.placementError = state.locale === 'ko'
+      ? `배치 계산 실패: ${error instanceof Error ? error.message : String(error)}`
+      : `Placement failed: ${error instanceof Error ? error.message : String(error)}`;
+    state.placementResolving = false;
+    paintVisualArrangementStatus();
+  }
+}
+
+function placementBaseArtifact(circuit) {
+  return {
+    circuitSpec: circuit.circuitSpec,
+    renderPlan: {
+      title: circuit.title,
+      runText: circuit.runText,
+      parts: circuit.parts,
+      connections: circuit.connections || [],
+      floatingCards: circuit.floatingCards || [],
+      warnings: circuit.renderWarnings || [],
+      layout: circuit.layout
+    },
+    validationReport: circuit.validationReport,
+    simulationPlan: circuit.simulationPlan,
+    buildRunnableReport: circuit.buildRunnableReport,
+    solverGateResult: circuit.solverGateResult
+  };
+}
+
+function applyPlacementResolution(resolution) {
+  const previousCircuit = activeCircuit();
+  state.agentResult = null;
+  state.project = {
+    ...state.project,
+    circuit: {
+      ...previousCircuit,
+      title: resolution.renderPlan.title,
+      runText: resolution.simulationPlan?.runText || resolution.renderPlan.runText,
+      parts: resolution.renderPlan.parts,
+      connections: resolution.renderPlan.connections,
+      floatingCards: resolution.renderPlan.floatingCards || [],
+      layout: resolution.renderPlan.layout,
+      validationReport: resolution.validationReport,
+      simulationPlan: resolution.simulationPlan,
+      buildRunnableReport: resolution.buildRunnableReport,
+      solverGateResult: resolution.solverGateResult,
+      renderWarnings: resolution.renderPlan.warnings || [],
+      circuitSpec: resolution.circuitSpec,
+      placementResolution: {
+        status: resolution.status,
+        resolutionKind: resolution.resolutionKind,
+        revision: resolution.revision,
+        warnings: resolution.warnings || [],
+        solverAttempts: resolution.solverAttempts || []
+      }
+    }
+  };
+  state.placementResolving = false;
+  state.placementError = '';
+  state.interactionMode = 'hardware_move';
+  state.visualArrangement = createEmptyVisualArrangement(state.visualArrangement.revision + 1);
+  state.running = false;
+  state.simulationPlaying = false;
+  render();
+}
+
+function currentArtifactRevision(circuit) {
+  return stableClientHash({
+    circuitSpecId: circuit.circuitSpec?.id,
+    parts: circuit.parts?.map((part) => [part.id, part.position]),
+    connections: circuit.connections?.map((connection) => [connection.id, connection.from, connection.to, connection.route])
+  });
+}
+
+function stableClientHash(value) {
+  const input = stableClientStringify(value);
+  let hash = 2166136261;
+  for (let index = 0; index < input.length; index += 1) {
+    hash ^= input.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0');
+}
+
+function stableClientStringify(value) {
+  if (Array.isArray(value)) {
+    return `[${value.map((entry) => stableClientStringify(entry)).join(',')}]`;
+  }
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableClientStringify(value[key])}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function undoVisualArrangement() {
+  if (!stageController || state.visualArrangement.undoStack.length === 0) {
+    return;
+  }
+  const previous = state.visualArrangement.undoStack[state.visualArrangement.undoStack.length - 1] ?? {};
+  state.visualArrangement.undoStack = state.visualArrangement.undoStack.slice(0, -1);
+  stageController.resetVisualTransforms?.();
+  for (const [componentId, transform] of Object.entries(previous)) {
+    stageController.undoVisualTransform?.(componentId, transform);
+  }
+  state.visualArrangement.transforms = previous;
+  state.visualArrangement.revision += 1;
+  state.visualArrangement.dirty = Object.keys(previous).length > 0;
+  state.visualArrangement.previewWireRouteHash = stageController.debugSnapshot?.().previewWireRouteHash ?? '';
+  state.running = false;
+  state.simulationPlaying = false;
+  paintVisualArrangementStatus();
+}
+
+function resetVisualArrangement() {
+  if (!stageController) {
+    state.visualArrangement = createEmptyVisualArrangement(state.visualArrangement.revision + 1);
+    paintVisualArrangementStatus();
+    return;
+  }
+  stageController.resetVisualTransforms?.();
+  state.visualArrangement = createEmptyVisualArrangement(state.visualArrangement.revision + 1);
+  state.running = false;
+  state.simulationPlaying = false;
+  paintVisualArrangementStatus();
+}
+
+function paintVisualArrangementStatus() {
+  const canvas = app.querySelector('[data-testid="stage-canvas"]');
+  const snapshot = canvas?.__hEduwareStageDebug?.();
+  if (snapshot) {
+    state.visualArrangement.revision = snapshot.visualTransformRevision ?? state.visualArrangement.revision;
+    state.visualArrangement.previewWireRouteHash = snapshot.previewWireRouteHash ?? '';
+  }
+  const status = app.querySelector('[data-testid="visual-arrangement-status"]');
+  if (status) {
+    status.toggleAttribute('hidden', !state.visualArrangement.dirty);
+  }
+  const resolving = app.querySelector('[data-testid="placement-resolving-status"]');
+  if (resolving) {
+    resolving.toggleAttribute('hidden', !state.placementResolving);
+  }
+  const placementError = app.querySelector('[data-testid="placement-error-status"]');
+  if (placementError) {
+    placementError.toggleAttribute('hidden', !state.placementError);
+    placementError.textContent = state.placementError;
+  }
+  app.querySelector('[data-action="run"]')?.toggleAttribute('disabled', !canRunCurrentSimulation());
+  app.querySelector('[data-action="toggle-simulation"]')?.toggleAttribute('disabled', !canRunCurrentSimulation());
+  app.querySelector('[data-action="step-simulation"]')?.toggleAttribute('disabled', !canRunCurrentSimulation());
+  app.querySelector('[data-action="toggle-hardware-move"]')?.toggleAttribute('disabled', !canUseHardwareMove() || state.placementResolving);
+  const output = app.querySelector('[data-testid="oled-output"]');
+  if (output && state.visualArrangement.dirty) {
+    output.textContent = t('pcb.ready', {}, state.locale);
+  }
+}
+
 function solverGateVisibleScene(gate) {
   if (!gate) {
     return false;
@@ -1520,6 +1814,10 @@ function confirmCurrentAgentResult() {
     state.selectedFileId = 'demo-requirements';
   }
   state.awaitingConfirmation = false;
+  state.interactionMode = 'orbit';
+  state.visualArrangement = createEmptyVisualArrangement();
+  state.placementResolving = false;
+  state.placementError = '';
   cancelThinking();
   if (buildReady) {
     render();
@@ -2013,6 +2311,10 @@ function switchLocale(locale) {
   state.inspector.chatMessages = [];
   state.inspector.tutorThinking = false;
   state.inspector.chatOpen = false;
+  state.interactionMode = 'orbit';
+  state.visualArrangement = createEmptyVisualArrangement();
+  state.placementResolving = false;
+  state.placementError = '';
 
   if (state.interview.status === 'idle') {
     state.interview = createInterview(nextLocale);
@@ -2108,6 +2410,10 @@ function loadDemoProject() {
   state.running = false;
   state.activeTab = 'Files';
   state.selectedFileId = 'demo-requirements';
+  state.interactionMode = 'orbit';
+  state.visualArrangement = createEmptyVisualArrangement();
+  state.placementResolving = false;
+  state.placementError = '';
   state.interview = demoInterviewState(state.locale);
   resetInspectorState();
   render();
@@ -2131,6 +2437,10 @@ function importSharedSnapshot() {
   state.running = false;
   state.activeTab = runnable || visibleScene ? 'PCB' : 'Files';
   state.selectedFileId = 'shared-requirements';
+  state.interactionMode = 'orbit';
+  state.visualArrangement = createEmptyVisualArrangement();
+  state.placementResolving = false;
+  state.placementError = '';
   state.interview = createInterview(state.locale);
   state.shareView = null;
   resetInspectorState();
@@ -2149,6 +2459,10 @@ function startNewProjectFromShareView() {
   state.running = false;
   state.activeTab = 'Files';
   state.selectedFileId = 'demo-requirements';
+  state.interactionMode = 'orbit';
+  state.visualArrangement = createEmptyVisualArrangement();
+  state.placementResolving = false;
+  state.placementError = '';
   state.interview = createInterview(state.locale);
   state.shareView = null;
   resetInspectorState();
@@ -2165,6 +2479,10 @@ function resetInspectorState() {
   state.simulationPlaying = false;
   state.simulationStepIndex = 0;
   state.selectedCurrentPathId = null;
+  state.interactionMode = 'orbit';
+  state.visualArrangement = createEmptyVisualArrangement();
+  state.placementResolving = false;
+  state.placementError = '';
 }
 
 function getSelectedFile() {

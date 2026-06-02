@@ -44,6 +44,33 @@ async function expectVisibleNonBlankStage(page, minPixels = 2000) {
   expect(countNonBackgroundPixels(await canvas.screenshot())).toBeGreaterThan(minPixels);
 }
 
+async function readStageDebugSnapshot(canvas) {
+  return canvas.evaluate((node) => node.__hEduwareStageDebug?.());
+}
+
+async function readStagePartScreenPoint(canvas, componentId) {
+  return canvas.evaluate((node, id) => node.__hEduwareStagePartScreenPoint?.(id), componentId);
+}
+
+function boxCenter(box) {
+  return {
+    x: (box.min.x + box.max.x) / 2,
+    y: (box.min.y + box.max.y) / 2,
+    z: (box.min.z + box.max.z) / 2
+  };
+}
+
+function vectorDistance(a, b) {
+  return Math.abs(a.x - b.x) + Math.abs(a.y - b.y) + Math.abs(a.z - b.z);
+}
+
+function expectHorizontalBoundsWithin(inner, outer, tolerance = 0.08) {
+  expect(inner.min.x).toBeGreaterThanOrEqual(outer.min.x - tolerance);
+  expect(inner.max.x).toBeLessThanOrEqual(outer.max.x + tolerance);
+  expect(inner.min.z).toBeGreaterThanOrEqual(outer.min.z - tolerance);
+  expect(inner.max.z).toBeLessThanOrEqual(outer.max.z + tolerance);
+}
+
 function attachGuards(page) {
   const blockedRequests = [];
   const consoleErrors = [];
@@ -152,6 +179,11 @@ async function loadAgentFixtureIntoPcb(page, fixture, message, options = {}) {
     await page.locator('#idea-input').fill('좋아 구현 부탁해');
     await page.locator('[data-action="send-idea"]').getByRole('button').click();
     await waitForAssistantSettled(page);
+    const buildProgress = page.getByTestId('build-progress');
+    if (await buildProgress.count()) {
+      await page.getByTestId('build-progress-skip').click();
+      await expect(buildProgress).toHaveCount(0);
+    }
   }
 
   await page.locator('[data-tab="PCB"]').click();
@@ -395,6 +427,70 @@ function validLookingButServerBlockedAgentResultFixture() {
       buildReadyScope: 'none',
       safeToRenderEvidence: ['render plan exposes 4 visible part(s)', '1 expected state(s) are available']
     })
+  };
+}
+
+function placementResolutionFixture(baseFixture, requestedTransform) {
+  const next = structuredClone(baseFixture);
+  const ledPosition = { x: 1.85, y: 0.35, z: 0.55 };
+  next.circuitSpec.components = next.circuitSpec.components.map((component) =>
+    component.id === 'led-1'
+      ? { ...component, position: ledPosition }
+      : component
+  );
+  next.renderPlan.parts = next.renderPlan.parts.map((part) =>
+    part.id === 'led-1'
+      ? { ...part, position: ledPosition }
+      : part
+  );
+  next.renderPlan.connections = next.renderPlan.connections.map((connection, index) => ({
+    ...connection,
+    route: [
+      { x: index === 2 ? ledPosition.x : 0.2 + index * 0.25, y: 0.62, z: index === 2 ? ledPosition.z : 0.2 },
+      { x: (ledPosition.x + index * 0.12) / 2, y: 1.18 + index * 0.08, z: ledPosition.z + 0.16 },
+      { x: ledPosition.x + index * 0.04, y: 0.62, z: ledPosition.z }
+    ]
+  }));
+  next.renderPlan.layout = {
+    ...(next.renderPlan.layout ?? {}),
+    endpoints: {
+      ...(next.renderPlan.layout?.endpoints ?? {}),
+      'led-1:A': { x: ledPosition.x - 0.08, y: ledPosition.y + 0.12, z: ledPosition.z + 0.14 },
+      'led-1:K': { x: ledPosition.x + 0.08, y: ledPosition.y + 0.12, z: ledPosition.z + 0.14 }
+    },
+    solverAttempts: [{
+      attempt: 1,
+      stage: 'placement',
+      action: 'Accepted student drag through deterministic placement resolver.',
+      result: 'passed',
+      warnings: []
+    }]
+  };
+  return {
+    status: 'resolved_build_ready',
+    resolutionKind: 'resolved_build_ready',
+    revision: 'placement-rev-led-1',
+    requestedTransform,
+    adjustedTransform: {
+      ...(requestedTransform ?? {}),
+      position: ledPosition
+    },
+    snapTarget: {
+      surface: 'breadboard',
+      regionId: 'breadboard-safe-region'
+    },
+    circuitSpec: next.circuitSpec,
+    renderPlan: next.renderPlan,
+    validationReport: next.validationReport,
+    simulationPlan: next.simulationPlan,
+    buildRunnableReport: next.buildRunnableReport,
+    solverGateResult: solverGateWithAdditiveFields(next.solverGateResult, {
+      controls: {
+        hardwareMoveEnabled: true
+      }
+    }),
+    warnings: [],
+    solverAttempts: next.renderPlan.layout.solverAttempts
   };
 }
 
@@ -1866,23 +1962,44 @@ test('the 3D circuit renders solder joints and detailed wire connectors', async 
   await expect(canvas).toBeVisible();
   await expect(canvas).toHaveAttribute('data-renderer', 'three');
   await expect(canvas).toHaveAttribute('data-render-ready', 'true');
+  await expect(canvas).toHaveAttribute('data-interaction-mode', 'orbit');
 
   const solder = Number(await canvas.getAttribute('data-solder-count'));
   const connectors = Number(await canvas.getAttribute('data-connector-count'));
+  const partGroups = Number(await canvas.getAttribute('data-part-group-count'));
+  const wireGroups = Number(await canvas.getAttribute('data-wire-group-count'));
+  const labelGroups = Number(await canvas.getAttribute('data-label-group-count'));
+  const libraryParts = Number(await canvas.getAttribute('data-library-part-count'));
   expect(solder).toBeGreaterThanOrEqual(16);
   expect(connectors).toBe(8);
+  expect(partGroups).toBeGreaterThanOrEqual(3);
+  expect(wireGroups).toBeGreaterThanOrEqual(4);
+  expect(labelGroups).toBeGreaterThanOrEqual(3);
+  expect(libraryParts).toBe(0);
+
+  const debugSnapshot = await canvas.evaluate((node) => node.__hEduwareStageDebug?.());
+  expect(debugSnapshot.partGroupIds).toEqual(expect.arrayContaining(['arduino-uno', 'breadboard', 'oled-display']));
+  expect(debugSnapshot.partGroupIds).not.toEqual(expect.arrayContaining(['photo-sensor', 'dc-motor']));
+  expect(debugSnapshot.wireGroupIds).toEqual(expect.arrayContaining(['oled-power', 'oled-ground']));
+  expect(debugSnapshot.labelGroupIds).toEqual(expect.arrayContaining(['arduino-uno', 'breadboard', 'oled-display']));
+  expect(debugSnapshot.partWorldBounds['arduino-uno'].size.x).toBeGreaterThan(0.5);
+  expect(debugSnapshot.wireRouteHash).toBe(await canvas.getAttribute('data-wire-route-hash'));
+  expect(debugSnapshot.visualTransformRevision).toBe(0);
 
   assertClean(guards);
 });
 
 test('PCB tab puts the circuit canvas in the initial viewport on narrow screens', async ({ page }) => {
   const guards = attachGuards(page);
+  await page.setViewportSize({ width: 893, height: 881 });
   await dismissWelcome(page);
   await loadDemo(page);
   await page.locator('[data-tab="PCB"]').click();
 
   const canvas = page.getByTestId('stage-canvas');
   await expect(canvas).toHaveAttribute('data-render-ready', 'true');
+  await expect(canvas).toHaveAttribute('data-library-part-count', '0');
+  await expect(canvas).toHaveAttribute('data-camera-fit', 'scene-bounds');
 
   const canvasBox = await canvas.boundingBox();
   const viewport = page.viewportSize();
@@ -1890,6 +2007,8 @@ test('PCB tab puts the circuit canvas in the initial viewport on narrow screens'
   expect(viewport).not.toBeNull();
   expect(canvasBox.y).toBeLessThan(viewport.height * 0.85);
   expect(canvasBox.y + Math.min(canvasBox.height, 120)).toBeGreaterThan(0);
+  expect(canvasBox.height).toBeLessThanOrEqual(viewport.height - canvasBox.y + 8);
+  expect(countNonBackgroundPixels(await canvas.screenshot())).toBeGreaterThan(5000);
 
   assertClean(guards);
 });
@@ -2035,6 +2154,192 @@ test('current flow replay controls step through circuit connections', async ({ p
   await page.getByTestId('simulation-step').click();
   await expect(page.getByTestId('selected-target-chip')).toContainText(/GND/);
   await expect(page.getByTestId('stage-canvas')).toHaveAttribute('data-selected-target', 'connection:oled-ground');
+
+  assertClean(guards);
+});
+
+test('visual move drags the OLED without changing the canonical circuit spec', async ({ page }) => {
+  const guards = attachGuards(page);
+  await dismissWelcome(page);
+  await loadDemo(page);
+  await page.locator('[data-tab="PCB"]').click();
+
+  const canvas = page.getByTestId('stage-canvas');
+  const runButton = page.locator('[data-action="run"]');
+  const visualMoveToggle = page.getByTestId('visual-move-toggle');
+  const visualReset = page.getByTestId('visual-arrangement-reset');
+  const visualUndo = page.getByTestId('visual-arrangement-undo');
+
+  await expect(canvas).toBeVisible();
+  await expect(canvas).toHaveAttribute('data-renderer', 'three');
+  await expect(canvas).toHaveAttribute('data-interaction-mode', 'orbit');
+  await expect(visualMoveToggle).toBeVisible();
+  await expect(visualReset).toBeVisible();
+  await expect(visualUndo).toBeVisible();
+
+  await page.locator('[data-inspect-type="part"][data-inspect-id="oled-display"]').click();
+  await expect(page.getByTestId('inspector-selected')).toContainText('OLED');
+
+  const baselineDebug = await readStageDebugSnapshot(canvas);
+  expect(baselineDebug).toBeTruthy();
+  const baselineOledBounds = baselineDebug.partWorldBounds['oled-display'];
+  const baselineOledPosition = baselineDebug.partPositions['oled-display'];
+  const baselineCircuitSpecHash = baselineDebug.circuitSpecHash;
+  const baselineWireRouteHash = baselineDebug.wireRouteHash;
+  const baselineRunEnabled = await runButton.isEnabled();
+  const baselinePreviewHash = baselineDebug.previewWireRouteHash;
+
+  expect(baselineDebug.interactionMode).toBe('orbit');
+  expect(baselineDebug.visualTransformRevision).toBe(0);
+  expect(baselinePreviewHash).toBe('');
+  expect(baselineOledBounds).not.toBeNull();
+  const baselineCenter = boxCenter(baselineOledBounds);
+
+  await visualMoveToggle.click();
+  await expect(canvas).toHaveAttribute('data-interaction-mode', 'visual_move');
+
+  const screenPoint = await readStagePartScreenPoint(canvas, 'oled-display');
+  expect(screenPoint).toBeTruthy();
+
+  const dragAttempts = [
+    { startX: screenPoint.x, startY: screenPoint.y, deltaX: 88, deltaY: -28 },
+    { startX: screenPoint.x, startY: screenPoint.y, deltaX: -72, deltaY: -24 },
+    { startX: screenPoint.x, startY: screenPoint.y, deltaX: 96, deltaY: -18 }
+  ];
+
+  let movedDebug = null;
+  for (const attempt of dragAttempts) {
+    const startX = attempt.startX;
+    const startY = attempt.startY;
+    const endX = startX + attempt.deltaX;
+    const endY = startY + attempt.deltaY;
+
+    await page.mouse.move(startX, startY);
+    await page.mouse.down();
+    await page.mouse.move(endX, endY, { steps: 12 });
+    await page.mouse.up();
+    await page.waitForTimeout(120);
+
+    const snapshot = await readStageDebugSnapshot(canvas);
+    if (!snapshot) {
+      continue;
+    }
+    const snapshotOledBounds = snapshot.partWorldBounds['oled-display'];
+    if (!snapshotOledBounds) {
+      continue;
+    }
+    if (
+      snapshot.visualTransformRevision > baselineDebug.visualTransformRevision
+      && snapshot.previewWireRouteHash
+      && snapshot.previewWireRouteHash !== baselinePreviewHash
+      && vectorDistance(boxCenter(snapshotOledBounds), baselineCenter) > 0.05
+    ) {
+      movedDebug = snapshot;
+      break;
+    }
+  }
+
+  expect(movedDebug).not.toBeNull();
+  expect(movedDebug.interactionMode).toBe('visual_move');
+  expect(movedDebug.visualTransformRevision).toBeGreaterThan(baselineDebug.visualTransformRevision);
+  expect(movedDebug.previewWireRouteHash).not.toBe('');
+  expect(movedDebug.previewWireRouteHash).not.toBe(baselinePreviewHash);
+  expect(movedDebug.circuitSpecHash).toBe(baselineCircuitSpecHash);
+  expect(movedDebug.wireRouteHash).toBe(baselineWireRouteHash);
+  expect(movedDebug.partPositions['oled-display']).toEqual(baselineOledPosition);
+  expect(vectorDistance(boxCenter(movedDebug.partWorldBounds['oled-display']), baselineCenter)).toBeGreaterThan(0.05);
+  expectHorizontalBoundsWithin(
+    movedDebug.partWorldBounds['oled-display'],
+    movedDebug.partWorldBounds.breadboard
+  );
+  expect(baselineRunEnabled).toBe(true);
+  await expect(runButton).toBeDisabled();
+  await expect(page.getByTestId('simulation-toggle')).toBeDisabled();
+  await expect(page.getByTestId('visual-arrangement-status')).toBeVisible();
+
+  await visualReset.click();
+  await expect.poll(async () => (await readStageDebugSnapshot(canvas)).visualTransformRevision).toBeGreaterThan(movedDebug.visualTransformRevision);
+
+  const resetDebug = await readStageDebugSnapshot(canvas);
+  expect(resetDebug.interactionMode).toBe('visual_move');
+  expect(resetDebug.previewWireRouteHash).toBe('');
+  expect(resetDebug.circuitSpecHash).toBe(baselineCircuitSpecHash);
+  expect(resetDebug.wireRouteHash).toBe(baselineWireRouteHash);
+  expect(resetDebug.partPositions['oled-display']).toEqual(baselineOledPosition);
+  expect(vectorDistance(boxCenter(resetDebug.partWorldBounds['oled-display']), baselineCenter)).toBeLessThan(0.08);
+  await expect(runButton).toBeEnabled();
+  await expect(page.getByTestId('simulation-toggle')).toBeEnabled();
+  await expect(page.getByTestId('visual-arrangement-status')).toBeHidden();
+
+  assertClean(guards);
+});
+
+test('hardware move resolves a dragged part through the placement API and replaces the canonical render plan', async ({ page }) => {
+  const guards = attachGuards(page);
+  const fixture = validLedBlinkAgentResultFixture();
+  const placementRequests = [];
+
+  await page.route('http://127.0.0.1:8787/api/agent/placement', async (route) => {
+    const body = JSON.parse(route.request().postData() || '{}');
+    placementRequests.push(body);
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(placementResolutionFixture(fixture, body.requestedTransform))
+    });
+  });
+
+  await loadAgentFixtureIntoPcb(page, fixture, 'LED 깜빡이기 회로 만들어줘', { confirmBuild: true });
+
+  const canvas = page.getByTestId('stage-canvas');
+  const hardwareMoveToggle = page.getByTestId('hardware-move-toggle');
+  const runButton = page.locator('[data-action="run"]');
+  await expect(canvas).toBeVisible();
+  await expect(hardwareMoveToggle).toBeVisible();
+  await expect(hardwareMoveToggle).toBeEnabled();
+  await expect(runButton).toBeEnabled();
+
+  const baselineDebug = await readStageDebugSnapshot(canvas);
+  const baselineCircuitSpecHash = baselineDebug.circuitSpecHash;
+  const baselineWireRouteHash = baselineDebug.wireRouteHash;
+  const baselineLedPosition = baselineDebug.partPositions['led-1'];
+  const baselineLedCenter = boxCenter(baselineDebug.partWorldBounds['led-1']);
+  const screenPoint = await readStagePartScreenPoint(canvas, 'led-1');
+  expect(screenPoint).toBeTruthy();
+
+  await hardwareMoveToggle.click();
+  await expect(canvas).toHaveAttribute('data-interaction-mode', 'hardware_move');
+  await page.mouse.move(screenPoint.x, screenPoint.y);
+  await page.mouse.down();
+  await page.mouse.move(screenPoint.x + 90, screenPoint.y - 24, { steps: 10 });
+  await page.mouse.up();
+
+  await expect.poll(() => placementRequests.length).toBe(1);
+  expect(placementRequests[0]).toMatchObject({
+    componentId: 'led-1',
+    coordinateSpace: 'render_world',
+    interactionSource: 'student_drag',
+    snapPreference: 'nearest_legal'
+  });
+  expect(placementRequests[0].baseArtifact.circuitSpec.id).toBe(fixture.circuitSpec.id);
+  expect(placementRequests[0]).not.toHaveProperty('accepted');
+  expect(placementRequests[0]).not.toHaveProperty('blocked');
+
+  await expect.poll(async () => (await readStageDebugSnapshot(canvas)).partPositions['led-1']).not.toEqual(baselineLedPosition);
+  const resolvedDebug = await readStageDebugSnapshot(canvas);
+  expect(resolvedDebug.interactionMode).toBe('hardware_move');
+  expect(resolvedDebug.buildReady).toBe(true);
+  expect(resolvedDebug.circuitSpecHash).not.toBe(baselineCircuitSpecHash);
+  expect(resolvedDebug.wireRouteHash).not.toBe(baselineWireRouteHash);
+  expect(resolvedDebug.previewWireRouteHash).toBe('');
+  expect(vectorDistance(boxCenter(resolvedDebug.partWorldBounds['led-1']), baselineLedCenter)).toBeGreaterThan(0.05);
+  expectHorizontalBoundsWithin(
+    resolvedDebug.partWorldBounds['led-1'],
+    resolvedDebug.partWorldBounds.breadboard
+  );
+  await expect(runButton).toBeEnabled();
+  await expect(page.getByTestId('placement-resolving-status')).toBeHidden();
+  await expect(page.getByTestId('placement-error-status')).toBeHidden();
 
   assertClean(guards);
 });

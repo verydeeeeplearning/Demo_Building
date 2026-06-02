@@ -519,6 +519,14 @@ a:focus-visible {
   cursor: help;
 }
 
+.stage-canvas[data-interaction-mode="visual_move"].is-hovering-circuit {
+  cursor: grab;
+}
+
+.stage-canvas[data-interaction-mode="visual_move"]:active {
+  cursor: grabbing;
+}
+
 .circuit-hover-tooltip {
   pointer-events: none;
   position: absolute;
@@ -595,7 +603,7 @@ a:focus-visible {
   align-items: center;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 16px;
+  gap: 12px;
   max-width: calc(100% - 28px);
   transform: translateX(-50%);
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -608,9 +616,23 @@ a:focus-visible {
 
 .stage-toolbar button {
   border: 0;
+  border-radius: 999px;
+  padding: 3px 7px;
   background: transparent;
   color: var(--c-canvas);
   text-decoration: underline;
+}
+
+.stage-toolbar button.is-active,
+.stage-toolbar button[aria-pressed="true"] {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--c-soft-coral);
+  text-decoration: none;
+}
+
+.stage-toolbar button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .stage-toolbar strong {
@@ -634,6 +656,28 @@ a:focus-visible {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.visual-arrangement-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  border: 1px solid rgba(92, 225, 230, 0.34);
+  border-radius: 999px;
+  padding: 3px 8px;
+  background: rgba(92, 225, 230, 0.13);
+  color: #aef7f2;
+  font-size: 12px;
+}
+
+.visual-arrangement-chip[hidden] {
+  display: none;
+}
+
+.visual-arrangement-chip.is-error {
+  border-color: rgba(255, 119, 89, 0.5);
+  background: rgba(255, 119, 89, 0.16);
+  color: #ffd5cc;
 }
 
 .right-rail {
@@ -1840,6 +1884,55 @@ body.has-modal {
   .file-list,
   .library {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 781px) and (max-width: 1100px) {
+  .topbar {
+    grid-template-columns: minmax(180px, 0.85fr) auto minmax(0, 1.15fr);
+    gap: 12px;
+    padding: 0 14px;
+  }
+
+  .tabs {
+    min-width: 0;
+  }
+
+  .tab {
+    min-width: 72px;
+    padding: 9px 14px;
+  }
+
+  .top-actions {
+    min-width: 0;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .top-actions > button,
+  .top-actions > a {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .workbench.is-pcb {
+    grid-template-columns: minmax(250px, 300px) minmax(360px, 1fr) minmax(220px, 280px);
+    height: calc(100vh - var(--shell-top));
+    min-height: 650px;
+    overflow: hidden;
+  }
+
+  .workbench.is-pcb .center-stage,
+  .workbench.is-pcb .ai-panel,
+  .workbench.is-pcb .right-rail {
+    min-height: 0;
+    height: 100%;
+  }
+
+  .workbench.is-pcb .right-rail {
+    grid-column: auto;
+    border-top: 0;
+    border-left: 1px solid var(--c-hairline);
   }
 }
 

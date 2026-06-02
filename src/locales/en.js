@@ -91,7 +91,16 @@ export const en = {
     reset: 'Reset view',
     fit: 'Fit view',
     output: 'Simulation output',
-    ready: 'READY'
+    ready: 'READY',
+    modes: {
+      orbit: 'Orbit view',
+      visualMove: 'Move parts',
+      hardwareMove: 'Resolve move'
+    },
+    undoArrangement: 'Undo move',
+    resetArrangement: 'Reset layout',
+    visualDirty: 'Visual layout',
+    placementResolving: 'Resolving layout'
   },
   simulationControls: {
     play: 'Show current',

@@ -316,8 +316,8 @@
     "height": 0.5,
     "visualStyle": { "shape": "radial-electrolytic-capacitor", "color": "#222266", "material": "aluminum-plastic" },
     "pinAnchors": {
-      "+": { "x": -0.08, "y": 0.08, "z": -0.08, "role": "positive-terminal", "label": "+" },
-      "-": { "x": 0.08, "y": 0.08, "z": 0.08, "role": "negative-terminal", "label": "-" }
+      "+": { "x": -0.14, "y": 0.08, "z": -0.08, "role": "positive-terminal", "label": "+" },
+      "-": { "x": 0.14, "y": 0.08, "z": 0.08, "role": "negative-terminal", "label": "-" }
     },
     "labelAnchor": { "x": 0, "y": 0.66, "z": 0 },
     "placement": {

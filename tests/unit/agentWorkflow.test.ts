@@ -2056,6 +2056,58 @@ test('render plan snaps breadboard component pins to machine-readable breadboard
   );
 });
 
+test('render plan snaps radial and ceramic capacitor leads onto breadboard holes', async () => {
+  const grid = await loadBreadboardGrid();
+
+  for (const { spec, endpoints: expectedEndpoints, footprintType } of [
+    {
+      spec: passiveContextCircuit('ceramic-cap', 'Ceramic capacitor context'),
+      endpoints: ['passive-1:A', 'passive-1:B'],
+      footprintType: 'ceramic-capacitor'
+    },
+    {
+      spec: passiveContextCircuit('electrolytic-cap', 'Electrolytic capacitor context'),
+      endpoints: ['passive-1:+', 'passive-1:-'],
+      footprintType: 'electrolytic-capacitor'
+    }
+  ]) {
+    const validationReport = await validateCircuitSpec(spec);
+    const renderPlan = await compileRenderPlan(spec, validationReport);
+    const endpoints = renderPlan.layout?.endpoints ?? {};
+    const capacitor = renderPlan.parts.find((part) => part.id === 'passive-1');
+    const breadboard = renderPlan.parts.find((part) => part.footprint?.type === 'breadboard');
+
+    assert.equal(validationReport.status, 'valid', spec.title);
+    assert.equal(capacitor?.footprint?.type, footprintType);
+    assert.ok(capacitor, `${spec.title} capacitor should render`);
+    assert.ok(breadboard, `${spec.title} should render a breadboard`);
+    assert.equal(
+      footprintsOverlap(capacitor, breadboard),
+      true,
+      `${spec.title} should be mounted on the breadboard surface`
+    );
+    for (const endpointKey of expectedEndpoints) {
+      assert.ok(
+        endpointSnapsToSignalGrid(endpoints[endpointKey], grid),
+        `${endpointKey} should snap to a breadboard signal hole`
+      );
+    }
+    assert.ok(
+      Math.abs(endpoints[expectedEndpoints[0]].z - endpoints[expectedEndpoints[1]].z) >= 0.12,
+      `${spec.title} terminals should land on distinct breadboard rows`
+    );
+    assert.equal(
+      renderPlan.warnings.some((warning) =>
+        warning.code === 'BREADBOARD_PIN_GRID_MISALIGNMENT' ||
+        warning.code === 'BREADBOARD_PIN_ROW_COLLAPSE' ||
+        warning.code === 'BREADBOARD_PLACEMENT_OUT_OF_BOUNDS'
+      ),
+      false,
+      renderPlan.warnings.map((warning) => warning.message).join('\n')
+    );
+  }
+});
+
 test('breadboard grid snap DRC warns when a pin sits between holes', async () => {
   const grid = await loadBreadboardGrid();
   const warnings = auditBreadboardGridSnap([
