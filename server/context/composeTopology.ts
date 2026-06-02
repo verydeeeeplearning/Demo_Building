@@ -142,6 +142,68 @@ export function partFillsSlotRole(part: PartCapability, slotRole: string): boole
     case 'switch-input':
     case 'digital-input-source':
       return id === 'button-tactile' || caps.has('digital-input-switch');
+    // --- Phase 2c coverage expansion (capability strings verified against the
+    // intended filler parts in each bundle's allowedParts) ---
+    case 'communication-module':
+      return caps.has('communication-module');
+    case 'protocol-sensor':
+      return caps.has('protocol-sensor');
+    case 'single-wire-data-sensor':
+      return caps.has('single-wire-data-sensor');
+    case 'pulse-digital-sensor':
+      return caps.has('pulse-digital-sensor') || caps.has('digital-sensor');
+    case 'voltage-divider':
+      return caps.has('voltage-divider') || caps.has('current-limiting-passive') || caps.has('series-passive');
+    case 'voltage-divider-reference':
+      return caps.has('current-limiting-passive') || caps.has('series-passive') || caps.has('voltage-divider');
+    case 'voltage-regulator':
+      return caps.has('voltage-regulator') || caps.has('regulated-power-output');
+    case 'passive-context-part':
+      return caps.has('passive-context-part');
+    case 'timing-passive-context':
+      return caps.has('timing-passive-context');
+    case 'relay-contact-load':
+      return caps.has('low-voltage-contact-load') || caps.has('relay-contact-load');
+    case 'unipolar-stepper':
+      return caps.has('unipolar-stepper');
+    case 'bipolar-stepper':
+      return caps.has('bipolar-stepper');
+    case 'low-side-driver':
+      return caps.has('low-side-switch-driver') || caps.has('mosfet-module-driver');
+    case 'inductive-load':
+      return caps.has('inductive-load') || caps.has('relay-module') || id.includes('solenoid');
+    case 'dc-motor-load':
+      return caps.has('dc-motor') || caps.has('dc-motor-load') || id.includes('dc-motor');
+    case 'pwm-actuator':
+      return caps.has('pwm-controlled-actuator') || caps.has('motion-output');
+    case 'stepper-driver':
+      return caps.has('stepper-driver');
+    case 'hbridge-driver':
+      return caps.has('hbridge-driver');
+    case 'addressable-led-display':
+      return caps.has('addressable-led-display');
+    case 'bare-seven-segment-display':
+      return caps.has('bare-seven-segment-display');
+    case 'led-array-display':
+      return caps.has('led-array-display');
+    case 'multi-channel-light-output':
+      return part.kind === 'output'
+        && (caps.has('digital-output-load') || caps.has('visual-indicator') || caps.has('powered-light-module'));
+    case 'joystick-input':
+      return caps.has('joystick-input-source') || caps.has('joystick');
+    case 'matrix-input':
+      return caps.has('matrix-input') || id.includes('keypad');
+    case 'rotary-encoder':
+    case 'quadrature-input':
+      return caps.has('rotary-encoder-source') || caps.has('quadrature-input-source') || caps.has('rotary-encoder');
+    case 'relay-module':
+      return caps.has('relay-module');
+    case 'level-shifter':
+      return caps.has('level-shifter');
+    case 'logic-interface':
+      return caps.has('logic-interface') || caps.has('shift-register');
+    case 'connector-wiring':
+      return part.kind === 'wiring' || caps.has('connector-wiring') || caps.has('electrical-connection');
     default:
       return false;
   }

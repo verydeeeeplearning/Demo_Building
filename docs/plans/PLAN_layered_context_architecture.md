@@ -174,13 +174,13 @@ shape는 두 경로 동일 → 하위 deepagents 합성/검증 게이트 무변�
 
 ### Phase 2c: 구조 골든 + 안전 오버레이 (C-2, 리뷰 핵심)
 **Goal**: L2 구조코어 == L3 구조코어(단계적), 안전 오버레이 분리. **Est: 3–4h**
-**Status**: Pending
+**Status**: ✅ Core Complete (2026-06-02) — **34/39 골든 일치(목표 ≥30 초과)**, 게이트 그린
 
-- RED 2c.1: **구조 골든** — 39 중 **≥30 번들**에서 L2 구조코어 == L3 구조코어(집합 일치, 산문 제외) — `composeContext.golden.test.ts`. **비교 제외 항목을 명시적으로 단언**(메타 검증)
-- RED 2c.2: 안전 오버레이 없는 신규 조합 = `buildReadyScope:'review-only'`(build-ready 거부)
-- RED 2c.3: `allowedParts`는 역할에서 자동 도출 불가 → **안전 오버레이로 분류**하거나 명시적 도출 규칙 정의(둘 중 택1을 테스트로 고정)
-- GREEN 2c.4: 번들 `structural.json`/`safety-overlay.md` 분리 + `EvaluateSafetyOverlay`
-- **Gate**: ≥20 구조 골든 일치, 안전 강등 단언 통과, 잔여 번들 blockingConditions 추적
+- [x] RED 2c.1: **구조 골든** — `composeContextGolden.test.ts`(3). 역할 커버리지 확장(3/55→**38/39 해소, 34/39 VR 정확일치**). 동치 = validationRules 집합 + 토폴로지 해소가능성. **메타 검증**: 산문/promptBudget 변경이 구조코어에 영향 없음 단언. **추적 예외**(회귀 가드): UNRESOLVED=`logic-interface-context`, VR_DIFF=`dht22…`/`digital-light-output`/`low-voltage-power-rail`/`spi-communication-module-readout`.
+- [x] RED 2c.2: 안전 오버레이 없는 생성 조합 = `buildReadyScope:'review-only'`(골든 safety 테스트 + 2b 불변식)
+- [x] 2c.3 결정: `allowedParts`는 큐레이션 입력으로 취급(골든 **비교 대상 아님** — 비교는 도출 가능한 validationRules). 부품은 후보 입력으로만 사용.
+- [ ] 2c.4 (이연 → Phase 4 승격): 번들 물리적 `structural.json`/`safety-overlay.md` 파일 분리. 안전 *개념*은 이미 강제(생성=review-only)이므로 게이트엔 불필요. 승격 루프(Phase 4)에서 파일 분리 수행.
+- **Gate**: ✅ 골든 ≥30(=34), 안전 강등 단언, 잔여 추적. test:unit JS 110/110 + TS 336/336(+3), typecheck, build ✓, EXIT0.
 
 ### Phase 3: 단일 라우터 & v1 활성 라우팅 제거 (②) — *Phase 2c 증명 후*
 **Goal**: 이중 경로 → 단일. 미적중은 L2(정적 폴백 제거). **Est: 3–4h (위험 단계, 별도 브랜치)**
@@ -241,8 +241,8 @@ shape는 두 경로 동일 → 하위 deepagents 합성/검증 게이트 무변�
 ---
 
 ## 8. Progress Tracking
-- Phase 0: ✅100% · 1: ✅100% · 2a: ✅core(엔진+1차배치) · 2b: ✅100%(생성경로+shadow) · 2c: 0%(역할 커버리지 3→30+ 확장 + 골든 + 안전오버레이) · 3: 0% · 4: 0% · 5: 0%
-- **Overall: ~45%** · **추정 총량: ~25–32h (Large+)**. D-1/D-2는 가짜 차단으로 해소(작업 불요).
+- Phase 0: ✅100% · 1: ✅100% · 2a: ✅(엔진+역할 38/39) · 2b: ✅100% · 2c: ✅core(골든 34/39, 물리 파일분리만 Phase4 이연) · 3: 0% · 4: 0% · 5: 0%
+- **Overall: ~60%** · **추정 총량: ~25–32h (Large+)**. D-1/D-2는 가짜 차단으로 해소(작업 불요).
 
 ---
 
