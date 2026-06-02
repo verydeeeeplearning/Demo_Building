@@ -1,0 +1,3 @@
+{"id":"v2-breadboard-psu-power-rail-supported","message":"Use a breadboard power supply module to power the 5V and GND rails.","expected":"render_and_run_valid_power_rail_state"}
+{"id":"v2-7805-regulated-rail-supported","message":"Use a 9V battery clip and 7805 regulator to make a regulated 5V breadboard rail.","expected":"render_and_run_valid_regulated_5v_state"}
+{"id":"v2-lipo-power-rail-supported","message":"Use a 1S LiPo battery as a low-voltage source for the breadboard rails.","expected":"render_and_run_valid_power_rail_state_with_lipo_warning"}

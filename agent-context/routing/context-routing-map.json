@@ -2,7 +2,7 @@
   "version": "2026-05-31",
   "maxPromptCharsByBudget": {
     "minimal": 7000,
-    "summary": 14000,
+    "summary": 16000,
     "data-only": 18000,
     "full": 38000
   },
@@ -20,9 +20,17 @@
         "ambiguity": true
       },
       "load": {
-        "memory": ["memory:agent-rules"],
-        "policy": ["policy:safety", "policy:clarification", "policy:truthfulness"],
-        "reference": ["reference:protocol-rules"]
+        "memory": [
+          "memory:agent-rules"
+        ],
+        "policy": [
+          "policy:safety",
+          "policy:clarification",
+          "policy:truthfulness"
+        ],
+        "reference": [
+          "reference:protocol-rules"
+        ]
       },
       "reason": "No concrete supported input/output hardware was identified, so only clarification and safety context should be loaded."
     },
@@ -32,13 +40,26 @@
       "budget": "minimal",
       "when": {
         "unsafe": true,
-        "supportLevels": ["unsupported"]
+        "supportLevels": [
+          "unsupported"
+        ]
       },
       "load": {
-        "memory": ["memory:agent-rules"],
-        "policy": ["policy:safety", "policy:unsupported", "policy:truthfulness"],
-        "data": ["data:capability-graph"],
-        "reference": ["reference:electrical-limits", "reference:validation-rules"]
+        "memory": [
+          "memory:agent-rules"
+        ],
+        "policy": [
+          "policy:safety",
+          "policy:unsupported",
+          "policy:truthfulness"
+        ],
+        "data": [
+          "data:capability-graph"
+        ],
+        "reference": [
+          "reference:electrical-limits",
+          "reference:validation-rules"
+        ]
       },
       "reason": "Unsafe or unsupported requests need policy, capability, and validation rationale, not render or simulation catalogs."
     },
@@ -47,14 +68,30 @@
       "priority": 30,
       "budget": "summary",
       "when": {
-        "supportLevels": ["planned", "partial"]
+        "supportLevels": [
+          "planned",
+          "partial"
+        ]
       },
       "load": {
-        "memory": ["memory:agent-rules"],
-        "policy": ["policy:safety", "policy:unsupported", "policy:truthfulness"],
-        "data": ["data:capability-graph"],
-        "registry": ["registry:part-capabilities"],
-        "reference": ["reference:validation-rules", "reference:electrical-limits"]
+        "memory": [
+          "memory:agent-rules"
+        ],
+        "policy": [
+          "policy:safety",
+          "policy:unsupported",
+          "policy:truthfulness"
+        ],
+        "data": [
+          "data:capability-graph"
+        ],
+        "registry": [
+          "registry:part-capabilities"
+        ],
+        "reference": [
+          "reference:validation-rules",
+          "reference:electrical-limits"
+        ]
       },
       "reason": "Planned or partial capabilities need exact gap evidence and safe alternatives without pretending render or simulation support exists."
     },
@@ -63,74 +100,390 @@
       "priority": 40,
       "budget": "full",
       "when": {
-        "capabilityIds": ["display-text-output"],
-        "modalities": ["display"]
+        "capabilityIds": [
+          "display-text-output"
+        ],
+        "modalities": [
+          "display"
+        ]
       },
       "load": {
-        "memory": ["memory:agent-rules"],
-        "policy": ["policy:safety", "policy:truthfulness"],
-        "data": ["data:capability-graph", "data:topology-templates"],
-        "registry": ["registry:part-capabilities"],
-        "reference": ["reference:board-topology", "reference:protocol-rules", "reference:validation-rules", "reference:simulation-recipes", "reference:rendering-footprints"],
-        "simulation": ["simulation:primitives"],
-        "rendering": ["rendering:render-footprints"]
+        "memory": [
+          "memory:agent-rules"
+        ],
+        "policy": [
+          "policy:safety",
+          "policy:truthfulness"
+        ],
+        "data": [
+          "data:capability-graph",
+          "data:topology-templates"
+        ],
+        "registry": [
+          "registry:part-capabilities"
+        ],
+        "reference": [
+          "reference:board-topology",
+          "reference:protocol-rules",
+          "reference:validation-rules",
+          "reference:simulation-recipes",
+          "reference:rendering-footprints"
+        ],
+        "simulation": [
+          "simulation:primitives"
+        ],
+        "rendering": [
+          "rendering:render-footprints"
+        ]
       },
       "reason": "I2C display output requires bus pin rules, supported OLED registry facts, render anchors, and current/signal simulation primitives."
     },
     {
-      "routeId": "digital-output-series-load",
-      "priority": 50,
+      "routeId": "light-sensor-threshold-output",
+      "priority": 42,
       "budget": "full",
       "when": {
-        "capabilityIds": ["digital-light-output"],
-        "modalities": ["light"]
+        "capabilityIds": [
+          "light-sensor-triggered-output"
+        ],
+        "modalities": [
+          "light-sensor",
+          "light"
+        ]
       },
       "load": {
-        "memory": ["memory:agent-rules"],
-        "policy": ["policy:safety", "policy:truthfulness"],
-        "data": ["data:capability-graph", "data:topology-templates"],
-        "registry": ["registry:part-capabilities"],
-        "reference": ["reference:board-topology", "reference:protocol-rules", "reference:validation-rules", "reference:simulation-recipes", "reference:rendering-footprints"],
-        "simulation": ["simulation:primitives"],
-        "rendering": ["rendering:render-footprints"]
+        "memory": [
+          "memory:agent-rules"
+        ],
+        "policy": [
+          "policy:safety",
+          "policy:truthfulness"
+        ],
+        "data": [
+          "data:capability-graph",
+          "data:topology-templates",
+          "data:pin-aliases"
+        ],
+        "registry": [
+          "registry:part-capabilities"
+        ],
+        "reference": [
+          "reference:board-topology",
+          "reference:protocol-rules",
+          "reference:validation-rules",
+          "reference:simulation-recipes",
+          "reference:rendering-footprints"
+        ],
+        "simulation": [
+          "simulation:primitives"
+        ],
+        "rendering": [
+          "rendering:render-footprints"
+        ]
       },
-      "reason": "A digital LED load requires current limiting, closed-path validation, render anchors, and load-current animation context."
+      "reason": "Photoresistor threshold output requires analog input validation, threshold behavior, LED current limiting, render anchors, and sensing/output current animation context."
+    },
+    {
+      "routeId": "addressable-led-display-output",
+      "priority": 43,
+      "budget": "full",
+      "when": {
+        "capabilityIds": [
+          "addressable-led-display-output"
+        ],
+        "modalities": [
+          "addressable-led-display"
+        ]
+      },
+      "load": {
+        "memory": [
+          "memory:agent-rules"
+        ],
+        "policy": [
+          "policy:safety",
+          "policy:truthfulness"
+        ],
+        "data": [
+          "data:capability-graph",
+          "data:topology-templates"
+        ],
+        "registry": [
+          "registry:part-capabilities"
+        ],
+        "reference": [
+          "reference:board-topology",
+          "reference:protocol-rules",
+          "reference:validation-rules",
+          "reference:simulation-recipes",
+          "reference:rendering-footprints",
+          "reference:electrical-limits"
+        ],
+        "simulation": [
+          "simulation:primitives"
+        ],
+        "rendering": [
+          "rendering:render-footprints"
+        ]
+      },
+      "reason": "Addressable LED display output requires powered module wiring, DIN validation, current warning, render anchors, and qualitative RGB pattern simulation."
+    },
+    {
+      "routeId": "bare-seven-segment-display-output",
+      "priority": 44,
+      "budget": "full",
+      "when": {
+        "capabilityIds": [
+          "bare-seven-segment-display-output"
+        ],
+        "modalities": [
+          "bare-seven-segment-display"
+        ]
+      },
+      "load": {
+        "memory": [
+          "memory:agent-rules"
+        ],
+        "policy": [
+          "policy:safety",
+          "policy:truthfulness"
+        ],
+        "data": [
+          "data:capability-graph",
+          "data:topology-templates"
+        ],
+        "registry": [
+          "registry:part-capabilities"
+        ],
+        "reference": [
+          "reference:board-topology",
+          "reference:protocol-rules",
+          "reference:validation-rules",
+          "reference:simulation-recipes",
+          "reference:rendering-footprints"
+        ],
+        "simulation": [
+          "simulation:primitives"
+        ],
+        "rendering": [
+          "rendering:render-footprints"
+        ]
+      },
+      "reason": "Bare seven-segment display output requires common ground, per-segment current-limit validation, render anchors, and qualitative segment-state simulation."
+    },
+    {
+      "routeId": "led-array-display-output",
+      "priority": 43,
+      "budget": "full",
+      "when": {
+        "capabilityIds": [
+          "led-array-display-output"
+        ],
+        "modalities": [
+          "led-array-display"
+        ]
+      },
+      "load": {
+        "memory": [
+          "memory:agent-rules"
+        ],
+        "policy": [
+          "policy:safety",
+          "policy:truthfulness"
+        ],
+        "data": [
+          "data:capability-graph",
+          "data:topology-templates"
+        ],
+        "registry": [
+          "registry:part-capabilities"
+        ],
+        "reference": [
+          "reference:board-topology",
+          "reference:protocol-rules",
+          "reference:validation-rules",
+          "reference:simulation-recipes",
+          "reference:rendering-footprints"
+        ],
+        "simulation": [
+          "simulation:primitives"
+        ],
+        "rendering": [
+          "rendering:render-footprints"
+        ]
+      },
+      "reason": "LED array display output requires module supply, shared ground, data/clock/control validation, render anchors, and qualitative display simulation."
+    },
+    {
+      "routeId": "spi-display-output",
+      "priority": 43,
+      "budget": "full",
+      "when": {
+        "capabilityIds": [
+          "spi-display-output"
+        ],
+        "modalities": [
+          "spi-display"
+        ]
+      },
+      "load": {
+        "memory": [
+          "memory:agent-rules"
+        ],
+        "policy": [
+          "policy:safety",
+          "policy:truthfulness"
+        ],
+        "data": [
+          "data:capability-graph",
+          "data:topology-templates"
+        ],
+        "registry": [
+          "registry:part-capabilities"
+        ],
+        "reference": [
+          "reference:board-topology",
+          "reference:protocol-rules",
+          "reference:validation-rules",
+          "reference:simulation-recipes",
+          "reference:rendering-footprints"
+        ],
+        "simulation": [
+          "simulation:primitives"
+        ],
+        "rendering": [
+          "rendering:render-footprints"
+        ]
+      },
+      "reason": "SPI display output requires module supply, shared ground, data/clock/chip-select/control validation, render anchors, and qualitative display simulation."
     },
     {
       "routeId": "button-controlled-digital-load",
       "priority": 45,
       "budget": "full",
       "when": {
-        "capabilityIds": ["button-controlled-light-output"],
-        "modalities": ["button", "light"]
+        "capabilityIds": [
+          "button-controlled-light-output"
+        ],
+        "modalities": [
+          "button",
+          "light"
+        ]
       },
       "load": {
-        "memory": ["memory:agent-rules"],
-        "policy": ["policy:safety", "policy:truthfulness"],
-        "data": ["data:capability-graph", "data:topology-templates", "data:pin-aliases"],
-        "registry": ["registry:part-capabilities"],
-        "reference": ["reference:board-topology", "reference:protocol-rules", "reference:validation-rules", "reference:simulation-recipes", "reference:rendering-footprints"],
-        "simulation": ["simulation:primitives"],
-        "rendering": ["rendering:render-footprints"]
+        "memory": [
+          "memory:agent-rules"
+        ],
+        "policy": [
+          "policy:safety",
+          "policy:truthfulness"
+        ],
+        "data": [
+          "data:capability-graph",
+          "data:topology-templates",
+          "data:pin-aliases"
+        ],
+        "registry": [
+          "registry:part-capabilities"
+        ],
+        "reference": [
+          "reference:board-topology",
+          "reference:protocol-rules",
+          "reference:validation-rules",
+          "reference:simulation-recipes",
+          "reference:rendering-footprints"
+        ],
+        "simulation": [
+          "simulation:primitives"
+        ],
+        "rendering": [
+          "rendering:render-footprints"
+        ]
       },
       "reason": "Button-controlled LED output needs input pullup/pulldown validation, LED current limiting, render anchors, and interactive state simulation."
+    },
+    {
+      "routeId": "digital-output-series-load",
+      "priority": 50,
+      "budget": "full",
+      "when": {
+        "capabilityIds": [
+          "digital-light-output"
+        ],
+        "modalities": [
+          "light"
+        ]
+      },
+      "load": {
+        "memory": [
+          "memory:agent-rules"
+        ],
+        "policy": [
+          "policy:safety",
+          "policy:truthfulness"
+        ],
+        "data": [
+          "data:capability-graph",
+          "data:topology-templates"
+        ],
+        "registry": [
+          "registry:part-capabilities"
+        ],
+        "reference": [
+          "reference:board-topology",
+          "reference:protocol-rules",
+          "reference:validation-rules",
+          "reference:simulation-recipes",
+          "reference:rendering-footprints"
+        ],
+        "simulation": [
+          "simulation:primitives"
+        ],
+        "rendering": [
+          "rendering:render-footprints"
+        ]
+      },
+      "reason": "A digital LED load requires current limiting, closed-path validation, render anchors, and load-current animation context."
     },
     {
       "routeId": "sound-output",
       "priority": 70,
       "budget": "full",
       "when": {
-        "capabilityIds": ["sound-alert-output"],
-        "modalities": ["sound"]
+        "capabilityIds": [
+          "sound-alert-output"
+        ],
+        "modalities": [
+          "sound"
+        ]
       },
       "load": {
-        "memory": ["memory:agent-rules"],
-        "policy": ["policy:safety", "policy:truthfulness"],
-        "data": ["data:capability-graph", "data:topology-templates"],
-        "registry": ["registry:part-capabilities"],
-        "reference": ["reference:board-topology", "reference:protocol-rules", "reference:validation-rules", "reference:simulation-recipes", "reference:rendering-footprints"],
-        "simulation": ["simulation:primitives"],
-        "rendering": ["rendering:render-footprints"]
+        "memory": [
+          "memory:agent-rules"
+        ],
+        "policy": [
+          "policy:safety",
+          "policy:truthfulness"
+        ],
+        "data": [
+          "data:capability-graph",
+          "data:topology-templates"
+        ],
+        "registry": [
+          "registry:part-capabilities"
+        ],
+        "reference": [
+          "reference:board-topology",
+          "reference:protocol-rules",
+          "reference:validation-rules",
+          "reference:simulation-recipes",
+          "reference:rendering-footprints"
+        ],
+        "simulation": [
+          "simulation:primitives"
+        ],
+        "rendering": [
+          "rendering:render-footprints"
+        ]
       },
       "reason": "Sound output requires buzzer polarity/current context, GPIO or PWM protocol rules, render anchors, and pulse simulation primitives."
     },
@@ -139,17 +492,42 @@
       "priority": 80,
       "budget": "full",
       "when": {
-        "capabilityIds": ["servo-motion-output"],
-        "modalities": ["motion"]
+        "capabilityIds": [
+          "servo-motion-output"
+        ],
+        "modalities": [
+          "motion"
+        ]
       },
       "load": {
-        "memory": ["memory:agent-rules"],
-        "policy": ["policy:safety", "policy:truthfulness"],
-        "data": ["data:capability-graph", "data:topology-templates"],
-        "registry": ["registry:part-capabilities"],
-        "reference": ["reference:board-topology", "reference:protocol-rules", "reference:validation-rules", "reference:simulation-recipes", "reference:rendering-footprints", "reference:electrical-limits"],
-        "simulation": ["simulation:primitives"],
-        "rendering": ["rendering:render-footprints"]
+        "memory": [
+          "memory:agent-rules"
+        ],
+        "policy": [
+          "policy:safety",
+          "policy:truthfulness"
+        ],
+        "data": [
+          "data:capability-graph",
+          "data:topology-templates"
+        ],
+        "registry": [
+          "registry:part-capabilities"
+        ],
+        "reference": [
+          "reference:board-topology",
+          "reference:protocol-rules",
+          "reference:validation-rules",
+          "reference:simulation-recipes",
+          "reference:rendering-footprints",
+          "reference:electrical-limits"
+        ],
+        "simulation": [
+          "simulation:primitives"
+        ],
+        "rendering": [
+          "rendering:render-footprints"
+        ]
       },
       "reason": "Servo output needs PWM, supply-current warning, common-ground validation, render anchors, and separate signal/supply simulation primitives."
     },
@@ -158,16 +536,38 @@
       "priority": 100,
       "budget": "full",
       "when": {
-        "supportLevels": ["supported"]
+        "supportLevels": [
+          "supported"
+        ]
       },
       "load": {
-        "memory": ["memory:agent-rules"],
-        "policy": ["policy:safety", "policy:truthfulness"],
-        "data": ["data:capability-graph", "data:topology-templates"],
-        "registry": ["registry:part-capabilities"],
-        "reference": ["reference:board-topology", "reference:protocol-rules", "reference:validation-rules", "reference:simulation-recipes", "reference:rendering-footprints"],
-        "simulation": ["simulation:primitives"],
-        "rendering": ["rendering:render-footprints"]
+        "memory": [
+          "memory:agent-rules"
+        ],
+        "policy": [
+          "policy:safety",
+          "policy:truthfulness"
+        ],
+        "data": [
+          "data:capability-graph",
+          "data:topology-templates"
+        ],
+        "registry": [
+          "registry:part-capabilities"
+        ],
+        "reference": [
+          "reference:board-topology",
+          "reference:protocol-rules",
+          "reference:validation-rules",
+          "reference:simulation-recipes",
+          "reference:rendering-footprints"
+        ],
+        "simulation": [
+          "simulation:primitives"
+        ],
+        "rendering": [
+          "rendering:render-footprints"
+        ]
       },
       "reason": "Supported hardware fallback loads the complete bounded synthesis, validation, rendering, and simulation bundle."
     }

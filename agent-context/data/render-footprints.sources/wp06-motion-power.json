@@ -1,0 +1,1007 @@
+{
+  "large-servo": {
+    "type": "large-servo",
+    "width": 0.96,
+    "depth": 0.56,
+    "height": 0.72,
+    "visualStyle": {
+      "shape": "servo",
+      "color": "#2b2d33",
+      "material": "metal-gear-servo"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.24,
+        "y": 0.16,
+        "z": 0.36,
+        "role": "power",
+        "label": "VCC"
+      },
+      "GND": {
+        "x": 0,
+        "y": 0.16,
+        "z": 0.36,
+        "role": "ground",
+        "label": "GND"
+      },
+      "SIGNAL": {
+        "x": 0.24,
+        "y": 0.16,
+        "z": 0.36,
+        "role": "pwm-signal",
+        "label": "SIGNAL"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.9,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage",
+        "beside-breadboard"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "horn-visible",
+      "notes": [
+        "High-torque servo body sits beside the breadboard; its signal lead is controlled by PWM and its real hardware power draw requires a visible external-power warning."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "large-servo-angle-arc",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "large-servo-supply-current",
+        "anchor": "VCC",
+        "role": "current-overlay"
+      },
+      {
+        "id": "large-servo-pwm",
+        "anchor": "SIGNAL",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "High-torque servo body",
+        "explainableAs": [
+          "pwm-actuator",
+          "motion-output",
+          "external-power-warning"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "VCC lead",
+        "pin": "VCC",
+        "explainableAs": [
+          "servo-supply-current",
+          "external-power-warning"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "GND lead",
+        "pin": "GND",
+        "explainableAs": [
+          "ground-return"
+        ]
+      },
+      {
+        "id": "pin-signal",
+        "label": "Signal lead",
+        "pin": "SIGNAL",
+        "explainableAs": [
+          "pwm-signal"
+        ]
+      }
+    ]
+  },
+  "to92-transistor": {
+    "type": "to92-transistor",
+    "width": 0.32,
+    "depth": 0.16,
+    "height": 0.42,
+    "visualStyle": {
+      "shape": "chip",
+      "color": "#17171c",
+      "material": "black-epoxy"
+    },
+    "pinAnchors": {
+      "B": {
+        "x": -0.11,
+        "y": 0.02,
+        "z": 0.2,
+        "role": "digital-input",
+        "label": "B"
+      },
+      "C": {
+        "x": 0,
+        "y": 0.02,
+        "z": 0.2,
+        "role": "switched-output",
+        "label": "C"
+      },
+      "E": {
+        "x": 0.11,
+        "y": 0.02,
+        "z": 0.2,
+        "role": "ground",
+        "label": "E"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.52,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "flat-face-forward",
+      "notes": [
+        "TO-92 transistor legs are placed on distinct breadboard rows so the base, collector, and emitter remain inspectable."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "transistor-control-signal",
+        "anchor": "B",
+        "role": "signal-overlay"
+      },
+      {
+        "id": "transistor-load-current",
+        "anchor": "C",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "base",
+        "label": "Base",
+        "pin": "B",
+        "explainableAs": [
+          "low-side-switch-control",
+          "base-resistor-required"
+        ]
+      },
+      {
+        "id": "collector",
+        "label": "Collector",
+        "pin": "C",
+        "explainableAs": [
+          "switched-load-return"
+        ]
+      },
+      {
+        "id": "emitter",
+        "label": "Emitter",
+        "pin": "E",
+        "explainableAs": [
+          "ground-return"
+        ]
+      }
+    ]
+  },
+  "mosfet-module": {
+    "type": "mosfet-module",
+    "width": 0.62,
+    "depth": 0.46,
+    "height": 0.2,
+    "visualStyle": {
+      "shape": "module",
+      "color": "#1f6fb2",
+      "material": "pcb"
+    },
+    "pinAnchors": {
+      "VIN": {
+        "x": -0.24,
+        "y": 0.08,
+        "z": 0.22,
+        "role": "power",
+        "label": "VIN"
+      },
+      "GND": {
+        "x": -0.08,
+        "y": 0.08,
+        "z": 0.22,
+        "role": "ground",
+        "label": "GND"
+      },
+      "SIG": {
+        "x": 0.08,
+        "y": 0.08,
+        "z": 0.22,
+        "role": "digital-input",
+        "label": "SIG"
+      },
+      "V+": {
+        "x": 0.24,
+        "y": 0.08,
+        "z": 0.14,
+        "role": "load-power",
+        "label": "V+"
+      },
+      "V-": {
+        "x": 0.24,
+        "y": 0.08,
+        "z": -0.14,
+        "role": "switched-ground",
+        "label": "V-"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.34,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard",
+        "beside-breadboard"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "terminal-block-forward",
+      "notes": [
+        "MOSFET module separates logic SIG/GND from switched load terminals; real current and heat limits stay qualitative."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "mosfet-control-signal",
+        "anchor": "SIG",
+        "role": "signal-overlay"
+      },
+      {
+        "id": "mosfet-load-current",
+        "anchor": "V-",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "sig",
+        "label": "SIG input",
+        "pin": "SIG",
+        "explainableAs": [
+          "control-signal"
+        ]
+      },
+      {
+        "id": "load-output",
+        "label": "Switched load terminals",
+        "pin": "V-",
+        "explainableAs": [
+          "low-side-switch",
+          "high-current-warning"
+        ]
+      }
+    ]
+  },
+  "dc-motor": {
+    "type": "dc-motor",
+    "width": 0.5,
+    "depth": 0.5,
+    "height": 0.8,
+    "visualStyle": {
+      "shape": "motor",
+      "color": "#888888",
+      "material": "brushed-motor"
+    },
+    "pinAnchors": {
+      "M+": {
+        "x": -0.18,
+        "y": 0.24,
+        "z": 0.4,
+        "role": "power",
+        "label": "M+"
+      },
+      "M-": {
+        "x": 0.18,
+        "y": 0.24,
+        "z": 0.4,
+        "role": "switched-ground",
+        "label": "M-"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.92,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage",
+        "beside-breadboard"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "shaft-forward",
+      "notes": [
+        "Motor body stays beside the breadboard; its current is animated only through a validated driver path."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "dc-motor-spin",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "dc-motor-current",
+        "anchor": "M+",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "motor-body",
+        "label": "DC motor",
+        "explainableAs": [
+          "inductive-load",
+          "flyback-warning"
+        ]
+      }
+    ]
+  },
+  "dc-fan": {
+    "type": "dc-fan",
+    "width": 0.8,
+    "depth": 0.25,
+    "height": 0.8,
+    "visualStyle": {
+      "shape": "motor",
+      "color": "#222222",
+      "material": "fan"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.22,
+        "y": 0.18,
+        "z": 0.36,
+        "role": "power",
+        "label": "VCC"
+      },
+      "GND": {
+        "x": 0.22,
+        "y": 0.18,
+        "z": 0.36,
+        "role": "switched-ground",
+        "label": "GND"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.88,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage",
+        "beside-breadboard"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "fan-face-visible",
+      "notes": [
+        "Fan spin is qualitative; load current still requires a low-side driver path."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "fan-spin",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "fan-current",
+        "anchor": "VCC",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "fan-body",
+        "label": "5V fan",
+        "explainableAs": [
+          "motor-output",
+          "external-power-warning"
+        ]
+      }
+    ]
+  },
+  "mini-water-pump": {
+    "type": "mini-water-pump",
+    "width": 0.7,
+    "depth": 0.6,
+    "height": 0.55,
+    "visualStyle": {
+      "shape": "motor",
+      "color": "#1a5276",
+      "material": "pump"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.2,
+        "y": 0.2,
+        "z": 0.28,
+        "role": "power",
+        "label": "VCC"
+      },
+      "GND": {
+        "x": 0.2,
+        "y": 0.2,
+        "z": 0.28,
+        "role": "switched-ground",
+        "label": "GND"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.72,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage",
+        "beside-breadboard"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "outlet-visible",
+      "notes": [
+        "Pump animation is qualitative and does not model water flow; current path must use a driver."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "pump-flow",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "pump-current",
+        "anchor": "VCC",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "pump-body",
+        "label": "Mini water pump",
+        "explainableAs": [
+          "fluid-output",
+          "high-current-warning"
+        ]
+      }
+    ]
+  },
+  "solenoid-valve": {
+    "type": "solenoid-valve",
+    "width": 0.7,
+    "depth": 0.9,
+    "height": 0.7,
+    "visualStyle": {
+      "shape": "motor",
+      "color": "#333333",
+      "material": "solenoid"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.2,
+        "y": 0.24,
+        "z": 0.36,
+        "role": "power",
+        "label": "VCC"
+      },
+      "GND": {
+        "x": 0.2,
+        "y": 0.24,
+        "z": 0.36,
+        "role": "switched-ground",
+        "label": "GND"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.86,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage",
+        "beside-breadboard"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "valve-visible",
+      "notes": [
+        "Solenoid state is qualitative; real coils need driver, power, and protection design outside this simulation."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "solenoid-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "solenoid-current",
+        "anchor": "VCC",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "solenoid-body",
+        "label": "Solenoid valve",
+        "explainableAs": [
+          "inductive-load",
+          "flyback-warning",
+          "high-current-warning"
+        ]
+      }
+    ]
+  },
+  "vibration-motor-module": {
+    "type": "vibration-motor-module",
+    "width": 0.5,
+    "depth": 0.15,
+    "height": 0.5,
+    "visualStyle": {
+      "shape": "motor",
+      "color": "#888888",
+      "material": "haptic-module"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.18,
+        "y": 0.08,
+        "z": -0.16,
+        "role": "power",
+        "label": "VCC"
+      },
+      "GND": {
+        "x": 0,
+        "y": 0.08,
+        "z": 0,
+        "role": "ground",
+        "label": "GND"
+      },
+      "IN": {
+        "x": 0.18,
+        "y": 0.08,
+        "z": 0.16,
+        "role": "digital-input",
+        "label": "IN"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.62,
+      "z": 0
+    },
+      "placement": {
+        "allowedSurfaces": [
+          "beside-breadboard"
+        ],
+        "breadboardCompatible": false,
+        "defaultOrientation": "disc-visible",
+        "notes": [
+          "Vibration module exposes VCC, GND, and IN as a self-contained low-voltage switched load."
+        ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "vibration-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "vibration-current",
+        "anchor": "VCC",
+        "role": "current-overlay"
+      },
+      {
+        "id": "vibration-control",
+        "anchor": "IN",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "module-body",
+        "label": "Vibration module",
+        "explainableAs": [
+          "haptic-output",
+          "logic-controlled-load"
+        ]
+      }
+    ]
+  },
+  "unipolar-stepper": {
+    "type": "unipolar-stepper",
+    "width": 0.7,
+    "depth": 0.7,
+    "height": 0.85,
+    "visualStyle": {
+      "shape": "motor",
+      "color": "#1f6fb2",
+      "material": "geared-stepper"
+    },
+    "pinAnchors": {
+      "IN1": { "x": -0.28, "y": 0.18, "z": 0.34, "role": "stepper-phase", "label": "IN1" },
+      "IN2": { "x": -0.14, "y": 0.18, "z": 0.34, "role": "stepper-phase", "label": "IN2" },
+      "IN3": { "x": 0, "y": 0.18, "z": 0.34, "role": "stepper-phase", "label": "IN3" },
+      "IN4": { "x": 0.14, "y": 0.18, "z": 0.34, "role": "stepper-phase", "label": "IN4" },
+      "VCC": { "x": 0.28, "y": 0.18, "z": 0.34, "role": "power", "label": "VCC" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.95, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage", "beside-breadboard"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "shaft-forward",
+      "notes": [
+        "The geared stepper body sits beside the breadboard; phases must route through the ULN2003 driver contract before simulation can run."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "unipolar-stepper-rotation", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "unipolar-stepper-current", "anchor": "VCC", "role": "current-overlay" },
+      { "id": "unipolar-stepper-phase", "anchor": "IN1", "role": "signal-overlay" }
+    ],
+    "hoverTargets": [
+      {
+        "id": "motor-body",
+        "label": "28BYJ-48 stepper body",
+        "explainableAs": ["stepper-motor", "qualitative-motion"]
+      },
+      {
+        "id": "phase-leads",
+        "label": "Stepper phase leads",
+        "pin": "IN1",
+        "explainableAs": ["stepper-phase-lines-required"]
+      }
+    ]
+  },
+  "nema17-stepper": {
+    "type": "nema17-stepper",
+    "width": 1.1,
+    "depth": 1.1,
+    "height": 1.2,
+    "visualStyle": {
+      "shape": "motor",
+      "color": "#333333",
+      "material": "bipolar-stepper"
+    },
+    "pinAnchors": {
+      "A+": { "x": -0.33, "y": 0.2, "z": 0.56, "role": "coil-a-positive", "label": "A+" },
+      "A-": { "x": -0.11, "y": 0.2, "z": 0.56, "role": "coil-a-negative", "label": "A-" },
+      "B+": { "x": 0.11, "y": 0.2, "z": 0.56, "role": "coil-b-positive", "label": "B+" },
+      "B-": { "x": 0.33, "y": 0.2, "z": 0.56, "role": "coil-b-negative", "label": "B-" }
+    },
+    "labelAnchor": { "x": 0, "y": 1.28, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage", "beside-breadboard"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "shaft-forward",
+      "notes": [
+        "NEMA 17 is rendered as an off-board bipolar motor; current limiting and torque are intentionally qualitative."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "nema17-stepper-rotation", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "nema17-coil-current", "anchor": "A+", "role": "current-overlay" },
+      { "id": "nema17-step-signal", "anchor": "A+", "role": "signal-overlay" }
+    ],
+    "hoverTargets": [
+      {
+        "id": "motor-body",
+        "label": "NEMA 17 motor body",
+        "explainableAs": ["stepper-motor", "external-power-warning"]
+      },
+      {
+        "id": "coil-leads",
+        "label": "Bipolar coil leads",
+        "pin": "A+",
+        "explainableAs": ["stepper-phase-lines-required"]
+      }
+    ]
+  },
+  "uln2003-stepper-driver": {
+    "type": "uln2003-stepper-driver",
+    "width": 0.75,
+    "depth": 0.55,
+    "height": 0.16,
+    "visualStyle": {
+      "shape": "module",
+      "color": "#1f6fb2",
+      "material": "pcb"
+    },
+    "pinAnchors": {
+      "IN1": { "x": -0.3, "y": 0.1, "z": -0.26, "role": "digital-input", "label": "IN1" },
+      "IN2": { "x": -0.1, "y": 0.1, "z": -0.26, "role": "digital-input", "label": "IN2" },
+      "IN3": { "x": 0.1, "y": 0.1, "z": -0.26, "role": "digital-input", "label": "IN3" },
+      "IN4": { "x": 0.3, "y": 0.1, "z": -0.26, "role": "digital-input", "label": "IN4" },
+      "VCC": { "x": -0.3, "y": 0.1, "z": 0.26, "role": "power", "label": "VCC" },
+      "GND": { "x": -0.1, "y": 0.1, "z": 0.26, "role": "ground", "label": "GND" },
+      "OUT1": { "x": 0.1, "y": 0.1, "z": 0.26, "role": "stepper-phase-output", "label": "OUT1" },
+      "OUT2": { "x": 0.2, "y": 0.1, "z": 0.26, "role": "stepper-phase-output", "label": "OUT2" },
+      "OUT3": { "x": 0.3, "y": 0.1, "z": 0.26, "role": "stepper-phase-output", "label": "OUT3" },
+      "OUT4": { "x": 0.4, "y": 0.1, "z": 0.26, "role": "stepper-phase-output", "label": "OUT4" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.34, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage", "beside-breadboard"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "motor-connector-forward",
+      "notes": [
+        "ULN2003 driver stays as an inspectable off-board module between Arduino phase signals and the 28BYJ-48 connector."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "uln2003-phase-signals", "anchor": "IN1", "role": "signal-overlay" },
+      { "id": "uln2003-coil-current", "anchor": "OUT1", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      {
+        "id": "logic-inputs",
+        "label": "ULN2003 IN1-IN4",
+        "pin": "IN1",
+        "explainableAs": ["stepper-phase-control"]
+      },
+      {
+        "id": "motor-connector",
+        "label": "Stepper output connector",
+        "pin": "OUT1",
+        "explainableAs": ["stepper-driver-required"]
+      }
+    ]
+  },
+  "step-dir-stepper-driver": {
+    "type": "step-dir-stepper-driver",
+    "width": 0.6,
+    "depth": 0.5,
+    "height": 0.16,
+    "visualStyle": {
+      "shape": "module",
+      "color": "#c2362f",
+      "material": "pcb"
+    },
+    "pinAnchors": {
+      "VMOT": { "x": -0.24, "y": 0.1, "z": 0.24, "role": "motor-power", "label": "VMOT" },
+      "GND": { "x": -0.08, "y": 0.1, "z": 0.24, "role": "ground", "label": "GND" },
+      "STEP": { "x": 0.08, "y": 0.1, "z": -0.24, "role": "step-signal", "label": "STEP" },
+      "DIR": { "x": 0.24, "y": 0.1, "z": -0.24, "role": "direction-signal", "label": "DIR" },
+      "EN": { "x": 0.32, "y": 0.1, "z": -0.24, "role": "enable", "label": "EN" },
+      "1A": { "x": -0.24, "y": 0.1, "z": 0, "role": "coil-a-positive", "label": "1A" },
+      "1B": { "x": -0.08, "y": 0.1, "z": 0, "role": "coil-a-negative", "label": "1B" },
+      "2A": { "x": 0.08, "y": 0.1, "z": 0, "role": "coil-b-positive", "label": "2A" },
+      "2B": { "x": 0.24, "y": 0.1, "z": 0, "role": "coil-b-negative", "label": "2B" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.32, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage", "beside-breadboard"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "step-dir-forward",
+      "notes": [
+        "A4988/DRV8825 modules use STEP and DIR logic plus motor coil outputs; real current limiting is outside the educational simulation."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "step-dir-control-signals", "anchor": "STEP", "role": "signal-overlay" },
+      { "id": "step-dir-coil-current", "anchor": "1A", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      {
+        "id": "step-dir-inputs",
+        "label": "STEP/DIR logic pins",
+        "pin": "STEP",
+        "explainableAs": ["stepper-step-dir-required"]
+      },
+      {
+        "id": "motor-coils",
+        "label": "Bipolar motor coil outputs",
+        "pin": "1A",
+        "explainableAs": ["stepper-phase-lines-required"]
+      }
+    ]
+  },
+  "hbridge-driver-module": {
+    "type": "hbridge-driver-module",
+    "width": 1.1,
+    "depth": 0.85,
+    "height": 0.3,
+    "visualStyle": {
+      "shape": "module",
+      "color": "#17171c",
+      "material": "driver-pcb"
+    },
+    "pinAnchors": {
+      "ENA": { "x": -0.44, "y": 0.16, "z": -0.34, "role": "enable", "label": "ENA" },
+      "IN1": { "x": -0.26, "y": 0.16, "z": -0.34, "role": "digital-input", "label": "IN1" },
+      "IN2": { "x": -0.08, "y": 0.16, "z": -0.34, "role": "digital-input", "label": "IN2" },
+      "IN3": { "x": 0.1, "y": 0.16, "z": -0.34, "role": "digital-input", "label": "IN3" },
+      "IN4": { "x": 0.28, "y": 0.16, "z": -0.34, "role": "digital-input", "label": "IN4" },
+      "ENB": { "x": 0.46, "y": 0.16, "z": -0.34, "role": "enable", "label": "ENB" },
+      "VS": { "x": -0.36, "y": 0.16, "z": 0.34, "role": "motor-power", "label": "VS" },
+      "VCC": { "x": -0.12, "y": 0.16, "z": 0.34, "role": "logic-power", "label": "VCC" },
+      "GND": { "x": 0.12, "y": 0.16, "z": 0.34, "role": "ground", "label": "GND" },
+      "OUT1": { "x": 0.34, "y": 0.16, "z": 0.18, "role": "hbridge-output", "label": "OUT1" },
+      "OUT2": { "x": 0.34, "y": 0.16, "z": 0.34, "role": "hbridge-output", "label": "OUT2" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.45, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage", "beside-breadboard"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "terminal-block-forward",
+      "notes": [
+        "L298N-style H-bridge modules are rendered as off-board drivers; real motor supply, heat, and current limits remain qualitative."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "hbridge-control-signals", "anchor": "IN1", "role": "signal-overlay" },
+      { "id": "hbridge-motor-current", "anchor": "OUT1", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      {
+        "id": "logic-inputs",
+        "label": "H-bridge control inputs",
+        "pin": "IN1",
+        "explainableAs": ["hbridge-control-required"]
+      },
+      {
+        "id": "motor-outputs",
+        "label": "Motor output terminals",
+        "pin": "OUT1",
+        "explainableAs": ["hbridge-driver-required", "high-current-warning"]
+      }
+    ]
+  },
+  "hbridge-driver-ic": {
+    "type": "hbridge-driver-ic",
+    "width": 0.6,
+    "depth": 0.4,
+    "height": 0.25,
+    "visualStyle": {
+      "shape": "chip",
+      "color": "#17171c",
+      "material": "dip-ic"
+    },
+    "pinAnchors": {
+      "VCC1": { "x": -0.25, "y": 0.12, "z": -0.18, "role": "logic-power", "label": "VCC1" },
+      "VCC2": { "x": -0.1, "y": 0.12, "z": -0.18, "role": "motor-power", "label": "VCC2" },
+      "GND": { "x": 0.05, "y": 0.12, "z": -0.18, "role": "ground", "label": "GND" },
+      "EN1": { "x": 0.2, "y": 0.12, "z": -0.18, "role": "enable", "label": "EN1" },
+      "IN1": { "x": -0.2, "y": 0.12, "z": 0.18, "role": "digital-input", "label": "IN1" },
+      "IN2": { "x": -0.05, "y": 0.12, "z": 0.18, "role": "digital-input", "label": "IN2" },
+      "OUT1": { "x": 0.1, "y": 0.12, "z": 0.18, "role": "hbridge-output", "label": "OUT1" },
+      "OUT2": { "x": 0.25, "y": 0.12, "z": 0.18, "role": "hbridge-output", "label": "OUT2" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.36, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["breadboard"],
+      "breadboardCompatible": true,
+      "defaultOrientation": "dip-across-gap",
+      "notes": [
+        "L293D is rendered as a DIP-style motor driver; real supply decoupling, heat, and current sizing stay outside the simulation."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "l293d-control-signals", "anchor": "IN1", "role": "signal-overlay" },
+      { "id": "l293d-motor-current", "anchor": "OUT1", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      {
+        "id": "logic-inputs",
+        "label": "L293D IN1/IN2/EN1",
+        "pin": "IN1",
+        "explainableAs": ["hbridge-control-required"]
+      },
+      {
+        "id": "motor-outputs",
+        "label": "L293D OUT1/OUT2",
+        "pin": "OUT1",
+        "explainableAs": ["hbridge-driver-required"]
+      }
+    ]
+  },
+  "relay-module-1ch": {
+    "type": "relay-module-1ch",
+    "width": 0.85,
+    "depth": 0.65,
+    "height": 0.2,
+    "visualStyle": {
+      "shape": "module",
+      "color": "#1a5276",
+      "material": "relay-pcb"
+    },
+    "pinAnchors": {
+      "VCC": { "x": -0.28, "y": 0.12, "z": -0.24, "role": "power", "label": "VCC" },
+      "GND": { "x": -0.08, "y": 0.12, "z": -0.24, "role": "ground", "label": "GND" },
+      "IN": { "x": 0.12, "y": 0.12, "z": -0.24, "role": "digital-input", "label": "IN" },
+      "COM": { "x": -0.24, "y": 0.12, "z": 0.28, "role": "relay-common", "label": "COM" },
+      "NO": { "x": 0, "y": 0.12, "z": 0.28, "role": "relay-normally-open", "label": "NO" },
+      "NC": { "x": 0.24, "y": 0.12, "z": 0.28, "role": "relay-normally-closed", "label": "NC" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.36, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage", "beside-breadboard"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "contacts-forward",
+      "notes": [
+        "Relay contacts are only simulated with low-voltage classroom loads; mains wiring is blocked."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "relay-coil-control", "anchor": "IN", "role": "signal-overlay" },
+      { "id": "relay-contact-current", "anchor": "NO", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      {
+        "id": "input-side",
+        "label": "Relay input side",
+        "pin": "IN",
+        "explainableAs": ["relay-control-required"]
+      },
+      {
+        "id": "contact-side",
+        "label": "Relay contact side",
+        "pin": "COM",
+        "explainableAs": ["relay-low-voltage-load-only"]
+      }
+    ]
+  },
+  "relay-module-4ch": {
+    "type": "relay-module-4ch",
+    "width": 1.8,
+    "depth": 0.65,
+    "height": 0.2,
+    "visualStyle": {
+      "shape": "module",
+      "color": "#1a5276",
+      "material": "relay-pcb"
+    },
+    "pinAnchors": {
+      "VCC": { "x": -0.72, "y": 0.12, "z": -0.24, "role": "power", "label": "VCC" },
+      "GND": { "x": -0.48, "y": 0.12, "z": -0.24, "role": "ground", "label": "GND" },
+      "IN1": { "x": -0.24, "y": 0.12, "z": -0.24, "role": "digital-input", "label": "IN1" },
+      "IN2": { "x": 0, "y": 0.12, "z": -0.24, "role": "digital-input", "label": "IN2" },
+      "IN3": { "x": 0.24, "y": 0.12, "z": -0.24, "role": "digital-input", "label": "IN3" },
+      "IN4": { "x": 0.48, "y": 0.12, "z": -0.24, "role": "digital-input", "label": "IN4" },
+      "COM1": { "x": -0.28, "y": 0.12, "z": 0.28, "role": "relay-common", "label": "COM1" },
+      "NO1": { "x": 0, "y": 0.12, "z": 0.28, "role": "relay-normally-open", "label": "NO1" },
+      "NC1": { "x": 0.28, "y": 0.12, "z": 0.28, "role": "relay-normally-closed", "label": "NC1" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.36, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage", "beside-breadboard"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "contacts-forward",
+      "notes": [
+        "The 4-channel relay footprint exposes one simulated low-voltage contact channel plus all four logic inputs."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "relay-4ch-coil-control", "anchor": "IN1", "role": "signal-overlay" },
+      { "id": "relay-4ch-contact-current", "anchor": "NO1", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      {
+        "id": "input-side",
+        "label": "Relay IN1-IN4 input side",
+        "pin": "IN1",
+        "explainableAs": ["relay-control-required", "multi-channel-relay"]
+      },
+      {
+        "id": "contact-side",
+        "label": "Relay channel 1 contact side",
+        "pin": "COM1",
+        "explainableAs": ["relay-low-voltage-load-only"]
+      }
+    ]
+  }
+}

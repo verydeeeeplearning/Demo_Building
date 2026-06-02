@@ -1,0 +1,2 @@
+{"id":"v2-bare-7seg-single-digit","message":"Show a number on a bare single digit 7-segment display using resistors.","expected":"valid_circuit_synthesis"}
+{"id":"v2-bare-7seg-no-resistor-counterexample","message":"Wire a bare one digit 7-segment LED directly to Arduino pins without resistors.","expected":"clarification_or_support_gap"}

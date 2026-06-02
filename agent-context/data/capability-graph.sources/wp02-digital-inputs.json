@@ -1,0 +1,236 @@
+[
+  {
+    "id": "digital-input-display-readout",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "show digital sensor state",
+      "display switch state",
+      "pir motion on oled",
+      "touch sensor on display",
+      "ir receiver display",
+      "color sensor display",
+      "hall sensor display"
+    ],
+    "requiredEvidence": [
+      "digital sensor",
+      "switch state",
+      "pir",
+      "touch sensor",
+      "hall sensor",
+      "ir receiver",
+      "line tracker",
+      "tilt sensor",
+      "vibration sensor",
+      "color sensor",
+      "reed switch",
+      "limit switch"
+    ],
+    "negativeEvidence": [
+      "analog value",
+      "brightness dimmer",
+      "temperature humidity",
+      "distance sensor"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "show PIR motion on the OLED",
+      "display whether a limit switch is pressed",
+      "show touch sensor state",
+      "display IR receiver pulses",
+      "OLED에 센서 상태 표시",
+      "스위치 상태를 화면에 표시"
+    ],
+    "inputModalities": [
+      "digital-input",
+      "digital-sensor"
+    ],
+    "outputModalities": [
+      "display",
+      "sensor-value"
+    ],
+    "requiredRoles": [
+      "controller",
+      "digital-input",
+      "digital-input-source",
+      "power-source",
+      "ground-return",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "oled-i2c-096"
+    ],
+    "optionalParts": [
+      "jumper-wire",
+      "limit-switch",
+      "reed-switch",
+      "slide-switch",
+      "toggle-switch",
+      "ttp223-touch",
+      "hall-effect-sensor",
+      "ir-receiver",
+      "line-tracker",
+      "pir-hc-sr501",
+      "sw420-vibration",
+      "tilt-ball-sensor",
+      "tcs3200-color"
+    ],
+    "protocols": [
+      "gpio",
+      "digital",
+      "i2c"
+    ],
+    "simulationPrimitives": [
+      "digital_input_state",
+      "display_static_text",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "passive-switch-2pin",
+      "pulse-sensor-module-5pin",
+      "oled",
+      "wire",
+      "digital-sensor-module-out-3pin",
+      "digital-sensor-module-do-3pin",
+      "digital-sensor-module-sig-3pin",
+      "spdt-switch-nonc-3pin",
+      "spdt-switch-ab-3pin"
+    ],
+    "validationRules": [
+      "digital-input-pin-exists",
+      "digital-input-reference-defined",
+      "power-rail-valid",
+      "common-ground",
+      "i2c-pin-role-match",
+      "qualitative-sensor-readout-only"
+    ],
+    "commonMistakes": [
+      "Missing VCC/GND on a powered digital sensor module.",
+      "Floating passive switch input with no pull-up or ground reference.",
+      "Claiming calibrated sensor readings from a qualitative digital state."
+    ],
+    "safeAlternatives": []
+  },
+  {
+    "id": "digital-input-threshold-output",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "digital sensor turns on led",
+      "pir turns on led",
+      "touch sensor led",
+      "limit switch led",
+      "reed switch led",
+      "tilt sensor led",
+      "vibration sensor led"
+    ],
+    "requiredEvidence": [
+      "digital sensor",
+      "switch",
+      "pir",
+      "touch sensor",
+      "hall sensor",
+      "line tracker",
+      "tilt sensor",
+      "vibration sensor",
+      "reed switch",
+      "limit switch"
+    ],
+    "negativeEvidence": [
+      "oled display",
+      "screen",
+      "show text",
+      "analog dimmer",
+      "temperature humidity",
+      "distance display"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "turn on an LED when PIR detects motion",
+      "limit switch turns on LED",
+      "touch sensor controls LED",
+      "tilt sensor lights an LED",
+      "센서가 감지하면 LED 켜기",
+      "리미트 스위치로 LED 켜기"
+    ],
+    "inputModalities": [
+      "digital-input",
+      "digital-sensor"
+    ],
+    "outputModalities": [
+      "light",
+      "digital"
+    ],
+    "requiredRoles": [
+      "controller",
+      "digital-input",
+      "digital-input-source",
+      "digital-output",
+      "series-current-limit",
+      "dc-load",
+      "ground-return"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "led-5mm",
+      "resistor-220"
+    ],
+    "optionalParts": [
+      "jumper-wire",
+      "limit-switch",
+      "reed-switch",
+      "slide-switch",
+      "toggle-switch",
+      "ttp223-touch",
+      "hall-effect-sensor",
+      "ir-receiver",
+      "line-tracker",
+      "pir-hc-sr501",
+      "sw420-vibration",
+      "tilt-ball-sensor",
+      "tcs3200-color"
+    ],
+    "protocols": [
+      "gpio",
+      "digital",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "digital_input_state",
+      "digital_on_off",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "passive-switch-2pin",
+      "led",
+      "resistor",
+      "wire",
+      "digital-sensor-module-out-3pin",
+      "digital-sensor-module-do-3pin",
+      "digital-sensor-module-sig-3pin",
+      "spdt-switch-nonc-3pin",
+      "spdt-switch-ab-3pin"
+    ],
+    "validationRules": [
+      "digital-input-pin-exists",
+      "digital-input-reference-defined",
+      "series-current-limit",
+      "closed-current-path",
+      "common-ground",
+      "qualitative-sensor-readout-only"
+    ],
+    "commonMistakes": [
+      "Letting input signal current and LED load current collapse into one path.",
+      "Missing the 220 ohm LED current limiter.",
+      "Missing module ground on powered digital sensors."
+    ],
+    "safeAlternatives": []
+  }
+]

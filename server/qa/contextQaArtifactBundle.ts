@@ -97,7 +97,8 @@ function buildBrowserVerificationPlan(report: GeneralizationEvalReport) {
       },
       {
         id: 'files-requirement-and-context-evidence',
-        label: 'Files tab shows requirement markdown and context coverage evidence for agent-built circuits.'
+        label:
+          'Files tab shows requirement markdown plus context coverage and source bundle evidence for agent-built circuits.'
       },
       {
         id: 'pcb-nonblank-render-plan-canvas',

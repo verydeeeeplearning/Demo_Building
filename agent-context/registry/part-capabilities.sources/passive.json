@@ -1,0 +1,771 @@
+[
+  {
+    "id": "resistor-220",
+    "kind": "passive",
+    "label": "220 ohm resistor",
+    "aliases": [
+      "resistor",
+      "220",
+      "current limiter",
+      "current limiting resistor"
+    ],
+    "pins": [
+      {
+        "name": "1",
+        "role": "passive-terminal",
+        "aliases": [
+          "left"
+        ]
+      },
+      {
+        "name": "2",
+        "role": "passive-terminal",
+        "aliases": [
+          "right"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 25,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "passive"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "resistor",
+      "width": 0.7,
+      "depth": 0.16,
+      "height": 0.16
+    },
+    "simulationModel": {
+      "type": "resistor",
+      "nominalCurrentMa": 13.6
+    },
+    "supportLevel": "supported",
+    "capabilities": [
+      "current-limiting-passive",
+      "series-passive"
+    ],
+    "compatibleSimulationPrimitives": [
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Placing the resistor in parallel instead of series with the LED."
+    ],
+    "safeSubstitutes": [
+      "resistor-330-planned"
+    ]
+  },
+  {
+    "id": "resistor-10k",
+    "kind": "passive",
+    "label": "10K ohm resistor",
+    "aliases": [
+      "10k resistor",
+      "10K resistor",
+      "fixed resistor",
+      "pull-down resistor",
+      "divider resistor",
+      "reference resistor",
+      "10kΩ resistor"
+    ],
+    "pins": [
+      {
+        "name": "1",
+        "role": "passive-terminal",
+        "aliases": [
+          "left",
+          "terminal 1"
+        ]
+      },
+      {
+        "name": "2",
+        "role": "passive-terminal",
+        "aliases": [
+          "right",
+          "terminal 2"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 1,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "passive",
+      "voltage-divider"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "resistor",
+      "width": 0.7,
+      "depth": 0.16,
+      "height": 0.16
+    },
+    "simulationModel": {
+      "type": "fixed-divider-reference-resistor",
+      "nominalCurrentMa": 0.5
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "resistive-passive",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [],
+    "compatibleTopologies": [
+      "controller-resistive-sensor-divider-i2c-display",
+      "controller-resistive-sensor-divider-threshold-output"
+    ],
+    "sourceClaimIds": [
+      "resistor-10k-reference-divider"
+    ],
+    "capabilities": [
+      "voltage-divider-reference",
+      "series-passive",
+      "fixed-resistor"
+    ],
+    "compatibleSimulationPrimitives": [
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Omitting the fixed resistor leaves the sensor node without a valid analog divider reference."
+    ],
+    "safeSubstitutes": [
+      "resistor-220"
+    ]
+  },
+  {
+    "id": "ceramic-cap",
+    "kind": "passive",
+    "label": "Ceramic capacitor",
+    "aliases": [
+      "ceramic capacitor",
+      "disc capacitor",
+      "decoupling capacitor",
+      "bypass capacitor",
+      "세라믹 캐패시터",
+      "세라믹 콘덴서"
+    ],
+    "pins": [
+      {
+        "name": "A",
+        "role": "passive-terminal",
+        "aliases": ["terminal a", "lead a"]
+      },
+      {
+        "name": "B",
+        "role": "passive-terminal",
+        "aliases": ["terminal b", "lead b"]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 0,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "passive",
+      "decoupling"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "ceramic-capacitor",
+      "width": 0.3,
+      "depth": 0.18,
+      "height": 0.18
+    },
+    "simulationModel": {
+      "type": "passive-protection-context",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "capacitive-passive",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "ceramic-cap"
+    ],
+    "compatibleTopologies": [
+      "protection-passive-in-series-or-parallel"
+    ],
+    "sourceClaimIds": [
+      "ceramic-cap-visual-pin-map",
+      "passive-protection-context-contract"
+    ],
+    "capabilities": [
+      "passive-context-part",
+      "non-polar-passive",
+      "decoupling-passive",
+      "passive-protection-context"
+    ],
+    "compatibleSimulationPrimitives": [
+      "passive_protection_context_state"
+    ],
+    "commonMistakes": [
+      "Treating a passive-only capacitor context as an active current-flow simulation.",
+      "Using the qualitative model for real decoupling value or transient sizing."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "electrolytic-cap",
+    "kind": "passive",
+    "label": "Electrolytic capacitor",
+    "aliases": [
+      "electrolytic capacitor",
+      "polarized capacitor",
+      "filter capacitor",
+      "전해 캐패시터",
+      "전해 콘덴서"
+    ],
+    "pins": [
+      {
+        "name": "+",
+        "role": "positive-terminal",
+        "aliases": ["positive", "plus", "long lead"]
+      },
+      {
+        "name": "-",
+        "role": "negative-terminal",
+        "aliases": ["negative", "minus", "stripe lead"]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 0,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "passive",
+      "polarized-passive",
+      "filtering"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "electrolytic-capacitor",
+      "width": 0.3,
+      "depth": 0.3,
+      "height": 0.5
+    },
+    "simulationModel": {
+      "type": "passive-protection-context",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "capacitive-passive",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "electrolytic-cap"
+    ],
+    "compatibleTopologies": [
+      "protection-passive-in-series-or-parallel"
+    ],
+    "sourceClaimIds": [
+      "electrolytic-cap-visual-pin-map",
+      "passive-protection-context-contract"
+    ],
+    "capabilities": [
+      "passive-context-part",
+      "polarized-passive",
+      "filter-passive",
+      "passive-protection-context"
+    ],
+    "compatibleSimulationPrimitives": [
+      "passive_protection_context_state"
+    ],
+    "commonMistakes": [
+      "Reversing the polarized capacitor leads.",
+      "Treating the qualitative context state as real surge or ripple analysis."
+    ],
+    "safeSubstitutes": [
+      "ceramic-cap"
+    ]
+  },
+  {
+    "id": "diode-1n4007",
+    "kind": "passive",
+    "label": "1N4007 rectifier diode",
+    "aliases": [
+      "1n4007",
+      "rectifier diode",
+      "silicon diode",
+      "protection diode",
+      "다이오드",
+      "정류 다이오드"
+    ],
+    "pins": [
+      {
+        "name": "A",
+        "role": "anode",
+        "aliases": ["anode", "positive side"]
+      },
+      {
+        "name": "K",
+        "role": "cathode",
+        "aliases": ["cathode", "stripe side"]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 0,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "passive",
+      "polarized-passive",
+      "diode"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "rectifier-diode",
+      "width": 0.5,
+      "depth": 0.16,
+      "height": 0.16
+    },
+    "simulationModel": {
+      "type": "passive-protection-context",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "protection-passive",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "diode-1n4007"
+    ],
+    "compatibleTopologies": [
+      "protection-passive-in-series-or-parallel"
+    ],
+    "sourceClaimIds": [
+      "diode-1n4007-visual-pin-map",
+      "passive-protection-context-contract"
+    ],
+    "capabilities": [
+      "passive-context-part",
+      "polarized-passive",
+      "diode-protection-passive",
+      "passive-protection-context"
+    ],
+    "compatibleSimulationPrimitives": [
+      "passive_protection_context_state"
+    ],
+    "commonMistakes": [
+      "Reversing anode and cathode in a polarity-sensitive lesson.",
+      "Using the educational context as a real rectifier or flyback design calculation."
+    ],
+    "safeSubstitutes": [
+      "schottky-diode"
+    ]
+  },
+  {
+    "id": "schottky-diode",
+    "kind": "passive",
+    "label": "Schottky diode 1N5819",
+    "aliases": [
+      "schottky diode",
+      "1n5819",
+      "low forward voltage diode",
+      "reverse polarity diode",
+      "쇼트키 다이오드"
+    ],
+    "pins": [
+      {
+        "name": "A",
+        "role": "anode",
+        "aliases": ["anode", "positive side"]
+      },
+      {
+        "name": "K",
+        "role": "cathode",
+        "aliases": ["cathode", "stripe side"]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 0,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "passive",
+      "polarized-passive",
+      "diode"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "schottky-diode",
+      "width": 0.45,
+      "depth": 0.16,
+      "height": 0.16
+    },
+    "simulationModel": {
+      "type": "passive-protection-context",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "protection-passive",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "schottky-diode"
+    ],
+    "compatibleTopologies": [
+      "protection-passive-in-series-or-parallel"
+    ],
+    "sourceClaimIds": [
+      "schottky-diode-visual-pin-map",
+      "passive-protection-context-contract"
+    ],
+    "capabilities": [
+      "passive-context-part",
+      "polarized-passive",
+      "diode-protection-passive",
+      "passive-protection-context"
+    ],
+    "compatibleSimulationPrimitives": [
+      "passive_protection_context_state"
+    ],
+    "commonMistakes": [
+      "Ignoring polarity when using a Schottky diode for reverse-polarity context.",
+      "Treating the state-only model as a real forward-voltage or power-loss calculation."
+    ],
+    "safeSubstitutes": [
+      "diode-1n4007"
+    ]
+  },
+  {
+    "id": "zener-diode",
+    "kind": "passive",
+    "label": "Zener diode",
+    "aliases": [
+      "zener",
+      "zener diode",
+      "voltage clamp diode",
+      "제너 다이오드"
+    ],
+    "pins": [
+      {
+        "name": "A",
+        "role": "anode",
+        "aliases": ["anode"]
+      },
+      {
+        "name": "K",
+        "role": "cathode",
+        "aliases": ["cathode", "stripe side"]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 0,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "passive",
+      "polarized-passive",
+      "diode",
+      "clamp"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "zener-diode",
+      "width": 0.45,
+      "depth": 0.15,
+      "height": 0.15
+    },
+    "simulationModel": {
+      "type": "passive-protection-context",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "protection-passive",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "zener-diode"
+    ],
+    "compatibleTopologies": [
+      "protection-passive-in-series-or-parallel"
+    ],
+    "sourceClaimIds": [
+      "zener-diode-visual-pin-map",
+      "passive-protection-context-contract"
+    ],
+    "capabilities": [
+      "passive-context-part",
+      "polarized-passive",
+      "zener-clamp-passive",
+      "passive-protection-context"
+    ],
+    "compatibleSimulationPrimitives": [
+      "passive_protection_context_state"
+    ],
+    "commonMistakes": [
+      "Assuming the educational model calculates an actual clamp voltage.",
+      "Omitting a real current-limiting design around a Zener diode."
+    ],
+    "safeSubstitutes": [
+      "diode-1n4007"
+    ]
+  },
+  {
+    "id": "polyfuse",
+    "kind": "passive",
+    "label": "Polyfuse / resettable fuse",
+    "aliases": [
+      "polyfuse",
+      "resettable fuse",
+      "pptc fuse",
+      "ptc fuse",
+      "퓨즈",
+      "폴리퓨즈"
+    ],
+    "pins": [
+      {
+        "name": "A",
+        "role": "passive-terminal",
+        "aliases": ["terminal a"]
+      },
+      {
+        "name": "B",
+        "role": "passive-terminal",
+        "aliases": ["terminal b"]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 0,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "passive",
+      "protection"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "polyfuse",
+      "width": 0.38,
+      "depth": 0.12,
+      "height": 0.12
+    },
+    "simulationModel": {
+      "type": "passive-protection-context",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "protection-passive",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "polyfuse"
+    ],
+    "compatibleTopologies": [
+      "protection-passive-in-series-or-parallel"
+    ],
+    "sourceClaimIds": [
+      "polyfuse-visual-pin-map",
+      "passive-protection-context-contract"
+    ],
+    "capabilities": [
+      "passive-context-part",
+      "fuse-protection-passive",
+      "passive-protection-context"
+    ],
+    "compatibleSimulationPrimitives": [
+      "passive_protection_context_state"
+    ],
+    "commonMistakes": [
+      "Treating the educational model as real trip-current or thermal recovery analysis.",
+      "Using the part to justify unsafe short-circuit experiments."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "inductor-axial",
+    "kind": "passive",
+    "label": "Axial inductor",
+    "aliases": [
+      "inductor",
+      "axial inductor",
+      "coil",
+      "choke",
+      "인덕터",
+      "코일"
+    ],
+    "pins": [
+      {
+        "name": "A",
+        "role": "passive-terminal",
+        "aliases": ["terminal a", "lead a"]
+      },
+      {
+        "name": "B",
+        "role": "passive-terminal",
+        "aliases": ["terminal b", "lead b"]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 0,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "passive",
+      "filtering"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "axial-inductor",
+      "width": 0.5,
+      "depth": 0.18,
+      "height": 0.18
+    },
+    "simulationModel": {
+      "type": "passive-protection-context",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "frequency-or-inductive-passive",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "inductor-axial"
+    ],
+    "compatibleTopologies": [
+      "protection-passive-in-series-or-parallel"
+    ],
+    "sourceClaimIds": [
+      "inductor-axial-visual-pin-map",
+      "passive-protection-context-contract"
+    ],
+    "capabilities": [
+      "passive-context-part",
+      "filter-passive",
+      "passive-protection-context"
+    ],
+    "compatibleSimulationPrimitives": [
+      "passive_protection_context_state"
+    ],
+    "commonMistakes": [
+      "Treating an inductor context as a real transient, saturation, or RF simulation.",
+      "Ignoring current and flyback design in real inductive circuits."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "crystal-16mhz",
+    "kind": "passive",
+    "label": "16 MHz crystal",
+    "aliases": [
+      "16mhz crystal",
+      "16 mhz crystal",
+      "quartz crystal",
+      "clock crystal",
+      "크리스탈",
+      "16MHz 크리스탈"
+    ],
+    "pins": [
+      {
+        "name": "X1",
+        "role": "clock-terminal",
+        "aliases": ["x1", "crystal lead 1"]
+      },
+      {
+        "name": "X2",
+        "role": "clock-terminal",
+        "aliases": ["x2", "crystal lead 2"]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 0,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "passive",
+      "clock",
+      "timing"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "crystal-16mhz",
+      "width": 0.2,
+      "depth": 0.2,
+      "height": 0.5
+    },
+    "simulationModel": {
+      "type": "timing-passive-context",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "frequency-or-inductive-passive",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "crystal-16mhz"
+    ],
+    "compatibleTopologies": [
+      "timing-passive-context-only"
+    ],
+    "sourceClaimIds": [
+      "crystal-16mhz-visual-pin-map",
+      "timing-passive-context-contract"
+    ],
+    "capabilities": [
+      "passive-context-part",
+      "timing-passive-context",
+      "clock-reference-passive"
+    ],
+    "compatibleSimulationPrimitives": [
+      "timing_passive_context_state"
+    ],
+    "commonMistakes": [
+      "Treating the context-only crystal state as oscillator startup or clock-accuracy simulation.",
+      "Forgetting that many real crystal circuits need load capacitors and board-layout care."
+    ],
+    "safeSubstitutes": []
+  }
+]

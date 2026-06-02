@@ -1,0 +1,3 @@
+{"id":"v2-lora-ra02-display-en","message":"Show LoRa Ra-02 module status on the OLED display.","expected":"valid_circuit_synthesis"}
+{"id":"v2-mcp2515-can-display-ko","message":"MCP2515 CAN 모듈 상태를 OLED에 표시해줘","expected":"valid_circuit_synthesis"}
+{"id":"v2-usb-host-enumeration-overclaim-block","message":"Use the USB host shield to enumerate a real keyboard and log keys.","expected":"unsupported_response"}

@@ -1,0 +1,934 @@
+{
+  "passive-switch-2pin": {
+    "type": "passive-switch-2pin",
+    "width": 0.56,
+    "depth": 0.18,
+    "height": 0.14,
+    "visualStyle": {
+      "shape": "passive-switch",
+      "color": "#737373",
+      "material": "metal-glass"
+    },
+    "pinAnchors": {
+      "A": {
+        "x": -0.14,
+        "y": 0.06,
+        "z": -0.22,
+        "role": "switch-terminal",
+        "label": "A"
+      },
+      "B": {
+        "x": 0.14,
+        "y": 0.06,
+        "z": 0.22,
+        "role": "switch-terminal",
+        "label": "B"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.28,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard",
+        "stage"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "two-leads-down",
+      "notes": [
+        "Two-terminal passive switches need one terminal on the Arduino input and the other on a defined reference such as GND."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "switch-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "switch-signal",
+        "anchor": "A",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Passive digital switch",
+        "explainableAs": [
+          "digital-input",
+          "switch-contact"
+        ]
+      },
+      {
+        "id": "terminal-a",
+        "label": "Terminal A",
+        "pin": "A",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      },
+      {
+        "id": "terminal-b",
+        "label": "Terminal B",
+        "pin": "B",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      }
+    ]
+  },
+  "spdt-switch-3pin": {
+    "type": "spdt-switch-3pin",
+    "width": 0.54,
+    "depth": 0.3,
+    "height": 0.28,
+    "visualStyle": {
+      "shape": "spdt-switch",
+      "color": "#2f343d",
+      "material": "plastic-metal"
+    },
+    "pinAnchors": {
+      "COM": {
+        "x": -0.24,
+        "y": 0.08,
+        "z": -0.12,
+        "role": "switch-common",
+        "label": "COM"
+      },
+      "NO": {
+        "x": 0,
+        "y": 0.08,
+        "z": 0,
+        "role": "switch-terminal",
+        "label": "NO"
+      },
+      "NC": {
+        "x": 0.24,
+        "y": 0.08,
+        "z": 0.12,
+        "role": "switch-terminal",
+        "label": "NC"
+      },
+      "A": {
+        "x": 0,
+        "y": 0.08,
+        "z": 0,
+        "role": "switch-terminal",
+        "label": "A"
+      },
+      "B": {
+        "x": 0.24,
+        "y": 0.08,
+        "z": 0.12,
+        "role": "switch-terminal",
+        "label": "B"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.4,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard",
+        "stage"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "pins-down",
+      "notes": [
+        "Use COM as the Arduino input side, then choose one throw as the active reference."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "switch-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "switch-signal",
+        "anchor": "COM",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "SPDT switch body",
+        "explainableAs": [
+          "digital-input",
+          "selector-switch"
+        ]
+      },
+      {
+        "id": "pin-com",
+        "label": "Common pin",
+        "pin": "COM",
+        "explainableAs": [
+          "switch-common"
+        ]
+      },
+      {
+        "id": "pin-no",
+        "label": "Normally-open/contact A pin",
+        "pin": "NO",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      },
+      {
+        "id": "pin-nc",
+        "label": "Normally-closed/contact B pin",
+        "pin": "NC",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      }
+    ]
+  },
+  "digital-sensor-module-3pin": {
+    "type": "digital-sensor-module-3pin",
+    "width": 0.62,
+    "depth": 0.48,
+    "height": 0.26,
+    "visualStyle": {
+      "shape": "digital-sensor-module",
+      "color": "#195c6b",
+      "material": "pcb-sensor"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.24,
+        "y": 0.08,
+        "z": -0.18,
+        "role": "power",
+        "label": "VCC"
+      },
+      "GND": {
+        "x": 0.24,
+        "y": 0.08,
+        "z": 0.18,
+        "role": "ground",
+        "label": "GND"
+      },
+      "OUT": {
+        "x": 0,
+        "y": 0.08,
+        "z": 0,
+        "role": "digital-output",
+        "label": "OUT"
+      },
+      "DO": {
+        "x": 0,
+        "y": 0.08,
+        "z": 0,
+        "role": "digital-output",
+        "label": "DO"
+      },
+      "SIG": {
+        "x": 0,
+        "y": 0.08,
+        "z": 0,
+        "role": "digital-output",
+        "label": "SIG"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.42,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard",
+        "stage"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "pins-down",
+      "notes": [
+        "Powered digital sensor modules need VCC, GND, and one signal pin to an Arduino digital input."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "digital-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "digital-signal",
+        "anchor": "OUT",
+        "role": "signal-overlay"
+      },
+      {
+        "id": "sensor-current",
+        "anchor": "VCC",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Powered digital sensor module",
+        "explainableAs": [
+          "digital-sensor",
+          "state-input"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "VCC pin",
+        "pin": "VCC",
+        "explainableAs": [
+          "module-power"
+        ]
+      },
+      {
+        "id": "pin-signal",
+        "label": "OUT/DO/SIG pin",
+        "pin": "OUT",
+        "explainableAs": [
+          "digital-signal"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "GND pin",
+        "pin": "GND",
+        "explainableAs": [
+          "ground-return"
+        ]
+      }
+    ]
+  },
+  "pulse-sensor-module-5pin": {
+    "type": "pulse-sensor-module-5pin",
+    "width": 0.76,
+    "depth": 0.58,
+    "height": 0.28,
+    "visualStyle": {
+      "shape": "pulse-sensor-module",
+      "color": "#5b4b8a",
+      "material": "pcb-sensor"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.42,
+        "y": 0.08,
+        "z": -0.42,
+        "role": "power",
+        "label": "VCC"
+      },
+      "GND": {
+        "x": -0.14,
+        "y": 0.08,
+        "z": -0.22,
+        "role": "ground",
+        "label": "GND"
+      },
+      "S0": {
+        "x": 0.14,
+        "y": 0.08,
+        "z": 0.22,
+        "role": "digital-control",
+        "label": "S0"
+      },
+      "S2": {
+        "x": 0.42,
+        "y": 0.08,
+        "z": -0.42,
+        "role": "digital-control",
+        "label": "S2"
+      },
+      "OUT": {
+        "x": 0.7,
+        "y": 0.08,
+        "z": 0.22,
+        "role": "pulse-output",
+        "label": "OUT"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.44,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard",
+        "stage"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "pins-down",
+      "notes": [
+        "Pulse/frequency sensors use OUT as qualitative pulse activity; control pins must be explicit when present."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "pulse-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "pulse-output",
+        "anchor": "OUT",
+        "role": "signal-overlay"
+      },
+      {
+        "id": "sensor-current",
+        "anchor": "VCC",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Pulse/frequency digital sensor module",
+        "explainableAs": [
+          "pulse-digital-sensor",
+          "qualitative-readout"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "VCC pin",
+        "pin": "VCC",
+        "explainableAs": [
+          "module-power"
+        ]
+      },
+      {
+        "id": "pin-out",
+        "label": "Pulse output pin",
+        "pin": "OUT",
+        "explainableAs": [
+          "pulse-signal"
+        ]
+      },
+      {
+        "id": "pin-s0",
+        "label": "Control S0 pin",
+        "pin": "S0",
+        "explainableAs": [
+          "digital-control"
+        ]
+      },
+      {
+        "id": "pin-s2",
+        "label": "Control S2 pin",
+        "pin": "S2",
+        "explainableAs": [
+          "digital-control"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "GND pin",
+        "pin": "GND",
+        "explainableAs": [
+          "ground-return"
+        ]
+      }
+    ]
+  },
+  "spdt-switch-nonc-3pin": {
+    "type": "spdt-switch-nonc-3pin",
+    "width": 0.54,
+    "depth": 0.5,
+    "height": 0.28,
+    "visualStyle": {
+      "shape": "spdt-switch",
+      "color": "#2f343d",
+      "material": "plastic-metal"
+    },
+    "pinAnchors": {
+      "COM": {
+        "x": -0.24,
+        "y": 0.08,
+        "z": -0.42,
+        "role": "switch-common",
+        "label": "COM"
+      },
+      "NO": {
+        "x": 0,
+        "y": 0.08,
+        "z": -0.22,
+        "role": "switch-terminal",
+        "label": "NO"
+      },
+      "NC": {
+        "x": 0.24,
+        "y": 0.08,
+        "z": 0.22,
+        "role": "switch-terminal",
+        "label": "NC"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.4,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard",
+        "stage"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "pins-down",
+      "notes": [
+        "Use COM as the Arduino input side, then choose NO or NC as the active reference."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "switch-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "switch-signal",
+        "anchor": "COM",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "SPDT switch body",
+        "explainableAs": [
+          "digital-input",
+          "selector-switch"
+        ]
+      },
+      {
+        "id": "pin-com",
+        "label": "Common pin",
+        "pin": "COM",
+        "explainableAs": [
+          "switch-common"
+        ]
+      },
+      {
+        "id": "pin-no",
+        "label": "Normally-open pin",
+        "pin": "NO",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      },
+      {
+        "id": "pin-nc",
+        "label": "Normally-closed pin",
+        "pin": "NC",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      }
+    ]
+  },
+  "spdt-switch-ab-3pin": {
+    "type": "spdt-switch-ab-3pin",
+    "width": 0.54,
+    "depth": 0.5,
+    "height": 0.28,
+    "visualStyle": {
+      "shape": "slide-switch",
+      "color": "#2f343d",
+      "material": "plastic-metal"
+    },
+    "pinAnchors": {
+      "COM": {
+        "x": -0.24,
+        "y": 0.08,
+        "z": -0.42,
+        "role": "switch-common",
+        "label": "COM"
+      },
+      "A": {
+        "x": 0,
+        "y": 0.08,
+        "z": -0.22,
+        "role": "switch-terminal",
+        "label": "A"
+      },
+      "B": {
+        "x": 0.24,
+        "y": 0.08,
+        "z": 0.22,
+        "role": "switch-terminal",
+        "label": "B"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.4,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard",
+        "stage"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "pins-down",
+      "notes": [
+        "Use COM as the Arduino input side, then choose A or B as the active reference."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "switch-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "switch-signal",
+        "anchor": "COM",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Slide switch body",
+        "explainableAs": [
+          "digital-input",
+          "selector-switch"
+        ]
+      },
+      {
+        "id": "pin-com",
+        "label": "Common pin",
+        "pin": "COM",
+        "explainableAs": [
+          "switch-common"
+        ]
+      },
+      {
+        "id": "pin-a",
+        "label": "A throw pin",
+        "pin": "A",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      },
+      {
+        "id": "pin-b",
+        "label": "B throw pin",
+        "pin": "B",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      }
+    ]
+  },
+  "digital-sensor-module-out-3pin": {
+    "type": "digital-sensor-module-out-3pin",
+    "width": 0.62,
+    "depth": 0.58,
+    "height": 0.26,
+    "visualStyle": {
+      "shape": "digital-sensor-module",
+      "color": "#195c6b",
+      "material": "pcb-sensor"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.24,
+        "y": 0.08,
+        "z": -0.42,
+        "role": "power",
+        "label": "VCC"
+      },
+      "OUT": {
+        "x": 0,
+        "y": 0.08,
+        "z": -0.22,
+        "role": "digital-output",
+        "label": "OUT"
+      },
+      "GND": {
+        "x": 0.24,
+        "y": 0.08,
+        "z": 0.22,
+        "role": "ground",
+        "label": "GND"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.42,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard",
+        "stage"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "pins-down",
+      "notes": [
+        "Powered digital sensor modules need VCC, GND, and one signal pin to an Arduino digital input."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "digital-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "digital-signal",
+        "anchor": "OUT",
+        "role": "signal-overlay"
+      },
+      {
+        "id": "sensor-current",
+        "anchor": "VCC",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Powered digital sensor module",
+        "explainableAs": [
+          "digital-sensor",
+          "state-input"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "VCC pin",
+        "pin": "VCC",
+        "explainableAs": [
+          "module-power"
+        ]
+      },
+      {
+        "id": "pin-signal",
+        "label": "OUT signal pin",
+        "pin": "OUT",
+        "explainableAs": [
+          "digital-signal"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "GND pin",
+        "pin": "GND",
+        "explainableAs": [
+          "ground-return"
+        ]
+      }
+    ]
+  },
+  "digital-sensor-module-do-3pin": {
+    "type": "digital-sensor-module-do-3pin",
+    "width": 0.62,
+    "depth": 0.58,
+    "height": 0.26,
+    "visualStyle": {
+      "shape": "digital-sensor-module",
+      "color": "#195c6b",
+      "material": "pcb-sensor"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.24,
+        "y": 0.08,
+        "z": -0.42,
+        "role": "power",
+        "label": "VCC"
+      },
+      "DO": {
+        "x": 0,
+        "y": 0.08,
+        "z": -0.22,
+        "role": "digital-output",
+        "label": "DO"
+      },
+      "GND": {
+        "x": 0.24,
+        "y": 0.08,
+        "z": 0.22,
+        "role": "ground",
+        "label": "GND"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.42,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard",
+        "stage"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "pins-down",
+      "notes": [
+        "Powered digital sensor modules need VCC, GND, and one signal pin to an Arduino digital input."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "digital-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "digital-signal",
+        "anchor": "DO",
+        "role": "signal-overlay"
+      },
+      {
+        "id": "sensor-current",
+        "anchor": "VCC",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Powered digital sensor module",
+        "explainableAs": [
+          "digital-sensor",
+          "state-input"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "VCC pin",
+        "pin": "VCC",
+        "explainableAs": [
+          "module-power"
+        ]
+      },
+      {
+        "id": "pin-signal",
+        "label": "DO signal pin",
+        "pin": "DO",
+        "explainableAs": [
+          "digital-signal"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "GND pin",
+        "pin": "GND",
+        "explainableAs": [
+          "ground-return"
+        ]
+      }
+    ]
+  },
+  "digital-sensor-module-sig-3pin": {
+    "type": "digital-sensor-module-sig-3pin",
+    "width": 0.62,
+    "depth": 0.58,
+    "height": 0.26,
+    "visualStyle": {
+      "shape": "digital-sensor-module",
+      "color": "#195c6b",
+      "material": "pcb-sensor"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.24,
+        "y": 0.08,
+        "z": -0.42,
+        "role": "power",
+        "label": "VCC"
+      },
+      "SIG": {
+        "x": 0,
+        "y": 0.08,
+        "z": -0.22,
+        "role": "digital-output",
+        "label": "SIG"
+      },
+      "GND": {
+        "x": 0.24,
+        "y": 0.08,
+        "z": 0.22,
+        "role": "ground",
+        "label": "GND"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.42,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard",
+        "stage"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "pins-down",
+      "notes": [
+        "Powered digital sensor modules need VCC, GND, and one signal pin to an Arduino digital input."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "digital-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "digital-signal",
+        "anchor": "SIG",
+        "role": "signal-overlay"
+      },
+      {
+        "id": "sensor-current",
+        "anchor": "VCC",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Powered digital sensor module",
+        "explainableAs": [
+          "digital-sensor",
+          "state-input"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "VCC pin",
+        "pin": "VCC",
+        "explainableAs": [
+          "module-power"
+        ]
+      },
+      {
+        "id": "pin-signal",
+        "label": "SIG signal pin",
+        "pin": "SIG",
+        "explainableAs": [
+          "digital-signal"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "GND pin",
+        "pin": "GND",
+        "explainableAs": [
+          "ground-return"
+        ]
+      }
+    ]
+  }
+}

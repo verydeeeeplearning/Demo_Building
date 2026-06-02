@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "spi-communication-module-readout",
+  "capabilityId": "spi-communication-module-readout",
+  "supportLevel": "supported",
+  "promptBudget": "minimal",
+  "agentSummaryPath": "bundles/spi-communication-module-readout/BUNDLE.md",
+  "requiredParts": ["arduino-uno", "breadboard-half", "oled-i2c-096"],
+  "allowedParts": ["arduino-uno", "breadboard-half", "oled-i2c-096", "jumper-wire", "lora-ra02", "nrf24l01-radio", "mcp2515-can", "usb-host-shield", "oled-13-i2c", "lcd-16x2", "lcd-20x4"],
+  "requiredTopologies": ["controller-spi-communication-module", "wireless-module-command-state"],
+  "validationRules": ["spi-communication-module-pins", "i2c-pin-role-match", "common-ground", "power-rail-valid", "network-cloud-overclaim-blocked", "radio-power-warning"],
+  "simulationPrimitives": ["display_sensor_value", "display_static_text", "current_flow_animation"],
+  "renderFootprints": ["arduino", "breadboard", "lora-ra02-module", "nrf24l01-radio-module", "mcp2515-can-module", "usb-host-shield-module", "oled", "wire", "oled-large", "lcd-character-16x2", "lcd-character-20x4"],
+  "canonicalRefs": {
+    "parts": ["shared:parts:arduino-uno", "shared:parts:breadboard-half", "shared:parts:oled-i2c-096", "shared:parts:lora-ra02", "shared:parts:nrf24l01-radio", "shared:parts:mcp2515-can", "shared:parts:usb-host-shield", "shared:parts:oled-13-i2c", "shared:parts:lcd-16x2", "shared:parts:lcd-20x4"],
+    "footprints": ["shared:footprint:arduino", "shared:footprint:breadboard", "shared:footprint:lora-ra02-module", "shared:footprint:nrf24l01-radio-module", "shared:footprint:mcp2515-can-module", "shared:footprint:usb-host-shield-module", "shared:footprint:oled", "shared:footprint:wire", "shared:footprint:oled-large", "shared:footprint:lcd-character-16x2", "shared:footprint:lcd-character-20x4"],
+    "simulation": ["shared:primitive:display_sensor_value", "shared:primitive:display_static_text", "shared:primitive:current_flow_animation"],
+    "topology": ["shared:topology:controller-spi-communication-module", "shared:topology:wireless-module-command-state"],
+    "sources": [
+      "shared:source:arduino-uno-rev3-io-current-20ma",
+      "shared:source:arduino-uno-rev3-i2c-a4-a5",
+      "shared:source:breadboard-row-continuity-5-hole",
+      "shared:source:ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "shared:source:lora-ra02-visual-pin-map",
+      "shared:source:nrf24l01-radio-visual-pin-map",
+      "shared:source:mcp2515-can-visual-pin-map",
+      "shared:source:usb-host-shield-visual-pin-map",
+      "shared:source:spi-communication-module-bus-state-contract",
+      "shared:source:wireless-network-overclaim-block-contract",
+      "shared:source:wireless-radio-power-warning-contract",
+      "shared:source:usb-host-device-overclaim-block-contract",
+      "shared:source:i2c-text-display-qualitative-contract"
+    ]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": true,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": ["missing-spi-clock-data-select", "missing-i2c-display-bus", "missing-common-ground", "network-or-usb-overclaim", "unsupported-part-requested"]
+}

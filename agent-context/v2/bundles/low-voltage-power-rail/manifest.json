@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "low-voltage-power-rail",
+  "capabilityId": "low-voltage-power-rail",
+  "supportLevel": "supported",
+  "promptBudget": "minimal",
+  "agentSummaryPath": "bundles/low-voltage-power-rail/BUNDLE.md",
+  "requiredParts": ["breadboard-half", "breadboard-psu"],
+  "allowedParts": ["breadboard-half", "breadboard-psu", "9v-battery-clip", "aa-battery-holder", "lipo-battery-1s", "barrel-jack", "screw-terminal-2pin", "7805-regulator", "jumper-wire"],
+  "requiredTopologies": ["external-low-voltage-power-rail", "regulated-5v-rail"],
+  "validationRules": ["low-voltage-source-polarity", "power-rail-positive-required", "ground-rail-return-required", "regulated-output-to-rail-required", "no-mains-power"],
+  "simulationPrimitives": ["low_voltage_power_rail_state", "regulated_5v_rail_state"],
+  "renderFootprints": ["breadboard", "breadboard-psu", "battery-9v-clip", "aa-battery-holder", "lipo-battery-1s", "barrel-jack", "screw-terminal-2pin", "7805-regulator", "wire"],
+  "canonicalRefs": {
+    "parts": ["shared:parts:breadboard-half", "shared:parts:breadboard-psu", "shared:parts:9v-battery-clip", "shared:parts:aa-battery-holder", "shared:parts:lipo-battery-1s", "shared:parts:barrel-jack", "shared:parts:screw-terminal-2pin", "shared:parts:7805-regulator"],
+    "footprints": ["shared:footprint:breadboard", "shared:footprint:breadboard-psu", "shared:footprint:battery-9v-clip", "shared:footprint:aa-battery-holder", "shared:footprint:lipo-battery-1s", "shared:footprint:barrel-jack", "shared:footprint:screw-terminal-2pin", "shared:footprint:7805-regulator", "shared:footprint:wire"],
+    "simulation": ["shared:primitive:low_voltage_power_rail_state", "shared:primitive:regulated_5v_rail_state"],
+    "topology": ["shared:topology:external-low-voltage-power-rail", "shared:topology:regulated-5v-rail"],
+    "sources": ["shared:source:breadboard-row-continuity-5-hole", "shared:source:breadboard-psu-visual-pin-map", "shared:source:9v-battery-clip-visual-pin-map", "shared:source:aa-battery-holder-visual-pin-map", "shared:source:lipo-battery-1s-visual-pin-map", "shared:source:lipo-battery-power-warning-contract", "shared:source:barrel-jack-visual-pin-map", "shared:source:screw-terminal-2pin-visual-pin-map", "shared:source:7805-regulator-visual-pin-map", "shared:source:low-voltage-power-rail-simulation-contract", "shared:source:external-low-voltage-power-connector-contract", "shared:source:7805-regulated-5v-contract"]
+  },
+  "promptInclusions": {
+    "includePins": false,
+    "includeElectricalLimits": false,
+    "includeFootprintAnchors": false,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": ["mains-or-wall-power", "missing-positive-rail", "missing-ground-rail", "missing-regulator-input", "missing-regulator-output", "missing-render-footprint", "missing-simulation-primitive", "unsupported-part-requested"]
+}

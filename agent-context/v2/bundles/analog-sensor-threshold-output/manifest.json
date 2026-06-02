@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "analog-sensor-threshold-output",
+  "capabilityId": "analog-sensor-threshold-output",
+  "supportLevel": "supported",
+  "promptBudget": "minimal",
+  "agentSummaryPath": "bundles/analog-sensor-threshold-output/BUNDLE.md",
+  "requiredParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "led-5mm",
+    "resistor-220"
+  ],
+  "allowedParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "led-5mm",
+    "resistor-220",
+    "jumper-wire",
+    "soil-moisture",
+    "water-level-sensor",
+    "tmp36-temp",
+    "acs712-current",
+    "rain-sensor",
+    "photoresistor-ldr",
+    "flame-sensor",
+    "mq2-gas",
+    "sound-sensor",
+    "fsr-pressure",
+    "thermistor-ntc",
+    "resistor-10k"
+  ],
+  "requiredTopologies": [
+    "controller-analog-sensor-threshold-output",
+    "controller-resistive-sensor-divider-threshold-output"
+  ],
+  "validationRules": [
+    "analog-input-pin-exists",
+    "threshold-defined",
+    "series-current-limit",
+    "common-ground",
+    "power-rail-valid",
+    "resistive-sensor-divider-required",
+    "qualitative-sensor-readout-only"
+  ],
+  "simulationPrimitives": [
+    "analog_threshold",
+    "digital_on_off",
+    "current_flow_animation"
+  ],
+  "renderFootprints": [
+    "arduino",
+    "breadboard",
+    "analog-sensor-module-4pin",
+    "analog-sensor-module-3pin",
+    "led",
+    "resistor",
+    "wire",
+    "resistive-sensor-2pin"
+  ],
+  "canonicalRefs": {
+    "parts": [
+      "shared:parts:arduino-uno",
+      "shared:parts:breadboard-half",
+      "shared:parts:led-5mm",
+      "shared:parts:resistor-220"
+    ],
+    "footprints": [
+      "shared:footprint:arduino",
+      "shared:footprint:breadboard",
+      "shared:footprint:analog-sensor-module-4pin",
+      "shared:footprint:analog-sensor-module-3pin",
+      "shared:footprint:led",
+      "shared:footprint:resistor",
+      "shared:footprint:wire",
+      "shared:footprint:resistive-sensor-2pin"
+    ],
+    "simulation": [
+      "shared:primitive:analog_threshold",
+      "shared:primitive:digital_on_off",
+      "shared:primitive:current_flow_animation"
+    ],
+    "topology": [
+      "shared:topology:controller-analog-sensor-threshold-output",
+      "shared:topology:controller-resistive-sensor-divider-threshold-output"
+    ],
+    "sources": [
+      "shared:source:arduino-uno-rev3-io-current-20ma",
+      "shared:source:arduino-uno-analog-input-pins-a0-a5",
+      "shared:source:breadboard-row-continuity-5-hole",
+      "shared:source:analog-sensor-readout-educational-only",
+      "shared:source:analog-sensor-simulation-contract",
+      "shared:source:soil-moisture-visual-pin-map",
+      "shared:source:water-level-sensor-visual-pin-map",
+      "shared:source:tmp36-temp-visual-pin-map",
+      "shared:source:acs712-current-visual-pin-map",
+      "shared:source:rain-sensor-visual-pin-map",
+      "shared:source:arduino-analog-input-variable-resistor-photoresistor",
+      "shared:source:photoresistor-voltage-divider-required",
+      "shared:source:flame-sensor-visual-pin-map",
+      "shared:source:mq2-gas-visual-pin-map",
+      "shared:source:sound-sensor-visual-pin-map",
+      "shared:source:led-5mm-requires-current-limit",
+      "shared:source:led-5mm-anode-cathode-polarity",
+      "shared:source:fsr-pressure-visual-pin-map",
+      "shared:source:thermistor-ntc-visual-pin-map",
+      "shared:source:resistor-10k-reference-divider",
+      "shared:source:resistive-sensor-divider-required",
+      "shared:source:resistive-sensor-qualitative-contract",
+      "shared:source:thermistor-ntc-divider-reference"
+    ]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": true,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": [
+    "missing-threshold-behavior",
+    "missing-led-series-resistor",
+    "missing-render-footprint",
+    "unsupported-safety-claim",
+    "missing-resistive-sensor-divider-reference",
+    "missing-divider-midpoint-to-a0",
+    "fake-module-pins-on-two-pin-resistive-sensor"
+  ]
+}

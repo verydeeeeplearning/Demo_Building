@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "hbridge-motor-output",
+  "capabilityId": "hbridge-motor-output",
+  "supportLevel": "supported",
+  "promptBudget": "summary",
+  "agentSummaryPath": "bundles/hbridge-motor-output/BUNDLE.md",
+  "requiredParts": ["arduino-uno", "breadboard-half", "l298n-driver", "dc-motor-130"],
+  "allowedParts": ["arduino-uno", "breadboard-half", "l298n-driver", "l293d-driver", "dc-motor-130", "jumper-wire"],
+  "requiredTopologies": ["controller-hbridge-dc-motor"],
+  "validationRules": ["hbridge-driver-required", "hbridge-control-required", "common-ground", "high-current-warning", "external-power-warning"],
+  "simulationPrimitives": ["hbridge_motor_state", "current_flow_animation"],
+  "renderFootprints": ["arduino", "breadboard", "hbridge-driver-module", "hbridge-driver-ic", "dc-motor", "wire"],
+  "canonicalRefs": {
+    "parts": ["shared:parts:arduino-uno", "shared:parts:breadboard-half", "shared:parts:l298n-driver", "shared:parts:l293d-driver", "shared:parts:dc-motor-130"],
+    "footprints": ["shared:footprint:arduino", "shared:footprint:breadboard", "shared:footprint:hbridge-driver-module", "shared:footprint:hbridge-driver-ic", "shared:footprint:dc-motor", "shared:footprint:wire"],
+    "simulation": ["shared:primitive:hbridge_motor_state", "shared:primitive:current_flow_animation"],
+    "topology": ["shared:topology:controller-hbridge-dc-motor"],
+    "sources": ["shared:source:arduino-uno-rev3-io-current-20ma", "shared:source:breadboard-row-continuity-5-hole", "shared:source:l298n-driver-visual-pin-map", "shared:source:l293d-driver-visual-pin-map", "shared:source:dc-motor-130-visual-pin-map", "shared:source:hbridge-dc-motor-simulation-contract"]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": true,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": ["direct-motor-to-gpio", "missing-hbridge-driver", "missing-enable-or-direction-inputs", "missing-motor-output-pair", "missing-common-ground", "missing-render-footprint", "missing-simulation-primitive", "unsupported-part-requested"]
+}

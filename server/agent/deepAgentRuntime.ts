@@ -8,13 +8,23 @@ import { z } from 'zod';
 import { getPartRegistry, readContextDoc } from '../context/contextLayer.ts';
 import { buildContextPacket } from '../context/contextPacket.ts';
 import {
+  contextPacketLogSummary,
+  createAgentTraceId,
+  langSmithMetadata,
+  logAgentEvent,
+  resultLogSummary
+} from './agentLogger.ts';
+import {
   applyCandidatePartGate,
   buildNetlist,
+  buildRunnableReport,
+  buildSolverGateResult,
   compileRenderPlan,
   compileRequirementMarkdown,
   compileSimulationPlan,
   estimateCurrentPaths,
   applyContextCoverageGate,
+  applyIntentFulfillmentGate,
   validateCircuitSpec
 } from './circuitTools.ts';
 import { createHeduwareAgentTools } from './deepAgentTools.ts';
@@ -23,26 +33,56 @@ import {
   AgentMessageRequestSchema,
   AgentRunResultSchema,
   CircuitSpecSchema,
+  SupportedAlternativeSchema,
   type AgentEvent,
   type AgentMessageRequest,
   type AgentRunResult,
-  type CircuitSpec
+  type BuildRunnableReport,
+  type CircuitSpec,
+  type SupportedAlternative
 } from './schemas.ts';
 
 const LiveAgentDraftSchema = z.object({
   assistantMessage: z.string().min(1),
   clarification: z.string().nullable().default(null),
   circuitSpec: CircuitSpecSchema,
+  agentEvents: z.array(AgentEventSchema).default([]),
+  supportedAlternatives: z.array(SupportedAlternativeSchema).default([])
+});
+
+const RequirementAnalysisSchema = z.object({
+  route: z.enum(['casual_chat', 'clarify_requirements', 'synthesize_circuit', 'unsupported_or_gap']),
+  confidence: z.number().min(0).max(1).default(0.5),
+  summary: z.string().min(1),
+  assistantMessage: z.string().min(1),
+  clarification: z.string().nullable().default(null),
+  blockingReason: z.string().nullable().default(null),
+  circuitGoal: z.object({
+    input: z.string().nullable().default(null),
+    output: z.string().nullable().default(null),
+    behavior: z.string().nullable().default(null),
+    controller: z.string().nullable().default(null)
+  }).default({
+    input: null,
+    output: null,
+    behavior: null,
+    controller: null
+  }),
   agentEvents: z.array(AgentEventSchema).default([])
 });
 
 type LiveAgentDraft = z.infer<typeof LiveAgentDraftSchema>;
+type RequirementAnalysis = z.infer<typeof RequirementAnalysisSchema>;
 type ReasoningEffort = 'none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
+type AgentPromptBudgetStage = 'requirement-analysis' | 'synthesis';
 type DraftProviderInput = {
   attempt: number;
   previousErrors: string[];
 };
 type DraftProvider = (input: DraftProviderInput) => Promise<LiveAgentDraft>;
+type AgentRunOptions = {
+  traceId?: string;
+};
 
 export class AgentConfigurationError extends Error {
   constructor(message: string) {
@@ -60,24 +100,46 @@ export class AgentStructuredOutputError extends Error {
   }
 }
 
-export async function runAgent(request: AgentMessageRequest): Promise<AgentRunResult> {
-  return runLiveAgent({ ...request, mode: 'live' });
+export class AgentPromptBudgetError extends Error {
+  readonly errorCode = 'AGENT_PROMPT_BUDGET_EXCEEDED';
+  readonly stage: AgentPromptBudgetStage;
+  readonly actualChars: number;
+  readonly maxChars: number;
+
+  constructor(stage: AgentPromptBudgetStage, actualChars: number, maxChars: number) {
+    super(`Deepagents ${stage} prompt exceeded budget: ${actualChars}/${maxChars} chars.`);
+    this.name = 'AgentPromptBudgetError';
+    this.stage = stage;
+    this.actualChars = actualChars;
+    this.maxChars = maxChars;
+  }
+}
+
+export async function runAgent(request: AgentMessageRequest, options: AgentRunOptions = {}): Promise<AgentRunResult> {
+  return runLiveAgent({ ...request, mode: 'live' }, options);
 }
 
 export async function runAgentWithScriptedDrafts(input: {
   request: AgentMessageRequest;
   drafts: unknown[];
   sessionId?: string;
+  requirementAnalysis?: unknown;
 }): Promise<AgentRunResult> {
   const request = AgentMessageRequestSchema.parse({ ...input.request, mode: 'live' });
   const sessionId = input.sessionId ?? `session-${randomUUID()}`;
+  const traceId = createAgentTraceId('scripted-agent');
   const contextPacket = await buildContextPacket(request);
+  const requirementAnalysis = input.requirementAnalysis
+    ? RequirementAnalysisSchema.parse(input.requirementAnalysis)
+    : defaultScriptedRequirementAnalysis(request);
   let draftIndex = 0;
 
   return runAgentDraftRepairLoop({
+    traceId,
     sessionId,
     request,
     contextPacket,
+    requirementAnalysis,
     draftProvider: async () => {
       if (draftIndex >= input.drafts.length) {
         throw new Error('Scripted draft provider ran out of drafts before the repair loop completed.');
@@ -86,6 +148,24 @@ export async function runAgentWithScriptedDrafts(input: {
       draftIndex += 1;
       return draft;
     }
+  });
+}
+
+function defaultScriptedRequirementAnalysis(request: AgentMessageRequest): RequirementAnalysis {
+  return RequirementAnalysisSchema.parse({
+    route: 'synthesize_circuit',
+    confidence: 1,
+    summary: 'Scripted test path proceeds directly to circuit synthesis.',
+    assistantMessage: 'Proceeding to scripted circuit synthesis.',
+    clarification: null,
+    blockingReason: null,
+    circuitGoal: {
+      input: null,
+      output: null,
+      behavior: request.message,
+      controller: null
+    },
+    agentEvents: []
   });
 }
 
@@ -105,14 +185,70 @@ export function agentRuntimeHealth() {
   };
 }
 
-async function runLiveAgent(request: AgentMessageRequest): Promise<AgentRunResult> {
-  const { apiKey, modelName } = requireLiveConfig();
-  const sessionId = request.sessionId ?? `session-${randomUUID()}`;
+export async function buildAgentPromptBudgetAudits(request: AgentMessageRequest) {
   const contextPacket = await buildContextPacket(request);
-  const [rules, coordinatorPrompt] = await Promise.all([
+  const [operatingMemory, contextIndex] = await Promise.all([
     readContextDoc('agent-operating-memory'),
     readContextDoc('context-index')
   ]);
+  const toolOptions = {
+    contextCoverage: contextPacket.contextCoverage,
+    candidateParts: contextPacket.candidateParts,
+    allowedContextSourceIds: contextPacket.retrievalPlan.sourceIds,
+    supportBundles: contextPacket.supportBundles
+  };
+  const subagents = createSubagents(toolOptions);
+  const requirementSystemPrompt = buildRequirementAnalysisSystemPrompt({
+    locale: request.locale ?? 'ko',
+    contextPacketBlock: contextPacket.promptBlock
+  });
+  const requirementUserPrompt = buildRequirementAnalysisUserPrompt(request);
+  const synthesisSystemPrompt = buildSystemPrompt({
+    locale: request.locale ?? 'ko',
+    operatingMemory: compactRuntimeOperatingMemory(operatingMemory),
+    coordinatorPrompt: compactRuntimeContextIndex(contextIndex),
+    registrySummary: buildRegistrySummary(contextPacket.candidateParts),
+    contextPacketBlock: contextPacket.promptBlock
+  });
+  const synthesisUserPrompt = buildAgentUserPrompt(request, { attempt: 1, previousErrors: [] });
+
+  return {
+    contextPacket,
+    audits: [
+      measureAgentPromptBudget({
+        stage: 'requirement-analysis',
+        contextPacket,
+        systemPrompt: requirementSystemPrompt,
+        userPrompt: requirementUserPrompt
+      }),
+      measureAgentPromptBudget({
+        stage: 'synthesis',
+        contextPacket,
+        systemPrompt: synthesisSystemPrompt,
+        userPrompt: synthesisUserPrompt,
+        extraPromptBlocks: [renderSubagentPromptBudgetText(subagents)]
+      })
+    ]
+  };
+}
+
+async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptions = {}): Promise<AgentRunResult> {
+  const { apiKey, modelName } = requireLiveConfig();
+  const sessionId = request.sessionId ?? `session-${randomUUID()}`;
+  const traceId = options.traceId ?? createAgentTraceId();
+  const contextPacket = await buildContextPacket(request);
+  const baseMetadata = langSmithMetadata({ traceId, request, contextPacket });
+  logAgentEvent('context.packet.built', {
+    traceId,
+    sessionId,
+    ...contextPacketLogSummary(contextPacket)
+  });
+  const [operatingMemory, coordinatorPrompt] = await Promise.all([
+    readContextDoc('agent-operating-memory'),
+    readContextDoc('context-index')
+  ]);
+  const runtimeOperatingMemory = compactRuntimeOperatingMemory(operatingMemory);
+  const runtimeContextIndex = compactRuntimeContextIndex(coordinatorPrompt);
   const registrySummary = buildRegistrySummary(contextPacket.candidateParts);
 
   const model = new ChatOpenAI({
@@ -120,41 +256,91 @@ async function runLiveAgent(request: AgentMessageRequest): Promise<AgentRunResul
     apiKey,
     ...modelGenerationOptions(modelName)
   });
+  const toolOptions = {
+    contextCoverage: contextPacket.contextCoverage,
+    candidateParts: contextPacket.candidateParts,
+    allowedContextSourceIds: contextPacket.retrievalPlan.sourceIds,
+    supportBundles: contextPacket.supportBundles
+  };
+  const requirementAnalysis = await runRequirementAnalysisAgent({
+    traceId,
+    sessionId,
+    request,
+    contextPacket,
+    model,
+    toolOptions,
+    metadata: baseMetadata
+  });
+  logAgentEvent('requirement.analysis.completed', {
+    traceId,
+    sessionId,
+    requirementRoute: requirementAnalysis.route,
+    requirementConfidence: requirementAnalysis.confidence,
+    requirementSummary: requirementAnalysis.summary,
+    blockingReason: requirementAnalysis.blockingReason
+  });
+
+  const subagents = createSubagents(toolOptions);
+  const synthesisSystemPrompt = buildSystemPrompt({
+    locale: request.locale ?? 'ko',
+    operatingMemory: runtimeOperatingMemory,
+    coordinatorPrompt: runtimeContextIndex,
+    registrySummary,
+    contextPacketBlock: contextPacket.promptBlock
+  });
+  assertAgentPromptBudget({
+    stage: 'synthesis',
+    contextPacket,
+    systemPrompt: synthesisSystemPrompt,
+    userPrompt: buildAgentUserPrompt(request, { attempt: 1, previousErrors: [] }),
+    extraPromptBlocks: [renderSubagentPromptBudgetText(subagents)]
+  });
 
   const agent = createDeepAgent({
     model,
-    tools: createHeduwareAgentTools({
-      contextCoverage: contextPacket.contextCoverage,
-      candidateParts: contextPacket.candidateParts,
-      allowedContextSourceIds: contextPacket.retrievalPlan.sourceIds
-    }),
-    subagents: createSubagents({
-      contextCoverage: contextPacket.contextCoverage,
-      candidateParts: contextPacket.candidateParts,
-      allowedContextSourceIds: contextPacket.retrievalPlan.sourceIds
-    }),
+    tools: createHeduwareAgentTools(toolOptions),
+    subagents,
     responseFormat: toolStrategy(LiveAgentDraftSchema),
-    systemPrompt: buildSystemPrompt({
-      locale: request.locale ?? 'ko',
-      rules,
-      coordinatorPrompt,
-      registrySummary,
-      contextPacketBlock: contextPacket.promptBlock
-    }),
+    systemPrompt: synthesisSystemPrompt,
     name: 'h-eduware-deepagent'
   });
 
   return runAgentDraftRepairLoop({
+    traceId,
     sessionId,
     request,
     contextPacket,
+    requirementAnalysis,
     draftProvider: async ({ attempt, previousErrors }) => {
+      logAgentEvent('agent.synthesis.attempt', {
+        traceId,
+        sessionId,
+        attempt,
+        previousErrorCount: previousErrors.length
+      });
+      const userPrompt = buildAgentUserPrompt(request, { attempt, previousErrors });
+      assertAgentPromptBudget({
+        stage: 'synthesis',
+        contextPacket,
+        systemPrompt: synthesisSystemPrompt,
+        userPrompt,
+        extraPromptBlocks: [renderSubagentPromptBudgetText(subagents)]
+      });
       const output = await agent.invoke({
         messages: [{
           role: 'user',
-          content: buildAgentUserPrompt(request, { attempt, previousErrors })
+          content: userPrompt
         }]
       }, {
+        runName: 'h-eduware-circuit-synthesis',
+        tags: langSmithTags('synthesis', contextPacket),
+        metadata: {
+          ...baseMetadata,
+          requirementRoute: requirementAnalysis.route,
+          requirementSummary: requirementAnalysis.summary,
+          attempt,
+          previousErrorCount: previousErrors.length
+        },
         configurable: {
           thread_id: sessionId
         }
@@ -162,6 +348,63 @@ async function runLiveAgent(request: AgentMessageRequest): Promise<AgentRunResul
       return parseLiveAgentDraft(output);
     }
   });
+}
+
+async function runRequirementAnalysisAgent({
+  traceId,
+  sessionId,
+  request,
+  contextPacket,
+  model,
+  toolOptions,
+  metadata
+}: {
+  traceId: string;
+  sessionId: string;
+  request: AgentMessageRequest;
+  contextPacket: Awaited<ReturnType<typeof buildContextPacket>>;
+  model: ChatOpenAI;
+  toolOptions: Parameters<typeof createHeduwareAgentTools>[0];
+  metadata: Record<string, unknown>;
+}): Promise<RequirementAnalysis> {
+  const systemPrompt = buildRequirementAnalysisSystemPrompt({
+    locale: request.locale ?? 'ko',
+    contextPacketBlock: contextPacket.promptBlock
+  });
+  const userPrompt = buildRequirementAnalysisUserPrompt(request);
+  assertAgentPromptBudget({
+    stage: 'requirement-analysis',
+    contextPacket,
+    systemPrompt,
+    userPrompt
+  });
+
+  const analyzer = createDeepAgent({
+    model,
+    tools: createHeduwareAgentTools(toolOptions),
+    responseFormat: toolStrategy(RequirementAnalysisSchema),
+    systemPrompt,
+    name: 'h-eduware-requirement-analysis-agent'
+  });
+
+  const output = await analyzer.invoke({
+    messages: [{
+      role: 'user',
+      content: userPrompt
+    }]
+  }, {
+    runName: 'h-eduware-requirement-analysis',
+    tags: langSmithTags('requirement-analysis', contextPacket),
+    metadata: {
+      ...metadata,
+      traceId
+    },
+    configurable: {
+      thread_id: `${sessionId}:requirement-analysis`
+    }
+  });
+
+  return parseRequirementAnalysis(output);
 }
 
 function requireLiveConfig() {
@@ -198,51 +441,162 @@ function resolveReasoningEffort(): ReasoningEffort {
     : 'low';
 }
 
+export function measureAgentPromptBudget({
+  stage,
+  contextPacket,
+  systemPrompt,
+  userPrompt,
+  extraPromptBlocks = []
+}: {
+  stage: AgentPromptBudgetStage;
+  contextPacket: Awaited<ReturnType<typeof buildContextPacket>>;
+  systemPrompt: string;
+  userPrompt: string;
+  extraPromptBlocks?: string[];
+}) {
+  const promptBlocks = [systemPrompt, userPrompt, ...extraPromptBlocks].filter(Boolean);
+  const actualChars = promptBlocks.join('\n\n').length;
+  const maxChars = contextPacket.retrievalPlan.maxPromptChars;
+
+  return {
+    stage,
+    actualChars,
+    maxChars,
+    remainingChars: maxChars - actualChars,
+    contextBlockChars: contextPacket.promptBlock.length,
+    withinBudget: actualChars <= maxChars
+  };
+}
+
+function assertAgentPromptBudget(input: Parameters<typeof measureAgentPromptBudget>[0]) {
+  const audit = measureAgentPromptBudget(input);
+  if (!audit.withinBudget) {
+    logAgentEvent('prompt.budget.exceeded', {
+      stage: audit.stage,
+      actualChars: audit.actualChars,
+      maxChars: audit.maxChars,
+      contextBlockChars: audit.contextBlockChars,
+      remainingChars: audit.remainingChars
+    });
+    throw new AgentPromptBudgetError(audit.stage, audit.actualChars, audit.maxChars);
+  }
+}
+
+function compactRuntimeOperatingMemory(memory: string) {
+  return [
+    '# Operating Memory Summary',
+    'Validate before build-ready rendering or current-flow claims.',
+    'Current animation must come from validated netlist/current paths only.',
+    'Never invent parts, pins, protocols, or simulator capability; mark unsupported or ask one clarification.',
+    'Prefer safe low-voltage Arduino/breadboard circuits. Registry/tool outputs are canonical.',
+    'Keep subagent outputs concise; no long copied context.'
+  ].join('\n');
+}
+
+function compactRuntimeContextIndex(_index: string) {
+  return [
+    '# Context Index Summary',
+    'Authority order: safety policy, deterministic validation, schemas, support bundles, registry data, product/pedagogy.',
+    'Use the request ContextRoute/RetrievalPlan only; do not scan omitted catalogs or legacy snapshots.',
+    'v2 bundles are the prompt surface. Heavy registry, primitive, footprint, and source-claim details are tool data.',
+    'Unsupported or ambiguous prompts stay policy-first. Supported hardware requires registry, pins, validation, simulation primitive, footprint, eval, and browser evidence.'
+  ].join('\n');
+}
+
 async function finalizeAgentResult({
+  traceId,
   sessionId,
   request,
   draft,
   contextPacket,
+  coordinatorEvent = {
+    type: 'coordinator',
+    name: 'deepagents-coordinator',
+    status: 'completed',
+    summary: 'Created structured circuit draft through Deepagents.'
+  },
   repairEvents = []
 }: {
+  traceId?: string;
   sessionId: string;
   request: AgentMessageRequest;
   draft: LiveAgentDraft;
   contextPacket: Awaited<ReturnType<typeof buildContextPacket>>;
+  coordinatorEvent?: AgentEvent;
   repairEvents?: AgentEvent[];
 }): Promise<AgentRunResult> {
-  const circuitSpec = normalizePhysicalCircuitSpec(CircuitSpecSchema.parse(draft.circuitSpec));
-  const validationReport = applyCandidatePartGate(
-    await validateCircuitSpec(circuitSpec),
-    circuitSpec,
-    contextPacket.candidateParts
-  );
-  const effectiveValidationReport = applyContextCoverageGate(validationReport, contextPacket.contextCoverage);
+  const sourceCircuitSpec = normalizePhysicalCircuitSpec(CircuitSpecSchema.parse(draft.circuitSpec));
+  const safeEquivalentSpec = shouldUseSafeEquivalentSimulation(sourceCircuitSpec, draft, contextPacket)
+    ? buildSafeLowVoltageLedEquivalentSpec(sourceCircuitSpec, request.locale ?? 'ko')
+    : null;
+  const circuitSpec = safeEquivalentSpec ?? sourceCircuitSpec;
+  const validationReport = safeEquivalentSpec
+    ? await validateCircuitSpec(circuitSpec)
+    : applyCandidatePartGate(
+        await validateCircuitSpec(circuitSpec),
+        circuitSpec,
+        contextPacket.candidateParts
+      );
+  const intentFulfillmentReport = safeEquivalentSpec
+    ? validationReport
+    : applyIntentFulfillmentGate(
+        validationReport,
+        circuitSpec,
+        contextPacket.intentSpec,
+        contextPacket.candidateParts
+      );
+  const effectiveValidationReport = safeEquivalentSpec
+    ? intentFulfillmentReport
+    : applyContextCoverageGate(intentFulfillmentReport, contextPacket.contextCoverage);
   const netlist = await buildNetlist(circuitSpec);
   const currentPaths = await estimateCurrentPaths(circuitSpec, netlist, effectiveValidationReport);
   const renderPlan = await compileRenderPlan(circuitSpec, effectiveValidationReport);
   const simulationPlan = await compileSimulationPlan(circuitSpec, effectiveValidationReport, currentPaths, renderPlan);
-  const requirementMarkdown = await compileRequirementMarkdown(circuitSpec, effectiveValidationReport, simulationPlan);
+  const runnableReport = buildRunnableReport(effectiveValidationReport, renderPlan, simulationPlan);
+  const solverGateResult = buildSolverGateResult(
+    effectiveValidationReport,
+    renderPlan,
+    simulationPlan,
+    runnableReport,
+    safeEquivalentSpec
+      ? {
+          mode: 'safe_equivalent_simulation',
+          repairLevel: 'safe_equivalent',
+          sourceSpecId: sourceCircuitSpec.id,
+          equivalentSpecId: safeEquivalentSpec.id,
+          verifiedClaims: ['safe low-voltage equivalent circuit was validated instead of the unsafe original request'],
+          notVerified: ['original unsafe request was not converted into wiring or build-ready hardware'],
+          repairSummary: ['Original unsafe request was replaced with a safe low-voltage equivalent simulation.']
+        }
+      : {}
+  );
+  const requirementMarkdown = await compileRequirementMarkdown(circuitSpec, effectiveValidationReport, simulationPlan, runnableReport);
   const clarification = effectiveValidationReport.status === 'valid'
     ? null
     : draft.clarification ?? firstCoverageClarification(contextPacket.contextCoverage, request.locale ?? 'ko') ?? firstClarification(circuitSpec, request.locale ?? 'ko');
-  const assistantMessage = finalAssistantMessage({
-    draftMessage: draft.assistantMessage,
-    validationReport: effectiveValidationReport,
-    clarification,
-    locale: request.locale ?? 'ko'
-  });
+  const assistantMessage = safeEquivalentSpec
+    ? safeEquivalentAssistantMessage(request.locale ?? 'ko', sourceCircuitSpec)
+    : finalAssistantMessage({
+        draftMessage: draft.assistantMessage,
+        validationReport: effectiveValidationReport,
+        buildRunnableReport: runnableReport,
+        clarification,
+        locale: request.locale ?? 'ko'
+      });
+  const studentMessage = sanitizeStudentFacingAssistantMessage(assistantMessage, request.locale ?? 'ko');
 
   return AgentRunResultSchema.parse({
+    traceId,
     sessionId,
     mode: 'live',
-    assistantMessages: [assistantMessage],
+    assistantMessages: [studentMessage],
     agentEvents: normalizeEvents([
-      { type: 'coordinator', name: 'deepagents-coordinator', status: 'completed', summary: 'Created structured circuit draft through Deepagents.' },
+      coordinatorEvent,
       ...repairEvents,
       ...draft.agentEvents,
       { type: 'validation', name: 'context-coverage-gate', status: contextPacket.contextCoverage.status === 'sufficient' ? 'completed' : 'warning', summary: contextPacket.contextCoverage.status },
-      { type: 'validation', name: 'server-validator', status: effectiveValidationReport.status === 'valid' ? 'completed' : 'warning', summary: effectiveValidationReport.status }
+      { type: 'validation', name: 'server-validator', status: effectiveValidationReport.status === 'valid' ? 'completed' : 'warning', summary: effectiveValidationReport.status },
+      { type: 'validation', name: 'build-runnable-gate', status: runnableReport.runnable ? 'completed' : 'warning', summary: runnableReport.status }
     ]),
     clarification,
     contextTrace: contextPacket.contextTrace,
@@ -250,24 +604,124 @@ async function finalizeAgentResult({
     requirementMarkdown,
     circuitSpec,
     validationReport: effectiveValidationReport,
-    renderPlan,
-    simulationPlan
+	    renderPlan,
+	    simulationPlan,
+	    buildRunnableReport: runnableReport,
+	    solverGateResult,
+	    supportedAlternatives: draft.supportedAlternatives
+	  });
+}
+
+function shouldUseSafeEquivalentSimulation(
+  sourceCircuitSpec: CircuitSpec,
+  draft: LiveAgentDraft,
+  contextPacket: Awaited<ReturnType<typeof buildContextPacket>>
+) {
+  return contextPacket.contextRoute.routeId === 'unsupported-safety'
+    && sourceCircuitSpec.unsupportedItems.length > 0
+    && draft.supportedAlternatives.some((alternative) =>
+      alternative.id === 'safe-low-voltage-led' && alternative.source === 'safety-policy'
+    );
+}
+
+function buildSafeLowVoltageLedEquivalentSpec(sourceCircuitSpec: CircuitSpec, locale: 'ko' | 'en'): CircuitSpec {
+  const originalBlockers = uniqueStrings(sourceCircuitSpec.unsupportedItems);
+  return CircuitSpecSchema.parse({
+    id: `${sourceCircuitSpec.id}-safe-equivalent-led`,
+    title: locale === 'ko' ? '안전한 저전압 LED 대체 회로' : 'Safe Low-Voltage LED Equivalent',
+    intent: {
+      primaryGoal: locale === 'ko'
+        ? '위험한 원 요청 대신 안전한 Arduino LED 회로를 시뮬레이션한다'
+        : 'simulate a safe Arduino LED circuit instead of the unsafe original request',
+      output: 'led',
+      controller: 'arduino-uno',
+      behavior: 'safe-equivalent-low-voltage'
+    },
+    components: [
+      { id: 'breadboard', partId: 'breadboard-half', label: 'Half-size breadboard', designator: 'BB1' },
+      { id: 'arduino-uno', partId: 'arduino-uno', label: 'Arduino Uno', designator: 'U1' },
+      { id: 'resistor-1', partId: 'resistor-220', label: '220 ohm resistor', designator: 'R1' },
+      { id: 'led-1', partId: 'led-5mm', label: '5mm LED', designator: 'D1' }
+    ],
+    connections: [
+      {
+        id: 'd9-to-resistor',
+        from: { componentId: 'arduino-uno', pin: 'D9' },
+        to: { componentId: 'resistor-1', pin: '1' },
+        signal: 'gpio',
+        color: '#2f7df6'
+      },
+      {
+        id: 'resistor-to-led',
+        from: { componentId: 'resistor-1', pin: '2' },
+        to: { componentId: 'led-1', pin: 'A' },
+        signal: 'gpio',
+        color: '#2f7df6'
+      },
+      {
+        id: 'led-to-ground',
+        from: { componentId: 'led-1', pin: 'K' },
+        to: { componentId: 'arduino-uno', pin: 'GND' },
+        signal: 'ground',
+        color: '#20242a'
+      }
+    ],
+    behavior: { runText: locale === 'ko' ? '안전 대체 LED 켜짐' : 'SAFE EQUIVALENT LED ON' },
+    assumptions: [
+      'The original request is not rendered or treated as build-ready hardware.',
+      `Original blocked items: ${originalBlockers.join(', ') || 'unsafe request'}.`,
+      'This equivalent uses Arduino low-voltage GPIO, one 5mm LED, and a 220 ohm current-limiting resistor.'
+    ],
+    unsupportedItems: [],
+    clarificationNeeds: []
   });
+}
+
+function safeEquivalentAssistantMessage(locale: 'ko' | 'en', sourceCircuitSpec: CircuitSpec) {
+  const original = sourceCircuitSpec.unsupportedItems.join(', ') || sourceCircuitSpec.intent.primaryGoal;
+  if (locale === 'ko') {
+    return [
+      `원 요청(${original})은 안전상 실제 배선이나 build-ready 회로로 만들지 않습니다.`,
+      '대신 검증된 Arduino Uno + 5mm LED + 220Ω 저항의 안전한 저전압 대체 회로를 시뮬레이션으로 보여줄게요.'
+    ].join(' ');
+  }
+  return [
+    `I will not turn the original request (${original}) into wiring or build-ready hardware.`,
+    'Instead, I am showing a verified safe low-voltage Arduino Uno + 5mm LED + 220 ohm resistor equivalent simulation.'
+  ].join(' ');
 }
 
 function finalAssistantMessage({
   draftMessage,
   validationReport,
+  buildRunnableReport,
   clarification,
   locale
 }: {
   draftMessage: string;
   validationReport: AgentRunResult['validationReport'];
+  buildRunnableReport: BuildRunnableReport;
   clarification: string | null;
   locale: 'ko' | 'en';
 }) {
-  if (validationReport.status !== 'invalid') {
+  if (validationReport.status !== 'invalid' && (validationReport.status !== 'valid' || buildRunnableReport.runnable)) {
     return draftMessage;
+  }
+
+  if (validationReport.status === 'valid' && !buildRunnableReport.runnable) {
+    const reason = summarizeValidationErrors(buildRunnableReport.reasons);
+    if (locale === 'ko') {
+      return [
+        '회로 초안은 이해했지만 아직 실행 가능한 시뮬레이션으로 확정되지는 않았어요.',
+        `막힌 지점: ${reason}`,
+        '배치와 시뮬레이션 조건을 다시 맞춰서 검증해야 합니다.'
+      ].join(' ');
+    }
+    return [
+      'I understood the circuit draft, but it is not yet a runnable simulation.',
+      `Blocked by: ${reason}`,
+      'The placement and simulation conditions need to be repaired before build/run.'
+    ].join(' ');
   }
 
   const reason = studentValidationReason(validationReport.errors, locale);
@@ -284,6 +738,46 @@ function finalAssistantMessage({
     `Validation found ${reason}`,
     clarification ? `Next step: ${clarification}` : 'Fix the parts, pins, power, and ground assumptions before building it.'
   ].join(' ');
+}
+
+function sanitizeStudentFacingAssistantMessage(message: string, locale: 'ko' | 'en') {
+  let sanitized = message
+    .replace(/verified support data gap/gi, locale === 'ko' ? '검증 자료 부족' : 'verified support data gap')
+    .replace(/missing verified support data/gi, locale === 'ko' ? '검증 자료 부족' : 'missing verified support data')
+    .replace(/verified hardware support data/gi, locale === 'ko' ? '검증 자료' : 'verified hardware data')
+    .replace(/verified support data/gi, locale === 'ko' ? '검증 자료' : 'verified support data')
+    .replace(/verified source data/gi, locale === 'ko' ? '출처가 확인된 검증 자료' : 'verified source data')
+    .replace(/support bundle evidence/gi, locale === 'ko' ? '검증 자료' : 'verified support data')
+    .replace(/source-backed support evidence/gi, locale === 'ko' ? '출처가 확인된 검증 자료' : 'verified source data')
+    .replace(/source-backed hardware support bundle/gi, locale === 'ko' ? '검증 자료' : 'verified hardware data')
+    .replace(/support bundle/gi, locale === 'ko' ? '검증 자료' : 'verified support data')
+    .replace(/canonical context bundle/gi, locale === 'ko' ? '검증 자료' : 'verified context data')
+    .replace(/canonical context/gi, locale === 'ko' ? '검증 자료' : 'verified context data')
+    .replace(/context packet/gi, locale === 'ko' ? '요청 자료' : 'request context')
+    .replace(/valid synthesis/gi, locale === 'ko' ? '회로 확정' : 'circuit finalization')
+    .replace(/validated synthesis/gi, locale === 'ko' ? '검증된 회로 확정' : 'validated circuit finalization')
+    .replace(/CircuitSpec/g, locale === 'ko' ? '회로 초안' : 'circuit draft')
+    .replace(/unsupportedItems/g, locale === 'ko' ? '지원하지 않는 항목' : 'unsupported items')
+    .replace(/clarificationNeeds/g, locale === 'ko' ? '확인할 점' : 'clarification needs')
+    .replace(/render plans?/gi, locale === 'ko' ? '3D 보기' : '3D view')
+    .replace(/current-flow claims?/gi, locale === 'ko' ? '전류 흐름 설명' : 'current-flow explanation');
+
+  if (locale === 'ko') {
+    sanitized = sanitized
+      .replace(/현재 요청 컨텍스트에는\s*(필수\s*)?(지원|소스)\s*번들\s*(증거|근거)가\s*로드되어\s*있지\s*않습니다\.?\s*/g, '이 회로는 아직 검증 자료가 부족합니다. ')
+      .replace(/(필수\s*)?(지원|소스)\s*번들\s*(증거|근거)/g, '검증 자료')
+      .replace(/빌드 가능한\s*배선도\s*\/\s*렌더\s*\/\s*전류 흐름 시뮬레이션/g, '배선도, 3D 보기, 전류 흐름 시뮬레이션')
+      .replace(/빌드 가능한/g, '만들 수 있는')
+      .replace(/확정하지 않겠습니다/g, '바로 확정하지 않을게요')
+      .replace(/컨텍스트/g, '자료')
+      .replace(/렌더링/g, '3D 보기')
+      .replace(/렌더/g, '3D 보기')
+      .replace(/시뮬레이션으로 확정/g, '시뮬레이션까지 확정')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  return sanitized;
 }
 
 function studentValidationReason(errors: string[], locale: 'ko' | 'en') {
@@ -319,29 +813,48 @@ function studentValidationReason(errors: string[], locale: 'ko' | 'en') {
 }
 
 async function runAgentDraftRepairLoop({
+  traceId,
   sessionId,
   request,
   contextPacket,
+  requirementAnalysis,
   draftProvider,
   maxAttempts = 2
 }: {
+  traceId: string;
   sessionId: string;
   request: AgentMessageRequest;
   contextPacket: Awaited<ReturnType<typeof buildContextPacket>>;
+  requirementAnalysis: RequirementAnalysis;
   draftProvider: DraftProvider;
   maxAttempts?: number;
 }): Promise<AgentRunResult> {
-  const unsupportedPreflightDraft = buildUnsupportedPreflightDraft(request, contextPacket);
-  if (unsupportedPreflightDraft) {
-    return finalizeAgentResult({
+  const preflightDraft = buildPreflightDraftFromAnalysis(request, contextPacket, requirementAnalysis);
+  if (preflightDraft) {
+    const finalized = await finalizeAgentResult({
       sessionId,
       request,
-      draft: unsupportedPreflightDraft,
-      contextPacket
+      draft: preflightDraft,
+      traceId,
+      contextPacket,
+      coordinatorEvent: {
+        type: 'coordinator',
+        name: 'deepagents-coordinator',
+        status: 'completed',
+        summary: 'Requirement-analysis agent handled the turn before circuit synthesis.'
+      },
+      repairEvents: [requirementAnalysisEvent(requirementAnalysis)]
     });
+    logAgentEvent('agent.validation.completed', {
+      traceId,
+      sessionId,
+      preflight: true,
+      ...resultLogSummary(finalized)
+    });
+    return finalized;
   }
 
-  const repairEvents: AgentEvent[] = [];
+  const repairEvents: AgentEvent[] = [requirementAnalysisEvent(requirementAnalysis)];
   let previousErrors: string[] = [];
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
@@ -350,15 +863,22 @@ async function runAgentDraftRepairLoop({
       sessionId,
       request,
       draft,
+      traceId,
       contextPacket,
       repairEvents
     });
+    logAgentEvent('agent.validation.completed', {
+      traceId,
+      sessionId,
+      attempt,
+      ...resultLogSummary(finalized)
+    });
 
-    if (finalized.validationReport.status === 'valid' || !shouldAttemptValidationRepair(finalized)) {
+    if (finalized.buildRunnableReport.runnable || !shouldAttemptQualityRepair(finalized)) {
       return finalized;
     }
 
-    previousErrors = finalized.validationReport.errors;
+    previousErrors = qualityGateErrors(finalized);
     if (attempt < maxAttempts) {
       repairEvents.push(validationRepairEvent(attempt, maxAttempts, previousErrors));
       continue;
@@ -372,9 +892,45 @@ async function runAgentDraftRepairLoop({
   throw new Error('Agent repair loop exited without a finalized result.');
 }
 
+function langSmithTags(stage: string, contextPacket: Awaited<ReturnType<typeof buildContextPacket>>) {
+  return [
+    'h-eduware',
+    stage,
+    contextPacket.contextRoute.routeId,
+    ...contextPacket.capabilityMatches.map((capability) => `capability:${capability.id}`),
+    `eligibility:${contextPacket.contextCoverage.synthesisEligibility.status}`
+  ];
+}
+
+function buildPreflightDraftFromAnalysis(
+  request: AgentMessageRequest,
+  contextPacket: Awaited<ReturnType<typeof buildContextPacket>>,
+  requirementAnalysis: RequirementAnalysis
+): LiveAgentDraft | null {
+  if (requirementAnalysis.route === 'synthesize_circuit') {
+    return null;
+  }
+
+  if (requirementAnalysis.route === 'unsupported_or_gap') {
+    return buildUnsupportedPreflightDraft(request, contextPacket, requirementAnalysis);
+  }
+
+  return buildClarificationPreflightDraft(request, contextPacket, requirementAnalysis);
+}
+
+function requirementAnalysisEvent(requirementAnalysis: RequirementAnalysis): AgentEvent {
+  return AgentEventSchema.parse({
+    type: 'coordinator',
+    name: 'requirement-analysis-agent',
+    status: 'completed',
+    summary: `${requirementAnalysis.route}: ${requirementAnalysis.summary}`
+  });
+}
+
 function buildUnsupportedPreflightDraft(
   request: AgentMessageRequest,
-  contextPacket: Awaited<ReturnType<typeof buildContextPacket>>
+  contextPacket: Awaited<ReturnType<typeof buildContextPacket>>,
+  requirementAnalysis: RequirementAnalysis
 ): LiveAgentDraft | null {
   const supportGaps = uniqueStrings(contextPacket.supportGaps);
   const unsupportedSignals = uniqueStrings(contextPacket.unsupportedSignals);
@@ -385,24 +941,23 @@ function buildUnsupportedPreflightDraft(
 
   const isPlannedContextGap = supportGaps.length > 0 && !isUnsupportedSafetyRoute && !hasUnsupportedCapability;
 
-  if (!isUnsupportedSafetyRoute && !hasUnsupportedCapability && unsupportedSignals.length === 0 && supportGaps.length === 0) {
-    return null;
-  }
-
   const locale = request.locale ?? 'ko';
   const blockedItems = uniqueStrings([...unsupportedSignals, ...supportGaps]);
   const unsupportedItems = isPlannedContextGap
     ? supportGaps
     : blockedItems.length > 0
       ? blockedItems
-    : ['unsupported or unsafe request outside the low-voltage classroom scope'];
+    : [requirementAnalysis.blockingReason ?? 'unsupported or incomplete request outside the current build-ready scope'];
   const safeAlternative = locale === 'ko'
     ? 'Arduino 5V, GND, 220Ω 저항, LED처럼 안전한 저전압 회로로 바꾸면 설계와 시뮬레이션을 진행할 수 있습니다.'
     : 'I can help reframe this as a safe low-voltage Arduino circuit, such as Arduino 5V, GND, a 220 ohm resistor, and an LED.';
+  const supportedAlternatives = [
+    defaultSupportedAlternative(locale, isPlannedContextGap ? 'context-support-gap' : 'safety-policy')
+  ];
   const safetyMessage = locale === 'ko'
     ? `이 요청은 감전이나 화재 위험이 있는 고전압/지원불가 회로라서 배선도나 시뮬레이션으로 만들 수 없습니다. ${safeAlternative}`
     : `This request is unsafe or unsupported for a student breadboard simulation, so I cannot turn it into wiring or a runnable circuit. ${safeAlternative}`;
-  const supportGapMessage = `This request matches planned H-eduware hardware, but the canonical context bundle is not ready for validated wiring, rendering, or current simulation yet. Missing support evidence: ${unsupportedItems.join(' | ')}.`;
+  const supportGapMessage = 'This request matches H-eduware hardware that is not fully verified yet, so I cannot finalize wiring, 3D view, or current simulation. Choose a currently supported circuit or add the missing verified hardware data first.';
   const assistantMessage = localizedPreflightMessage({
     locale,
     isPlannedContextGap,
@@ -415,20 +970,154 @@ function buildUnsupportedPreflightDraft(
     : 'Tell me the low-voltage Arduino input and output behavior you want to build instead.';
   const supportGapClarification = locale === 'ko'
     ? '현재 지원되는 회로를 선택하거나, 이 부품을 지원하기 위한 부품 정보와 검증/렌더링/시뮬레이션 자료를 먼저 추가해야 합니다.'
-    : 'Choose a currently supported circuit, or add the missing canonical context bundle before validated synthesis.';
-  const clarification = isPlannedContextGap ? supportGapClarification : safetyClarification;
+    : 'Choose a currently supported circuit, or add the missing verified hardware data before finalizing the circuit.';
+  const clarification = requirementAnalysis.clarification ?? (isPlannedContextGap ? supportGapClarification : safetyClarification);
+  const diagnosticComponents = diagnosticPreflightComponents(contextPacket, isPlannedContextGap);
 
   return LiveAgentDraftSchema.parse({
-    assistantMessage,
+    assistantMessage: requirementAnalysis.assistantMessage || assistantMessage,
     clarification,
     circuitSpec: {
       id: 'unsupported-safety-request',
-      title: locale === 'ko' ? '지원하지 않는 안전 위험 요청' : 'Unsupported safety-risk request',
+      title: isPlannedContextGap
+        ? locale === 'ko' ? '지원 준비 중인 하드웨어 진단 장면' : 'Hardware Support Gap Diagnostic Scene'
+        : locale === 'ko' ? '지원하지 않는 안전 위험 요청' : 'Unsupported safety-risk request',
       intent: {
         primaryGoal: request.message,
         output: 'unsupported',
         controller: 'none',
         behavior: 'unsafe-or-unsupported'
+      },
+      components: diagnosticComponents,
+      connections: [],
+      behavior: { runText: isPlannedContextGap ? 'DIAGNOSTIC VIEW' : 'UNSUPPORTED' },
+      assumptions: [
+        'H-eduware only simulates safe, low-voltage educational breadboard circuits.',
+        ...(isPlannedContextGap ? ['The visible scene is diagnostic only; exact wiring and current-flow claims are blocked until support data is complete.'] : []),
+        `Context route: ${contextPacket.contextRoute.routeId}.`
+      ],
+      unsupportedItems,
+      clarificationNeeds: [clarification]
+    },
+    agentEvents: [
+      {
+        type: 'validation',
+        name: isPlannedContextGap ? 'context-support-gap' : 'safety-policy',
+        status: 'warning',
+        summary: isPlannedContextGap
+          ? `This request needs more verified hardware data before circuit finalization: ${unsupportedItems.join(', ')}.`
+          : `Unsupported or unsafe signals: ${unsupportedItems.join(', ')}.`
+      }
+    ],
+    supportedAlternatives
+  });
+}
+
+function diagnosticPreflightComponents(
+  contextPacket: Awaited<ReturnType<typeof buildContextPacket>>,
+  includeCandidateParts: boolean
+): CircuitSpec['components'] {
+  type DiagnosticComponent = CircuitSpec['components'][number];
+  const candidates = includeCandidateParts
+    ? contextPacket.candidateParts
+      .filter((part) => part.id !== 'jumper-wire')
+      .slice(0, 8)
+    : [];
+  const byPartId = new Map(candidates.map((part) => [part.id, part]));
+  const orderedPartIds = uniqueStrings([
+    byPartId.has('breadboard-half') ? 'breadboard-half' : '',
+    byPartId.has('arduino-uno') ? 'arduino-uno' : '',
+    ...candidates.map((part) => part.id)
+  ].filter(Boolean));
+
+  const components: DiagnosticComponent[] = orderedPartIds
+    .flatMap((partId, index): DiagnosticComponent[] => {
+      const part = byPartId.get(partId);
+      if (!part) {
+        return [];
+      }
+      return [{
+        id: diagnosticComponentId(partId),
+        partId,
+        label: part.label,
+        designator: diagnosticDesignator(part.kind, index)
+      }];
+    });
+
+  if (components.length > 0) {
+    return components;
+  }
+
+  return [{
+    id: 'arduino-uno',
+    partId: 'arduino-uno',
+    label: 'Arduino Uno',
+    designator: 'U1'
+  }];
+}
+
+function diagnosticComponentId(partId: string) {
+  if (partId === 'breadboard-half') {
+    return 'breadboard';
+  }
+  return partId.replace(/[^a-z0-9-]/gi, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'diagnostic-part';
+}
+
+function diagnosticDesignator(kind: string, index: number) {
+  const prefix = kind === 'controller'
+    ? 'U'
+    : kind === 'board'
+      ? 'BB'
+      : kind === 'input'
+        ? 'S'
+        : kind === 'output'
+          ? 'OUT'
+          : kind === 'passive'
+            ? 'P'
+            : 'X';
+  return `${prefix}${index + 1}`;
+}
+
+function defaultSupportedAlternative(
+  locale: 'ko' | 'en',
+  source: SupportedAlternative['source']
+): SupportedAlternative {
+  return SupportedAlternativeSchema.parse({
+    id: 'safe-low-voltage-led',
+    goal: locale === 'ko'
+      ? 'Arduino Uno + 5mm LED + 220Ω 저항으로 안전한 저전압 LED 회로 만들기'
+      : 'Build a safe low-voltage Arduino Uno LED circuit with a 5mm LED and 220 ohm resistor',
+    label: locale === 'ko' ? '안전한 Arduino LED 회로' : 'Safe Arduino LED circuit',
+    reason: locale === 'ko'
+      ? '현재 검증된 부품과 시뮬레이션 경로가 준비된 안전한 대안입니다.'
+      : 'This alternative uses verified low-voltage parts and a supported simulation path.',
+    source,
+    partIds: ['arduino-uno', 'breadboard-half', 'led-5mm', 'resistor-220', 'jumper-wire'],
+    capabilityIds: ['digital-light-output']
+  });
+}
+
+function buildClarificationPreflightDraft(
+  request: AgentMessageRequest,
+  contextPacket: Awaited<ReturnType<typeof buildContextPacket>>,
+  requirementAnalysis: RequirementAnalysis
+): LiveAgentDraft | null {
+  const locale = request.locale ?? 'ko';
+  const clarification = locale === 'ko'
+    ? '만들고 싶은 회로의 입력, 출력, 동작을 한 문장으로 알려 주세요. 예: Arduino Uno D9로 LED를 깜빡이기.'
+    : 'Tell me the circuit input, output, and behavior in one sentence. Example: blink an LED from Arduino Uno D9.';
+
+  return LiveAgentDraftSchema.parse({
+    assistantMessage: requirementAnalysis.assistantMessage,
+    clarification: requirementAnalysis.clarification ?? clarification,
+    circuitSpec: {
+      id: 'clarification-needed',
+      title: locale === 'ko' ? '회로 요청 구체화 필요' : 'Circuit request needs clarification',
+      intent: {
+        primaryGoal: request.message,
+        output: 'clarification-needed',
+        controller: 'none',
+        behavior: requirementAnalysis.route
       },
       components: [{
         id: 'arduino-uno',
@@ -437,30 +1126,17 @@ function buildUnsupportedPreflightDraft(
         designator: 'U1'
       }],
       connections: [],
-      behavior: { runText: 'UNSUPPORTED' },
+      behavior: { runText: 'CLARIFY' },
       assumptions: [
-        'H-eduware only simulates safe, low-voltage educational breadboard circuits.',
+        'No concrete circuit input, output, or hardware behavior was identified yet.',
+        `Requirement analysis route: ${requirementAnalysis.route}.`,
+        `Requirement analysis summary: ${requirementAnalysis.summary}.`,
         `Context route: ${contextPacket.contextRoute.routeId}.`
       ],
-      unsupportedItems,
-      clarificationNeeds: [clarification]
+      unsupportedItems: ['clarification-required'],
+      clarificationNeeds: [requirementAnalysis.clarification ?? clarification]
     },
-    agentEvents: [
-      {
-        type: 'coordinator',
-        name: 'context-router',
-        status: 'completed',
-        summary: `Blocked before synthesis via ${contextPacket.contextRoute.routeId}.`
-      },
-      {
-        type: 'validation',
-        name: isPlannedContextGap ? 'context-support-gap' : 'safety-policy',
-        status: 'warning',
-        summary: isPlannedContextGap
-          ? `Planned capability lacks canonical context for valid synthesis: ${unsupportedItems.join(', ')}.`
-          : `Unsupported or unsafe signals: ${unsupportedItems.join(', ')}.`
-      }
-    ]
+    agentEvents: []
   });
 }
 
@@ -506,9 +1182,9 @@ function friendlyUnsupportedItemName(item: string) {
     return parenthetical;
   }
 
-  const visualPartId = item.match(/visual-only hardware ([^\s]+)/i)?.[1]?.trim();
-  if (visualPartId) {
-    return visualPartId;
+  const catalogPartId = item.match(/(?:context-known|pin-known|unsafe-blocked|catalog-only|visual-only) hardware ([^\s]+)/i)?.[1]?.trim();
+  if (catalogPartId) {
+    return catalogPartId;
   }
 
   const capabilityId = item.match(/^([a-z0-9-]+) is (planned|partial|unsupported)/i)?.[1]?.trim();
@@ -562,22 +1238,167 @@ export function parseLiveAgentDraft(output: unknown): LiveAgentDraft {
     ? (output as Record<string, unknown>).structuredResponse ?? (output as Record<string, unknown>).structured_response
     : null;
 
-  if (!candidate) {
+  const recoveredCandidate = candidate ?? recoverDraftFromAgentMessages(output);
+  if (!recoveredCandidate) {
     throw new AgentStructuredOutputError();
   }
 
-  return LiveAgentDraftSchema.parse(candidate);
+  return LiveAgentDraftSchema.parse(recoveredCandidate);
+}
+
+function recoverDraftFromAgentMessages(output: unknown) {
+  const messages = output && typeof output === 'object' && Array.isArray((output as Record<string, unknown>).messages)
+    ? (output as Record<string, unknown>).messages as unknown[]
+    : [];
+  if (messages.length === 0) {
+    return null;
+  }
+
+  const circuitSpec = latestCircuitSpecFromToolCalls(messages);
+  if (!circuitSpec) {
+    return null;
+  }
+
+  return {
+    assistantMessage: latestAssistantText(messages) ?? '회로 초안을 만들었습니다. 서버 검증 결과를 기준으로 배선과 시뮬레이션을 준비할게요.',
+    clarification: null,
+    circuitSpec,
+    agentEvents: toolCallEvents(messages)
+  };
+}
+
+function latestCircuitSpecFromToolCalls(messages: unknown[]) {
+  for (const message of [...messages].reverse()) {
+    for (const call of [...toolCallsForMessage(message)].reverse()) {
+      const args = call.args && typeof call.args === 'object'
+        ? call.args as Record<string, unknown>
+        : {};
+      const spec = args.spec ?? args.circuitSpec;
+      if (spec) {
+        return spec;
+      }
+    }
+  }
+  return null;
+}
+
+function latestAssistantText(messages: unknown[]) {
+  for (const message of [...messages].reverse()) {
+    if (toolCallsForMessage(message).length > 0) {
+      continue;
+    }
+    const text = messageContentText(message);
+    if (text) {
+      return text;
+    }
+  }
+  return null;
+}
+
+function toolCallEvents(messages: unknown[]): AgentEvent[] {
+  const seen = new Set<string>();
+  return messages
+    .flatMap(toolCallsForMessage)
+    .map((call) => call.name)
+    .filter((name): name is string => Boolean(name))
+    .filter((name) => {
+      if (seen.has(name)) {
+        return false;
+      }
+      seen.add(name);
+      return true;
+    })
+    .map((name) => AgentEventSchema.parse({
+      type: 'tool',
+      name,
+      status: 'completed',
+      summary: `Recovered completed ${name} tool call from Deepagents message history.`
+    }));
+}
+
+function toolCallsForMessage(message: unknown): Array<{ name?: string; args?: unknown }> {
+  const record = message && typeof message === 'object' ? message as Record<string, unknown> : {};
+  const kwargs = record.kwargs && typeof record.kwargs === 'object' ? record.kwargs as Record<string, unknown> : {};
+  const calls = record.tool_calls ?? kwargs.tool_calls;
+  return Array.isArray(calls) ? calls as Array<{ name?: string; args?: unknown }> : [];
+}
+
+function messageContentText(message: unknown) {
+  const record = message && typeof message === 'object' ? message as Record<string, unknown> : {};
+  const kwargs = record.kwargs && typeof record.kwargs === 'object' ? record.kwargs as Record<string, unknown> : {};
+  const content = record.content ?? kwargs.content;
+
+  if (typeof content === 'string') {
+    return content.trim() || null;
+  }
+  if (Array.isArray(content)) {
+    const text = content
+      .map((part) => part && typeof part === 'object' && typeof (part as Record<string, unknown>).text === 'string'
+        ? (part as Record<string, string>).text
+        : '')
+      .join('\n')
+      .trim();
+    return text || null;
+  }
+  return null;
+}
+
+export function parseRequirementAnalysis(output: unknown): RequirementAnalysis {
+  const candidate = output && typeof output === 'object'
+    ? (output as Record<string, unknown>).structuredResponse ?? (output as Record<string, unknown>).structured_response
+    : null;
+
+  if (!candidate) {
+    throw new AgentStructuredOutputError('Deepagents did not return a structured requirement analysis.');
+  }
+
+  return RequirementAnalysisSchema.parse(candidate);
+}
+
+function buildRequirementAnalysisSystemPrompt({
+  locale,
+  contextPacketBlock
+}: {
+  locale: 'ko' | 'en';
+  contextPacketBlock: string;
+}) {
+  const language = locale === 'ko' ? 'Korean' : 'English';
+  return [
+    `Respond to the student in natural ${language}.`,
+    'You are the first Deepagents requirement-analysis analyst for H-eduware.',
+    'Your only job is to understand the student turn and choose the next workflow route. Do not create CircuitSpec, wiring, render plans, or simulation claims in this step.',
+    '',
+    'Routes:',
+    '- casual_chat: greetings, meta conversation, or "let us start" style messages with no concrete circuit goal.',
+    '- clarify_requirements: the student wants a circuit but has not provided enough input/output/behavior detail.',
+    '- synthesize_circuit: the student gave a concrete, supported circuit goal that can move to circuit synthesis.',
+    '- unsupported_or_gap: the request is unsafe, unsupported, planned, context-known-only, visual-only, or source/context evidence is insufficient for build-ready synthesis.',
+    '',
+    'Use the CONTEXT PACKET as routing evidence. If context coverage is ineligible because of ambiguity, route casual_chat or clarify_requirements. If it is ineligible because of support gaps, unsupported hardware, or safety, route unsupported_or_gap. Only route synthesize_circuit when the message contains a concrete circuit behavior and the packet supports valid_circuit_synthesis.',
+    'Return concise student-facing text. For casual_chat or clarify_requirements, ask one friendly next question. For synthesize_circuit, summarize the interpreted goal without overpromising validity. For unsupported_or_gap, explain the blocker and offer a supported next step.',
+    '',
+    contextPacketBlock
+  ].join('\n');
+}
+
+function buildRequirementAnalysisUserPrompt(request: AgentMessageRequest) {
+  return [
+    `Student message: ${request.message}`,
+    request.confirmation ? `Student confirmation/context: ${request.confirmation}` : '',
+    renderConversationContextForPrompt(request),
+    'Analyze this turn first. Choose exactly one route value and return the structured requirement analysis.'
+  ].filter(Boolean).join('\n');
 }
 
 function buildSystemPrompt({
   locale,
-  rules,
+  operatingMemory,
   coordinatorPrompt,
   registrySummary,
   contextPacketBlock
 }: {
   locale: 'ko' | 'en';
-  rules: string;
+  operatingMemory: string;
   coordinatorPrompt: string;
   registrySummary: string;
   contextPacketBlock: string;
@@ -586,14 +1407,12 @@ function buildSystemPrompt({
 
   return [
     coordinatorPrompt,
-    rules,
-    `Respond to the student in natural ${language}.`,
-    'You are building educational, low-voltage Arduino/breadboard circuits for students.',
-    'You must use the request-specific CONTEXT PACKET below as the first source of truth. Do not synthesize hardware outside that packet.',
-    'You must use canonical part ids and pin names from context. Do not invent component ids, part ids, pins, protocols, or simulator capabilities.',
-    'If the request is too vague, unsafe, or outside the supported registry, return a CircuitSpec with unsupportedItems and clarificationNeeds instead of a fake circuit.',
-    'Before finalizing, use context and deterministic tools where useful: search_part_capabilities, validate_circuit_spec, build_netlist, estimate_current_paths, compile_render_plan, compile_simulation_plan, and compile_requirement_markdown.',
-    'The final structured response must contain assistantMessage, clarification, circuitSpec, and concise agentEvents. The server will independently validate and compile artifacts after your draft.',
+    operatingMemory,
+    `Respond in natural ${language}. Build only safe, low-voltage educational Arduino/breadboard circuits.`,
+    'Use the CONTEXT PACKET and tool outputs as source of truth. Do not invent parts, pins, protocols, wiring, render support, or simulator behavior.',
+    'Build-ready requires complete verified hardware data plus deterministic validation. Otherwise return unsupportedItems or one clarification.',
+    'Student text must avoid internal terms like context packet, support bundle evidence, structured output, and CircuitSpec; say verified hardware data or 검증 자료.',
+    'Return assistantMessage, clarification, CircuitSpec, and concise agentEvents. The server independently validates, renders, simulates, and gates the draft.',
     '',
     contextPacketBlock,
     '',
@@ -615,9 +1434,9 @@ export function buildAgentUserPrompt(
 
   if (repair && repair.attempt > 1 && repair.previousErrors.length > 0) {
     lines.push(
-      `Repair attempt ${repair.attempt}: the previous draft failed deterministic server validation.`,
+      `Repair attempt ${repair.attempt}: the previous draft failed deterministic server quality gates.`,
       'Repair only by returning a new CircuitSpec grounded in the same context packet. Do not invent parts, pins, protocols, or simulator behavior.',
-      `Previous validation errors:\n${repair.previousErrors.map((error) => `- ${error}`).join('\n')}`
+      `Previous quality gate errors:\n${repair.previousErrors.map((error) => `- ${error}`).join('\n')}`
     );
   }
 
@@ -639,7 +1458,9 @@ function renderConversationContextForPrompt(request: AgentMessageRequest) {
     artifact?.circuitSpec?.intent?.primaryGoal ? `- Current artifact goal: ${artifact.circuitSpec.intent.primaryGoal}` : '',
     artifact?.circuitSpec?.components?.length ? `- Current artifact parts: ${artifact.circuitSpec.components.map((component) => component.partId).join(', ')}` : '',
     artifact?.validationReport?.status ? `- validationStatus=${artifact.validationReport.status}` : '',
-    artifact?.simulationPlan?.status ? `- simulationStatus=${artifact.simulationPlan.status}` : ''
+    artifact?.simulationPlan?.status ? `- simulationStatus=${artifact.simulationPlan.status}` : '',
+    artifact?.buildRunnableReport?.status ? `- buildRunnableStatus=${artifact.buildRunnableReport.status}; runnable=${artifact.buildRunnableReport.runnable ? 'yes' : 'no'}` : '',
+    artifact?.buildRunnableReport?.reasons?.length ? `- buildRunnableReasons=${artifact.buildRunnableReport.reasons.slice(0, 3).join('; ')}` : ''
   ].filter(Boolean);
 
   if (context.recentTurns.length > 0) {
@@ -660,12 +1481,18 @@ function buildRegistrySummary(parts: Awaited<ReturnType<typeof getPartRegistry>>
   return parts.map((part) => [
     `- ${part.id} (${part.label})`,
     `kind=${part.kind}`,
-    `aliases=${part.aliases.join(', ') || 'none'}`,
-    `pins=${part.pins.map((pin) => `${pin.name}:${pin.role}`).join(', ')}`,
+    `pins=${part.pins.map((pin) => pin.name).join(', ') || 'none'}`,
     `protocols=${part.protocols.join(', ') || 'none'}`,
-    `limits=${part.electrical.voltageRange.nominal}V nominal, ${part.electrical.maxCurrentMa}mA max`,
     `requires=${part.requiredPassives.map((passive) => passive.partId).join(', ') || 'none'}`
   ].join('; ')).join('\n');
+}
+
+function renderSubagentPromptBudgetText(subagents: SubAgent[]) {
+  return subagents.map((subagent) => [
+    `Subagent: ${subagent.name}`,
+    subagent.description ? `Description: ${subagent.description}` : '',
+    subagent.systemPrompt ? `Prompt: ${subagent.systemPrompt}` : ''
+  ].filter(Boolean).join('\n')).join('\n\n');
 }
 
 function createSubagents(toolOptions: Parameters<typeof createHeduwareAgentTools>[0] = {}): SubAgent[] {
@@ -673,36 +1500,36 @@ function createSubagents(toolOptions: Parameters<typeof createHeduwareAgentTools
   return [
     {
       name: 'intent-analyst',
-      description: 'Extracts the student goal, input/output behavior, assumptions, ambiguity, and safety concerns.',
-      systemPrompt: 'Analyze the student request into concise intent facts. Return only facts needed for CircuitSpec drafting.'
+      description: 'Extract goal, I/O behavior, ambiguity, and safety concerns.',
+      systemPrompt: 'Return concise intent facts needed for CircuitSpec drafting.'
     },
     {
       name: 'context-retriever',
-      description: 'Retrieves H-eduware context-layer docs and registry facts.',
-      systemPrompt: 'Use load_context_index, read_context_doc, and search_part_capabilities. Return concise cited facts, not long copied context.',
+      description: 'Retrieve bounded registry/context facts.',
+      systemPrompt: 'Use context tools only for selected sources. Return concise bundle-backed facts.',
       tools: tools()
     },
     {
       name: 'circuit-synthesizer',
-      description: 'Drafts candidate CircuitSpec objects from intent and canonical registry data.',
-      systemPrompt: 'Draft CircuitSpec only with supported part ids and exact pin names. Do not claim validity.'
+      description: 'Draft candidate CircuitSpec from intent and registry data.',
+      systemPrompt: 'Use supported part ids and exact pins only. Do not claim validity.'
     },
     {
       name: 'constraint-validator',
-      description: 'Reviews deterministic validation, netlist, safety, and unsupported status.',
-      systemPrompt: 'Call validation tools and report authoritative errors/warnings without rewriting them.',
+      description: 'Review validation, netlist, safety, and gaps.',
+      systemPrompt: 'Call validation tools and report authoritative gaps/errors.',
       tools: tools()
     },
     {
       name: 'simulation-planner',
-      description: 'Plans current-flow and expected state simulation from validated circuit artifacts.',
-      systemPrompt: 'Only produce current-flow statements from valid validation and netlist/current path tool outputs.',
+      description: 'Plan simulation from validated artifacts.',
+      systemPrompt: 'Current-flow statements require valid netlist/current path tool outputs.',
       tools: tools()
     },
     {
       name: 'lesson-explainer',
-      description: 'Creates student-facing explanation text for the final assistant response.',
-      systemPrompt: 'Explain the circuit in student-friendly language. Keep it concise and avoid unsupported claims.'
+      description: 'Write student-facing explanation.',
+      systemPrompt: 'Explain concisely and avoid unsupported claims.'
     }
   ];
 }
@@ -719,15 +1546,24 @@ function normalizeEvents(events: Array<z.infer<typeof AgentEventSchema>>): Agent
   });
 }
 
-function shouldAttemptValidationRepair(result: AgentRunResult) {
-  if (result.validationReport.status !== 'invalid') {
-    return false;
+function shouldAttemptQualityRepair(result: AgentRunResult) {
+  if (result.validationReport.status === 'invalid') {
+    return !result.validationReport.errors.some((error) =>
+      error.startsWith('CONTEXT_COVERAGE_INSUFFICIENT') ||
+      error.startsWith('CONTEXT_CANDIDATE_PART_NOT_ALLOWED')
+    );
   }
 
-  return !result.validationReport.errors.some((error) =>
-    error.startsWith('CONTEXT_COVERAGE_INSUFFICIENT') ||
-    error.startsWith('CONTEXT_CANDIDATE_PART_NOT_ALLOWED')
-  );
+  return result.validationReport.status === 'valid' && !result.buildRunnableReport.runnable;
+}
+
+function qualityGateErrors(result: AgentRunResult) {
+  if (result.validationReport.status === 'invalid') {
+    return result.validationReport.errors;
+  }
+  return result.buildRunnableReport.reasons.length > 0
+    ? result.buildRunnableReport.reasons
+    : [`build runnable gate status is ${result.buildRunnableReport.status}`];
 }
 
 function validationRepairEvent(attempt: number, maxAttempts: number, errors: string[]): AgentEvent {
@@ -735,7 +1571,7 @@ function validationRepairEvent(attempt: number, maxAttempts: number, errors: str
     type: 'validation',
     name: 'validation-repair',
     status: 'warning',
-    summary: `Attempt ${attempt}/${maxAttempts} failed deterministic validation: ${summarizeValidationErrors(errors)}`
+    summary: `Attempt ${attempt}/${maxAttempts} failed deterministic quality gates: ${summarizeValidationErrors(errors)}`
   });
 }
 
@@ -744,7 +1580,7 @@ function validationRepairExhaustedEvent(maxAttempts: number, errors: string[]): 
     type: 'validation',
     name: 'validation-repair-exhausted',
     status: 'warning',
-    summary: `Stopped after ${maxAttempts} bounded validation attempts: ${summarizeValidationErrors(errors)}`
+    summary: `Stopped after ${maxAttempts} bounded quality-gate attempts: ${summarizeValidationErrors(errors)}`
   });
 }
 
@@ -786,11 +1622,11 @@ function firstCoverageClarification(
   const firstWarning = contextCoverage.warnings[0];
   if (locale === 'ko') {
     return firstWarning
-      ? `이 회로를 확정하기에는 컨텍스트 근거가 부족합니다: ${firstWarning}`
-      : '이 회로를 확정하기에는 컨텍스트 근거가 부족합니다. 지원 부품, 검증 규칙, 렌더링 근거를 더 확인해야 합니다.';
+      ? `이 회로를 확정하기에는 검증 자료가 부족합니다: ${firstWarning}`
+      : '이 회로를 확정하기에는 검증 자료가 부족합니다. 지원 부품, 검증 규칙, 3D 보기 근거를 더 확인해야 합니다.';
   }
 
   return firstWarning
-    ? `I need more canonical context before finalizing this circuit: ${firstWarning}`
-    : 'I need more canonical context before finalizing this circuit.';
+    ? `I need more verified context data before finalizing this circuit: ${firstWarning}`
+    : 'I need more verified context data before finalizing this circuit.';
 }

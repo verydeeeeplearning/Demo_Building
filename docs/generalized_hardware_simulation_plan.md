@@ -307,9 +307,9 @@ The server should enforce:
 - No model invocation without context packet.
 - No final valid result without deterministic validation.
 - No current animation without validated current paths.
-- No visualization without render anchors.
+- No verified visualization without render anchors. Hardware-shaped unsupported specs may still show diagnostic context, and missing exact footprints may use placeholder geometry when clearly marked.
 - No unsupported part silently substituted without explanation.
-- No high-voltage or unsafe circuit rendering.
+- No high-voltage or unsafe original circuit rendered as build-ready. Use clarification/no-scene or a clearly labeled safe-equivalent scene instead.
 
 ### 6.3 Repair Loop
 
@@ -685,7 +685,9 @@ The generalized hardware simulation upgrade is done when:
 
 - arbitrary beginner prompts are grounded through context before synthesis
 - final valid circuits include context trace, validated netlist, render plan, and simulation plan
-- unsupported or unsafe prompts are rejected or clarified with precise reasons
+- clarification-only/meta unsupported prompts remain no-scene with precise reasons
+- unsupported hardware prompts may render diagnostic context without Run/current animation/build-ready claims
+- unsafe prompts are rejected/clarified or replaced by a clearly labeled safe-equivalent scene
 - visualization is generated from generic footprints and pin anchors
 - simulation is generated from reusable primitives
 - Browser E2E confirms Files, PCB, hover/inspector chat, and Run behavior
@@ -714,7 +716,7 @@ Status as of the current implementation pass:
 - The server builds a request-specific `ContextPacket` before Deepagents synthesis.
 - The Deepagents system prompt receives the forced context packet.
 - The frontend exposes context evidence as a generated Markdown file in the Files panel.
-- The agent model config is now local-env driven and set to `gpt-5.5`; the live OpenAI path forces the Responses API so Deepagents tools and reasoning settings are compatible.
+- The agent model config is now local-env driven; the current local live run is set to `gpt-5.5` with `xhigh` reasoning, and the live OpenAI path forces the Responses API so Deepagents tools and reasoning settings are compatible.
 - `IntentSpecV2` now exists as a structured pre-synthesis intent artifact with student goal, behavior triggers/actions, input and output modalities, controller and power assumptions, ambiguity, safety signals, unsupported signals, language, and confidence.
 - `ContextPacket` now carries `intentSpec` and injects it into the Deepagents prompt before the older `intentHints` summary, so student requests are represented as behavior and modality facts rather than only demo-like categories.
 - `agent-context/data/capability-graph.json` now maps student-language capability requests to support level, required parts, validation rules, render footprints, and simulation primitives.
@@ -729,7 +731,7 @@ Status as of the current implementation pass:
 - `contextCoverage` marks planned, unsupported, ambiguous, and under-grounded requests as insufficient instead of letting the agent imply that latent model knowledge is enough.
 - `server/agent/circuitTools.ts` now exposes a deterministic `applyContextCoverageGate()` helper. Otherwise valid circuits are downgraded to invalid when `contextCoverage.status` is `insufficient`, with `CONTEXT_COVERAGE_INSUFFICIENT` in the validation errors and no validated current path ids.
 - `server/agent/deepAgentRuntime.ts` now compiles render plans, simulation plans, requirement markdown, validation events, and clarification text from the coverage-gated validation report instead of the raw validator report.
-- Tests now prove that insufficient coverage blocks render parts and current animation even for an electrically valid LED circuit.
+- Tests now prove that insufficient coverage blocks build-ready claims and current animation even for an electrically valid LED circuit. Hardware-shaped unsupported specs may still expose diagnostic render context when `solverGateResult.visibleSimulation` allows it.
 - `server/context/contextLayer.ts` now exposes `auditCapabilityCoverage()`, a data-bundle promotion audit that blocks any capability from being treated as supportable unless capability graph, part registry, pin aliases, validation rules, simulation primitives, render footprints, supported eval prompts, and unsupported counterexamples are all present.
 - Capability promotion tests now prove that incomplete planned families such as `analog-led-dimmer` stay blocked when `potentiometer-10k`, render, validation, or eval evidence is missing, while fully grounded starter capabilities such as `display-text-output` pass the audit.
 - Tests now fail if generalized OLED requests lack capability graph evidence or if planned potentiometer-style dimming is treated as fully supported.
@@ -764,7 +766,7 @@ Status as of the current implementation pass:
 - `RenderPlan.warnings` now reports visual capability gaps such as `MISSING_RENDER_FOOTPRINT`, and the frontend surfaces those warnings in both Files and PCB views.
 - The context layer now has explicit hierarchical routing via `agent-context/routing/context-routing-map.json` and `agent-context/routing/retrieval-budget.md`.
 - `ContextPacket` now exposes `contextRoute` and `retrievalPlan`, so request-specific context loading is observable and testable at source-id level.
-- `buildContextPacket()` now chooses a route before loading registry, rendering, and simulation assets. Ambiguous app-screen visualization requests stay on a minimal clarification route, and unsafe/unsupported requests stay policy-first without render or simulation catalogs.
+- `buildContextPacket()` now chooses a route before loading registry, rendering, and simulation assets. Ambiguous app-screen visualization requests stay on a minimal clarification route. Unsupported clarification/meta turns remain no-scene; hardware-shaped unsupported or unsafe turns may route to diagnostic context or safe-equivalent rendering without opening Run/build-ready claims.
 - The live Deepagents prompt now receives only route-selected candidate registry entries instead of a full registry dump.
 - `npm run eval:generalization` now exercises the prompt-family corpus through context routing and checks failure taxonomy, retrieval budgets, capability matches, forbidden overmatches, support gaps, unsafe signals, and ambiguity handling.
 - The eval corpus now includes display, light, sound, motion, digital input, analog input, sensor readout, multi-output, ambiguous, unsafe, unsupported, mixed-language, and typo-heavy prompt families.

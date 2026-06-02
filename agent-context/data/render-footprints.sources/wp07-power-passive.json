@@ -1,0 +1,494 @@
+{
+  "trimmer-pot": {
+    "type": "trimmer-pot",
+    "width": 0.36,
+    "depth": 0.32,
+    "height": 0.24,
+    "visualStyle": {
+      "shape": "trimmer-pot",
+      "color": "#1a5276",
+      "material": "plastic-metal"
+    },
+    "pinAnchors": {
+      "A": {
+        "x": -0.14,
+        "y": 0.06,
+        "z": -0.12,
+        "role": "power",
+        "label": "A"
+      },
+      "W": {
+        "x": 0,
+        "y": 0.06,
+        "z": 0,
+        "role": "analog-output",
+        "label": "W"
+      },
+      "B": {
+        "x": 0.14,
+        "y": 0.06,
+        "z": 0.12,
+        "role": "ground",
+        "label": "B"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.34,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "pins-down",
+      "notes": [
+        "Place A, W, and B on separate breadboard rows; W is the wiper signal used for Arduino analog input."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "trim-value",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "analog-signal",
+        "anchor": "W",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Trimmer potentiometer body",
+        "explainableAs": [
+          "variable-divider",
+          "calibration-input"
+        ]
+      },
+      {
+        "id": "pin-a",
+        "label": "A end",
+        "pin": "A",
+        "explainableAs": [
+          "divider-end"
+        ]
+      },
+      {
+        "id": "pin-w",
+        "label": "W wiper",
+        "pin": "W",
+        "explainableAs": [
+          "analog-signal"
+        ]
+      },
+      {
+        "id": "pin-b",
+        "label": "B end",
+        "pin": "B",
+        "explainableAs": [
+          "divider-end",
+          "ground-return"
+        ]
+      }
+    ]
+  },
+  "breadboard-psu": {
+    "type": "breadboard-psu",
+    "width": 0.85,
+    "depth": 0.55,
+    "height": 0.3,
+    "visualStyle": { "shape": "power-module", "color": "#c2362f", "material": "pcb-plastic" },
+    "pinAnchors": {
+      "5V": { "x": -0.24, "y": 0.18, "z": -0.2, "role": "regulated-power-output", "label": "5V" },
+      "3V3": { "x": 0, "y": 0.18, "z": -0.2, "role": "regulated-power-output", "label": "3V3" },
+      "GND": { "x": 0.24, "y": 0.18, "z": 0.2, "role": "ground", "label": "GND" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.42, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage", "breadboard"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "module-facing-up",
+      "notes": ["Educational model exposes 5V/3V3/GND rail outputs and does not size real current."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "rail-voltage", "anchor": "5V", "role": "state-overlay" },
+      { "id": "ground-reference", "anchor": "GND", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "Breadboard power module", "explainableAs": ["regulated-power-source", "rail-source"] },
+      { "id": "pin-5v", "label": "5V output", "pin": "5V", "explainableAs": ["regulated-5v-output"] },
+      { "id": "pin-3v3", "label": "3.3V output", "pin": "3V3", "explainableAs": ["regulated-3v3-output"] },
+      { "id": "pin-gnd", "label": "Ground", "pin": "GND", "explainableAs": ["ground-reference"] }
+    ]
+  },
+  "battery-9v-clip": {
+    "type": "battery-9v-clip",
+    "width": 0.55,
+    "depth": 0.55,
+    "height": 1.1,
+    "visualStyle": { "shape": "battery-9v", "color": "#222266", "material": "battery-case" },
+    "pinAnchors": {
+      "+": { "x": -0.12, "y": 0.62, "z": 0, "role": "power", "label": "+" },
+      "-": { "x": 0.12, "y": 0.62, "z": 0, "role": "ground", "label": "-" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.78, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "upright",
+      "notes": ["9V battery is a power-warning source and must not be treated as a regulated 5V rail."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "battery-voltage", "anchor": "+", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "9V battery", "explainableAs": ["external-power-source"] },
+      { "id": "pin-plus", "label": "Positive lead", "pin": "+", "explainableAs": ["power-positive"] },
+      { "id": "pin-minus", "label": "Negative lead", "pin": "-", "explainableAs": ["ground-return"] }
+    ]
+  },
+  "aa-battery-holder": {
+    "type": "aa-battery-holder",
+    "width": 1.5,
+    "depth": 0.55,
+    "height": 0.45,
+    "visualStyle": { "shape": "battery-holder", "color": "#17171c", "material": "plastic" },
+    "pinAnchors": {
+      "+": { "x": -0.64, "y": 0.28, "z": -0.18, "role": "power", "label": "+" },
+      "-": { "x": 0.64, "y": 0.28, "z": 0.18, "role": "ground", "label": "-" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.62, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "flat",
+      "notes": ["4xAA holder is modeled as a qualitative low-voltage battery pack, not a regulated 5V supply."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "battery-pack-voltage", "anchor": "+", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "4x AA battery holder", "explainableAs": ["external-power-source"] },
+      { "id": "pin-plus", "label": "Positive lead", "pin": "+", "explainableAs": ["power-positive"] },
+      { "id": "pin-minus", "label": "Negative lead", "pin": "-", "explainableAs": ["ground-return"] }
+    ]
+  },
+  "barrel-jack": {
+    "type": "barrel-jack",
+    "width": 0.45,
+    "depth": 0.45,
+    "height": 0.32,
+    "visualStyle": { "shape": "barrel-jack", "color": "#17171c", "material": "plastic-metal" },
+    "pinAnchors": {
+      "VCC": { "x": -0.12, "y": 0.2, "z": -0.14, "role": "power", "label": "VCC" },
+      "GND": { "x": 0.12, "y": 0.2, "z": 0.14, "role": "ground", "label": "GND" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.46, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage", "board"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "socket-facing-out",
+      "notes": ["Adapter voltage must be explicitly declared; mains wiring is never simulated."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "adapter-voltage", "anchor": "VCC", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "DC barrel jack", "explainableAs": ["external-power-connector"] },
+      { "id": "pin-vcc", "label": "Adapter positive", "pin": "VCC", "explainableAs": ["power-positive"] },
+      { "id": "pin-gnd", "label": "Adapter ground", "pin": "GND", "explainableAs": ["ground-return"] }
+    ]
+  },
+  "screw-terminal-2pin": {
+    "type": "screw-terminal-2pin",
+    "width": 0.5,
+    "depth": 0.35,
+    "height": 0.3,
+    "visualStyle": { "shape": "screw-terminal", "color": "#008800", "material": "plastic-metal" },
+    "pinAnchors": {
+      "A": { "x": -0.14, "y": 0.2, "z": 0, "role": "power", "label": "A/+" },
+      "B": { "x": 0.14, "y": 0.2, "z": 0, "role": "ground", "label": "B/-" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.44, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage", "board"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "terminals-up",
+      "notes": ["Modeled only as a low-voltage power connector with declared polarity."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "terminal-polarity", "anchor": "A", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "2-pin screw terminal", "explainableAs": ["power-connector"] },
+      { "id": "pin-a", "label": "A / positive", "pin": "A", "explainableAs": ["power-positive"] },
+      { "id": "pin-b", "label": "B / ground", "pin": "B", "explainableAs": ["ground-return"] }
+    ]
+  },
+  "7805-regulator": {
+    "type": "7805-regulator",
+    "width": 0.36,
+    "depth": 0.42,
+    "height": 0.25,
+    "visualStyle": { "shape": "to220-regulator", "color": "#17171c", "material": "plastic-metal" },
+    "pinAnchors": {
+      "IN": { "x": -0.12, "y": 0.16, "z": -0.16, "role": "power-input", "label": "IN" },
+      "GND": { "x": 0, "y": 0.16, "z": 0, "role": "ground", "label": "GND" },
+      "OUT": { "x": 0.12, "y": 0.16, "z": 0.16, "role": "regulated-power-output", "label": "OUT" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.42, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage", "breadboard"],
+      "breadboardCompatible": true,
+      "defaultOrientation": "pins-down",
+      "notes": ["IN, GND, and OUT must sit on distinct rows; OUT is the qualitative regulated 5V rail."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "regulated-5v", "anchor": "OUT", "role": "state-overlay" },
+      { "id": "common-ground", "anchor": "GND", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "7805 regulator", "explainableAs": ["voltage-regulator"] },
+      { "id": "pin-in", "label": "Input voltage", "pin": "IN", "explainableAs": ["regulator-input"] },
+      { "id": "pin-gnd", "label": "Ground", "pin": "GND", "explainableAs": ["common-ground"] },
+      { "id": "pin-out", "label": "Regulated 5V output", "pin": "OUT", "explainableAs": ["regulated-output"] }
+    ]
+  },
+  "lipo-battery-1s": {
+    "type": "lipo-battery-1s",
+    "width": 1.1,
+    "depth": 0.6,
+    "height": 0.25,
+    "visualStyle": { "shape": "flat-lipo-pack", "color": "#1a5276", "material": "battery-pouch" },
+    "pinAnchors": {
+      "+": { "x": -0.42, "y": 0.18, "z": -0.24, "role": "power", "label": "+" },
+      "-": { "x": -0.28, "y": 0.18, "z": -0.24, "role": "ground", "label": "-" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.46, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "flat",
+      "notes": ["LiPo is a power-warning source modeled only as a declared low-voltage rail, never as charging, short, or current sizing."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "lipo-voltage", "anchor": "+", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "1S LiPo battery", "explainableAs": ["external-power-source", "power-warning"] },
+      { "id": "pin-plus", "label": "Positive lead", "pin": "+", "explainableAs": ["power-positive"] },
+      { "id": "pin-minus", "label": "Negative lead", "pin": "-", "explainableAs": ["ground-return"] }
+    ]
+  },
+  "ceramic-capacitor": {
+    "type": "ceramic-capacitor",
+    "width": 0.3,
+    "depth": 0.18,
+    "height": 0.18,
+    "visualStyle": { "shape": "ceramic-disc-capacitor", "color": "#c8a200", "material": "ceramic-metal" },
+    "pinAnchors": {
+      "A": { "x": -0.12, "y": 0.04, "z": -0.08, "role": "passive-terminal", "label": "A" },
+      "B": { "x": 0.12, "y": 0.04, "z": 0.08, "role": "passive-terminal", "label": "B" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.28, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["breadboard"],
+      "breadboardCompatible": true,
+      "defaultOrientation": "leads-down",
+      "notes": ["State-only context footprint for low-voltage decoupling/filter lessons."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "passive-context", "anchor": "labelAnchor", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "Ceramic capacitor body", "explainableAs": ["decoupling-passive", "state-only"] },
+      { "id": "pin-a", "label": "Terminal A", "pin": "A", "explainableAs": ["passive-terminal"] },
+      { "id": "pin-b", "label": "Terminal B", "pin": "B", "explainableAs": ["passive-terminal"] }
+    ]
+  },
+  "electrolytic-capacitor": {
+    "type": "electrolytic-capacitor",
+    "width": 0.3,
+    "depth": 0.3,
+    "height": 0.5,
+    "visualStyle": { "shape": "radial-electrolytic-capacitor", "color": "#222266", "material": "aluminum-plastic" },
+    "pinAnchors": {
+      "+": { "x": -0.08, "y": 0.08, "z": -0.08, "role": "positive-terminal", "label": "+" },
+      "-": { "x": 0.08, "y": 0.08, "z": 0.08, "role": "negative-terminal", "label": "-" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.66, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["breadboard"],
+      "breadboardCompatible": true,
+      "defaultOrientation": "leads-down",
+      "notes": ["Polarized capacitor context must preserve plus/minus orientation; no transient or ripple sizing is modeled."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "polarity", "anchor": "+", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "Electrolytic capacitor body", "explainableAs": ["polarized-passive", "filter-passive"] },
+      { "id": "pin-plus", "label": "Positive lead", "pin": "+", "explainableAs": ["positive-terminal"] },
+      { "id": "pin-minus", "label": "Negative lead", "pin": "-", "explainableAs": ["negative-terminal"] }
+    ]
+  },
+  "rectifier-diode": {
+    "type": "rectifier-diode",
+    "width": 0.5,
+    "depth": 0.16,
+    "height": 0.16,
+    "visualStyle": { "shape": "axial-diode", "color": "#17171c", "material": "epoxy-metal" },
+    "pinAnchors": {
+      "A": { "x": -0.22, "y": 0.04, "z": 0, "role": "anode", "label": "A" },
+      "K": { "x": 0.22, "y": 0.04, "z": 0, "role": "cathode", "label": "K" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.28, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["breadboard"],
+      "breadboardCompatible": true,
+      "defaultOrientation": "stripe-to-cathode",
+      "notes": ["State-only protection diode context; not a calibrated rectifier, flyback, or loss model."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "diode-direction", "anchor": "K", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "1N4007 diode body", "explainableAs": ["diode-protection", "state-only"] },
+      { "id": "pin-a", "label": "Anode", "pin": "A", "explainableAs": ["anode"] },
+      { "id": "pin-k", "label": "Cathode stripe", "pin": "K", "explainableAs": ["cathode"] }
+    ]
+  },
+  "schottky-diode": {
+    "type": "schottky-diode",
+    "width": 0.45,
+    "depth": 0.16,
+    "height": 0.16,
+    "visualStyle": { "shape": "axial-diode", "color": "#884400", "material": "epoxy-metal" },
+    "pinAnchors": {
+      "A": { "x": -0.2, "y": 0.04, "z": 0, "role": "anode", "label": "A" },
+      "K": { "x": 0.2, "y": 0.04, "z": 0, "role": "cathode", "label": "K" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.28, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["breadboard"],
+      "breadboardCompatible": true,
+      "defaultOrientation": "stripe-to-cathode",
+      "notes": ["State-only Schottky context; no forward-voltage or power-loss math is modeled."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "diode-direction", "anchor": "K", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "Schottky diode body", "explainableAs": ["diode-protection", "state-only"] },
+      { "id": "pin-a", "label": "Anode", "pin": "A", "explainableAs": ["anode"] },
+      { "id": "pin-k", "label": "Cathode stripe", "pin": "K", "explainableAs": ["cathode"] }
+    ]
+  },
+  "zener-diode": {
+    "type": "zener-diode",
+    "width": 0.45,
+    "depth": 0.15,
+    "height": 0.15,
+    "visualStyle": { "shape": "axial-zener-diode", "color": "#17171c", "material": "epoxy-metal" },
+    "pinAnchors": {
+      "A": { "x": -0.2, "y": 0.04, "z": 0, "role": "anode", "label": "A" },
+      "K": { "x": 0.2, "y": 0.04, "z": 0, "role": "cathode", "label": "K" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.28, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["breadboard"],
+      "breadboardCompatible": true,
+      "defaultOrientation": "stripe-to-cathode",
+      "notes": ["State-only Zener clamp context; clamp voltage, current limiting, and thermal behavior are not simulated."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "clamp-context", "anchor": "K", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "Zener diode body", "explainableAs": ["zener-clamp", "state-only"] },
+      { "id": "pin-a", "label": "Anode", "pin": "A", "explainableAs": ["anode"] },
+      { "id": "pin-k", "label": "Cathode stripe", "pin": "K", "explainableAs": ["cathode"] }
+    ]
+  },
+  "polyfuse": {
+    "type": "polyfuse",
+    "width": 0.38,
+    "depth": 0.12,
+    "height": 0.12,
+    "visualStyle": { "shape": "resettable-fuse", "color": "#ffcc00", "material": "polymer-metal" },
+    "pinAnchors": {
+      "A": { "x": -0.16, "y": 0.04, "z": 0, "role": "passive-terminal", "label": "A" },
+      "B": { "x": 0.16, "y": 0.04, "z": 0, "role": "passive-terminal", "label": "B" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.26, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["breadboard"],
+      "breadboardCompatible": true,
+      "defaultOrientation": "leads-down",
+      "notes": ["State-only fuse context; trip current, heat, and recovery time are not simulated."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "fuse-context", "anchor": "labelAnchor", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "Resettable fuse body", "explainableAs": ["fuse-protection", "state-only"] },
+      { "id": "pin-a", "label": "Terminal A", "pin": "A", "explainableAs": ["passive-terminal"] },
+      { "id": "pin-b", "label": "Terminal B", "pin": "B", "explainableAs": ["passive-terminal"] }
+    ]
+  },
+  "axial-inductor": {
+    "type": "axial-inductor",
+    "width": 0.5,
+    "depth": 0.18,
+    "height": 0.18,
+    "visualStyle": { "shape": "axial-inductor", "color": "#228822", "material": "epoxy-metal" },
+    "pinAnchors": {
+      "A": { "x": -0.22, "y": 0.04, "z": 0, "role": "passive-terminal", "label": "A" },
+      "B": { "x": 0.22, "y": 0.04, "z": 0, "role": "passive-terminal", "label": "B" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.3, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["breadboard"],
+      "breadboardCompatible": true,
+      "defaultOrientation": "leads-down",
+      "notes": ["State-only filter/timing context; inductive transients, saturation, and RF behavior are not simulated."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "inductor-context", "anchor": "labelAnchor", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "Axial inductor body", "explainableAs": ["filter-passive", "state-only"] },
+      { "id": "pin-a", "label": "Terminal A", "pin": "A", "explainableAs": ["passive-terminal"] },
+      { "id": "pin-b", "label": "Terminal B", "pin": "B", "explainableAs": ["passive-terminal"] }
+    ]
+  },
+  "crystal-16mhz": {
+    "type": "crystal-16mhz",
+    "width": 0.2,
+    "depth": 0.2,
+    "height": 0.5,
+    "visualStyle": { "shape": "quartz-crystal-can", "color": "#c8a200", "material": "metal" },
+    "pinAnchors": {
+      "X1": { "x": -0.07, "y": 0.08, "z": -0.06, "role": "clock-terminal", "label": "X1" },
+      "X2": { "x": 0.07, "y": 0.08, "z": 0.06, "role": "clock-terminal", "label": "X2" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.66, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["breadboard"],
+      "breadboardCompatible": true,
+      "defaultOrientation": "leads-down",
+      "notes": ["Timing context only; oscillator startup, exact frequency tolerance, and load capacitor design are not simulated."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "clock-context", "anchor": "labelAnchor", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "16 MHz crystal can", "explainableAs": ["clock-reference", "state-only"] },
+      { "id": "pin-x1", "label": "Crystal terminal X1", "pin": "X1", "explainableAs": ["clock-terminal"] },
+      { "id": "pin-x2", "label": "Crystal terminal X2", "pin": "X2", "explainableAs": ["clock-terminal"] }
+    ]
+  }
+}

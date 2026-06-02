@@ -1,0 +1,2 @@
+{"id":"v2-hx711-display-en","message":"Show HX711 load cell value on the OLED display.","expected":"valid_circuit_synthesis"}
+{"id":"v2-hx711-display-ko","message":"로드셀 값을 OLED에 표시하고 싶어","expected":"valid_circuit_synthesis"}

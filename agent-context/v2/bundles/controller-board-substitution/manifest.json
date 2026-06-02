@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "controller-board-substitution",
+  "capabilityId": "controller-board-substitution",
+  "supportLevel": "supported",
+  "promptBudget": "minimal",
+  "agentSummaryPath": "bundles/controller-board-substitution/BUNDLE.md",
+  "requiredParts": [],
+  "allowedParts": [
+    "arduino-uno",
+    "arduino-nano",
+    "arduino-mega2560",
+    "arduino-leonardo",
+    "arduino-micro",
+    "arduino-pro-mini",
+    "attiny85-board",
+    "esp32-devkit",
+    "esp8266-nodemcu",
+    "raspberry-pi-pico",
+    "stm32-bluepill",
+    "teensy40"
+  ],
+  "requiredTopologies": [
+    "controller-board-pin-map-substitution",
+    "controller-voltage-domain-policy"
+  ],
+  "validationRules": [
+    "controller-board-pin-map-substitution",
+    "controller-voltage-domain-policy",
+    "controller-board-context-only",
+    "no-mains-power"
+  ],
+  "simulationPrimitives": [
+    "controller_board_context_state"
+  ],
+  "renderFootprints": [
+    "arduino",
+    "arduino-nano-board",
+    "arduino-mega2560-board",
+    "arduino-leonardo-board",
+    "arduino-micro-board",
+    "arduino-pro-mini-board",
+    "attiny85-board",
+    "esp32-devkit-board",
+    "esp8266-nodemcu-board",
+    "raspberry-pi-pico-board",
+    "stm32-bluepill-board",
+    "teensy40-board"
+  ],
+  "canonicalRefs": {
+    "parts": [
+      "shared:parts:arduino-uno",
+      "shared:parts:arduino-nano",
+      "shared:parts:arduino-mega2560",
+      "shared:parts:arduino-leonardo",
+      "shared:parts:arduino-micro",
+      "shared:parts:arduino-pro-mini",
+      "shared:parts:attiny85-board",
+      "shared:parts:esp32-devkit",
+      "shared:parts:esp8266-nodemcu",
+      "shared:parts:raspberry-pi-pico",
+      "shared:parts:stm32-bluepill",
+      "shared:parts:teensy40"
+    ],
+    "footprints": [
+      "shared:footprint:arduino",
+      "shared:footprint:arduino-nano-board",
+      "shared:footprint:arduino-mega2560-board",
+      "shared:footprint:arduino-leonardo-board",
+      "shared:footprint:arduino-micro-board",
+      "shared:footprint:arduino-pro-mini-board",
+      "shared:footprint:attiny85-board",
+      "shared:footprint:esp32-devkit-board",
+      "shared:footprint:esp8266-nodemcu-board",
+      "shared:footprint:raspberry-pi-pico-board",
+      "shared:footprint:stm32-bluepill-board",
+      "shared:footprint:teensy40-board"
+    ],
+    "simulation": [
+      "shared:primitive:controller_board_context_state"
+    ],
+    "topology": [
+      "shared:topology:controller-board-pin-map-substitution",
+      "shared:topology:controller-voltage-domain-policy"
+    ],
+    "sources": [
+      "shared:source:arduino-uno-rev3-io-current-20ma",
+      "shared:source:arduino-uno-rev3-d9-pwm-pin",
+      "shared:source:controller-board-pin-map-substitution-contract",
+      "shared:source:controller-board-voltage-domain-policy-contract",
+      "shared:source:controller-board-context-only-contract",
+      "shared:source:arduino-nano-visual-pin-map",
+      "shared:source:arduino-mega2560-visual-pin-map",
+      "shared:source:arduino-leonardo-visual-pin-map",
+      "shared:source:arduino-micro-visual-pin-map",
+      "shared:source:arduino-pro-mini-visual-pin-map",
+      "shared:source:attiny85-board-visual-pin-map",
+      "shared:source:esp32-devkit-visual-pin-map",
+      "shared:source:esp8266-nodemcu-visual-pin-map",
+      "shared:source:raspberry-pi-pico-visual-pin-map",
+      "shared:source:stm32-bluepill-visual-pin-map",
+      "shared:source:teensy40-visual-pin-map"
+    ]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": false,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": [
+    "mains-or-wall-power",
+    "wireless-cloud-behavior-claim",
+    "implicit-uno-pinout-substitution",
+    "5v-assumption-on-3v3-controller",
+    "missing-render-footprint",
+    "missing-simulation-primitive"
+  ]
+}

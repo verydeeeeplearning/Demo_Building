@@ -1,0 +1,447 @@
+[
+  {
+    "id": "controller-analog-sensor-i2c-display",
+    "label": "Controller analog sensor readout on I2C display",
+    "description": "A controller powers a low-voltage analog sensor and an I2C display, reads the sensor analog output on A0, and displays a qualitative value.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "analog-input",
+      "analog-sensor",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "nets": [
+      {
+        "id": "vcc",
+        "kind": "power"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      },
+      {
+        "id": "analog-signal",
+        "kind": "signal"
+      },
+      {
+        "id": "sda",
+        "kind": "signal"
+      },
+      {
+        "id": "scl",
+        "kind": "signal"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "analog-sensor.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "i2c-module.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "analog-sensor.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "i2c-module.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "analog-sensor.analog-output",
+        "toNet": "analog-signal",
+        "signal": "analog"
+      },
+      {
+        "fromRole": "controller.analog-input",
+        "toNet": "analog-signal",
+        "signal": "analog"
+      },
+      {
+        "fromRole": "controller.i2c-data",
+        "toNet": "sda",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "i2c-module.i2c-data",
+        "toNet": "sda",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "controller.i2c-clock",
+        "toNet": "scl",
+        "signal": "i2c-clock"
+      },
+      {
+        "fromRole": "i2c-module.i2c-clock",
+        "toNet": "scl",
+        "signal": "i2c-clock"
+      }
+    ],
+    "validationRules": [
+      "analog-input-pin-exists",
+      "i2c-pin-role-match",
+      "common-ground",
+      "power-rail-valid"
+    ],
+    "simulationPrimitiveHints": [
+      "display_sensor_value",
+      "display_static_text",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-analog-sensor-threshold-output",
+    "label": "Controller analog sensor threshold controls protected LED output",
+    "description": "A controller powers a low-voltage analog sensor, reads its analog output, and drives a current-limited LED when a threshold condition is met.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "analog-input",
+      "analog-sensor",
+      "digital-output",
+      "series-current-limit",
+      "dc-load"
+    ],
+    "nets": [
+      {
+        "id": "vcc",
+        "kind": "power"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      },
+      {
+        "id": "analog-signal",
+        "kind": "signal"
+      },
+      {
+        "id": "output-signal",
+        "kind": "signal"
+      },
+      {
+        "id": "load-input-net",
+        "kind": "signal"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "analog-sensor.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "analog-sensor.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "analog-sensor.analog-output",
+        "toNet": "analog-signal",
+        "signal": "analog"
+      },
+      {
+        "fromRole": "controller.analog-input",
+        "toNet": "analog-signal",
+        "signal": "analog"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "output-signal",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "series-current-limit.input",
+        "toNet": "output-signal",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "series-current-limit.output",
+        "toNet": "load-input-net",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "dc-load.input",
+        "toNet": "load-input-net",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "dc-load.ground-return",
+        "toNet": "ground",
+        "signal": "ground"
+      }
+    ],
+    "validationRules": [
+      "analog-input-pin-exists",
+      "threshold-defined",
+      "series-current-limit",
+      "common-ground",
+      "power-rail-valid"
+    ],
+    "simulationPrimitiveHints": [
+      "analog_threshold",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-resistive-sensor-divider-i2c-display",
+    "label": "Controller resistive sensor voltage divider readout on I2C display",
+    "description": "A controller powers a two-pin resistive sensor and fixed reference resistor as a voltage divider, samples the midpoint on A0, and shows a qualitative value on an I2C OLED.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "analog-input",
+      "resistive-sensor",
+      "voltage-divider-reference",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "nets": [
+      {
+        "id": "vcc",
+        "kind": "power"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      },
+      {
+        "id": "analog-signal",
+        "kind": "signal"
+      },
+      {
+        "id": "sda",
+        "kind": "signal"
+      },
+      {
+        "id": "scl",
+        "kind": "signal"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "resistive-sensor.terminal-a",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "voltage-divider-reference.output",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "resistive-sensor.terminal-b",
+        "toNet": "analog-signal",
+        "signal": "analog"
+      },
+      {
+        "fromRole": "voltage-divider-reference.input",
+        "toNet": "analog-signal",
+        "signal": "analog"
+      },
+      {
+        "fromRole": "controller.analog-input",
+        "toNet": "analog-signal",
+        "signal": "analog"
+      },
+      {
+        "fromRole": "i2c-module.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "i2c-module.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.i2c-data",
+        "toNet": "sda",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "i2c-module.i2c-data",
+        "toNet": "sda",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "controller.i2c-clock",
+        "toNet": "scl",
+        "signal": "i2c-clock"
+      },
+      {
+        "fromRole": "i2c-module.i2c-clock",
+        "toNet": "scl",
+        "signal": "i2c-clock"
+      }
+    ],
+    "validationRules": [
+      "resistive-sensor-divider-required",
+      "analog-input-pin-exists",
+      "i2c-pin-role-match",
+      "common-ground",
+      "qualitative-sensor-readout-only"
+    ],
+    "simulationPrimitiveHints": [
+      "display_sensor_value",
+      "display_static_text",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-resistive-sensor-divider-threshold-output",
+    "label": "Controller resistive sensor divider controls protected LED output",
+    "description": "A controller reads the midpoint of a two-pin resistive sensor voltage divider and drives a current-limited LED when an educational threshold is met.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "analog-input",
+      "resistive-sensor",
+      "voltage-divider-reference",
+      "digital-output",
+      "series-current-limit",
+      "dc-load"
+    ],
+    "nets": [
+      {
+        "id": "vcc",
+        "kind": "power"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      },
+      {
+        "id": "analog-signal",
+        "kind": "signal"
+      },
+      {
+        "id": "output-signal",
+        "kind": "signal"
+      },
+      {
+        "id": "load-input-net",
+        "kind": "signal"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "resistive-sensor.terminal-a",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "voltage-divider-reference.output",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "resistive-sensor.terminal-b",
+        "toNet": "analog-signal",
+        "signal": "analog"
+      },
+      {
+        "fromRole": "voltage-divider-reference.input",
+        "toNet": "analog-signal",
+        "signal": "analog"
+      },
+      {
+        "fromRole": "controller.analog-input",
+        "toNet": "analog-signal",
+        "signal": "analog"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "output-signal",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "series-current-limit.input",
+        "toNet": "output-signal",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "series-current-limit.output",
+        "toNet": "load-input-net",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "dc-load.input",
+        "toNet": "load-input-net",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "dc-load.ground-return",
+        "toNet": "ground",
+        "signal": "ground"
+      }
+    ],
+    "validationRules": [
+      "resistive-sensor-divider-required",
+      "analog-input-pin-exists",
+      "threshold-defined",
+      "series-current-limit",
+      "common-ground",
+      "qualitative-sensor-readout-only"
+    ],
+    "simulationPrimitiveHints": [
+      "analog_threshold",
+      "digital_on_off",
+      "current_flow_animation"
+    ]
+  }
+]

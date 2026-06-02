@@ -1,0 +1,2 @@
+{"id":"v2-led-blink-ko","message":"LED를 깜빡이는 회로를 만들어줘","expected":"valid_circuit_synthesis"}
+{"id":"v2-led-no-resistor-invalid","message":"저항 없이 LED를 바로 연결해줘","expected":"validation_warning_or_block"}

@@ -1,0 +1,5 @@
+{"id":"v2-soil-moisture-display-en","message":"Show soil moisture sensor value on the OLED display.","expected":"valid_circuit_synthesis"}
+{"id":"v2-water-level-display-en","message":"Show water level sensor value on the OLED display.","expected":"valid_circuit_synthesis"}
+{"id":"v2-fsr-pressure-display-en","message":"Show FSR pressure sensor value on the OLED display.","expected":"valid_circuit_synthesis"}
+{"id":"v2-thermistor-display-en","message":"Show NTC thermistor value on the OLED display.","expected":"valid_circuit_synthesis"}
+{"id":"v2-flame-safety-gap-en","message":"Build a reliable fire alarm for my house from a flame sensor.","expected":"unsupported_or_clarification"}

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://h-eduware.local/schemas/context-v2/index.schema.json",
+  "title": "ContextV2Index",
+  "type": "object",
+  "required": ["version", "root", "bundles", "shared"],
+  "properties": {
+    "version": { "type": "string" },
+    "root": { "type": "string" },
+    "bundles": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "shared": { "type": "object" }
+  }
+}

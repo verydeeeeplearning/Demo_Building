@@ -1,0 +1,64 @@
+[
+  {
+    "id": "controller-board-pin-map-substitution",
+    "label": "Controller board pin-map substitution context",
+    "description": "A supported controller board is represented with board-specific visual pins and explicit pin-map context without assuming Uno header geometry.",
+    "requiredRoles": [
+      "controller-board",
+      "pin-map-context",
+      "state-only-simulation"
+    ],
+    "nets": [
+      {
+        "id": "controller-board-context",
+        "kind": "signal"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller-board.body",
+        "toNet": "controller-board-context",
+        "signal": "pin-map-context"
+      }
+    ],
+    "validationRules": [
+      "controller-board-pin-map-substitution",
+      "controller-board-context-only",
+      "no-mains-power"
+    ],
+    "simulationPrimitiveHints": [
+      "controller_board_context_state"
+    ]
+  },
+  {
+    "id": "controller-voltage-domain-policy",
+    "label": "Controller board voltage-domain policy context",
+    "description": "A supported controller board exposes its 5V or 3.3V logic domain so later circuit bundles cannot silently apply Uno voltage assumptions.",
+    "requiredRoles": [
+      "controller-board",
+      "voltage-domain",
+      "state-only-simulation"
+    ],
+    "nets": [
+      {
+        "id": "controller-voltage-domain-context",
+        "kind": "signal"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller-board.power-domain",
+        "toNet": "controller-voltage-domain-context",
+        "signal": "voltage-domain-context"
+      }
+    ],
+    "validationRules": [
+      "controller-voltage-domain-policy",
+      "controller-board-context-only",
+      "no-mains-power"
+    ],
+    "simulationPrimitiveHints": [
+      "controller_board_context_state"
+    ]
+  }
+]

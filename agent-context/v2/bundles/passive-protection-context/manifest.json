@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "passive-protection-context",
+  "capabilityId": "passive-protection-context",
+  "supportLevel": "supported",
+  "promptBudget": "minimal",
+  "agentSummaryPath": "bundles/passive-protection-context/BUNDLE.md",
+  "requiredParts": ["breadboard-half"],
+  "allowedParts": ["breadboard-half", "ceramic-cap", "electrolytic-cap", "diode-1n4007", "schottky-diode", "zener-diode", "polyfuse", "inductor-axial", "jumper-wire"],
+  "requiredTopologies": ["protection-passive-in-series-or-parallel"],
+  "validationRules": ["passive-context-low-voltage-only", "passive-only-state-simulation", "polarized-passive-orientation", "no-mains-power"],
+  "simulationPrimitives": ["passive_protection_context_state"],
+  "renderFootprints": ["breadboard", "ceramic-capacitor", "electrolytic-capacitor", "rectifier-diode", "schottky-diode", "zener-diode", "polyfuse", "axial-inductor", "wire"],
+  "canonicalRefs": {
+    "parts": ["shared:parts:breadboard-half", "shared:parts:ceramic-cap", "shared:parts:electrolytic-cap", "shared:parts:diode-1n4007", "shared:parts:schottky-diode", "shared:parts:zener-diode", "shared:parts:polyfuse", "shared:parts:inductor-axial"],
+    "footprints": ["shared:footprint:breadboard", "shared:footprint:ceramic-capacitor", "shared:footprint:electrolytic-capacitor", "shared:footprint:rectifier-diode", "shared:footprint:schottky-diode", "shared:footprint:zener-diode", "shared:footprint:polyfuse", "shared:footprint:axial-inductor", "shared:footprint:wire"],
+    "simulation": ["shared:primitive:passive_protection_context_state"],
+    "topology": ["shared:topology:protection-passive-in-series-or-parallel"],
+    "sources": ["shared:source:ceramic-cap-visual-pin-map", "shared:source:electrolytic-cap-visual-pin-map", "shared:source:diode-1n4007-visual-pin-map", "shared:source:schottky-diode-visual-pin-map", "shared:source:zener-diode-visual-pin-map", "shared:source:polyfuse-visual-pin-map", "shared:source:inductor-axial-visual-pin-map", "shared:source:passive-protection-context-contract"]
+  },
+  "promptInclusions": {
+    "includePins": false,
+    "includeElectricalLimits": false,
+    "includeFootprintAnchors": false,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": ["mains-or-wall-power", "varistor-or-mov-protection", "active-current-flow-claimed-for-passive-only-circuit", "missing-render-footprint", "missing-simulation-primitive", "unsupported-part-requested"]
+}

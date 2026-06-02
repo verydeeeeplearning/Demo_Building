@@ -3,12 +3,25 @@ import test from 'node:test';
 
 import {
   CURRENT_PATH_STYLES,
+  stageAnimatedWireDescriptors,
+  stageCameraFit,
+  stageConnectionRoutePoints,
   stageEndpointMap,
   stageCurrentPathDescriptors,
   stageGenericPartDescriptors,
   stageLibraryPartDescriptors,
+  stageLabelLayoutForPart,
+  stageSpecializedPartDescriptors,
   stageSpecializedPartPresence
 } from '../../src/stageScene.js';
+
+function roundedPoint(point) {
+  return {
+    x: Number(point.x.toFixed(2)),
+    y: Number(point.y.toFixed(2)),
+    z: Number(point.z.toFixed(2))
+  };
+}
 
 test('stage endpoint map prefers render plan layout endpoints over demo-specific fallback coordinates', () => {
   const endpoints = stageEndpointMap({
@@ -51,7 +64,131 @@ test('stage endpoint map preserves fallback endpoints when render plan layout is
   });
 
   assert.equal(endpoints['oled-display:SDA'].x, 5.5);
-  assert.equal(endpoints['arduino-uno:5V'].x, -1.12);
+  assert.equal(Number(endpoints['arduino-uno:5V'].x.toFixed(2)), -1.12);
+});
+
+test('stage camera fit consumes server-provided render plan metadata', () => {
+  const fit = stageCameraFit({
+    layout: {
+      camera: {
+        position: { x: 7.1, y: 5.2, z: 6.3 },
+        target: { x: 0.4, y: 0.5, z: -0.2 },
+        fov: 42,
+        minDistance: 3.8,
+        maxDistance: 13.5
+      }
+    }
+  });
+
+  assert.deepEqual(fit.position, { x: 7.1, y: 5.2, z: 6.3 });
+  assert.deepEqual(fit.target, { x: 0.4, y: 0.5, z: -0.2 });
+  assert.equal(fit.fov, 42);
+  assert.equal(fit.minDistance, 3.8);
+  assert.equal(fit.maxDistance, 13.5);
+});
+
+test('stage camera fit ignores invalid server metadata', () => {
+  const fit = stageCameraFit({
+    layout: {
+      camera: {
+        position: { x: Number.NaN, y: 5.2, z: 6.3 },
+        target: { x: 0.4, y: 0.5, z: -0.2 },
+        fov: 42,
+        minDistance: 3.8,
+        maxDistance: 13.5
+      }
+    }
+  });
+
+  assert.equal(fit, null);
+});
+
+test('stage wire routing consumes server-provided route points before fallback curves', () => {
+  const points = stageConnectionRoutePoints(
+    {
+      route: [
+        { x: 1, y: 2, z: 3 },
+        { x: 4, y: 5, z: 6 },
+        { x: 7, y: 8, z: 9 }
+      ]
+    },
+    { x: -1, y: -1, z: -1 },
+    { x: -2, y: -2, z: -2 },
+    9
+  );
+
+  assert.deepEqual(points.map(roundedPoint), [
+    { x: 1, y: 2, z: 3 },
+    { x: 4, y: 5, z: 6 },
+    { x: 7, y: 8, z: 9 }
+  ]);
+});
+
+test('stage wire routing falls back for older snapshots without server route points', () => {
+  const points = stageConnectionRoutePoints(
+    {},
+    { x: 1, y: 0.3, z: 2 },
+    { x: 3, y: 0.5, z: 4 },
+    0
+  );
+
+  assert.deepEqual(roundedPoint(points[0]), { x: 1, y: 0.54, z: 2 });
+  assert.deepEqual(roundedPoint(points[2]), { x: 3, y: 0.74, z: 4 });
+  assert.equal(points[1].y > points[0].y, true);
+});
+
+test('stage part descriptors consume server-provided label layout metadata', () => {
+  const circuit = {
+    parts: [
+      { id: 'led-1', type: 'led', label: 'Status LED', position: { x: 0.4, y: 0.35, z: 0.55 } }
+    ],
+    layout: {
+      labels: {
+        'led-1': {
+          partId: 'led-1',
+          text: 'D1',
+          position: { x: 0.4, y: 0.9, z: 0.72 },
+          width: 0.42,
+          height: 0.15
+        }
+      }
+    }
+  };
+  const descriptors = stageGenericPartDescriptors(circuit);
+
+  assert.deepEqual(stageLabelLayoutForPart(circuit, 'led-1'), {
+    text: 'D1',
+    position: { x: 0.4, y: 0.9, z: 0.72 },
+    width: 0.42,
+    height: 0.15
+  });
+  assert.deepEqual(descriptors[0].labelLayout, stageLabelLayoutForPart(circuit, 'led-1'));
+});
+
+test('stage specialized descriptors consume render plan positions for special meshes', () => {
+  const descriptors = stageSpecializedPartDescriptors({
+    parts: [
+      { id: 'breadboard', type: 'breadboard', label: 'Breadboard', position: { x: 2, y: 0.1, z: -1 } },
+      { id: 'arduino-uno', type: 'arduino', label: 'Arduino Uno', position: { x: -4.2, y: 0.28, z: 0.5 } },
+      { id: 'oled-display', type: 'oled', label: 'OLED', position: { x: 1.7, y: 0.25, z: -0.6 } }
+    ]
+  });
+
+  assert.deepEqual(descriptors.breadboard.position, { x: 2, y: 0.1, z: -1 });
+  assert.deepEqual(descriptors.arduino.position, { x: -4.2, y: 0.28, z: 0.5 });
+  assert.deepEqual(descriptors.oled.position, { x: 1.7, y: 0.25, z: -0.6 });
+});
+
+test('stage fallback endpoints follow render plan positions for moved special meshes', () => {
+  const endpoints = stageEndpointMap({
+    parts: [
+      { id: 'arduino-uno', type: 'arduino', label: 'Arduino Uno', position: { x: -4.2, y: 0.28, z: 0.5 } },
+      { id: 'oled-display', type: 'oled', label: 'OLED', position: { x: 1.7, y: 0.25, z: -0.6 } }
+    ]
+  });
+
+  assert.deepEqual(roundedPoint(endpoints['arduino-uno:5V']), { x: -3.67, y: 0.61, z: -0.16 });
+  assert.deepEqual(roundedPoint(endpoints['oled-display:SDA']), { x: 1.77, y: 0.52, z: -0.99 });
 });
 
 test('stage generic part descriptors come from render plan parts beyond the OLED demo', () => {
@@ -272,4 +409,194 @@ test('stage current path descriptors are disabled unless simulation is valid', (
   assert.equal(descriptors[0].id, 'display-bus');
   assert.equal(descriptors[0].style.color, CURRENT_PATH_STYLES['bus-activity'].color);
   assert.equal(descriptors[0].style.pulse, false);
+});
+
+test('stage current animation binds wires by verified path endpoints instead of connection order', () => {
+  const circuit = {
+    simulationPlan: {
+      status: 'valid',
+      currentPaths: [
+        {
+          id: 'oled-module-current',
+          kind: 'supply-current',
+          from: 'arduino-uno:5V',
+          through: ['oled-display'],
+          to: 'oled-display:VCC',
+          label: 'OLED supply current'
+        }
+      ]
+    }
+  };
+  const wires = [
+    {
+      connectionId: 'oled-sda',
+      fromKey: 'arduino-uno:A4/SDA',
+      toKey: 'oled-display:SDA',
+      color: '#2f7df6'
+    },
+    {
+      connectionId: 'oled-scl',
+      fromKey: 'arduino-uno:A5/SCL',
+      toKey: 'oled-display:SCL',
+      color: '#f6c44c'
+    },
+    {
+      connectionId: 'oled-power',
+      fromKey: 'arduino-uno:5V',
+      toKey: 'oled-display:VCC',
+      color: '#ff4d3d'
+    },
+    {
+      connectionId: 'oled-ground',
+      fromKey: 'arduino-uno:GND',
+      toKey: 'oled-display:GND',
+      color: '#20242a'
+    }
+  ];
+
+  const animated = stageAnimatedWireDescriptors(circuit, wires);
+
+  assert.deepEqual(animated.map((wire) => wire.connectionId), ['oled-power']);
+  assert.equal(animated[0].pathDescriptor.id, 'oled-module-current');
+  assert.equal(animated[0].pathDescriptor.style.color, CURRENT_PATH_STYLES['supply-current'].color);
+});
+
+test('stage current animation does not animate unrelated wires when a valid path is present', () => {
+  const circuit = {
+    simulationPlan: {
+      status: 'valid',
+      currentPaths: [
+        {
+          id: 'led-forward-current',
+          kind: 'load-current',
+          from: 'arduino-uno:D9',
+          through: ['resistor-1', 'led-1'],
+          to: 'arduino-uno:GND',
+          label: 'LED forward current'
+        }
+      ]
+    }
+  };
+  const wires = [
+    {
+      connectionId: 'buzzer-signal',
+      fromKey: 'arduino-uno:D8',
+      toKey: 'buzzer-1:SIG',
+      color: '#2f7df6'
+    },
+    {
+      connectionId: 'd9-to-resistor',
+      fromKey: 'arduino-uno:D9',
+      toKey: 'resistor-1:1',
+      color: '#2f7df6'
+    },
+    {
+      connectionId: 'resistor-to-led',
+      fromKey: 'resistor-1:2',
+      toKey: 'led-1:A',
+      color: '#2f7df6'
+    },
+    {
+      connectionId: 'led-to-ground',
+      fromKey: 'led-1:K',
+      toKey: 'arduino-uno:GND',
+      color: '#20242a'
+    }
+  ];
+
+  const animated = stageAnimatedWireDescriptors(circuit, wires);
+
+  assert.deepEqual(
+    animated.map((wire) => wire.connectionId),
+    ['d9-to-resistor', 'resistor-to-led', 'led-to-ground']
+  );
+});
+
+test('stage current animation stays off when no simulation plan is present', () => {
+  const animated = stageAnimatedWireDescriptors({}, [
+    {
+      connectionId: 'legacy-wire',
+      fromKey: 'arduino-uno:D9',
+      toKey: 'led-1:A',
+      color: '#2f7df6'
+    }
+  ]);
+
+  assert.deepEqual(animated, []);
+});
+
+test('stage current animation deduplicates duplicate parallel wires for one verified path edge', () => {
+  const circuit = {
+    simulationPlan: {
+      status: 'valid',
+      currentPaths: [
+        {
+          id: 'led-forward-current',
+          kind: 'load-current',
+          from: 'arduino-uno:D9',
+          through: ['led-1'],
+          to: 'arduino-uno:GND',
+          connectionIds: ['parallel-b'],
+          segments: [{
+            connectionId: 'parallel-b',
+            from: 'led-1:A',
+            to: 'arduino-uno:D9'
+          }],
+          label: 'LED forward current'
+        }
+      ]
+    }
+  };
+  const wires = [
+    {
+      connectionId: 'parallel-a',
+      fromKey: 'arduino-uno:D9',
+      toKey: 'led-1:A',
+      color: '#2f7df6'
+    },
+    {
+      connectionId: 'parallel-b',
+      fromKey: 'led-1:A',
+      toKey: 'arduino-uno:D9',
+      color: '#84a9ff'
+    }
+  ];
+
+  const animated = stageAnimatedWireDescriptors(circuit, wires);
+
+  assert.deepEqual(animated.map((wire) => wire.connectionId), ['parallel-b']);
+});
+
+test('stage current animation ignores ambiguous plain breadboard through nodes', () => {
+  const circuit = {
+    simulationPlan: {
+      status: 'valid',
+      currentPaths: [
+        {
+          id: 'breadboard-ambiguous-path',
+          kind: 'load-current',
+          from: 'arduino-uno:5V',
+          through: ['breadboard'],
+          to: 'led-1:A',
+          label: 'Ambiguous breadboard path'
+        }
+      ]
+    }
+  };
+  const wires = [
+    {
+      connectionId: 'power-to-positive-rail',
+      fromKey: 'arduino-uno:5V',
+      toKey: 'breadboard:+ rail',
+      color: '#ff4d3d'
+    },
+    {
+      connectionId: 'negative-rail-to-led',
+      fromKey: 'breadboard:- rail',
+      toKey: 'led-1:A',
+      color: '#20242a'
+    }
+  ];
+
+  assert.deepEqual(stageAnimatedWireDescriptors(circuit, wires), []);
 });

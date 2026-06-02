@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "servo-motion-output",
+  "capabilityId": "servo-motion-output",
+  "supportLevel": "supported",
+  "promptBudget": "summary",
+  "agentSummaryPath": "bundles/servo-motion-output/BUNDLE.md",
+  "requiredParts": ["arduino-uno", "breadboard-half", "micro-servo"],
+  "allowedParts": ["arduino-uno", "breadboard-half", "micro-servo", "mg996r-servo", "jumper-wire"],
+  "requiredTopologies": ["controller-pwm-actuator", "controller-servo-external-power-warning"],
+  "validationRules": ["pwm-pin-required", "common-ground", "high-current-warning"],
+  "simulationPrimitives": ["servo_angle", "current_flow_animation"],
+  "renderFootprints": ["arduino", "breadboard", "servo", "large-servo", "wire"],
+  "canonicalRefs": {
+    "parts": ["shared:parts:arduino-uno", "shared:parts:breadboard-half", "shared:parts:micro-servo", "shared:parts:mg996r-servo"],
+    "footprints": ["shared:footprint:arduino", "shared:footprint:breadboard", "shared:footprint:servo", "shared:footprint:large-servo", "shared:footprint:wire"],
+    "simulation": ["shared:primitive:servo_angle", "shared:primitive:current_flow_animation"],
+    "topology": ["shared:topology:controller-pwm-actuator", "shared:topology:controller-servo-external-power-warning"],
+    "sources": ["shared:source:arduino-uno-rev3-io-current-20ma", "shared:source:breadboard-row-continuity-5-hole", "shared:source:arduino-uno-rev3-d9-pwm-pin", "shared:source:micro-servo-three-wire-pwm-signal", "shared:source:mg996r-servo-visual-pin-map", "shared:source:mg996r-servo-external-power-warning-contract"]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": true,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": ["missing-servo-power", "missing-common-ground", "missing-pwm-signal", "external-power-warning-required", "missing-render-footprint", "missing-simulation-primitive", "unsupported-part-requested"]
+}

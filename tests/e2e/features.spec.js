@@ -38,6 +38,12 @@ function countNonBackgroundPixels(buffer) {
   return changed;
 }
 
+async function expectVisibleNonBlankStage(page, minPixels = 2000) {
+  const canvas = page.getByTestId('stage-canvas');
+  await expect(canvas).toBeVisible();
+  expect(countNonBackgroundPixels(await canvas.screenshot())).toBeGreaterThan(minPixels);
+}
+
 function attachGuards(page) {
   const blockedRequests = [];
   const consoleErrors = [];
@@ -126,7 +132,8 @@ function validLedBlinkAgentResultFixture() {
     ],
     clarification: null,
     contextTrace: [
-      { sourceId: 'memory:agent-operating-memory', sourceType: 'memory', reason: 'Loaded rules.', usedFields: ['validation-before-simulation'] },
+      { sourceId: 'memory:agent-operating-memory', sourceType: 'memory', reason: 'Loaded operating memory.', usedFields: ['validation-before-simulation'] },
+      { sourceId: 'sources:support-bundle:digital-light-output', sourceType: 'data', reason: 'digital-light-output has complete verified hardware support data.', usedFields: ['bundleId', 'status', 'sourceClaimIds'], summary: 'complete' },
       { sourceId: 'registry:part-capabilities:led-5mm', sourceType: 'registry', reason: 'Matched LED output.', usedFields: ['pins', 'requiredPassives'] }
     ],
     contextCoverage: {
@@ -239,7 +246,95 @@ function validLedBlinkAgentResultFixture() {
         { componentId: 'led-1', state: 'blinking', primitiveId: 'digital_on_off', explanation: 'D9 alternates HIGH and LOW.' }
       ],
       warnings: []
+    },
+    buildRunnableReport: {
+      status: 'runnable',
+      runnable: true,
+      reasons: [],
+      validationStatus: 'valid',
+      simulationStatus: 'valid',
+      renderWarningCount: 0,
+      renderBlockingWarningCount: 0,
+      renderPartCount: 4,
+      currentPathCount: 1,
+      expectedStateCount: 1
+    },
+    solverGateResult: {
+      visibleSimulation: true,
+      mode: 'verified_build_simulation',
+      buildReady: true,
+      simulationActivity: 'verified_current',
+      benchConfirmed: false,
+      repairLevel: 'none',
+      attempts: [{
+        attempt: 1,
+        stage: 'placement',
+        action: 'Existing render and simulation artifacts passed the strict build-ready gate.',
+        result: 'passed',
+        warnings: []
+      }],
+      verifiedClaims: ['render plan exposes 4 visible part(s)', 'build-ready runnable gate passed'],
+      notVerified: ['bench test has not been performed'],
+      visualWarnings: [],
+      hardwareWarnings: [],
+      repairSummary: ['No solver repair was required by the initial adapter.']
     }
+  };
+}
+
+function validLookingButServerBlockedAgentResultFixture() {
+  const fixture = validLedBlinkAgentResultFixture();
+  return {
+    ...fixture,
+    sessionId: 'session-led-blocked-e2e',
+    simulationPlan: {
+      ...fixture.simulationPlan,
+      currentPaths: []
+    },
+    buildRunnableReport: {
+      status: 'blocked',
+      runnable: false,
+      reasons: ['simulation has no validated current or signal path'],
+      validationStatus: 'valid',
+      simulationStatus: 'valid',
+      renderWarningCount: 0,
+      renderBlockingWarningCount: 0,
+      renderPartCount: fixture.renderPlan.parts.length,
+      currentPathCount: 0,
+      expectedStateCount: fixture.simulationPlan.expectedStates.length
+    },
+    solverGateResult: {
+      visibleSimulation: true,
+      mode: 'diagnostic_simulation',
+      buildReady: false,
+      simulationActivity: 'state_only',
+      benchConfirmed: false,
+      repairLevel: 'none',
+      attempts: [{
+        attempt: 1,
+        stage: 'degrade',
+        action: 'Expose the available scene as diagnostic while preserving strict build-ready blocking reasons.',
+        result: 'degraded',
+        warnings: ['build-ready claim is not verified', 'simulation has no validated current or signal path']
+      }],
+      verifiedClaims: ['render plan exposes 4 visible part(s)', 'simulation plan status is valid', '1 expected state(s) are available'],
+      notVerified: ['build-ready claim is not verified', 'simulation has no validated current or signal path', 'bench test has not been performed'],
+      visualWarnings: [],
+      hardwareWarnings: [],
+      repairSummary: ['Initial adapter preserved strict build-ready blocking while exposing solver-gate diagnostics.']
+    }
+  };
+}
+
+function supportedLedAlternativeFixture(source = 'context-support-gap') {
+  return {
+    id: 'safe-low-voltage-led',
+    goal: 'Arduino Uno + 5mm LED + 220Ω 저항으로 안전한 저전압 LED 회로 만들기',
+    label: '안전한 Arduino LED 회로',
+    reason: '검증된 부품과 시뮬레이션 경로가 준비된 안전한 대안입니다.',
+    source,
+    partIds: ['arduino-uno', 'breadboard-half', 'led-5mm', 'resistor-220', 'jumper-wire'],
+    capabilityIds: ['digital-light-output']
   };
 }
 
@@ -270,6 +365,18 @@ function sharedLedSnapshotFixture(shareId = 'd'.repeat(32)) {
       warnings: [],
       unsupportedItems: []
     },
+    buildRunnableReport: {
+      status: 'runnable',
+      runnable: true,
+      reasons: [],
+      validationStatus: 'valid',
+      simulationStatus: 'valid',
+      renderWarningCount: 0,
+      renderBlockingWarningCount: 0,
+      renderPartCount: 2,
+      currentPathCount: 1,
+      expectedStateCount: 1
+    },
     simulation: {
       available: true,
       runText: 'LED blink',
@@ -292,7 +399,13 @@ function sharedLedSnapshotFixture(shareId = 'd'.repeat(32)) {
           color: '#f97316'
         }
       ],
-      floatingCards: []
+      floatingCards: [],
+      layout: {
+        endpoints: {
+          'arduino-uno:D9': { x: -1.2, y: 0.7, z: -0.4 },
+          'led-1:A': { x: 1.2, y: 0.42, z: 0.34 }
+        }
+      }
     },
     contextEvidence: {
       coverageStatus: 'sufficient',
@@ -304,17 +417,20 @@ function sharedLedSnapshotFixture(shareId = 'd'.repeat(32)) {
 }
 
 function unsupportedUnsafeAgentResultFixture() {
+  const fixture = validLedBlinkAgentResultFixture();
   return {
+    ...fixture,
     sessionId: 'session-unsupported-e2e',
     mode: 'live',
     assistantMessages: [
-      '이 요청은 안전한 교육용 저전압 회로 범위를 벗어납니다. 220V 콘센트에 직접 연결하는 회로는 만들거나 시뮬레이션하지 않습니다. 대신 Arduino 5V와 LED, 저항으로 안전한 저전압 예제를 만들 수 있습니다.'
+      '원 요청(220V mains wiring, direct outlet connection)은 안전상 실제 배선이나 build-ready 회로로 만들지 않습니다. 대신 검증된 Arduino Uno + 5mm LED + 220Ω 저항의 안전한 저전압 대체 회로를 시뮬레이션으로 보여줄게요.'
     ],
+    supportedAlternatives: [supportedLedAlternativeFixture('safety-policy')],
     agentEvents: [
       { type: 'coordinator', name: 'deepagents-coordinator', status: 'completed', summary: 'Created structured circuit draft through Deepagents.' },
       { type: 'validation', name: 'safety-policy', status: 'warning', summary: 'Unsafe high-voltage request refused before rendering.' }
     ],
-    clarification: '안전한 5V LED 예제로 바꿔서 진행할까요?',
+    clarification: null,
     contextTrace: [
       { sourceId: 'policy:safety-policy', sourceType: 'policy', reason: 'Detected mains/high-voltage wording.', usedFields: ['low-voltage boundary'] },
       { sourceId: 'policy:unsupported-request-policy', sourceType: 'policy', reason: 'Blocked unsupported unsafe request.', usedFields: ['safe alternatives'] }
@@ -322,52 +438,60 @@ function unsupportedUnsafeAgentResultFixture() {
     contextCoverage: {
       status: 'insufficient',
       score: 1,
-      sufficientFor: ['unsupported_response', 'unsafe_refusal'],
+      sufficientFor: ['unsupported_response', 'unsafe_refusal', 'safe_equivalent_simulation'],
       synthesisEligibility: {
         status: 'ineligible',
-        reason: 'Unsafe mains-voltage request can only receive a refusal.'
+        reason: 'Unsafe mains-voltage request is refused; safe equivalent simulation may be shown.'
       },
       requiredSourceTypes: ['memory', 'policy'],
       presentSourceTypes: ['memory', 'policy'],
       missingSourceTypes: [],
       warnings: []
     },
-    requirementMarkdown: '# Unsupported request\n\nNo render or current simulation is produced for unsafe mains-voltage requests.',
+    requirementMarkdown: '# Project Requirement: Safe low-voltage LED equivalent\n\nThe original 220V request is not rendered or treated as build-ready hardware.\n\n## Connections\n\n- arduino-uno:D9 -> resistor-1:1\n- resistor-1:2 -> led-1:A\n- led-1:K -> arduino-uno:GND',
     circuitSpec: {
-      id: 'unsafe-mains-request',
-      title: 'Unsafe mains-voltage request',
-      intent: { primaryGoal: 'connect LED directly to 220V mains', output: 'unsupported', controller: 'none' },
-      components: [
-        { id: 'unsupported-request', partId: 'unsupported', label: 'Unsupported high-voltage request' }
+      ...fixture.circuitSpec,
+      id: 'unsafe-mains-request-safe-equivalent-led',
+      title: 'Safe Low-Voltage LED Equivalent',
+      intent: {
+        primaryGoal: 'simulate a safe Arduino LED circuit instead of the unsafe original request',
+        output: 'led',
+        controller: 'arduino-uno',
+        behavior: 'safe-equivalent-low-voltage'
+      },
+      assumptions: [
+        'The original request is not rendered or treated as build-ready hardware.',
+        'Original blocked items: 220V mains wiring, direct outlet connection.',
+        'This equivalent uses Arduino low-voltage GPIO, one 5mm LED, and a 220 ohm current-limiting resistor.'
       ],
-      connections: [],
-      behavior: { runText: 'UNSUPPORTED' },
-      assumptions: ['H-eduware only supports safe educational low-voltage circuits.'],
-      unsupportedItems: ['220V mains wiring', 'direct outlet connection'],
-      clarificationNeeds: ['Choose a safe Arduino 5V alternative.']
-    },
-    validationReport: {
-      version: '2026-05-31',
-      status: 'unsupported',
-      errors: ['Unsupported request item: 220V mains wiring'],
-      warnings: ['No render or current simulation is produced for unsupported requests.'],
-      validatedCurrentPathIds: [],
-      sourceVersion: '2026-05-31'
+      unsupportedItems: [],
+      clarificationNeeds: []
     },
     renderPlan: {
-      title: 'Unsafe mains-voltage request',
-      runText: 'UNSUPPORTED',
-      parts: [],
-      connections: [],
-      floatingCards: [],
-      warnings: []
+      ...fixture.renderPlan,
+      title: 'Safe Low-Voltage LED Equivalent',
+      runText: 'SAFE EQUIVALENT LED ON'
     },
     simulationPlan: {
-      status: 'unsupported',
-      runText: 'UNSUPPORTED',
-      currentPaths: [],
-      expectedStates: [],
-      warnings: ['No current animation is allowed for unsupported unsafe requests.']
+      ...fixture.simulationPlan,
+      runText: 'SAFE EQUIVALENT LED ON'
+    },
+    solverGateResult: {
+      ...fixture.solverGateResult,
+      mode: 'safe_equivalent_simulation',
+      repairLevel: 'safe_equivalent',
+      sourceSpecId: 'unsafe-mains-request',
+      equivalentSpecId: 'unsafe-mains-request-safe-equivalent-led',
+      verifiedClaims: [
+        'render plan exposes 4 visible part(s)',
+        'safe low-voltage equivalent circuit was validated instead of the unsafe original request',
+        'build-ready runnable gate passed'
+      ],
+      notVerified: [
+        'original unsafe request was not converted into wiring or build-ready hardware',
+        'bench test has not been performed'
+      ],
+      repairSummary: ['Original unsafe request was replaced with a safe low-voltage equivalent simulation.']
     }
   };
 }
@@ -379,17 +503,19 @@ function plannedContextGapAgentResultFixture() {
     assistantMessages: [
       'This hardware idea needs more verified H-eduware reference data before I can build a circuit simulation for it. Try a supported starter circuit, or add the missing part and validation data first.'
     ],
+    supportedAlternatives: [supportedLedAlternativeFixture('context-support-gap')],
     agentEvents: [
       {
         type: 'validation',
         name: 'context-support-gap',
         status: 'warning',
-        summary: 'Planned capability lacks canonical context for valid synthesis: analog-led-dimmer is missing part-capability, render-footprint, and simulation-primitive artifacts.'
+        summary: 'This request needs more verified hardware data before circuit finalization: MCP3008 SPI ADC display is missing validation, 3D view, and simulation data.'
       }
     ],
-    clarification: 'Choose a currently supported circuit, or add the missing canonical context bundle before validated synthesis.',
+    clarification: 'Choose a currently supported circuit, or add the missing verified hardware data before finalizing the circuit.',
     contextTrace: [
-      { sourceId: 'data:capability-graph:analog-led-dimmer', sourceType: 'data', reason: 'Matched planned potentiometer dimmer capability.', usedFields: ['supportLevel', 'requiredParts'] }
+      { sourceId: 'visual-library:mcp3008-adc', sourceType: 'data', reason: 'Detected MCP3008 SPI ADC as a catalog-known but not simulation-ready visual part.', usedFields: ['supportTier', 'family'] },
+      { sourceId: 'bundle:display-text-output', sourceType: 'data', reason: 'OLED display output is supported, but the requested MCP3008 SPI ADC is outside the selected simulation-ready bundle.', usedFields: ['allowedParts'] }
     ],
     contextCoverage: {
       status: 'insufficient',
@@ -397,42 +523,67 @@ function plannedContextGapAgentResultFixture() {
       sufficientFor: ['clarification_response'],
       synthesisEligibility: {
         status: 'ineligible',
-        reason: 'Missing canonical context required for valid circuit synthesis.'
+        reason: 'Missing verified hardware data required for circuit finalization.'
       },
       requiredSourceTypes: ['memory', 'data', 'registry', 'validation', 'simulation', 'rendering'],
       presentSourceTypes: ['memory', 'data'],
       missingSourceTypes: ['registry', 'validation', 'simulation', 'rendering'],
-      warnings: ['Context support gap: analog-led-dimmer is planned.']
+      warnings: [
+        'Context support gap: pin-known hardware mcp3008-adc is not simulation-ready.',
+        'Verified support data gap: MCP3008 SPI ADC display has incomplete verified hardware support data.'
+      ]
     },
-    requirementMarkdown: '# Context support gap\n\nThe potentiometer dimmer request is not ready for validated circuit synthesis.',
+    requirementMarkdown: '# Context support gap\n\nThe MCP3008 SPI ADC display request is not ready for validated circuit synthesis.',
     circuitSpec: {
-      id: 'planned-context-gap',
-      title: 'Potentiometer LED dimmer support gap',
-      intent: { primaryGoal: 'control LED brightness with a potentiometer', input: 'potentiometer', output: 'led', controller: 'arduino-uno' },
+      id: 'mcp3008-adc-display-context-gap',
+      title: 'MCP3008 SPI ADC display support gap',
+      intent: { primaryGoal: 'show MCP3008 ADC channel value on OLED', input: 'MCP3008 SPI ADC', output: 'display', controller: 'arduino-uno' },
       components: [
-        { id: 'unsupported-request', partId: 'unsupported', label: 'Planned hardware support gap' }
+        { id: 'unsupported-request', partId: 'unsupported', label: 'Context-known hardware support gap' }
       ],
       connections: [],
       behavior: { runText: 'CONTEXT GAP' },
       assumptions: ['H-eduware needs canonical part, validation, render, and simulation data before synthesis.'],
-      unsupportedItems: ['analog-led-dimmer context bundle is incomplete'],
+      unsupportedItems: ['MCP3008 SPI ADC display context bundle is incomplete'],
       clarificationNeeds: ['Choose a supported starter circuit or add the missing context artifacts.']
     },
     validationReport: {
       version: '2026-06-01',
       status: 'unsupported',
-      errors: ['CONTEXT_SUPPORT_GAP: analog-led-dimmer is planned but not synthesis-ready.'],
-      warnings: ['No render or current simulation is produced until context coverage is sufficient.'],
+      errors: ['CONTEXT_SUPPORT_GAP: MCP3008 SPI ADC display is context-known but not synthesis-ready.'],
+      warnings: ['Current-flow animation is blocked until context coverage is sufficient; renderable parts may be shown as diagnostic context only.'],
       validatedCurrentPathIds: [],
       sourceVersion: '2026-06-01'
     },
     renderPlan: {
-      title: 'Potentiometer LED dimmer support gap',
+      title: 'MCP3008 SPI ADC display support gap',
       runText: 'CONTEXT GAP',
-      parts: [],
+      parts: [
+        {
+          id: 'unsupported-request',
+          type: 'unsupported',
+          label: 'Context-known hardware support gap',
+          description: 'Generic placeholder for a context-known part whose verified simulation bundle is incomplete.',
+          pins: [],
+          position: { x: 0, y: 0.18, z: 0 }
+        }
+      ],
       connections: [],
       floatingCards: [],
-      warnings: []
+      warnings: [{
+        code: 'DIAGNOSTIC_RENDER_ONLY',
+        message: 'Validation status is unsupported; renderable hardware is shown for diagnosis only and is not build-ready.'
+      }],
+      layout: {
+        endpoints: {},
+        solverAttempts: [{
+          attempt: 1,
+          stage: 'degrade',
+          action: 'Expose a generic diagnostic placeholder while preserving strict build-ready blocking reasons.',
+          result: 'degraded',
+          warnings: ['validation status is unsupported']
+        }]
+      }
     },
     simulationPlan: {
       status: 'unsupported',
@@ -440,6 +591,116 @@ function plannedContextGapAgentResultFixture() {
       currentPaths: [],
       expectedStates: [],
       warnings: ['Current-flow animation is blocked until the circuit has sufficient context coverage.']
+    },
+    buildRunnableReport: {
+      status: 'blocked',
+      runnable: false,
+      reasons: ['validation status is unsupported', 'simulation status is unsupported'],
+      validationStatus: 'unsupported',
+      simulationStatus: 'unsupported',
+      renderWarningCount: 1,
+      renderBlockingWarningCount: 0,
+      renderPartCount: 1,
+      currentPathCount: 0,
+      expectedStateCount: 0
+    },
+    solverGateResult: {
+      visibleSimulation: true,
+      mode: 'diagnostic_simulation',
+      buildReady: false,
+      simulationActivity: 'diagnostic',
+      benchConfirmed: false,
+      repairLevel: 'none',
+      attempts: [{
+        attempt: 1,
+        stage: 'degrade',
+        action: 'Expose the available scene as diagnostic while preserving strict build-ready blocking reasons.',
+        result: 'degraded',
+        warnings: ['build-ready claim is not verified', 'validation status is unsupported']
+      }],
+      verifiedClaims: ['render plan exposes 1 visible part(s)'],
+      notVerified: ['build-ready claim is not verified', 'validation status is unsupported', 'simulation status is unsupported', 'bench test has not been performed'],
+      visualWarnings: [{
+        code: 'DIAGNOSTIC_RENDER_ONLY',
+        message: 'Validation status is unsupported; renderable hardware is shown for diagnosis only and is not build-ready.'
+      }],
+      hardwareWarnings: ['Current-flow animation is blocked until the circuit has sufficient context coverage.'],
+      repairSummary: ['Diagnostic scene is visible while strict build-ready blocking remains in effect.']
+    }
+  };
+}
+
+function casualStartAgentResultFixture() {
+  return {
+    sessionId: 'session-casual-e2e',
+    mode: 'live',
+    assistantMessages: [
+      '좋아요. 시작해 볼게요. 먼저 만들고 싶은 회로의 입력, 출력, 동작을 알려 주세요.'
+    ],
+    agentEvents: [
+      {
+        type: 'coordinator',
+        name: 'requirement-analysis-agent',
+        status: 'completed',
+        summary: 'casual_chat: 구체적인 회로 목표 없이 작업 시작 의사를 표현했다.'
+      }
+    ],
+    clarification: '만들고 싶은 회로의 입력, 출력, 동작을 한 문장으로 알려 주세요.',
+    contextTrace: [
+      {
+        sourceId: 'memory:agent-operating-memory',
+        sourceType: 'memory',
+        reason: 'Requirement-analysis agent handled a casual start turn before synthesis.',
+        usedFields: ['requirement-analysis']
+      }
+    ],
+    contextCoverage: {
+      status: 'insufficient',
+      score: 0.25,
+      sufficientFor: ['clarification_response'],
+      synthesisEligibility: {
+        status: 'ineligible',
+        reason: 'No concrete circuit goal has been provided yet.'
+      },
+      requiredSourceTypes: ['memory'],
+      presentSourceTypes: ['memory'],
+      missingSourceTypes: [],
+      warnings: ['Requirement analysis needs a concrete input, output, and behavior before synthesis.']
+    },
+    requirementMarkdown: '# Clarification needed\n\nA concrete circuit goal is required before wiring, rendering, or simulation.',
+    circuitSpec: {
+      id: 'clarification-needed',
+      title: '회로 요청 구체화 필요',
+      intent: { primaryGoal: '좋아 작업을 시작해보자', output: 'clarification-needed', controller: 'none', behavior: 'casual_chat' },
+      components: [{ id: 'arduino-uno', partId: 'arduino-uno', label: 'Arduino Uno', designator: 'U1' }],
+      connections: [],
+      behavior: { runText: 'CLARIFY' },
+      assumptions: ['No concrete circuit input, output, or hardware behavior was identified yet.'],
+      unsupportedItems: ['clarification-required'],
+      clarificationNeeds: ['만들고 싶은 회로의 입력, 출력, 동작을 한 문장으로 알려 주세요.']
+    },
+    validationReport: {
+      version: '2026-06-01',
+      status: 'unsupported',
+      errors: ['Unsupported request item: clarification-required'],
+      warnings: ['No render or current simulation is produced until a concrete circuit goal exists.'],
+      validatedCurrentPathIds: [],
+      sourceVersion: '2026-06-01'
+    },
+    renderPlan: {
+      title: '회로 요청 구체화 필요',
+      runText: 'CLARIFY',
+      parts: [],
+      connections: [],
+      floatingCards: [],
+      warnings: []
+    },
+    simulationPlan: {
+      status: 'unsupported',
+      runText: 'CLARIFY',
+      currentPaths: [],
+      expectedStates: [],
+      warnings: []
     }
   };
 }
@@ -651,29 +912,117 @@ test('public share link renders a read-only project page and imports the snapsho
   assertClean(guards);
 });
 
-test('AI chat uses the Deepagents API path and reports runtime state clearly', async ({ page, request }) => {
+test('public share link blocks valid-looking snapshots without runnable evidence', async ({ page }) => {
   const guards = attachGuards(page);
-  const configured = await isAgentConfigured(request);
-  if (!configured) await forceOfflineAgent(page);
+  const shareId = 'e'.repeat(32);
+  const snapshot = sharedLedSnapshotFixture(shareId);
+  delete snapshot.buildRunnableReport;
+  await page.route(`http://127.0.0.1:8787/api/share/projects/${shareId}`, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ snapshot })
+    });
+  });
+
+  await page.goto(`/?share=${shareId}`);
+  await expect(page.getByTestId('public-share-view')).toBeVisible();
+  await expect(page.getByTestId('public-share-validation')).toContainText(/invalid|draft|초안|검증/i);
+  await expect(page.getByTestId('public-share-simulation')).toContainText(/No simulation|시뮬레이션 없음/i);
+  await expect(page.getByTestId('public-share-simulation')).not.toContainText(/Current flows|전류가 흐름/i);
+
+  await page.getByTestId('share-import').click();
+  await expect(page.getByTestId('public-share-view')).toHaveCount(0);
+  await expect(page.locator('[data-action="run"]')).toBeDisabled();
+  await expect(page.getByTestId('requirement-markdown')).toContainText(/not validated|needs review|non-running|검토|비실행/i);
+  await expect(page.locator('[data-stage-host]')).toHaveCount(0);
+
+  assertClean(guards);
+});
+
+test('public share link imports diagnostic scenes without enabling run', async ({ page }) => {
+  const guards = attachGuards(page);
+  const shareId = 'f'.repeat(32);
+  const snapshot = sharedLedSnapshotFixture(shareId);
+  snapshot.status = 'invalid';
+  snapshot.validation.status = 'invalid';
+  snapshot.validation.warnings = ['render is diagnostic only'];
+  snapshot.buildRunnableReport = {
+    ...snapshot.buildRunnableReport,
+    status: 'blocked',
+    runnable: false,
+    reasons: ['render is diagnostic only'],
+    currentPathCount: 0,
+    expectedStateCount: 0
+  };
+  snapshot.solverGateResult = {
+    mode: 'diagnostic',
+    visibleSimulation: true,
+    buildReady: false,
+    simulationActivity: 'diagnostic',
+    notVerified: ['current-flow simulation is not verified']
+  };
+  snapshot.simulation.available = false;
+  snapshot.simulation.currentPathCount = 0;
+  snapshot.simulation.explanation = '3D diagnostic scene is available, but current-flow simulation is blocked.';
+  await page.route(`http://127.0.0.1:8787/api/share/projects/${shareId}`, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ snapshot })
+    });
+  });
+
+  await page.goto(`/?share=${shareId}`);
+  await expect(page.getByTestId('public-share-view')).toBeVisible();
+  await expect(page.getByTestId('public-share-validation')).toContainText(/invalid|draft|초안|검증/i);
+  await expect(page.getByTestId('public-share-simulation')).toContainText(/3D diagnostic|3D 진단/i);
+  await expect(page.getByTestId('public-share-simulation')).not.toContainText(/Current flows|전류가 흐름/i);
+
+  await page.getByTestId('share-import').click();
+  await expect(page.getByTestId('public-share-view')).toHaveCount(0);
+  await expectVisibleNonBlankStage(page);
+  await expect(page.getByTestId('solver-gate-status')).toBeVisible();
+  await expect(page.getByTestId('solver-gate-status')).not.toContainText(/diagnostic_simulation|current-flow simulation is not verified|validation status|build-ready claim/i);
+  await expect(page.locator('[data-action="run"]')).toBeDisabled();
+  await expect(page.getByTestId('simulation-toggle')).toBeDisabled();
+  await expect(page.getByTestId('simulation-step')).toBeDisabled();
+
+  assertClean(guards);
+});
+
+test('AI chat accepts casual start messages without pretending they are circuit drafts', async ({ page }) => {
+  const guards = attachGuards(page);
+  await page.route('http://127.0.0.1:8787/api/agent/health', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true, defaultMode: 'deepagents-live', provider: 'openai', model: 'test-model', hasServerKey: true })
+    });
+  });
+  await page.route('http://127.0.0.1:8787/api/agent/message', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(casualStartAgentResultFixture())
+    });
+  });
   await dismissWelcome(page);
 
-  await page.locator('#idea-input').fill('안녕');
-  await page.locator('[data-action="send-idea"]').getByRole('button').click();
+  await page.locator('#idea-input').fill('좋아 작업을 시작해보자');
+  await page.locator('#idea-input').press('Enter');
 
   await expect(page.getByTestId('interview-progress')).toBeVisible();
-  await expect(page.locator('.message.assistant').last()).toBeVisible({ timeout: configured ? 90000 : 10000 });
-  await expect(page.getByTestId('ai-typing')).toHaveCount(0, { timeout: configured ? 90000 : 10000 });
+  await expect(page.locator('.message.assistant').last()).toBeVisible();
+  await expect(page.getByTestId('ai-typing')).toHaveCount(0);
   await expect.poll(async () => ((await page.locator('.message.assistant').last().textContent()) ?? '').trim().length).toBeGreaterThan(10);
   const assistantText = await page.locator('.message.assistant').last().textContent();
 
-  if (configured) {
-    expect(assistantText).not.toContain('OPENAI_API_KEY');
-    expect(assistantText).not.toContain('H_EDUWARE_AGENT_MODEL');
-  } else {
-    expect(assistantText).toMatch(/OPENAI_API_KEY|H_EDUWARE_AGENT_MODEL|server|서버|Deepagents/i);
-    await expect(page.getByTestId('quick-replies')).toHaveCount(0);
-    await expect(page.locator('[data-action="confirm"]')).toHaveCount(0);
-  }
+  expect(assistantText).not.toContain('OPENAI_API_KEY');
+  expect(assistantText).not.toContain('H_EDUWARE_AGENT_MODEL');
+  expect(assistantText).not.toMatch(/structured circuit draft|회로 초안을 구조화/i);
+  expect(assistantText).toMatch(/회로|입력|출력|동작|circuit/i);
+  await expect(page.locator('[data-action="confirm"]')).toHaveCount(0);
 
   assertClean(guards);
 });
@@ -688,7 +1037,7 @@ test('AI runtime warns when the live agent server is older than source files', a
         ok: true,
         defaultMode: 'deepagents-live',
         provider: 'openai',
-        model: 'gpt-5.5',
+        model: 'gpt-5.4-mini',
         hasServerKey: true,
         serverStartedAt: '2026-05-31T12:00:00.000Z',
         serverUptimeMs: 120000,
@@ -722,7 +1071,7 @@ test('AI runtime warns when live agent health cannot report source freshness', a
         ok: true,
         defaultMode: 'deepagents-live',
         provider: 'openai',
-        model: 'gpt-5.5',
+        model: 'gpt-5.4-mini',
         hasServerKey: true
       })
     });
@@ -768,6 +1117,12 @@ test('LED draft follow-up keeps state, builds on natural confirmation, and answe
   await expect(page.getByTestId('build-progress')).toBeVisible();
   await page.getByTestId('build-progress-skip').click();
   await expect(page.getByTestId('requirement-markdown')).toContainText(/LED|D9|GND/);
+  await expect(page.getByTestId('context-evidence-panel')).toBeVisible();
+  await expect(page.getByTestId('source-bundle-evidence')).toContainText(/digital-light-output/);
+  await expect(page.getByTestId('source-bundle-evidence')).toContainText(/준비|ready/i);
+  await page.getByTestId('file-explorer').getByText(/참고 자료|Context trace/).click();
+  await expect(page.getByTestId('requirement-markdown')).toContainText(/검증 자료|Verified support data/);
+  await expect(page.getByTestId('requirement-markdown')).toContainText(/digital-light-output/);
 
   await page.locator('#idea-input').fill('전선 연결이 안되도 상관없니?');
   await page.locator('[data-action="send-idea"]').getByRole('button').click();
@@ -778,6 +1133,63 @@ test('LED draft follow-up keeps state, builds on natural confirmation, and answe
   await expect(page.getByTestId('stage-canvas')).toBeVisible();
   await expect(page.getByTestId('connection-list')).toContainText(/D9|GND|LED/i);
   expect(messageRequests).toHaveLength(1);
+
+  assertClean(guards);
+});
+
+test('server-blocked valid-looking drafts load as diagnostic simulations without becoming build-ready', async ({ page }) => {
+  const guards = attachGuards(page);
+  const messageRequests = [];
+
+  await page.route('http://127.0.0.1:8787/api/agent/health', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true, defaultMode: 'deepagents-live', provider: 'openai', model: 'test-model', hasServerKey: true })
+    });
+  });
+  await page.route('http://127.0.0.1:8787/api/agent/message', async (route) => {
+    messageRequests.push(JSON.parse(route.request().postData() || '{}'));
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(validLookingButServerBlockedAgentResultFixture())
+    });
+  });
+
+  await dismissWelcome(page);
+  await page.locator('#idea-input').fill('LED 깜빡이기');
+  await page.locator('[data-action="send-idea"]').getByRole('button').click();
+  await expect(page.locator('.message.assistant').last()).toContainText(/LED|D9|저항/);
+  await expect(page.locator('[data-action="confirm"]')).toBeVisible();
+  await expect(page.locator('[data-action="run"]')).toBeDisabled();
+
+  await page.locator('#idea-input').fill('좋아 구현 부탁해');
+  await page.locator('[data-action="send-idea"]').getByRole('button').click();
+  await expect(page.locator('.message.assistant').last()).toContainText(/3D 진단 시뮬레이션|전류 흐름/);
+  await expectVisibleNonBlankStage(page);
+  await expect(page.getByTestId('solver-gate-status')).toContainText(/3D 진단 시뮬레이션/);
+  await expect(page.getByTestId('solver-gate-status')).not.toContainText(/diagnostic_simulation|build-ready claim is not verified|simulation has no validated current or signal path/i);
+  await expect(page.getByTestId('simulation-toggle')).toBeDisabled();
+  await expect(page.getByTestId('simulation-step')).toBeDisabled();
+  await expect(page.locator('[data-action="run"]')).toBeDisabled();
+  expect(messageRequests).toHaveLength(1);
+
+  await page.locator('#idea-input').fill('LED 하나 더 추가해줘');
+  await page.locator('[data-action="send-idea"]').getByRole('button').click();
+
+  await expect.poll(() => messageRequests.length).toBe(2);
+  expect(messageRequests[1].conversationContext.currentArtifact).toMatchObject({
+    source: 'built-project',
+    solverGateResult: {
+      visibleSimulation: true,
+      buildReady: false
+    }
+  });
+  expect(messageRequests[1].conversationContext.currentArtifact.renderPlan.layout.endpoints['arduino-uno:D9']).toMatchObject({ x: -1.22 });
+  expect(messageRequests[1].conversationContext.lastSupportedGoal).toMatch(/blink an LED/);
+  expect(messageRequests[1].conversationContext.pendingSupportedAlternative).toBeUndefined();
+  expect(messageRequests[1].conversationContext.awaitingBuildConfirmation).toBe(false);
 
   assertClean(guards);
 });
@@ -840,7 +1252,7 @@ test('post-build revision request carries the current circuit artifact to the ag
   assertClean(guards);
 });
 
-test('unsafe or unsupported requests do not produce build, render, or current simulation artifacts', async ({ page }) => {
+test('unsafe requests show a safe equivalent simulation without building the original request', async ({ page }) => {
   const guards = attachGuards(page);
   const messageRequests = [];
 
@@ -863,22 +1275,33 @@ test('unsafe or unsupported requests do not produce build, render, or current si
   await dismissWelcome(page);
   await page.locator('#idea-input').fill('220V 콘센트에 직접 연결해서 LED 켜고 싶어');
   await page.locator('[data-action="send-idea"]').getByRole('button').click();
-  await expect(page.locator('.message.assistant').last()).toContainText(/안전|저전압|unsupported|220V|시뮬레이션하지 않습니다/i);
+  await expect(page.locator('.message.assistant').last()).toContainText(/안전|저전압|220V|대체 회로|시뮬레이션/i);
   await expect(page.getByTestId('interview-decisions')).toBeVisible();
   await expect(page.getByTestId('interview-decisions')).not.toContainText(/structured circuit draft|DEEPAGENTS COORDINATOR|coordinator/i);
-  await expect(page.locator('[data-action="confirm"]')).toHaveCount(0);
+  await expect(page.locator('[data-action="confirm"]')).toBeVisible();
   await expect(page.locator('[data-action="run"]')).toBeDisabled();
-  await expect(page.getByTestId('stage-canvas')).toHaveCount(0);
-  await expect(page.getByTestId('requirement-markdown')).toHaveCount(0);
+  await page.locator('[data-tab="PCB"]').click();
+  await expectVisibleNonBlankStage(page);
+  await expect(page.getByTestId('solver-gate-status')).toContainText(/안전|대체|safe|equivalent/i);
+  await expect(page.getByTestId('simulation-toggle')).toBeDisabled();
+  await expect(page.getByTestId('simulation-step')).toBeDisabled();
+  await expect(page.getByTestId('build-progress')).toHaveCount(0);
 
   expect(messageRequests).toHaveLength(1);
   expect(messageRequests[0].message).toContain('220V');
+
+  await page.locator('#idea-input').fill('전선 연결이 안되도 상관없니?');
+  await page.locator('[data-action="send-idea"]').getByRole('button').click();
+  await expect(page.locator('.message.assistant').last()).toContainText(/검증된 회로|전선|LED|GND|전류/i);
+
+  expect(messageRequests).toHaveLength(1);
 
   assertClean(guards);
 });
 
 test('planned context gaps show student-friendly decision text without internal validation jargon', async ({ page }) => {
   const guards = attachGuards(page);
+  const messageRequests = [];
 
   await page.route('http://127.0.0.1:8787/api/agent/health', async (route) => {
     await route.fulfill({
@@ -888,23 +1311,94 @@ test('planned context gaps show student-friendly decision text without internal 
     });
   });
   await page.route('http://127.0.0.1:8787/api/agent/message', async (route) => {
+    messageRequests.push(JSON.parse(route.request().postData() || '{}'));
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify(plannedContextGapAgentResultFixture())
+      body: JSON.stringify({
+        ...plannedContextGapAgentResultFixture(),
+        assistantMessages: [
+          '아직 이 센서 회로는 준비된 검증 자료가 부족해요. 대신 지원되는 Arduino Uno + 5mm LED + 220Ω 저항 기반의 디지털 LED 깜박임 회로로 진행할까요?'
+        ]
+      })
     });
   });
 
   await dismissWelcome(page);
-  await page.locator('#idea-input').fill('Use a potentiometer knob to control LED brightness');
+  await page.locator('#idea-input').fill('Show MCP3008 ADC channel value on the OLED display');
   await page.locator('[data-action="send-idea"]').getByRole('button').click();
 
+  await expect(page.locator('.message.assistant').last()).toContainText(/Arduino Uno|LED|220/);
   await expect(page.getByTestId('interview-decisions')).toBeVisible();
   await expect(page.getByTestId('interview-decisions')).toContainText(/지원|확인|Support|check/i);
-  await expect(page.getByTestId('interview-decisions')).not.toContainText(/context-support-gap|canonical context|valid synthesis|part-capability|simulation-primitive|artifact/i);
-  await expect(page.locator('[data-action="confirm"]')).toHaveCount(0);
+  await expect(page.getByTestId('interview-decisions')).not.toContainText(/context-support-gap|canonical context|valid synthesis|support bundle|part-capability|simulation-primitive|artifact/i);
+  await expect(page.locator('[data-action="confirm"]')).toBeVisible();
   await expect(page.locator('[data-action="run"]')).toBeDisabled();
-  await expect(page.getByTestId('stage-canvas')).toHaveCount(0);
+  await page.locator('[data-tab="PCB"]').click();
+  await expectVisibleNonBlankStage(page, 1000);
+  await expect(page.getByTestId('solver-gate-status')).toContainText(/3D 진단|diagnostic/i);
+  await expect(page.getByTestId('solver-gate-status')).not.toContainText(/context-support-gap|canonical context|valid synthesis|support bundle|part-capability|simulation-primitive|artifact|validation status is unsupported|simulation status is unsupported/i);
+  await expect(page.getByTestId('render-warning-panel')).not.toContainText(/DIAGNOSTIC_RENDER_ONLY|context-support-gap|canonical context|valid synthesis|support bundle|part-capability|simulation-primitive|artifact|Validation status is unsupported/i);
+  await expect(page.getByTestId('simulation-toggle')).toBeDisabled();
+
+  await page.locator('#idea-input').fill('그래 그걸로 진행해보자');
+  await page.locator('[data-action="send-idea"]').getByRole('button').click();
+
+  await expectVisibleNonBlankStage(page, 1000);
+  await expect(page.locator('[data-action="run"]')).toBeDisabled();
+  expect(messageRequests).toHaveLength(1);
+
+  assertClean(guards);
+});
+
+test('AI chat sends recent conversation context across requirement follow-ups', async ({ page }) => {
+  const guards = attachGuards(page);
+  const messageRequests = [];
+  const assistantReplies = [
+    '센서값을 표시하는 방향으로 진행할 수 있어요. 온도/습도, 조도, 거리 중 어떤 센서를 쓸까요?',
+    '온도와 습도를 입력으로 쓰는 방향은 이해했어요. LED 밝기나 화면 표시 중 어떤 값이 변하면 좋을까요?',
+    '지원되는 Arduino Uno + 5mm LED + 220Ω 저항 기반의 디지털 LED 깜박임 또는 ON/OFF 회로로 진행할까요?'
+  ];
+
+  await page.route('http://127.0.0.1:8787/api/agent/health', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true, defaultMode: 'deepagents-live', provider: 'openai', model: 'test-model', hasServerKey: true })
+    });
+  });
+  await page.route('http://127.0.0.1:8787/api/agent/message', async (route) => {
+    const body = JSON.parse(route.request().postData() || '{}');
+    messageRequests.push(body);
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ...plannedContextGapAgentResultFixture(),
+        assistantMessages: [assistantReplies[Math.min(messageRequests.length - 1, assistantReplies.length - 1)]],
+        supportedAlternatives: messageRequests.length >= 3 ? [supportedLedAlternativeFixture('context-support-gap')] : [],
+        clarification: null
+      })
+    });
+  });
+
+  await dismissWelcome(page);
+  await page.locator('#idea-input').fill('센서값 표시하기 해보자 어떤 센서들이 있어?');
+  await page.locator('[data-action="send-idea"]').getByRole('button').click();
+  await expect(page.locator('.message.assistant').last()).toContainText(/온도\/습도|센서/);
+
+  await page.locator('#idea-input').fill('온도랑 습도를 기반으로 값이 변하는 걸로 해보자');
+  await page.locator('[data-action="send-idea"]').getByRole('button').click();
+  await expect(page.locator('.message.assistant').last()).toContainText(/LED 밝기|화면 표시/);
+
+  await page.locator('#idea-input').fill('그래 너가 제안해준대로 진행해보자');
+  await page.locator('[data-action="send-idea"]').getByRole('button').click();
+  await expect(page.locator('.message.assistant').last()).toContainText(/디지털 LED|ON\/OFF/);
+
+  expect(messageRequests).toHaveLength(3);
+  expect(messageRequests[1].conversationContext.recentTurns.map((turn) => turn.text).join('\n')).toContain('온도/습도');
+  expect(messageRequests[2].conversationContext.recentTurns.map((turn) => turn.text).join('\n')).toContain('LED 밝기나 화면 표시');
+  expect(messageRequests[2].conversationContext.recentTurns.map((turn) => turn.text).join('\n')).toContain('온도랑 습도');
 
   assertClean(guards);
 });

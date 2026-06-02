@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "relay-low-voltage-output",
+  "capabilityId": "relay-low-voltage-output",
+  "supportLevel": "supported",
+  "promptBudget": "summary",
+  "agentSummaryPath": "bundles/relay-low-voltage-output/BUNDLE.md",
+  "requiredParts": ["arduino-uno", "breadboard-half", "relay-1ch", "led-5mm", "resistor-220"],
+  "allowedParts": ["arduino-uno", "breadboard-half", "relay-1ch", "relay-4ch", "led-5mm", "resistor-220", "jumper-wire"],
+  "requiredTopologies": ["controller-relay-low-voltage-load"],
+  "validationRules": ["relay-control-required", "relay-load-contact-required", "relay-low-voltage-load-only", "common-ground", "high-current-warning"],
+  "simulationPrimitives": ["relay_switch_state", "current_flow_animation"],
+  "renderFootprints": ["arduino", "breadboard", "relay-module-1ch", "relay-module-4ch", "led", "resistor", "wire"],
+  "canonicalRefs": {
+    "parts": ["shared:parts:arduino-uno", "shared:parts:breadboard-half", "shared:parts:relay-1ch", "shared:parts:relay-4ch", "shared:parts:led-5mm", "shared:parts:resistor-220"],
+    "footprints": ["shared:footprint:arduino", "shared:footprint:breadboard", "shared:footprint:relay-module-1ch", "shared:footprint:relay-module-4ch", "shared:footprint:led", "shared:footprint:resistor", "shared:footprint:wire"],
+    "simulation": ["shared:primitive:relay_switch_state", "shared:primitive:current_flow_animation"],
+    "topology": ["shared:topology:controller-relay-low-voltage-load"],
+    "sources": ["shared:source:arduino-uno-rev3-io-current-20ma", "shared:source:breadboard-row-continuity-5-hole", "shared:source:led-5mm-requires-current-limit", "shared:source:led-5mm-anode-cathode-polarity", "shared:source:relay-1ch-visual-pin-map", "shared:source:relay-4ch-visual-pin-map", "shared:source:relay-low-voltage-simulation-contract"]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": true,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": ["mains-or-wall-power-relay-load", "missing-relay-input-power", "missing-relay-control", "missing-low-voltage-contact-load", "missing-common-ground", "missing-render-footprint", "missing-simulation-primitive", "unsupported-part-requested"]
+}

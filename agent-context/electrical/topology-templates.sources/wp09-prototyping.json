@@ -1,0 +1,50 @@
+[
+  {
+    "id": "prototyping-surface-context-only",
+    "label": "Prototyping surface context-only model",
+    "description": "A breadboard, perfboard, PCB blank, or Uno prototype shield is represented as placement/build context with visible anchors and warnings; it does not create current flow by itself.",
+    "requiredRoles": [
+      "prototyping-surface",
+      "placement-surface",
+      "state-only-simulation"
+    ],
+    "nets": [
+      { "id": "surface-context", "kind": "signal" }
+    ],
+    "connections": [
+      { "fromRole": "prototyping-surface.body", "toNet": "surface-context", "signal": "placement-context" }
+    ],
+    "validationRules": [
+      "prototyping-surface-context-only",
+      "surface-does-not-create-nets",
+      "no-mains-power"
+    ],
+    "simulationPrimitiveHints": [
+      "prototyping_surface_context_state"
+    ]
+  },
+  {
+    "id": "connector-wiring-context-only",
+    "label": "Connector wiring context-only model",
+    "description": "A header strip or terminal block is represented as connector context with pin anchors and low-voltage safety policy; it does not create source voltage or inferred nets without explicit wiring.",
+    "requiredRoles": [
+      "connector-wiring",
+      "state-only-simulation",
+      "low-voltage-only"
+    ],
+    "nets": [
+      { "id": "connector-terminal-context", "kind": "signal" }
+    ],
+    "connections": [
+      { "fromRole": "connector-wiring.terminal", "toNet": "connector-terminal-context", "signal": "connector-context" }
+    ],
+    "validationRules": [
+      "connector-context-low-voltage-only",
+      "connector-does-not-create-source",
+      "no-mains-power"
+    ],
+    "simulationPrimitiveHints": [
+      "connector_wiring_context_state"
+    ]
+  }
+]

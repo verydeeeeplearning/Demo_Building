@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "analog-led-dimmer",
+  "capabilityId": "analog-led-dimmer",
+  "supportLevel": "supported",
+  "promptBudget": "full",
+  "agentSummaryPath": "bundles/analog-led-dimmer/BUNDLE.md",
+  "requiredParts": ["arduino-uno", "breadboard-half", "potentiometer-10k", "led-5mm", "resistor-220"],
+  "allowedParts": ["arduino-uno", "breadboard-half", "potentiometer-10k", "trimmer-pot", "led-5mm", "resistor-220", "jumper-wire"],
+  "requiredTopologies": ["controller-analog-input-pwm-output"],
+  "validationRules": ["voltage-divider-required", "analog-input-pin-exists", "series-current-limit", "pwm-output-required", "common-ground"],
+  "simulationPrimitives": ["analog_pwm_dimmer", "digital_on_off", "current_flow_animation"],
+  "renderFootprints": ["arduino", "breadboard", "potentiometer", "trimmer-pot", "led", "resistor", "wire"],
+  "canonicalRefs": {
+    "parts": ["shared:parts:arduino-uno", "shared:parts:breadboard-half", "shared:parts:potentiometer-10k", "shared:parts:trimmer-pot", "shared:parts:led-5mm", "shared:parts:resistor-220"],
+    "footprints": ["shared:footprint:arduino", "shared:footprint:breadboard", "shared:footprint:potentiometer", "shared:footprint:trimmer-pot", "shared:footprint:led", "shared:footprint:resistor", "shared:footprint:wire"],
+    "simulation": ["shared:primitive:analog_pwm_dimmer", "shared:primitive:digital_on_off", "shared:primitive:current_flow_animation"],
+    "topology": ["shared:topology:controller-analog-input-pwm-output"],
+    "sources": ["shared:source:arduino-uno-rev3-io-current-20ma", "shared:source:arduino-uno-rev3-d9-pwm-pin", "shared:source:arduino-uno-analog-input-pins-a0-a5", "shared:source:breadboard-row-continuity-5-hole", "shared:source:led-5mm-requires-current-limit", "shared:source:led-5mm-anode-cathode-polarity", "shared:source:potentiometer-three-pin-analog-input", "shared:source:trimmer-pot-visual-pin-map", "shared:source:trimmer-pot-analog-divider-contract"]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": true,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": ["missing-potentiometer-divider", "missing-pwm-output", "missing-series-current-limit", "missing-common-ground", "missing-render-footprint", "missing-simulation-primitive", "unsupported-part-requested"]
+}

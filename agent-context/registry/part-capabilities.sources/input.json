@@ -1,0 +1,1408 @@
+[
+  {
+    "id": "button-tactile",
+    "kind": "input",
+    "label": "Tactile pushbutton",
+    "aliases": [
+      "button",
+      "pushbutton",
+      "switch",
+      "press"
+    ],
+    "pins": [
+      {
+        "name": "A",
+        "role": "switch-terminal",
+        "aliases": [
+          "side a"
+        ]
+      },
+      {
+        "name": "B",
+        "role": "switch-terminal",
+        "aliases": [
+          "side b"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 2,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "button",
+      "width": 0.5,
+      "depth": 0.5,
+      "height": 0.2
+    },
+    "simulationModel": {
+      "type": "digital-input-switch",
+      "nominalCurrentMa": 1
+    },
+    "supportLevel": "supported",
+    "capabilities": [
+      "digital-input-switch",
+      "user-input",
+      "pullup-pulldown-input"
+    ],
+    "compatibleSimulationPrimitives": [
+      "digital_on_off",
+      "analog_threshold"
+    ],
+    "commonMistakes": [
+      "Floating input without pull-up or pull-down behavior.",
+      "Wiring both sides of the switch to the same breadboard row."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "potentiometer-10k",
+    "kind": "input",
+    "label": "10K potentiometer",
+    "aliases": [
+      "potentiometer",
+      "pot",
+      "knob",
+      "dial",
+      "variable resistor",
+      "가변저항",
+      "노브"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "-"
+        ]
+      },
+      {
+        "name": "OUT",
+        "role": "analog-output",
+        "aliases": [
+          "wiper",
+          "middle",
+          "signal"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 1,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "analog-input",
+      "voltage-divider"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "potentiometer",
+      "width": 0.55,
+      "depth": 0.48,
+      "height": 0.45
+    },
+    "simulationModel": {
+      "type": "analog-voltage-divider",
+      "nominalCurrentMa": 0.5
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "analog-input",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "potentiometer"
+    ],
+    "capabilities": [
+      "analog-input",
+      "voltage-divider",
+      "user-input"
+    ],
+    "compatibleSimulationPrimitives": [
+      "analog_pwm_dimmer",
+      "analog_threshold",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Leaving the wiper OUT pin disconnected from Arduino A0.",
+      "Connecting both end pins to the same rail instead of 5V and GND."
+    ],
+    "safeSubstitutes": [
+      "button-tactile"
+    ]
+  },
+  {
+    "id": "trimmer-pot",
+    "kind": "input",
+    "label": "Trimmer potentiometer",
+    "aliases": [
+      "trimmer potentiometer",
+      "trimmer pot",
+      "trim pot",
+      "small adjustable potentiometer",
+      "calibration potentiometer",
+      "screwdriver potentiometer",
+      "반고정 가변저항",
+      "트리머 가변저항"
+    ],
+    "pins": [
+      {
+        "name": "A",
+        "role": "power",
+        "aliases": [
+          "end A",
+          "pin A",
+          "5v",
+          "+"
+        ]
+      },
+      {
+        "name": "W",
+        "role": "analog-output",
+        "aliases": [
+          "wiper",
+          "middle",
+          "signal",
+          "out"
+        ]
+      },
+      {
+        "name": "B",
+        "role": "ground",
+        "aliases": [
+          "end B",
+          "pin B",
+          "ground",
+          "-"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 1,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "analog-input",
+      "voltage-divider"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "trimmer-pot",
+      "width": 0.36,
+      "depth": 0.32,
+      "height": 0.24
+    },
+    "simulationModel": {
+      "type": "analog-voltage-divider",
+      "nominalCurrentMa": 0.5
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "adjustable-passive",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "trimmer-pot"
+    ],
+    "capabilities": [
+      "analog-input",
+      "voltage-divider",
+      "user-input",
+      "adjustable-passive"
+    ],
+    "compatibleTopologies": [
+      "controller-analog-input-pwm-output",
+      "controller-analog-threshold-output"
+    ],
+    "sourceClaimIds": [
+      "trimmer-pot-visual-pin-map",
+      "trimmer-pot-analog-divider-contract"
+    ],
+    "compatibleSimulationPrimitives": [
+      "analog_pwm_dimmer",
+      "analog_threshold",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Leaving the W wiper pin disconnected from Arduino A0.",
+      "Connecting both end pins to the same rail instead of 5V and GND.",
+      "Expecting knob-style frequent adjustment; this trimmer is modeled as a screwdriver-set divider."
+    ],
+    "safeSubstitutes": [
+      "potentiometer-10k"
+    ]
+  },
+  {
+    "id": "limit-switch",
+    "kind": "input",
+    "label": "Limit switch",
+    "aliases": [
+      "limit switch",
+      "endstop switch",
+      "microswitch",
+      "travel switch",
+      "리미트 스위치"
+    ],
+    "pins": [
+      {
+        "name": "COM",
+        "role": "switch-common",
+        "aliases": [
+          "common",
+          "c"
+        ]
+      },
+      {
+        "name": "NO",
+        "role": "switch-terminal",
+        "aliases": [
+          "normally open",
+          "open contact"
+        ]
+      },
+      {
+        "name": "NC",
+        "role": "switch-terminal",
+        "aliases": [
+          "normally closed",
+          "closed contact"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 1,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "spdt-switch-nonc-3pin",
+      "width": 0.54,
+      "depth": 0.3,
+      "height": 0.28
+    },
+    "simulationModel": {
+      "type": "passive-digital-switch",
+      "nominalCurrentMa": 1
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "human-input-digital",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "limit-switch"
+    ],
+    "compatibleTopologies": [
+      "controller-digital-input-display",
+      "controller-digital-input-output"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "mains-load-control"
+    ],
+    "sourceClaimIds": [
+      "limit-switch-visual-pin-map",
+      "passive-digital-switch-pullup-contract"
+    ],
+    "capabilities": [
+      "digital-input-state-source",
+      "digital-input-switch",
+      "mechanical-switch",
+      "pullup-pulldown-input"
+    ],
+    "compatibleSimulationPrimitives": [
+      "digital_input_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Leaving the Arduino input floating without a pull-up or ground reference.",
+      "Using both NO and NC without explaining which contact defines the active state."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "reed-switch",
+    "kind": "input",
+    "label": "Reed switch",
+    "aliases": [
+      "reed switch",
+      "magnetic switch",
+      "magnet switch",
+      "리드 스위치",
+      "자석 스위치"
+    ],
+    "pins": [
+      {
+        "name": "A",
+        "role": "switch-terminal",
+        "aliases": [
+          "lead a"
+        ]
+      },
+      {
+        "name": "B",
+        "role": "switch-terminal",
+        "aliases": [
+          "lead b"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 1,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "passive-switch-2pin",
+      "width": 0.56,
+      "depth": 0.18,
+      "height": 0.14
+    },
+    "simulationModel": {
+      "type": "passive-digital-switch",
+      "nominalCurrentMa": 1
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "human-input-digital",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "reed-switch"
+    ],
+    "compatibleTopologies": [
+      "controller-digital-input-display",
+      "controller-digital-input-output"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "mains-load-control"
+    ],
+    "sourceClaimIds": [
+      "reed-switch-visual-pin-map",
+      "passive-digital-switch-pullup-contract"
+    ],
+    "capabilities": [
+      "digital-input-state-source",
+      "digital-input-switch",
+      "magnetic-switch",
+      "pullup-pulldown-input"
+    ],
+    "compatibleSimulationPrimitives": [
+      "digital_input_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Forgetting the pull-up or ground reference for the digital input.",
+      "Treating the reed switch as a powered sensor module."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "slide-switch",
+    "kind": "input",
+    "label": "Slide switch",
+    "aliases": [
+      "slide switch",
+      "spdt slide switch",
+      "selector switch",
+      "슬라이드 스위치"
+    ],
+    "pins": [
+      {
+        "name": "COM",
+        "role": "switch-common",
+        "aliases": [
+          "common",
+          "middle pin"
+        ]
+      },
+      {
+        "name": "A",
+        "role": "switch-terminal",
+        "aliases": [
+          "throw a",
+          "side a"
+        ]
+      },
+      {
+        "name": "B",
+        "role": "switch-terminal",
+        "aliases": [
+          "throw b",
+          "side b"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 1,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "spdt-switch-ab-3pin",
+      "width": 0.54,
+      "depth": 0.3,
+      "height": 0.28
+    },
+    "simulationModel": {
+      "type": "passive-digital-switch",
+      "nominalCurrentMa": 1
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "human-input-digital",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "slide-switch"
+    ],
+    "compatibleTopologies": [
+      "controller-digital-input-display",
+      "controller-digital-input-output"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "mains-load-control"
+    ],
+    "sourceClaimIds": [
+      "slide-switch-visual-pin-map",
+      "passive-digital-switch-pullup-contract"
+    ],
+    "capabilities": [
+      "digital-input-state-source",
+      "digital-input-switch",
+      "latched-switch",
+      "pullup-pulldown-input"
+    ],
+    "compatibleSimulationPrimitives": [
+      "digital_input_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Wiring the Arduino input to a throw pin while leaving COM unreferenced.",
+      "Shorting both throws together on the same breadboard row."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "toggle-switch",
+    "kind": "input",
+    "label": "Toggle switch",
+    "aliases": [
+      "toggle switch",
+      "lever switch",
+      "토글 스위치"
+    ],
+    "pins": [
+      {
+        "name": "COM",
+        "role": "switch-common",
+        "aliases": [
+          "common",
+          "middle pin"
+        ]
+      },
+      {
+        "name": "NO",
+        "role": "switch-terminal",
+        "aliases": [
+          "normally open"
+        ]
+      },
+      {
+        "name": "NC",
+        "role": "switch-terminal",
+        "aliases": [
+          "normally closed"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 1,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "spdt-switch-nonc-3pin",
+      "width": 0.54,
+      "depth": 0.3,
+      "height": 0.28
+    },
+    "simulationModel": {
+      "type": "passive-digital-switch",
+      "nominalCurrentMa": 1
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "human-input-digital",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "toggle-switch"
+    ],
+    "compatibleTopologies": [
+      "controller-digital-input-display",
+      "controller-digital-input-output"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "mains-load-control"
+    ],
+    "sourceClaimIds": [
+      "toggle-switch-visual-pin-map",
+      "passive-digital-switch-pullup-contract"
+    ],
+    "capabilities": [
+      "digital-input-state-source",
+      "digital-input-switch",
+      "latched-switch",
+      "pullup-pulldown-input"
+    ],
+    "compatibleSimulationPrimitives": [
+      "digital_input_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Using NO/NC backwards without documenting the active state.",
+      "Leaving the input floating when the switch opens."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "ttp223-touch",
+    "kind": "input",
+    "label": "TTP223 capacitive touch sensor",
+    "aliases": [
+      "ttp223",
+      "touch sensor",
+      "capacitive touch",
+      "touch button",
+      "터치 센서",
+      "정전식 터치"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5V",
+          "power"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground"
+        ]
+      },
+      {
+        "name": "SIG",
+        "role": "digital-output",
+        "aliases": [
+          "signal",
+          "out",
+          "digital out"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 6,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "digital-sensor-module-sig-3pin",
+      "width": 0.62,
+      "depth": 0.48,
+      "height": 0.26
+    },
+    "simulationModel": {
+      "type": "powered-digital-input-module",
+      "nominalCurrentMa": 6
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "human-input-digital",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "ttp223-touch"
+    ],
+    "compatibleTopologies": [
+      "controller-digital-input-display",
+      "controller-digital-input-output"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "mains-load-control"
+    ],
+    "sourceClaimIds": [
+      "ttp223-touch-visual-pin-map",
+      "powered-digital-input-module-contract"
+    ],
+    "capabilities": [
+      "digital-input-state-source",
+      "powered-digital-sensor",
+      "touch-input",
+      "digital-output-sensor"
+    ],
+    "compatibleSimulationPrimitives": [
+      "digital_input_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Connecting SIG to an analog pin for this supported digital-state topology.",
+      "Missing common ground between the touch module and Arduino."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "dip-switch-4",
+    "kind": "input",
+    "label": "4-way DIP switch",
+    "aliases": [
+      "dip switch",
+      "4-way dip switch",
+      "four way dip switch",
+      "configuration switch",
+      "DIP 스위치"
+    ],
+    "pins": [
+      {
+        "name": "S1A",
+        "role": "switch-terminal",
+        "aliases": [
+          "s1a",
+          "s1 a"
+        ]
+      },
+      {
+        "name": "S1B",
+        "role": "switch-terminal",
+        "aliases": [
+          "s1b",
+          "s1 b"
+        ]
+      },
+      {
+        "name": "S2A",
+        "role": "switch-terminal",
+        "aliases": [
+          "s2a",
+          "s2 a"
+        ]
+      },
+      {
+        "name": "S2B",
+        "role": "switch-terminal",
+        "aliases": [
+          "s2b",
+          "s2 b"
+        ]
+      },
+      {
+        "name": "S3A",
+        "role": "switch-terminal",
+        "aliases": [
+          "s3a",
+          "s3 a"
+        ]
+      },
+      {
+        "name": "S3B",
+        "role": "switch-terminal",
+        "aliases": [
+          "s3b",
+          "s3 b"
+        ]
+      },
+      {
+        "name": "S4A",
+        "role": "switch-terminal",
+        "aliases": [
+          "s4a",
+          "s4 a"
+        ]
+      },
+      {
+        "name": "S4B",
+        "role": "switch-terminal",
+        "aliases": [
+          "s4b",
+          "s4 b"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 1,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "multi-switch"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "dip-switch-8pin",
+      "width": 0.8,
+      "depth": 0.48,
+      "height": 0.18
+    },
+    "simulationModel": {
+      "type": "passive-multi-switch",
+      "nominalCurrentMa": 1
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "matrix-or-multi-input",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "dip-switch-4"
+    ],
+    "compatibleTopologies": [
+      "controller-matrix-input-display"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "oled-i2c-096",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "mains-load-control"
+    ],
+    "sourceClaimIds": [
+      "dip-switch-4-pin-map",
+      "multi-switch-input-reference-contract",
+      "matrix-input-qualitative-contract"
+    ],
+    "capabilities": [
+      "matrix-input-source",
+      "multi-switch-input",
+      "passive-matrix-input",
+      "pullup-pulldown-input",
+      "user-input"
+    ],
+    "compatibleSimulationPrimitives": [
+      "matrix_input_state",
+      "display_static_text",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Connecting multiple switch outputs to the same Arduino input.",
+      "Omitting the ground/reference side for the switch contacts.",
+      "Treating DIP switch state as output load current."
+    ],
+    "safeSubstitutes": [
+      "limit-switch",
+      "button-tactile"
+    ]
+  },
+  {
+    "id": "keypad-4x4",
+    "kind": "input",
+    "label": "4x4 matrix keypad",
+    "aliases": [
+      "4x4 keypad",
+      "matrix keypad",
+      "keypad",
+      "sixteen key keypad",
+      "키패드",
+      "매트릭스 키패드"
+    ],
+    "pins": [
+      {
+        "name": "R1",
+        "role": "matrix-row",
+        "aliases": [
+          "r1",
+          "row 1"
+        ]
+      },
+      {
+        "name": "R2",
+        "role": "matrix-row",
+        "aliases": [
+          "r2",
+          "row 2"
+        ]
+      },
+      {
+        "name": "R3",
+        "role": "matrix-row",
+        "aliases": [
+          "r3",
+          "row 3"
+        ]
+      },
+      {
+        "name": "R4",
+        "role": "matrix-row",
+        "aliases": [
+          "r4",
+          "row 4"
+        ]
+      },
+      {
+        "name": "C1",
+        "role": "matrix-column",
+        "aliases": [
+          "c1",
+          "column 1"
+        ]
+      },
+      {
+        "name": "C2",
+        "role": "matrix-column",
+        "aliases": [
+          "c2",
+          "column 2"
+        ]
+      },
+      {
+        "name": "C3",
+        "role": "matrix-column",
+        "aliases": [
+          "c3",
+          "column 3"
+        ]
+      },
+      {
+        "name": "C4",
+        "role": "matrix-column",
+        "aliases": [
+          "c4",
+          "column 4"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 1,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "matrix-scan"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "matrix-keypad-8pin",
+      "width": 1.1,
+      "depth": 0.62,
+      "height": 0.08
+    },
+    "simulationModel": {
+      "type": "passive-key-matrix",
+      "nominalCurrentMa": 1
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "matrix-or-multi-input",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "keypad-4x4"
+    ],
+    "compatibleTopologies": [
+      "controller-matrix-input-display"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "oled-i2c-096",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "mains-load-control"
+    ],
+    "sourceClaimIds": [
+      "keypad-4x4-matrix-pin-map",
+      "matrix-input-row-column-contract",
+      "matrix-input-qualitative-contract"
+    ],
+    "capabilities": [
+      "matrix-input-source",
+      "row-column-input",
+      "keypad-input",
+      "passive-matrix-input",
+      "user-input"
+    ],
+    "compatibleSimulationPrimitives": [
+      "matrix_input_state",
+      "display_static_text",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Treating the keypad as one analog signal.",
+      "Connecting two rows or columns to the same Arduino pin.",
+      "Claiming full keyboard text entry without matrix scan state evidence."
+    ],
+    "safeSubstitutes": [
+      "membrane-keypad-1x4",
+      "button-tactile"
+    ]
+  },
+  {
+    "id": "membrane-keypad-1x4",
+    "kind": "input",
+    "label": "1x4 membrane keypad",
+    "aliases": [
+      "1x4 keypad",
+      "membrane keypad",
+      "four button keypad",
+      "keypad strip",
+      "멤브레인 키패드"
+    ],
+    "pins": [
+      {
+        "name": "COM",
+        "role": "switch-common",
+        "aliases": [
+          "common",
+          "shared reference"
+        ]
+      },
+      {
+        "name": "K1",
+        "role": "switch-terminal",
+        "aliases": [
+          "k1",
+          "key 1"
+        ]
+      },
+      {
+        "name": "K2",
+        "role": "switch-terminal",
+        "aliases": [
+          "k2",
+          "key 2"
+        ]
+      },
+      {
+        "name": "K3",
+        "role": "switch-terminal",
+        "aliases": [
+          "k3",
+          "key 3"
+        ]
+      },
+      {
+        "name": "K4",
+        "role": "switch-terminal",
+        "aliases": [
+          "k4",
+          "key 4"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 1,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "multi-switch"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "keypad-strip-5pin",
+      "width": 1,
+      "depth": 0.38,
+      "height": 0.05
+    },
+    "simulationModel": {
+      "type": "passive-key-strip",
+      "nominalCurrentMa": 1
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "matrix-or-multi-input",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "membrane-keypad-1x4"
+    ],
+    "compatibleTopologies": [
+      "controller-matrix-input-display"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "oled-i2c-096",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "mains-load-control"
+    ],
+    "sourceClaimIds": [
+      "membrane-keypad-1x4-pin-map",
+      "multi-switch-input-reference-contract",
+      "matrix-input-qualitative-contract"
+    ],
+    "capabilities": [
+      "matrix-input-source",
+      "multi-switch-input",
+      "keypad-input",
+      "passive-matrix-input",
+      "pullup-pulldown-input",
+      "user-input"
+    ],
+    "compatibleSimulationPrimitives": [
+      "matrix_input_state",
+      "display_static_text",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Leaving the common/reference pin disconnected.",
+      "Reusing one Arduino input for multiple keys.",
+      "Treating the key strip as an analog keypad."
+    ],
+    "safeSubstitutes": [
+      "button-tactile",
+      "keypad-4x4"
+    ]
+  },
+  {
+    "id": "joystick-module",
+    "kind": "input",
+    "label": "Analog joystick module",
+    "aliases": [
+      "joystick",
+      "analog joystick",
+      "thumb joystick",
+      "xy joystick",
+      "조이스틱"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5V",
+          "power"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground"
+        ]
+      },
+      {
+        "name": "VRX",
+        "role": "analog-output",
+        "aliases": [
+          "x axis",
+          "x output",
+          "x signal"
+        ]
+      },
+      {
+        "name": "VRY",
+        "role": "analog-output",
+        "aliases": [
+          "y axis",
+          "y output",
+          "y signal"
+        ]
+      },
+      {
+        "name": "SW",
+        "role": "digital-output",
+        "aliases": [
+          "button",
+          "switch output",
+          "press"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 5,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "analog-input",
+      "gpio",
+      "voltage-divider"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "joystick-module-5pin",
+      "width": 0.82,
+      "depth": 0.72,
+      "height": 0.5
+    },
+    "simulationModel": {
+      "type": "dual-axis-analog-joystick",
+      "nominalCurrentMa": 5
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "human-input-analog",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "joystick-module"
+    ],
+    "compatibleTopologies": [
+      "controller-dual-analog-input-display"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "oled-i2c-096",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "mains-load-control"
+    ],
+    "sourceClaimIds": [
+      "joystick-module-visual-pin-map",
+      "dual-analog-joystick-contract"
+    ],
+    "capabilities": [
+      "joystick-input-source",
+      "dual-analog-input",
+      "analog-input",
+      "digital-button-input",
+      "user-input"
+    ],
+    "compatibleSimulationPrimitives": [
+      "joystick_position_state",
+      "display_static_text",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Connecting both VRX and VRY to the same analog input.",
+      "Missing VCC/GND for the joystick module.",
+      "Treating the joystick position as calibrated physical force."
+    ],
+    "safeSubstitutes": [
+      "potentiometer-10k",
+      "button-tactile"
+    ]
+  },
+  {
+    "id": "rotary-encoder",
+    "kind": "input",
+    "label": "Rotary encoder module",
+    "aliases": [
+      "rotary encoder",
+      "encoder knob",
+      "incremental encoder",
+      "quadrature encoder",
+      "로터리 엔코더"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5V",
+          "power"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground"
+        ]
+      },
+      {
+        "name": "CLK",
+        "role": "digital-output",
+        "aliases": [
+          "clock",
+          "a phase",
+          "phase a"
+        ]
+      },
+      {
+        "name": "DT",
+        "role": "digital-output",
+        "aliases": [
+          "data",
+          "b phase",
+          "phase b"
+        ]
+      },
+      {
+        "name": "SW",
+        "role": "digital-output",
+        "aliases": [
+          "button",
+          "push switch"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 5,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "quadrature"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "rotary-encoder-module-5pin",
+      "width": 0.72,
+      "depth": 0.62,
+      "height": 0.42
+    },
+    "simulationModel": {
+      "type": "quadrature-encoder-state",
+      "nominalCurrentMa": 5
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "human-input-analog",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "rotary-encoder"
+    ],
+    "compatibleTopologies": [
+      "controller-quadrature-input-display"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "oled-i2c-096",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "mains-load-control"
+    ],
+    "sourceClaimIds": [
+      "rotary-encoder-visual-pin-map",
+      "rotary-encoder-quadrature-contract"
+    ],
+    "capabilities": [
+      "rotary-encoder-source",
+      "quadrature-input-source",
+      "digital-button-input",
+      "user-input"
+    ],
+    "compatibleSimulationPrimitives": [
+      "rotary_encoder_state",
+      "display_static_text",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Connecting CLK and DT to the same Arduino input.",
+      "Omitting common ground.",
+      "Treating the simulation as physical contact bounce timing."
+    ],
+    "safeSubstitutes": [
+      "potentiometer-10k",
+      "joystick-module"
+    ]
+  }
+]

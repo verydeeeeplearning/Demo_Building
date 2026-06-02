@@ -1,6 +1,6 @@
 # Agent Context v2 Information Architecture Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Rebuild `agent-context` into a hierarchical, bundle-first source-of-truth layer that supports Deepagents without context bloat.
 
@@ -285,7 +285,7 @@ Phase 4:
 - Modify: `server/context/contextLayer.ts`
 - Create: `tests/unit/contextV2Architecture.test.ts`
 
-- [ ] **Step 1: Write failing schema test**
+- [x] **Step 1: Write failing schema test**
 
 Create `tests/unit/contextV2Architecture.test.ts`:
 
@@ -331,7 +331,7 @@ test('v2 bundle manifest separates prompt summary from canonical refs', () => {
 });
 ```
 
-- [ ] **Step 2: Run failing schema test**
+- [x] **Step 2: Run failing schema test**
 
 Run:
 
@@ -343,7 +343,7 @@ Expected:
 
 - Fails because `ContextBundleManifestV2Schema` is not exported.
 
-- [ ] **Step 3: Add Zod schema**
+- [x] **Step 3: Add Zod schema**
 
 Add to `server/context/contextLayer.ts`:
 
@@ -380,7 +380,7 @@ export const ContextBundleManifestV2Schema = z.object({
 export type ContextBundleManifestV2 = z.infer<typeof ContextBundleManifestV2Schema>;
 ```
 
-- [ ] **Step 4: Add JSON schema mirror**
+- [x] **Step 4: Add JSON schema mirror**
 
 Create `agent-context/v2/schemas/bundle-manifest.schema.json`:
 
@@ -431,7 +431,7 @@ Create `agent-context/v2/schemas/bundle-manifest.schema.json`:
 }
 ```
 
-- [ ] **Step 5: Verify schema test passes**
+- [x] **Step 5: Verify schema test passes**
 
 Run:
 
@@ -454,7 +454,7 @@ Expected:
 - Modify: `server/context/contextLayer.ts`
 - Modify: `tests/unit/contextV2Architecture.test.ts`
 
-- [ ] **Step 1: Add failing loader test**
+- [x] **Step 1: Add failing loader test**
 
 Append to `tests/unit/contextV2Architecture.test.ts`:
 
@@ -474,7 +474,7 @@ test('v2 context index and routes load bundle-first retrieval metadata', async (
 });
 ```
 
-- [ ] **Step 2: Run failing loader test**
+- [x] **Step 2: Run failing loader test**
 
 Run:
 
@@ -486,7 +486,7 @@ Expected:
 
 - Fails because v2 loader functions and files do not exist.
 
-- [ ] **Step 3: Add Zod schemas and loaders**
+- [x] **Step 3: Add Zod schemas and loaders**
 
 Add to `server/context/contextLayer.ts`:
 
@@ -542,7 +542,7 @@ export async function loadContextV2Routes(root = DEFAULT_CONTEXT_ROOT): Promise<
 }
 ```
 
-- [ ] **Step 4: Create v2 index**
+- [x] **Step 4: Create v2 index**
 
 Create `agent-context/v2/index.json`:
 
@@ -591,7 +591,7 @@ Create `agent-context/v2/index.json`:
 }
 ```
 
-- [ ] **Step 5: Create v2 routes**
+- [x] **Step 5: Create v2 routes**
 
 Create `agent-context/v2/routes.json`:
 
@@ -643,7 +643,7 @@ Create `agent-context/v2/routes.json`:
 }
 ```
 
-- [ ] **Step 6: Create JSON schema mirror files**
+- [x] **Step 6: Create JSON schema mirror files**
 
 Create `agent-context/v2/schemas/context-v2-index.schema.json` with:
 
@@ -679,7 +679,7 @@ Create `agent-context/v2/schemas/route-v2.schema.json` with:
 }
 ```
 
-- [ ] **Step 7: Verify v2 index/routes load**
+- [x] **Step 7: Verify v2 index/routes load**
 
 Run:
 
@@ -707,7 +707,7 @@ Expected:
 - Modify: `server/context/contextLayer.ts`
 - Modify: `tests/unit/contextV2Architecture.test.ts`
 
-- [ ] **Step 1: Add failing bundle loader test**
+- [x] **Step 1: Add failing bundle loader test**
 
 Append:
 
@@ -725,7 +725,7 @@ test('v2 bundle loader returns summary and manifest without loading heavy shared
 });
 ```
 
-- [ ] **Step 2: Run failing bundle loader test**
+- [x] **Step 2: Run failing bundle loader test**
 
 Run:
 
@@ -737,7 +737,7 @@ Expected:
 
 - Fails because `loadContextBundleV2()` and bundle files do not exist.
 
-- [ ] **Step 3: Add loader**
+- [x] **Step 3: Add loader**
 
 Add to `server/context/contextLayer.ts`:
 
@@ -766,7 +766,7 @@ export async function loadContextBundleV2(bundleId: string, root = DEFAULT_CONTE
 }
 ```
 
-- [ ] **Step 4: Create digital-light-output bundle**
+- [x] **Step 4: Create digital-light-output bundle**
 
 Create `agent-context/v2/bundles/digital-light-output/BUNDLE.md`:
 
@@ -824,7 +824,7 @@ Create `agent-context/v2/bundles/digital-light-output/evals.jsonl`:
 {"id":"v2-led-no-resistor-invalid","message":"저항 없이 LED를 바로 연결해줘","expected":"validation_warning_or_block"}
 ```
 
-- [ ] **Step 5: Create display-text-output bundle**
+- [x] **Step 5: Create display-text-output bundle**
 
 Create `agent-context/v2/bundles/display-text-output/BUNDLE.md`:
 
@@ -882,7 +882,7 @@ Create `agent-context/v2/bundles/display-text-output/evals.jsonl`:
 {"id":"v2-app-screen-not-oled","message":"앱 화면에 전류 흐름을 보여줘","expected":"clarification_or_no_hardware_display"}
 ```
 
-- [ ] **Step 6: Create planned analog-led-dimmer bundle**
+- [x] **Step 6: Create planned analog-led-dimmer bundle**
 
 Create `agent-context/v2/bundles/analog-led-dimmer/BUNDLE.md`:
 
@@ -937,7 +937,7 @@ Create `agent-context/v2/bundles/analog-led-dimmer/evals.jsonl`:
 {"id":"v2-potentiometer-planned-ko","message":"가변저항으로 LED 밝기를 조절하고 싶어","expected":"support_gap_no_render_or_current"}
 ```
 
-- [ ] **Step 7: Verify bundle loader**
+- [x] **Step 7: Verify bundle loader**
 
 Run:
 
@@ -956,7 +956,7 @@ Expected:
 - Modify: `server/context/contextPacket.ts`
 - Modify: `tests/unit/contextV2Architecture.test.ts`
 
-- [ ] **Step 1: Add failing route selection test**
+- [x] **Step 1: Add failing route selection test**
 
 Append:
 
@@ -976,7 +976,7 @@ test('context packet prefers v2 bundle route for supported LED requests', async 
 });
 ```
 
-- [ ] **Step 2: Run failing route selection test**
+- [x] **Step 2: Run failing route selection test**
 
 Run:
 
@@ -988,7 +988,7 @@ Expected:
 
 - Fails because `buildContextPacket()` still uses v1 routes.
 
-- [ ] **Step 3: Add v2 route selection helper**
+- [x] **Step 3: Add v2 route selection helper**
 
 In `server/context/contextPacket.ts`, import:
 
@@ -1021,7 +1021,7 @@ async function selectContextRouteV2(input: {
 }
 ```
 
-- [ ] **Step 4: Integrate v2 route into `buildContextPacket()`**
+- [x] **Step 4: Integrate v2 route into `buildContextPacket()`**
 
 After `intentHints` and `unsupportedSignals` are computed, build `intentSignals` and call `selectContextRouteV2()`.
 
@@ -1038,7 +1038,7 @@ Use this bundle source ID format:
 `bundle:${bundle.manifest.bundleId}`
 ```
 
-- [ ] **Step 5: Render v2 bundle summaries in prompt**
+- [x] **Step 5: Render v2 bundle summaries in prompt**
 
 Add a `selectedBundles` input to `renderPromptBlock()`.
 
@@ -1058,7 +1058,7 @@ selectedBundles.length > 0
   : 'none',
 ```
 
-- [ ] **Step 6: Verify v2 route selection**
+- [x] **Step 6: Verify v2 route selection**
 
 Run:
 
@@ -1079,7 +1079,7 @@ Expected:
 - Modify: `server/context/contextPacket.ts`
 - Modify: `tests/unit/contextV2Architecture.test.ts`
 
-- [ ] **Step 1: Add failing prompt budget test**
+- [x] **Step 1: Add failing prompt budget test**
 
 Append:
 
@@ -1095,7 +1095,7 @@ test('v2 context packet keeps supported LED prompt under bundle budget', async (
 });
 ```
 
-- [ ] **Step 2: Run failing budget test**
+- [x] **Step 2: Run failing budget test**
 
 Run:
 
@@ -1107,7 +1107,7 @@ Expected:
 
 - Fails if v1 full prompt still exceeds the v2 budget.
 
-- [ ] **Step 3: Trim v2 prompt payload**
+- [x] **Step 3: Trim v2 prompt payload**
 
 When `selectedBundles.length > 0`, reduce `renderPromptBlock()` payload:
 
@@ -1144,7 +1144,7 @@ function compactFootprintsForV2(footprints: RenderFootprintEntry[]) {
 }
 ```
 
-- [ ] **Step 4: Verify prompt budget**
+- [x] **Step 4: Verify prompt budget**
 
 Run:
 
@@ -1164,7 +1164,7 @@ Expected:
 - Modify: `server/context/contextPacket.ts`
 - Modify: `tests/unit/contextV2Architecture.test.ts`
 
-- [ ] **Step 1: Add failing allowed-parts test**
+- [x] **Step 1: Add failing allowed-parts test**
 
 Append:
 
@@ -1188,7 +1188,7 @@ test('v2 bundle allowedParts restricts candidate hardware surface', async () => 
 });
 ```
 
-- [ ] **Step 2: Run failing allowed-parts test**
+- [x] **Step 2: Run failing allowed-parts test**
 
 Run:
 
@@ -1200,7 +1200,7 @@ Expected:
 
 - Fails if v1 candidate search pulls broad unrelated parts.
 
-- [ ] **Step 3: Filter candidate parts by selected bundle allowedParts**
+- [x] **Step 3: Filter candidate parts by selected bundle allowedParts**
 
 In `buildContextPacket()`, after candidate parts are selected and `selectedBundles` are known:
 
@@ -1218,7 +1218,7 @@ Use `bundleScopedCandidateParts` for:
 - prompt block
 - returned `candidateParts`
 
-- [ ] **Step 4: Verify candidate gate**
+- [x] **Step 4: Verify candidate gate**
 
 Run:
 
@@ -1238,7 +1238,7 @@ Expected:
 - Modify: `server/context/contextPacket.ts`
 - Modify: `tests/unit/contextV2Architecture.test.ts`
 
-- [ ] **Step 1: Add failing planned bundle test**
+- [x] **Step 1: Add failing planned bundle test**
 
 Append:
 
@@ -1259,7 +1259,7 @@ test('v2 planned bundle gives concise support gap without render or simulation c
 });
 ```
 
-- [ ] **Step 2: Run failing planned bundle test**
+- [x] **Step 2: Run failing planned bundle test**
 
 Run:
 
@@ -1271,7 +1271,7 @@ Expected:
 
 - Fails if planned route still loads render/simulation catalogs.
 
-- [ ] **Step 3: Suppress heavy catalogs for planned v2 bundles**
+- [x] **Step 3: Suppress heavy catalogs for planned v2 bundles**
 
 When selected v2 bundles all have `supportLevel !== "supported"`:
 
@@ -1289,7 +1289,7 @@ const selectedBundlesAreBuildReady = selectedBundles.length > 0
 
 Use `selectedBundlesAreBuildReady` to decide whether to load render/simulation data.
 
-- [ ] **Step 4: Verify planned behavior**
+- [x] **Step 4: Verify planned behavior**
 
 Run:
 
@@ -1309,7 +1309,7 @@ Expected:
 - Modify: `server/agent/deepAgentTools.ts`
 - Modify: `tests/unit/agentWorkflow.test.ts`
 
-- [ ] **Step 1: Add failing bundle doc tool test**
+- [x] **Step 1: Add failing bundle doc tool test**
 
 Add to `tests/unit/agentWorkflow.test.ts`:
 
@@ -1329,7 +1329,7 @@ test('Deepagents context tool can read selected v2 bundle summary but not unsele
 });
 ```
 
-- [ ] **Step 2: Run failing tool boundary test**
+- [x] **Step 2: Run failing tool boundary test**
 
 Run:
 
@@ -1341,7 +1341,7 @@ Expected:
 
 - Fails because `read_context_doc` cannot resolve `bundle:*` IDs.
 
-- [ ] **Step 3: Resolve v2 bundle IDs in tool**
+- [x] **Step 3: Resolve v2 bundle IDs in tool**
 
 In `server/agent/deepAgentTools.ts`, import:
 
@@ -1374,7 +1374,7 @@ if (id.startsWith('bundle:')) {
 }
 ```
 
-- [ ] **Step 4: Verify tool boundary**
+- [x] **Step 4: Verify tool boundary**
 
 Run:
 
@@ -1395,7 +1395,7 @@ Expected:
 - Modify: `package.json`
 - Create: `tests/unit/contextV2Audit.test.ts`
 
-- [ ] **Step 1: Add failing audit test**
+- [x] **Step 1: Add failing audit test**
 
 Create `tests/unit/contextV2Audit.test.ts`:
 
@@ -1416,7 +1416,7 @@ test('context v2 audit reports migrated and missing capability bundles', async (
 });
 ```
 
-- [ ] **Step 2: Run failing audit test**
+- [x] **Step 2: Run failing audit test**
 
 Run:
 
@@ -1428,7 +1428,7 @@ Expected:
 
 - Fails because audit module does not exist.
 
-- [ ] **Step 3: Implement audit**
+- [x] **Step 3: Implement audit**
 
 Create `server/context/contextV2Audit.ts`:
 
@@ -1481,7 +1481,7 @@ Add to `package.json`:
 "audit:context:v2": "tsx server/context/contextV2AuditCli.ts"
 ```
 
-- [ ] **Step 4: Verify audit**
+- [x] **Step 4: Verify audit**
 
 Run:
 
@@ -1503,7 +1503,7 @@ Expected:
 - Modify: `tests/unit/contextRouting.test.ts`
 - Modify: `tests/unit/contextCoverage.test.ts`
 
-- [ ] **Step 1: Add v2 path coverage to structure test**
+- [x] **Step 1: Add v2 path coverage to structure test**
 
 Add to `tests/unit/contextLayer.test.ts`:
 
@@ -1520,7 +1520,7 @@ test('context v2 bundle files are resolvable and compact', async () => {
 });
 ```
 
-- [ ] **Step 2: Add v2 routing coverage**
+- [x] **Step 2: Add v2 routing coverage**
 
 Add to `tests/unit/contextRouting.test.ts`:
 
@@ -1536,7 +1536,7 @@ test('v2 route source ids prefer bundle loading units over broad heavy catalogs'
 });
 ```
 
-- [ ] **Step 3: Verify compatibility tests**
+- [x] **Step 3: Verify compatibility tests**
 
 Run:
 
@@ -1558,7 +1558,7 @@ Expected:
 - Modify: `docs/context_layer_sufficiency_audit.md`
 - Modify: `docs/coworking_handoff_2026-05-31.md`
 
-- [ ] **Step 1: Create v2 README**
+- [x] **Step 1: Create v2 README**
 
 Create `agent-context/v2/README.md`:
 
@@ -1588,7 +1588,7 @@ Prompt payload should include bundle summaries and compact IDs. It should not in
 v2 may reference v1 canonical JSON while migration is in progress. Deleting v1 files is not part of the initial v2 rollout.
 ```
 
-- [ ] **Step 2: Update root index documentation**
+- [x] **Step 2: Update root index documentation**
 
 Add to `agent-context/index.md`:
 
@@ -1600,7 +1600,7 @@ Add to `agent-context/index.md`:
 The existing v1 registry/data/reference files remain canonical shared data during migration. v2 bundles reference those canonical IDs and reduce prompt bloat.
 ```
 
-- [ ] **Step 3: Update sufficiency audit**
+- [x] **Step 3: Update sufficiency audit**
 
 Append to `docs/context_layer_sufficiency_audit.md`:
 
@@ -1610,7 +1610,7 @@ Append to `docs/context_layer_sufficiency_audit.md`:
 Context v2 introduces capability bundles as the primary Deepagents retrieval unit. This reduces context bloat by moving from artifact-type loading to bundle-scoped loading. Agent prompts receive compact `BUNDLE.md` summaries and manifest IDs; deterministic tools continue to consume canonical data.
 ```
 
-- [ ] **Step 4: Add coworking memo**
+- [x] **Step 4: Add coworking memo**
 
 Append to `docs/coworking_handoff_2026-05-31.md`:
 
@@ -1634,7 +1634,7 @@ Key points:
 
 - No new files.
 
-- [ ] **Step 1: Run v2 targeted tests**
+- [x] **Step 1: Run v2 targeted tests**
 
 Run:
 
@@ -1650,7 +1650,7 @@ Expected:
 - v2 prompt budget guard passes.
 - v2 audit reports migrated and missing capabilities.
 
-- [ ] **Step 2: Run context compatibility tests**
+- [x] **Step 2: Run context compatibility tests**
 
 Run:
 
@@ -1663,7 +1663,7 @@ Expected:
 - Existing v1 tests still pass.
 - v2 compatibility tests pass.
 
-- [ ] **Step 3: Run full acceptance gate**
+- [x] **Step 3: Run full acceptance gate**
 
 Run:
 
@@ -1679,7 +1679,7 @@ Expected:
 - Build passes.
 - Playwright E2E passes with live opt-in tests skipped by default.
 
-- [ ] **Step 4: Restart agent server if server/context files changed**
+- [x] **Step 4: Restart agent server if server/context files changed**
 
 Run:
 

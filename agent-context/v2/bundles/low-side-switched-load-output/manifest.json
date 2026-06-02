@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "low-side-switched-load-output",
+  "capabilityId": "low-side-switched-load-output",
+  "supportLevel": "supported",
+  "promptBudget": "summary",
+  "agentSummaryPath": "bundles/low-side-switched-load-output/BUNDLE.md",
+  "requiredParts": ["arduino-uno", "breadboard-half", "irf520-mosfet", "dc-motor-130"],
+  "allowedParts": ["arduino-uno", "breadboard-half", "irf520-mosfet", "2n2222-npn", "resistor-220", "dc-motor-130", "dc-fan-5v", "mini-water-pump", "solenoid-valve", "vibration-motor", "jumper-wire"],
+  "requiredTopologies": ["controller-transistor-low-side-load", "controller-mosfet-module-load"],
+  "validationRules": ["motor-driver-required", "base-resistor-required", "module-signal-required", "common-ground", "high-current-warning", "flyback-warning"],
+  "simulationPrimitives": ["low_side_switched_load_state", "current_flow_animation"],
+  "renderFootprints": ["arduino", "breadboard", "mosfet-module", "to92-transistor", "resistor", "dc-motor", "dc-fan", "mini-water-pump", "solenoid-valve", "vibration-motor-module", "wire"],
+  "canonicalRefs": {
+    "parts": ["shared:parts:arduino-uno", "shared:parts:breadboard-half", "shared:parts:irf520-mosfet", "shared:parts:2n2222-npn", "shared:parts:resistor-220", "shared:parts:dc-motor-130", "shared:parts:dc-fan-5v", "shared:parts:mini-water-pump", "shared:parts:solenoid-valve", "shared:parts:vibration-motor"],
+    "footprints": ["shared:footprint:arduino", "shared:footprint:breadboard", "shared:footprint:mosfet-module", "shared:footprint:to92-transistor", "shared:footprint:resistor", "shared:footprint:dc-motor", "shared:footprint:dc-fan", "shared:footprint:mini-water-pump", "shared:footprint:solenoid-valve", "shared:footprint:vibration-motor-module", "shared:footprint:wire"],
+    "simulation": ["shared:primitive:low_side_switched_load_state", "shared:primitive:current_flow_animation"],
+    "topology": ["shared:topology:controller-transistor-low-side-load", "shared:topology:controller-mosfet-module-load"],
+    "sources": ["shared:source:arduino-uno-rev3-io-current-20ma", "shared:source:breadboard-row-continuity-5-hole", "shared:source:2n2222-npn-visual-pin-map", "shared:source:irf520-mosfet-visual-pin-map", "shared:source:dc-motor-130-visual-pin-map", "shared:source:dc-fan-5v-visual-pin-map", "shared:source:mini-water-pump-visual-pin-map", "shared:source:solenoid-valve-visual-pin-map", "shared:source:vibration-motor-visual-pin-map", "shared:source:low-side-inductive-load-simulation-contract"]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": true,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": ["direct-motor-to-gpio", "missing-low-side-driver", "missing-common-ground", "missing-base-resistor", "missing-module-signal", "missing-render-footprint", "missing-simulation-primitive", "unsupported-part-requested"]
+}

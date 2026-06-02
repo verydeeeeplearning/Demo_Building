@@ -1,0 +1,174 @@
+{
+  "dip-logic-74hc595": {
+    "type": "dip-logic-74hc595",
+    "width": 0.9,
+    "depth": 0.42,
+    "height": 0.1,
+    "visualStyle": { "shape": "dip-ic", "color": "#28323a", "material": "black-epoxy" },
+    "pinAnchors": {
+      "VCC": { "x": -0.28, "y": 0.08, "z": -0.22, "role": "power", "label": "VCC" },
+      "SER": { "x": 0, "y": 0.08, "z": -0.22, "role": "data", "label": "SER" },
+      "SRCLK": { "x": 0.28, "y": 0.08, "z": -0.22, "role": "clock", "label": "SRCLK" },
+      "RCLK": { "x": -0.28, "y": 0.08, "z": 0.22, "role": "latch", "label": "RCLK" },
+      "OE": { "x": 0, "y": 0.08, "z": 0.22, "role": "enable", "label": "OE" },
+      "GND": { "x": 0.28, "y": 0.08, "z": 0.22, "role": "ground", "label": "GND" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.24, "z": 0 },
+    "placement": { "allowedSurfaces": ["breadboard"], "breadboardCompatible": true, "defaultOrientation": "notch-left", "notes": ["74HC595 is represented as qualitative shift/latch state; parallel output loads are not inferred."] },
+    "simulationOverlayAnchors": [
+      { "id": "logic-state", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "shift-clock", "anchor": "SRCLK", "role": "signal-overlay" },
+      { "id": "logic-current", "anchor": "VCC", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "74HC595 shift register", "explainableAs": ["logic-interface", "shift-register-state"] }
+    ]
+  },
+  "i2c-expander-pcf8574": {
+    "type": "i2c-expander-pcf8574",
+    "width": 1.18,
+    "depth": 0.42,
+    "height": 0.1,
+    "visualStyle": { "shape": "dip-ic", "color": "#24313f", "material": "black-epoxy" },
+    "pinAnchors": {
+      "VCC": { "x": -0.42, "y": 0.08, "z": -0.22, "role": "power", "label": "VCC" },
+      "GND": { "x": -0.14, "y": 0.08, "z": -0.22, "role": "ground", "label": "GND" },
+      "SCL": { "x": 0.14, "y": 0.08, "z": -0.22, "role": "i2c-clock", "label": "SCL" },
+      "SDA": { "x": 0.42, "y": 0.08, "z": -0.22, "role": "i2c-data", "label": "SDA" },
+      "INT": { "x": 0, "y": 0.08, "z": 0.22, "role": "interrupt", "label": "INT" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.24, "z": 0 },
+    "placement": { "allowedSurfaces": ["breadboard"], "breadboardCompatible": true, "defaultOrientation": "notch-left", "notes": ["PCF8574 is shown as I2C expander state; expanded P0-P7 loads are not inferred."] },
+    "simulationOverlayAnchors": [
+      { "id": "i2c-state", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "i2c-activity", "anchor": "SCL", "role": "signal-overlay" },
+      { "id": "logic-current", "anchor": "VCC", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "PCF8574 I2C expander", "explainableAs": ["logic-interface", "i2c-expander-state"] }
+    ]
+  },
+  "ads1115-adc-module": {
+    "type": "ads1115-adc-module",
+    "width": 1.18,
+    "depth": 0.46,
+    "height": 0.12,
+    "visualStyle": { "shape": "sensor-module", "color": "#1f6f5b", "material": "pcb-module" },
+    "pinAnchors": {
+      "VCC": { "x": -0.42, "y": 0.1, "z": -0.22, "role": "power", "label": "VCC" },
+      "GND": { "x": -0.14, "y": 0.1, "z": -0.22, "role": "ground", "label": "GND" },
+      "SCL": { "x": 0.14, "y": 0.1, "z": -0.22, "role": "i2c-clock", "label": "SCL" },
+      "SDA": { "x": 0.42, "y": 0.1, "z": -0.22, "role": "i2c-data", "label": "SDA" },
+      "A0": { "x": -0.14, "y": 0.1, "z": 0.22, "role": "analog-input", "label": "A0" },
+      "A1": { "x": 0.14, "y": 0.1, "z": 0.22, "role": "analog-input", "label": "A1" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.3, "z": 0 },
+    "placement": { "allowedSurfaces": ["breadboard", "stage"], "breadboardCompatible": true, "defaultOrientation": "pins-down", "notes": ["ADS1115 shows qualitative ADC channel state only, not calibrated precision measurement."] },
+    "simulationOverlayAnchors": [
+      { "id": "adc-state", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "i2c-activity", "anchor": "SCL", "role": "signal-overlay" },
+      { "id": "adc-current", "anchor": "VCC", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "ADS1115 ADC module", "explainableAs": ["external-adc-interface", "qualitative-analog-readout"] }
+    ]
+  },
+  "mcp3008-adc-ic": {
+    "type": "mcp3008-adc-ic",
+    "width": 0.9,
+    "depth": 0.42,
+    "height": 0.1,
+    "visualStyle": { "shape": "dip-ic", "color": "#28323a", "material": "black-epoxy" },
+    "pinAnchors": {
+      "VDD": { "x": -0.28, "y": 0.08, "z": -0.22, "role": "power", "label": "VDD" },
+      "CLK": { "x": 0, "y": 0.08, "z": -0.22, "role": "spi-clock", "label": "CLK" },
+      "DOUT": { "x": 0.28, "y": 0.08, "z": -0.22, "role": "spi-miso", "label": "DOUT" },
+      "DIN": { "x": -0.28, "y": 0.08, "z": 0.22, "role": "spi-mosi", "label": "DIN" },
+      "CS": { "x": 0, "y": 0.08, "z": 0.22, "role": "spi-select", "label": "CS" },
+      "GND": { "x": 0.28, "y": 0.08, "z": 0.22, "role": "ground", "label": "GND" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.24, "z": 0 },
+    "placement": { "allowedSurfaces": ["breadboard"], "breadboardCompatible": true, "defaultOrientation": "notch-left", "notes": ["MCP3008 is represented as SPI ADC interface state; visual catalog channel pins are not inferred."] },
+    "simulationOverlayAnchors": [
+      { "id": "adc-state", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "spi-activity", "anchor": "CLK", "role": "signal-overlay" },
+      { "id": "adc-current", "anchor": "VDD", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "MCP3008 SPI ADC", "explainableAs": ["external-adc-interface", "spi-adc-state"] }
+    ]
+  },
+  "dip-timer-ne555": {
+    "type": "dip-timer-ne555",
+    "width": 0.9,
+    "depth": 0.42,
+    "height": 0.1,
+    "visualStyle": { "shape": "dip-ic", "color": "#28323a", "material": "black-epoxy" },
+    "pinAnchors": {
+      "VCC": { "x": -0.28, "y": 0.08, "z": -0.22, "role": "power", "label": "VCC" },
+      "OUT": { "x": 0, "y": 0.08, "z": -0.22, "role": "digital-output", "label": "OUT" },
+      "TRIG": { "x": 0.28, "y": 0.08, "z": -0.22, "role": "trigger", "label": "TRIG" },
+      "THR": { "x": -0.28, "y": 0.08, "z": 0.22, "role": "threshold", "label": "THR" },
+      "RST": { "x": 0, "y": 0.08, "z": 0.22, "role": "reset", "label": "RST" },
+      "GND": { "x": 0.28, "y": 0.08, "z": 0.22, "role": "ground", "label": "GND" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.23, "z": 0 },
+    "placement": { "allowedSurfaces": ["breadboard"], "breadboardCompatible": true, "defaultOrientation": "notch-left", "notes": ["NE555 timer is shown as qualitative timing state; exact RC frequency is not simulated."] },
+    "simulationOverlayAnchors": [
+      { "id": "timer-state", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "timer-output", "anchor": "OUT", "role": "signal-overlay" },
+      { "id": "timer-current", "anchor": "VCC", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "NE555 timer IC", "explainableAs": ["timer-interface-context", "qualitative-timing-state"] }
+    ]
+  },
+  "dip-opamp-lm358": {
+    "type": "dip-opamp-lm358",
+    "width": 0.9,
+    "depth": 0.42,
+    "height": 0.1,
+    "visualStyle": { "shape": "dip-ic", "color": "#28323a", "material": "black-epoxy" },
+    "pinAnchors": {
+      "VCC": { "x": -0.28, "y": 0.08, "z": -0.22, "role": "power", "label": "VCC" },
+      "IN+": { "x": 0, "y": 0.08, "z": -0.22, "role": "analog-input", "label": "IN+" },
+      "IN-": { "x": 0.28, "y": 0.08, "z": -0.22, "role": "analog-input", "label": "IN-" },
+      "OUT": { "x": -0.14, "y": 0.08, "z": 0.22, "role": "analog-output", "label": "OUT" },
+      "GND": { "x": 0.14, "y": 0.08, "z": 0.22, "role": "ground", "label": "GND" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.23, "z": 0 },
+    "placement": { "allowedSurfaces": ["breadboard"], "breadboardCompatible": true, "defaultOrientation": "notch-left", "notes": ["LM358 is shown as qualitative analog conditioning state, not a precision op-amp calculator."] },
+    "simulationOverlayAnchors": [
+      { "id": "opamp-state", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "opamp-output", "anchor": "OUT", "role": "signal-overlay" },
+      { "id": "opamp-current", "anchor": "VCC", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "LM358 op-amp", "explainableAs": ["opamp-interface-context", "qualitative-analog-state"] }
+    ]
+  },
+  "i2c-level-shifter-module": {
+    "type": "i2c-level-shifter-module",
+    "width": 0.9,
+    "depth": 0.46,
+    "height": 0.12,
+    "visualStyle": { "shape": "logic-module", "color": "#18615c", "material": "pcb-module" },
+    "pinAnchors": {
+      "HV": { "x": -0.28, "y": 0.1, "z": -0.22, "role": "power", "label": "HV" },
+      "LV": { "x": 0, "y": 0.1, "z": -0.22, "role": "power", "label": "LV" },
+      "GND": { "x": 0.28, "y": 0.1, "z": -0.22, "role": "ground", "label": "GND" },
+      "HV1": { "x": -0.14, "y": 0.1, "z": 0.22, "role": "level-shift-high", "label": "HV1" },
+      "LV1": { "x": 0.14, "y": 0.1, "z": 0.22, "role": "level-shift-low", "label": "LV1" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.3, "z": 0 },
+    "placement": { "allowedSurfaces": ["breadboard", "stage"], "breadboardCompatible": true, "defaultOrientation": "pins-down", "notes": ["The visual catalog exposes one high/low signal pair; full two-wire I2C translation is not inferred."] },
+    "simulationOverlayAnchors": [
+      { "id": "level-state", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "translated-signal", "anchor": "HV1", "role": "signal-overlay" },
+      { "id": "logic-current", "anchor": "HV", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "I2C level shifter", "explainableAs": ["level-shifter-interface", "voltage-domain-context"] }
+    ]
+  }
+}

@@ -1,5 +1,11 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 
+import {
+  createAgentTraceId,
+  logAgentEvent,
+  requestLogSummary,
+  resultLogSummary
+} from './agent/agentLogger.ts';
 import { runAgent, agentRuntimeHealth } from './agent/deepAgentRuntime.ts';
 import { mapAgentErrorToResponse } from './agent/errorResponse.ts';
 import { runTutorAgent } from './agent/circuitTutor.ts';
@@ -30,10 +36,29 @@ const server = createServer(async (request, response) => {
     }
 
     if (request.method === 'POST' && requestUrl.pathname === '/api/agent/message') {
+      const traceId = createAgentTraceId();
       const body = await readJson(request);
-      const parsed = AgentMessageRequestSchema.parse(body);
-      const result = await runAgent(parsed);
-      return sendJson(response, 200, result);
+      try {
+        const parsed = AgentMessageRequestSchema.parse(body);
+        logAgentEvent('agent.request.received', {
+          traceId,
+          ...requestLogSummary(parsed)
+        });
+        const result = await runAgent(parsed, { traceId });
+        logAgentEvent('agent.response.sent', {
+          traceId,
+          sessionId: result.sessionId,
+          ...resultLogSummary(result)
+        });
+        return sendJson(response, 200, result);
+      } catch (error) {
+        logAgentEvent('agent.request.failed', {
+          traceId,
+          errorName: error instanceof Error ? error.name : 'UnknownError',
+          errorMessage: error instanceof Error ? error.message : 'Unknown server error'
+        });
+        throw error;
+      }
     }
 
     if (request.method === 'POST' && requestUrl.pathname === '/api/agent/explain-target') {

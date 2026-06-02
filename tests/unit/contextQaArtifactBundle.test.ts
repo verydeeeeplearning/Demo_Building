@@ -24,13 +24,13 @@ test('context QA artifact bundle writes eval report and promotion gaps beside a 
     assert.ok(generalizationReport.totalRows >= 18, `expected expanded prompt corpus, got ${generalizationReport.totalRows}`);
     assert.ok(
       generalizationReport.rows.some((row: { id: string; promotionBlockers: unknown[] }) =>
-        row.id === 'potentiometer-planned' && row.promotionBlockers.length > 0
+        row.id === 'ultrasonic-display-supported' && row.promotionBlockers.length === 0
       )
     );
 
     const promotionGaps = JSON.parse(await readFile(bundle.files.capabilityPromotionGaps, 'utf8'));
     assert.equal(promotionGaps.totalCapabilities, generalizationReport.capabilityPromotionGaps.totalCapabilities);
-    assert.ok(promotionGaps.gapsByArtifact.some((gap: { artifact: string }) => gap.artifact === 'part-capability'));
+    assert.ok(promotionGaps.gapsByArtifact.some((gap: { artifact: string }) => gap.artifact === 'source-claims'));
 
     const summary = await readFile(bundle.files.summaryMarkdown, 'utf8');
     assert.match(summary, /generalization-eval-report\.json/);
@@ -69,7 +69,7 @@ test('context QA artifact bundle writes eval report and promotion gaps beside a 
     );
     assert.ok(
       browserPlan.promptMatrix.some((row: { id: string; expectedBrowserOutcome: string }) =>
-        row.id === 'potentiometer-planned' && row.expectedBrowserOutcome === 'support-gap-no-render-or-current'
+        row.id === 'potentiometer-supported' && row.expectedBrowserOutcome === 'render-and-run-valid-simulation'
       )
     );
     assert.ok(

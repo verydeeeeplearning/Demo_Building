@@ -1,0 +1,437 @@
+{
+  "breadboard": {
+    "type": "breadboard",
+    "width": 5.6,
+    "depth": 2.15,
+    "height": 0.18,
+    "visualStyle": {
+      "shape": "breadboard",
+      "color": "#eeece7",
+      "material": "matte-plastic"
+    },
+    "pinAnchors": {
+      "+ rail": {
+        "x": -2.55,
+        "y": 0.12,
+        "z": -0.84,
+        "role": "power-rail",
+        "label": "+ rail"
+      },
+      "- rail": {
+        "x": -2.55,
+        "y": 0.12,
+        "z": 0.84,
+        "role": "ground-rail",
+        "label": "- rail"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.28,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "horizontal",
+      "notes": [
+        "Breadboard is the placement surface for through-hole classroom parts."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "power-rail-flow",
+        "anchor": "+ rail",
+        "role": "current-overlay"
+      },
+      {
+        "id": "ground-rail-return",
+        "anchor": "- rail",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Breadboard body",
+        "explainableAs": [
+          "placement-surface",
+          "breadboard-topology"
+        ]
+      },
+      {
+        "id": "positive-rail",
+        "label": "+ power rail",
+        "pin": "+ rail",
+        "explainableAs": [
+          "power-rail"
+        ]
+      },
+      {
+        "id": "negative-rail",
+        "label": "- ground rail",
+        "pin": "- rail",
+        "explainableAs": [
+          "ground-rail"
+        ]
+      }
+    ]
+  },
+  "arduino": {
+    "type": "arduino",
+    "width": 2.05,
+    "depth": 1.28,
+    "height": 0.16,
+    "visualStyle": {
+      "shape": "arduino",
+      "color": "#0a765d",
+      "material": "pcb"
+    },
+    "pinAnchors": {
+      "5V": {
+        "x": -0.72,
+        "y": 0.22,
+        "z": 0.54,
+        "role": "power",
+        "label": "5V"
+      },
+      "3V3": {
+        "x": -0.92,
+        "y": 0.22,
+        "z": 0.54,
+        "role": "power",
+        "label": "3V3"
+      },
+      "GND": {
+        "x": -0.52,
+        "y": 0.22,
+        "z": 0.54,
+        "role": "ground",
+        "label": "GND"
+      },
+      "A4/SDA": {
+        "x": 0.52,
+        "y": 0.22,
+        "z": 0.54,
+        "role": "i2c-data",
+        "label": "A4/SDA"
+      },
+      "A5/SCL": {
+        "x": 0.72,
+        "y": 0.22,
+        "z": 0.54,
+        "role": "i2c-clock",
+        "label": "A5/SCL"
+      },
+      "A0": {
+        "x": -0.06,
+        "y": 0.22,
+        "z": 0.54,
+        "role": "analog-input",
+        "label": "A0"
+      },
+      "A1": {
+        "x": 0.14,
+        "y": 0.22,
+        "z": 0.54,
+        "role": "analog-input",
+        "label": "A1"
+      },
+      "D2": {
+        "x": -0.74,
+        "y": 0.22,
+        "z": -0.54,
+        "role": "digital-input",
+        "label": "D2"
+      },
+      "D0/RX": {
+        "x": -1.18,
+        "y": 0.22,
+        "z": -0.54,
+        "role": "serial-rx",
+        "label": "D0/RX"
+      },
+      "D1/TX": {
+        "x": -0.96,
+        "y": 0.22,
+        "z": -0.54,
+        "role": "serial-tx",
+        "label": "D1/TX"
+      },
+      "D3": {
+        "x": -0.52,
+        "y": 0.22,
+        "z": -0.54,
+        "role": "digital-output",
+        "label": "D3"
+      },
+      "D4": {
+        "x": -0.3,
+        "y": 0.22,
+        "z": -0.54,
+        "role": "digital-output",
+        "label": "D4"
+      },
+      "D5": {
+        "x": -0.08,
+        "y": 0.22,
+        "z": -0.54,
+        "role": "digital-output",
+        "label": "D5"
+      },
+      "D6": {
+        "x": 0.14,
+        "y": 0.22,
+        "z": -0.54,
+        "role": "digital-output",
+        "label": "D6"
+      },
+      "D7": {
+        "x": 0.26,
+        "y": 0.22,
+        "z": -0.54,
+        "role": "digital-output",
+        "label": "D7"
+      },
+      "D8": {
+        "x": 0.36,
+        "y": 0.22,
+        "z": -0.54,
+        "role": "digital-output",
+        "label": "D8"
+      },
+      "D9": {
+        "x": 0.58,
+        "y": 0.22,
+        "z": -0.54,
+        "role": "pwm-output",
+        "label": "D9"
+      },
+      "D10": {
+        "x": 0.8,
+        "y": 0.22,
+        "z": -0.54,
+        "role": "pwm-output",
+        "label": "D10"
+      },
+      "D11": {
+        "x": 1,
+        "y": 0.22,
+        "z": -0.54,
+        "role": "pwm-output",
+        "label": "D11"
+      },
+      "D12": {
+        "x": 1.1,
+        "y": 0.22,
+        "z": -0.54,
+        "role": "digital-input",
+        "label": "D12"
+      },
+      "D13": {
+        "x": 1.2,
+        "y": 0.22,
+        "z": -0.54,
+        "role": "digital-output",
+        "label": "D13"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.34,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage",
+        "beside-breadboard"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "usb-left",
+      "notes": [
+        "Keep USB/power side clear and route wires from header anchors."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "controller-state",
+        "anchor": "D8",
+        "role": "pin-state"
+      },
+      {
+        "id": "i2c-signal",
+        "anchor": "A4/SDA",
+        "role": "signal-overlay"
+      },
+      {
+        "id": "power-source",
+        "anchor": "5V",
+        "role": "current-overlay"
+      },
+      {
+        "id": "power-source-3v3",
+        "anchor": "3V3",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Arduino board",
+        "explainableAs": [
+          "controller",
+          "usb-5v-source"
+        ]
+      },
+      {
+        "id": "pin-5v",
+        "label": "5V pin",
+        "pin": "5V",
+        "explainableAs": [
+          "power-source"
+        ]
+      },
+      {
+        "id": "pin-3v3",
+        "label": "3V3 pin",
+        "pin": "3V3",
+        "explainableAs": [
+          "power-source",
+          "3v3-power-source"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "GND pin",
+        "pin": "GND",
+        "explainableAs": [
+          "ground-return"
+        ]
+      },
+      {
+        "id": "pin-a0",
+        "label": "A0 analog input",
+        "pin": "A0",
+        "explainableAs": [
+          "analog-input"
+        ]
+      },
+      {
+        "id": "pin-sda",
+        "label": "A4/SDA pin",
+        "pin": "A4/SDA",
+        "explainableAs": [
+          "i2c-data"
+        ]
+      },
+      {
+        "id": "pin-d0-rx",
+        "label": "D0/RX serial input",
+        "pin": "D0/RX",
+        "explainableAs": [
+          "serial-rx",
+          "uart"
+        ]
+      },
+      {
+        "id": "pin-d12",
+        "label": "D12 SPI MISO",
+        "pin": "D12",
+        "explainableAs": [
+          "digital-input",
+          "spi-miso"
+        ]
+      },
+      {
+        "id": "pin-d13",
+        "label": "D13 pin",
+        "pin": "D13",
+        "explainableAs": [
+          "digital-output",
+          "spi-clock"
+        ]
+      }
+    ]
+  },
+  "wire": {
+    "type": "wire",
+    "width": 0.1,
+    "depth": 0.1,
+    "height": 0.1,
+    "visualStyle": {
+      "shape": "wire",
+      "color": "#2f7df6",
+      "material": "insulated-conductor"
+    },
+    "pinAnchors": {
+      "A": {
+        "x": -0.05,
+        "y": 0,
+        "z": 0,
+        "role": "conductor-end",
+        "label": "A"
+      },
+      "B": {
+        "x": 0.05,
+        "y": 0,
+        "z": 0,
+        "role": "conductor-end",
+        "label": "B"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.08,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "between-anchors"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "routed",
+      "notes": [
+        "Wire geometry is generated from endpoint anchors rather than fixed body placement."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "wire-current",
+        "anchor": "A",
+        "role": "current-overlay"
+      },
+      {
+        "id": "wire-signal",
+        "anchor": "B",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Jumper wire",
+        "explainableAs": [
+          "electrical-connection"
+        ]
+      },
+      {
+        "id": "end-a",
+        "label": "Wire end A",
+        "pin": "A",
+        "explainableAs": [
+          "wire-end"
+        ]
+      },
+      {
+        "id": "end-b",
+        "label": "Wire end B",
+        "pin": "B",
+        "explainableAs": [
+          "wire-end"
+        ]
+      }
+    ]
+  }
+}

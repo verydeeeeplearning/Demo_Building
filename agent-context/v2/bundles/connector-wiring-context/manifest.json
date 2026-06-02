@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "connector-wiring-context",
+  "capabilityId": "connector-wiring-context",
+  "supportLevel": "supported",
+  "promptBudget": "minimal",
+  "agentSummaryPath": "bundles/connector-wiring-context/BUNDLE.md",
+  "requiredParts": ["jumper-wire"],
+  "allowedParts": ["jumper-wire", "header-male-40pin", "header-female-40pin", "screw-terminal-4pin", "breadboard-half"],
+  "requiredTopologies": ["connector-wiring-context-only"],
+  "validationRules": ["connector-context-low-voltage-only", "connector-does-not-create-source", "no-mains-power"],
+  "simulationPrimitives": ["connector_wiring_context_state"],
+  "renderFootprints": ["header-male-40pin", "header-female-40pin", "screw-terminal-4pin", "wire", "breadboard"],
+  "canonicalRefs": {
+    "parts": ["shared:parts:jumper-wire", "shared:parts:header-male-40pin", "shared:parts:header-female-40pin", "shared:parts:screw-terminal-4pin"],
+    "footprints": ["shared:footprint:header-male-40pin", "shared:footprint:header-female-40pin", "shared:footprint:screw-terminal-4pin", "shared:footprint:wire", "shared:footprint:breadboard"],
+    "simulation": ["shared:primitive:connector_wiring_context_state"],
+    "topology": ["shared:topology:connector-wiring-context-only"],
+    "sources": ["shared:source:header-male-40pin-visual-pin-map", "shared:source:header-female-40pin-visual-pin-map", "shared:source:screw-terminal-4pin-visual-pin-map", "shared:source:connector-wiring-context-contract"]
+  },
+  "promptInclusions": {
+    "includePins": false,
+    "includeElectricalLimits": false,
+    "includeFootprintAnchors": false,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": ["mains-or-wall-power", "connector-as-voltage-source-claim", "implicit-short-or-pass-through-claim", "missing-render-footprint", "missing-simulation-primitive", "unsupported-part-requested"]
+}

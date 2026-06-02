@@ -168,7 +168,7 @@ function inferObservedFailureClass(
   if (packet.contextCoverage.status === 'sufficient') {
     return expected.expectedFailureClass === 'model-synthesis-gap' ? 'model-synthesis-gap' : 'none';
   }
-  if (packet.contextRoute.routeId === 'ambiguous-minimal') {
+  if (packet.contextRoute.routeId === 'ambiguous-minimal' || packet.contextRoute.routeId === 'v2-ambiguous-minimal') {
     return 'ambiguous-request';
   }
   if (packet.contextRoute.routeId === 'unsupported-safety') {

@@ -1,0 +1,4 @@
+{"id":"v2-pir-motion-led-en","message":"Turn on an LED when the PIR motion sensor detects movement.","expected":"render_and_run_valid_simulation"}
+{"id":"v2-limit-switch-led-en","message":"Use a limit switch to turn on an LED safely.","expected":"render_and_run_valid_simulation"}
+{"id":"v2-touch-led-en","message":"Touch the TTP223 sensor to turn on an LED.","expected":"render_and_run_valid_simulation"}
+{"id":"v2-powered-digital-sensor-missing-ground-invalid","message":"Use a PIR sensor to turn on an LED but do not connect the sensor ground.","expected":"validation_warning_or_block"}

@@ -48,9 +48,12 @@ function createThreeScene(container, canvas, circuit, options) {
   // failure just leaves metals matte instead of breaking the whole scene.
   applyStudioEnvironment(renderer, scene);
 
-  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 80);
+  const cameraFit = stageCameraFit(circuit);
+  const camera = new THREE.PerspectiveCamera(cameraFit?.fov ?? 38, 1, 0.1, 80);
+  const cameraTarget = new THREE.Vector3(0, 0, 0);
+  const zoomRange = { min: 4, max: 9 };
   camera.position.set(4.8, 4.2, 5.2);
-  camera.lookAt(0, 0, 0);
+  applyStageCameraFit(camera, cameraTarget, zoomRange, cameraFit);
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
 
@@ -74,21 +77,18 @@ function createThreeScene(container, canvas, circuit, options) {
   root.add(grid);
 
   const stats = { solder: 0, connectors: 0 };
-  const specializedParts = stageSpecializedPartPresence(circuit);
-  if (specializedParts.breadboard) addBreadboard(root, stats);
-  if (specializedParts.arduino) addArduino(root, stats);
+  const specializedParts = stageSpecializedPartDescriptors(circuit);
+  if (specializedParts.breadboard) addBreadboard(root, stats, specializedParts.breadboard);
+  if (specializedParts.arduino) addArduino(root, stats, specializedParts.arduino);
   const oledTexture = specializedParts.oled ? createOledTexture(running ? circuit.runText : 'READY') : null;
-  if (oledTexture) addOled(root, oledTexture, stats);
+  if (oledTexture) addOled(root, oledTexture, stats, specializedParts.oled);
   const genericParts = addGenericRenderPlanParts(root, circuit, stats);
   const libraryParts = addLibraryModels(root, circuit, stats);
 
   const wireCurves = addWires(root, circuit, stats, selectedTargetKey);
   const currentPathDescriptors = stageCurrentPathDescriptors(circuit);
-  const animatedWireCurves = circuit.simulationPlan
-    ? wireCurves.slice(0, currentPathDescriptors.length)
-    : wireCurves;
-  const signalDots = animatedWireCurves.map(({ curve, color }, index) => {
-    const pathDescriptor = currentPathDescriptors[index];
+  const animatedWireCurves = stageAnimatedWireDescriptors(circuit, wireCurves, currentPathDescriptors);
+  const signalDots = animatedWireCurves.map(({ curve, color, pathDescriptor }, index) => {
     const pathStyle = pathDescriptor?.style;
     const dotColor = pathStyle?.color ?? color;
     const dot = new THREE.Mesh(
@@ -107,6 +107,9 @@ function createThreeScene(container, canvas, circuit, options) {
   canvas.dataset.connectorCount = String(stats.connectors);
   canvas.dataset.genericPartCount = String(genericParts.length);
   canvas.dataset.libraryPartCount = String(libraryParts.length);
+  canvas.dataset.cameraFit = cameraFit ? 'server' : 'fallback';
+  canvas.dataset.cameraTarget = `${cameraTarget.x.toFixed(2)},${cameraTarget.y.toFixed(2)},${cameraTarget.z.toFixed(2)}`;
+  canvas.dataset.cameraDistance = camera.position.distanceTo(cameraTarget).toFixed(2);
 
   const resizeObserver = new ResizeObserver(resize);
   resizeObserver.observe(container);
@@ -150,9 +153,12 @@ function createThreeScene(container, canvas, circuit, options) {
   });
   canvas.addEventListener('wheel', (event) => {
     event.preventDefault();
-    camera.position.multiplyScalar(event.deltaY > 0 ? 1.06 : 0.94);
-    camera.position.clampLength(4, 9);
-    camera.lookAt(0, 0, 0);
+    camera.position
+      .sub(cameraTarget)
+      .multiplyScalar(event.deltaY > 0 ? 1.06 : 0.94)
+      .clampLength(zoomRange.min, zoomRange.max)
+      .add(cameraTarget);
+    camera.lookAt(cameraTarget);
   }, { passive: false });
 
   function animate(time = 0) {
@@ -290,20 +296,21 @@ function addSolderJoint(root, position, radius, stats) {
   return joint;
 }
 
-function addBreadboard(root, stats) {
-  const target = { type: 'part', partId: 'breadboard' };
+function addBreadboard(root, stats, descriptor) {
+  const base = descriptor.position;
+  const target = { type: 'part', partId: descriptor.id, id: descriptor.id, label: descriptor.label };
   const board = new THREE.Mesh(
     new THREE.BoxGeometry(5.6, 0.18, 2.15),
     new THREE.MeshStandardMaterial({ color: '#eeece7', roughness: 0.75 })
   );
   tagInspectable(board, target);
-  board.position.set(0, 0.12, 0);
+  board.position.set(base.x, base.y + 0.12, base.z);
   board.castShadow = true;
   board.receiveShadow = true;
   root.add(board);
 
-  addRail(root, '#ff4d3d', -0.82, stats);
-  addRail(root, '#1863dc', 0.82, stats);
+  addRail(root, '#ff4d3d', -0.82, stats, base);
+  addRail(root, '#1863dc', 0.82, stats, base);
 
   const holeGeometry = new THREE.CylinderGeometry(0.025, 0.025, 0.012, 12);
   const holeMaterial = new THREE.MeshBasicMaterial({ color: '#57534f' });
@@ -312,38 +319,40 @@ function addBreadboard(root, stats) {
       const hole = new THREE.Mesh(holeGeometry, holeMaterial);
       tagInspectable(hole, target);
       hole.rotation.x = Math.PI / 2;
-      hole.position.set(x, 0.22, z);
+      hole.position.set(base.x + x, base.y + 0.22, base.z + z);
       root.add(hole);
     }
   }
+  addDescriptorLabel(root, descriptor, 'Breadboard', [base.x, base.y + 0.34, base.z], 0.7);
 }
 
-function addRail(root, color, z, stats) {
+function addRail(root, color, z, stats, base) {
   const rail = new THREE.Mesh(
     new THREE.BoxGeometry(5.15, 0.025, 0.035),
     new THREE.MeshBasicMaterial({ color })
   );
-  rail.position.set(0, 0.23, z);
+  rail.position.set(base.x, base.y + 0.23, base.z + z);
   root.add(rail);
 
   // Plated contact points along the power rail with a solder bead each.
   const contactGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.02, 10);
   for (let x = -2.2; x <= 2.21; x += 0.74) {
     const contact = new THREE.Mesh(contactGeometry, RAIL_CONTACT_MAT);
-    contact.position.set(x, 0.235, z);
+    contact.position.set(base.x + x, base.y + 0.235, base.z + z);
     root.add(contact);
-    addSolderJoint(root, { x, y: 0.232, z }, 0.03, stats);
+    addSolderJoint(root, { x: base.x + x, y: base.y + 0.232, z: base.z + z }, 0.03, stats);
   }
 }
 
-function addArduino(root, stats) {
-  const target = { type: 'part', partId: 'arduino-uno' };
+function addArduino(root, stats, descriptor) {
+  const base = descriptor.position;
+  const target = { type: 'part', partId: descriptor.id, id: descriptor.id, label: descriptor.label };
   const board = new THREE.Mesh(
     new THREE.BoxGeometry(2.05, 0.16, 1.28),
     new THREE.MeshStandardMaterial({ color: '#0a765d', roughness: 0.55, metalness: 0.08 })
   );
   tagInspectable(board, target);
-  board.position.set(-1.65, 0.43, 0.02);
+  board.position.set(base.x, base.y + 0.08, base.z);
   board.castShadow = true;
   root.add(board);
 
@@ -352,7 +361,7 @@ function addArduino(root, stats) {
     new THREE.MeshStandardMaterial({ color: '#c9c9c9', metalness: 0.7, roughness: 0.24 })
   );
   tagInspectable(usb, target);
-  usb.position.set(-2.5, 0.58, 0.02);
+  usb.position.set(base.x - 0.85, base.y + 0.23, base.z);
   root.add(usb);
 
   const chip = new THREE.Mesh(
@@ -360,17 +369,17 @@ function addArduino(root, stats) {
     new THREE.MeshStandardMaterial({ color: '#17171c', roughness: 0.6 })
   );
   tagInspectable(chip, target);
-  chip.position.set(-1.45, 0.56, 0.08);
+  chip.position.set(base.x + 0.2, base.y + 0.21, base.z + 0.06);
   root.add(chip);
 
-  addPinHeader(root, -1.65, -0.69, stats, target);
-  addPinHeader(root, -1.65, 0.69, stats, target);
-  addLabel(root, 'Arduino', [-1.65, 0.72, 0.02], 0.58);
+  addPinHeader(root, base.x, base.z - 0.71, stats, target, base.y);
+  addPinHeader(root, base.x, base.z + 0.67, stats, target, base.y);
+  addDescriptorLabel(root, descriptor, 'Arduino', [base.x, base.y + 0.37, base.z], 0.58);
 }
 
 // A 2.54mm-style header strip: black plastic body, gold round pins, and a solder
 // fillet at the base of each pin.
-function addPinHeader(root, x, z, stats, target) {
+function addPinHeader(root, x, z, stats, target, baseY = 0.35) {
   const count = 8;
   const pitch = 0.19;
   const strip = new THREE.Mesh(
@@ -378,7 +387,7 @@ function addPinHeader(root, x, z, stats, target) {
     HEADER_PLASTIC_MAT
   );
   tagInspectable(strip, target);
-  strip.position.set(x, 0.5, z);
+  strip.position.set(x, baseY + 0.15, z);
   strip.castShadow = true;
   root.add(strip);
 
@@ -387,21 +396,22 @@ function addPinHeader(root, x, z, stats, target) {
     const px = x - 0.68 + index * pitch;
     const pin = new THREE.Mesh(pinGeometry, PIN_METAL_MAT);
     tagInspectable(pin, target);
-    pin.position.set(px, 0.57, z);
+    pin.position.set(px, baseY + 0.22, z);
     pin.castShadow = true;
     root.add(pin);
-    addSolderJoint(root, { x: px, y: 0.52, z }, 0.045, stats);
+    addSolderJoint(root, { x: px, y: baseY + 0.17, z }, 0.045, stats);
   }
 }
 
-function addOled(root, texture, stats) {
-  const target = { type: 'part', partId: 'oled-display' };
+function addOled(root, texture, stats, descriptor) {
+  const base = descriptor.position;
+  const target = { type: 'part', partId: descriptor.id, id: descriptor.id, label: descriptor.label };
   const board = new THREE.Mesh(
     new THREE.BoxGeometry(1.45, 0.14, 0.88),
     new THREE.MeshStandardMaterial({ color: '#103950', roughness: 0.5 })
   );
   tagInspectable(board, target);
-  board.position.set(1.55, 0.52, -0.06);
+  board.position.set(base.x, base.y + 0.07, base.z);
   board.castShadow = true;
   root.add(board);
 
@@ -411,7 +421,7 @@ function addOled(root, texture, stats) {
   );
   tagInspectable(screen, target);
   screen.rotation.x = -Math.PI / 2;
-  screen.position.set(1.55, 0.605, -0.06);
+  screen.position.set(base.x, base.y + 0.155, base.z);
   root.add(screen);
 
   // 4-pin I2C header along the front edge, where the jumpers land.
@@ -420,20 +430,22 @@ function addOled(root, texture, stats) {
     HEADER_PLASTIC_MAT
   );
   tagInspectable(headerStrip, target);
-  headerStrip.position.set(1.49, 0.58, -0.45);
+  headerStrip.position.set(base.x - 0.06, base.y + 0.13, base.z - 0.39);
   root.add(headerStrip);
 
   const pinGeometry = new THREE.CylinderGeometry(0.016, 0.016, 0.18, 8);
-  for (const px of [1.1, 1.35, 1.62, 1.88]) {
+  for (const offsetX of [-0.45, -0.2, 0.07, 0.33]) {
+    const px = base.x + offsetX;
+    const pz = base.z - 0.39;
     const pin = new THREE.Mesh(pinGeometry, PIN_METAL_MAT);
     tagInspectable(pin, target);
-    pin.position.set(px, 0.63, -0.45);
+    pin.position.set(px, base.y + 0.18, pz);
     pin.castShadow = true;
     root.add(pin);
-    addSolderJoint(root, { x: px, y: 0.585, z: -0.45 }, 0.045, stats);
+    addSolderJoint(root, { x: px, y: base.y + 0.135, z: pz }, 0.045, stats);
   }
 
-  addLabel(root, 'OLED', [1.55, 0.86, -0.56], 0.44);
+  addDescriptorLabel(root, descriptor, 'OLED', [base.x, base.y + 0.41, base.z - 0.5], 0.44);
 }
 
 function addLibraryModels(root, circuit, stats) {
@@ -549,7 +561,7 @@ function addGenericPart(root, descriptor, stats) {
   }
 
   if (descriptor.label) {
-    addLabel(root, descriptor.label, [
+    addDescriptorLabel(root, descriptor, descriptor.label, [
       position.x,
       position.y + descriptor.size.height + 0.24,
       position.z
@@ -611,16 +623,7 @@ function addWires(root, circuit, stats, selectedTargetKey = '') {
     addWireConnector(root, from, connection.color, stats, target);
     addWireConnector(root, to, connection.color, stats, target);
 
-    // The visible wire emerges from the top of each connector boot, rises to a
-    // peak, and plugs into the other boot, instead of floating mid-air.
-    const fromTop = new THREE.Vector3(from.x, from.y + 0.24, from.z);
-    const toTop = new THREE.Vector3(to.x, to.y + 0.24, to.z);
-    const peak = new THREE.Vector3(
-      (from.x + to.x) / 2,
-      1.2 + index * 0.12,
-      (from.z + to.z) / 2 + (index % 2 === 0 ? -0.36 : 0.36)
-    );
-    const curve = new THREE.CatmullRomCurve3([fromTop, peak, toTop]);
+    const curve = new THREE.CatmullRomCurve3(stageConnectionRoutePoints(connection, from, to, index));
     const wire = new THREE.Mesh(
       new THREE.TubeGeometry(curve, 56, isSelected ? 0.048 : 0.032, 12),
       new THREE.MeshStandardMaterial({
@@ -634,30 +637,209 @@ function addWires(root, circuit, stats, selectedTargetKey = '') {
     tagInspectable(wire, target);
     wire.castShadow = true;
     root.add(wire);
-    return [{ curve, color: connection.color }];
+    return [{
+      curve,
+      color: connection.color,
+      connectionId: connection.id,
+      fromKey: endpointKey(connection.from),
+      toKey: endpointKey(connection.to)
+    }];
   });
 }
 
+export function stageConnectionRoutePoints(connection, from, to, index = 0) {
+  const serverRoute = Array.isArray(connection?.route)
+    ? connection.route
+        .filter(isFiniteVector)
+        .map((point) => new THREE.Vector3(point.x, point.y, point.z))
+    : [];
+  if (serverRoute.length >= 2) {
+    return serverRoute;
+  }
+
+  // The visible fallback wire emerges from connector boots, rises to a peak,
+  // and plugs into the other boot for older snapshots without server routing.
+  const fromTop = new THREE.Vector3(from.x, from.y + 0.24, from.z);
+  const toTop = new THREE.Vector3(to.x, to.y + 0.24, to.z);
+  const peak = new THREE.Vector3(
+    (from.x + to.x) / 2,
+    1.2 + index * 0.12,
+    (from.z + to.z) / 2 + (index % 2 === 0 ? -0.36 : 0.36)
+  );
+  return [fromTop, peak, toTop];
+}
+
+export function stageAnimatedWireDescriptors(circuit, wireDescriptors, currentPathDescriptors = stageCurrentPathDescriptors(circuit)) {
+  if (!circuit?.simulationPlan) {
+    return [];
+  }
+  if (!currentPathDescriptors.length) {
+    return [];
+  }
+
+  const matched = [];
+  const seen = new Set();
+  for (const pathDescriptor of currentPathDescriptors) {
+    for (const wire of wireDescriptors) {
+      if (!wireMatchesCurrentPath(wire, pathDescriptor)) {
+        continue;
+      }
+      const endpoints = [wire.fromKey ?? '', wire.toKey ?? ''].sort().join('|');
+      const key = `${pathDescriptor.id}:${endpoints}`;
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      matched.push({ ...wire, pathDescriptor });
+    }
+  }
+  return matched;
+}
+
+function wireMatchesCurrentPath(wire, pathDescriptor) {
+  const fromKey = wire.fromKey;
+  const toKey = wire.toKey;
+  if (!fromKey || !toKey) {
+    return false;
+  }
+
+  if ((pathDescriptor.connectionIds ?? []).length > 0) {
+    return pathDescriptor.connectionIds.includes(wire.connectionId);
+  }
+
+  const nodes = currentPathNodes(pathDescriptor);
+  for (let index = 0; index < nodes.length - 1; index += 1) {
+    if (wireMatchesPathEdge(wire, nodes[index], nodes[index + 1])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function currentPathNodes(pathDescriptor) {
+  return [
+    pathNode(pathDescriptor.from),
+    ...(pathDescriptor.through ?? []).map((entry) => pathNode(entry)),
+    pathNode(pathDescriptor.to)
+  ].filter((node) => node.id);
+}
+
+function pathNode(entry) {
+  const value = String(entry ?? '');
+  if (!value) {
+    return { kind: 'component', id: '' };
+  }
+  return value.includes(':')
+    ? { kind: 'endpoint', id: value, componentId: componentIdFromEndpoint(value) }
+    : { kind: 'component', id: value, componentId: value };
+}
+
+function wireMatchesPathEdge(wire, left, right) {
+  if (
+    (left.kind === 'component' && isAmbiguousPathComponent(left.id))
+    || (right.kind === 'component' && isAmbiguousPathComponent(right.id))
+  ) {
+    return false;
+  }
+  if (left.kind === 'endpoint' && right.kind === 'endpoint') {
+    return wireHasEndpoint(wire, left.id) && wireHasEndpoint(wire, right.id);
+  }
+  if (left.kind === 'endpoint' && right.kind === 'component') {
+    return wireHasEndpoint(wire, left.id) && wireTouchesComponent(wire, right.id);
+  }
+  if (left.kind === 'component' && right.kind === 'endpoint') {
+    return wireTouchesComponent(wire, left.id) && wireHasEndpoint(wire, right.id);
+  }
+  if (left.id === right.id) {
+    return false;
+  }
+  return wireTouchesComponent(wire, left.id) && wireTouchesComponent(wire, right.id);
+}
+
+function wireHasEndpoint(wire, endpoint) {
+  return wire.fromKey === endpoint || wire.toKey === endpoint;
+}
+
+function wireTouchesComponent(wire, componentId) {
+  return componentIdFromEndpoint(wire.fromKey) === componentId
+    || componentIdFromEndpoint(wire.toKey) === componentId;
+}
+
+function isAmbiguousPathComponent(componentId) {
+  return componentId === 'breadboard' || /breadboard/i.test(componentId);
+}
+
+function componentIdFromEndpoint(endpoint) {
+  return String(endpoint ?? '').split(':')[0] || '';
+}
+
+function endpointKey(endpoint) {
+  const partId = endpoint?.partId ?? endpoint?.componentId;
+  return partId && endpoint?.pin ? `${partId}:${endpoint.pin}` : '';
+}
+
+export function stageCameraFit(circuit) {
+  const camera = circuit?.layout?.camera;
+  if (!camera || !isFiniteVector(camera.position) || !isFiniteVector(camera.target)) {
+    return null;
+  }
+  const fov = finitePositive(camera.fov) ? camera.fov : 38;
+  const minDistance = finitePositive(camera.minDistance) ? camera.minDistance : 4;
+  const maxDistance = finitePositive(camera.maxDistance) && camera.maxDistance > minDistance
+    ? camera.maxDistance
+    : Math.max(9, minDistance * 1.75);
+
+  return {
+    position: camera.position,
+    target: camera.target,
+    fov,
+    minDistance,
+    maxDistance
+  };
+}
+
+function applyStageCameraFit(camera, targetVector, zoomRange, cameraFit) {
+  if (cameraFit) {
+    camera.fov = cameraFit.fov;
+    camera.position.set(cameraFit.position.x, cameraFit.position.y, cameraFit.position.z);
+    targetVector.set(cameraFit.target.x, cameraFit.target.y, cameraFit.target.z);
+    zoomRange.min = cameraFit.minDistance;
+    zoomRange.max = cameraFit.maxDistance;
+  }
+  camera.lookAt(targetVector);
+}
+
+function isFiniteVector(point) {
+  return Number.isFinite(point?.x) && Number.isFinite(point?.y) && Number.isFinite(point?.z);
+}
+
+function finitePositive(value) {
+  return Number.isFinite(value) && value > 0;
+}
+
 export function stageEndpointMap(circuit) {
-  const arduinoId = findStagePartId(circuit, ['arduino-uno'], ['arduino']);
-  const oledId = findStagePartId(circuit, ['oled-display'], ['oled']);
+  const specializedParts = stageSpecializedPartDescriptors(circuit);
+  const arduino = specializedParts.arduino;
+  const oled = specializedParts.oled;
   const endpoints = {};
 
-  if (arduinoId) {
+  if (arduino) {
+    const base = arduino.position;
     Object.assign(endpoints, {
-      [`${arduinoId}:5V`]: new THREE.Vector3(-1.12, 0.68, -0.64),
-      [`${arduinoId}:GND`]: new THREE.Vector3(-1.36, 0.68, -0.64),
-      [`${arduinoId}:A4/SDA`]: new THREE.Vector3(-1.02, 0.68, 0.66),
-      [`${arduinoId}:A5/SCL`]: new THREE.Vector3(-0.78, 0.68, 0.66)
+      [`${arduino.id}:5V`]: new THREE.Vector3(base.x + 0.53, base.y + 0.33, base.z - 0.66),
+      [`${arduino.id}:GND`]: new THREE.Vector3(base.x + 0.29, base.y + 0.33, base.z - 0.66),
+      [`${arduino.id}:A4/SDA`]: new THREE.Vector3(base.x + 0.63, base.y + 0.33, base.z + 0.64),
+      [`${arduino.id}:A5/SCL`]: new THREE.Vector3(base.x + 0.87, base.y + 0.33, base.z + 0.64)
     });
   }
 
-  if (oledId) {
+  if (oled) {
+    const base = oled.position;
     Object.assign(endpoints, {
-      [`${oledId}:VCC`]: new THREE.Vector3(1.1, 0.72, -0.45),
-      [`${oledId}:GND`]: new THREE.Vector3(1.35, 0.72, -0.45),
-      [`${oledId}:SDA`]: new THREE.Vector3(1.62, 0.72, -0.45),
-      [`${oledId}:SCL`]: new THREE.Vector3(1.88, 0.72, -0.45)
+      [`${oled.id}:VCC`]: new THREE.Vector3(base.x - 0.45, base.y + 0.27, base.z - 0.39),
+      [`${oled.id}:GND`]: new THREE.Vector3(base.x - 0.2, base.y + 0.27, base.z - 0.39),
+      [`${oled.id}:SDA`]: new THREE.Vector3(base.x + 0.07, base.y + 0.27, base.z - 0.39),
+      [`${oled.id}:SCL`]: new THREE.Vector3(base.x + 0.33, base.y + 0.27, base.z - 0.39)
     });
   }
 
@@ -677,11 +859,23 @@ export function stageEndpointMap(circuit) {
 }
 
 export function stageSpecializedPartPresence(circuit) {
-  const parts = circuit.parts ?? [];
+  const parts = stageSpecializedPartDescriptors(circuit);
   return {
-    breadboard: parts.some((part) => part.type === 'breadboard' || part.id === 'breadboard'),
-    arduino: Boolean(findStagePartId(circuit, ['arduino-uno'], ['arduino'])),
-    oled: Boolean(findStagePartId(circuit, ['oled-display'], ['oled']))
+    breadboard: Boolean(parts.breadboard),
+    arduino: Boolean(parts.arduino),
+    oled: Boolean(parts.oled)
+  };
+}
+
+export function stageSpecializedPartDescriptors(circuit) {
+  const breadboard = findStagePart(circuit, ['breadboard'], ['breadboard']);
+  const arduino = findStagePart(circuit, ['arduino-uno'], ['arduino']);
+  const oled = findStagePart(circuit, ['oled-display'], ['oled']);
+
+  return {
+    breadboard: breadboard ? stagePartDescriptor(breadboard.part, breadboard.index, SPECIAL_PART_FALLBACK_POSITIONS.breadboard, stageLabelLayoutForPart(circuit, breadboard.part.id)) : null,
+    arduino: arduino ? stagePartDescriptor(arduino.part, arduino.index, SPECIAL_PART_FALLBACK_POSITIONS.arduino, stageLabelLayoutForPart(circuit, arduino.part.id)) : null,
+    oled: oled ? stagePartDescriptor(oled.part, oled.index, SPECIAL_PART_FALLBACK_POSITIONS.oled, stageLabelLayoutForPart(circuit, oled.part.id)) : null
   };
 }
 
@@ -689,13 +883,13 @@ export function stageGenericPartDescriptors(circuit) {
   const specializedTypes = new Set(['breadboard', 'arduino', 'oled', 'wire']);
   return (circuit.parts ?? [])
     .filter((part) => !part.libraryOnly && !specializedTypes.has(part.type))
-    .map((part, index) => stagePartDescriptor(part, index));
+    .map((part, index) => stagePartDescriptor(part, index, null, stageLabelLayoutForPart(circuit, part.id)));
 }
 
 export function stageLibraryPartDescriptors(circuit) {
   return (circuit.parts ?? [])
     .filter((part) => part.libraryOnly)
-    .map((part, index) => stagePartDescriptor(part, index));
+    .map((part, index) => stagePartDescriptor(part, index, null, stageLabelLayoutForPart(circuit, part.id)));
 }
 
 export function stageCurrentPathDescriptors(circuit) {
@@ -711,12 +905,14 @@ export function stageCurrentPathDescriptors(circuit) {
     from: path.from,
     through: path.through ?? [],
     to: path.to,
+    connectionIds: path.connectionIds ?? [],
+    segments: path.segments ?? [],
     animation: path.animation,
     style: CURRENT_PATH_STYLES[path.kind] ?? CURRENT_PATH_STYLES['load-current']
   }));
 }
 
-function stagePartDescriptor(part, index) {
+function stagePartDescriptor(part, index, fallbackPosition = null, labelLayout = null) {
   const visualStyle = part.footprint?.visualStyle;
   const profile = GENERIC_PART_PROFILES[visualStyle?.shape]
     ?? GENERIC_PART_PROFILES[part.footprint?.type]
@@ -734,9 +930,29 @@ function stagePartDescriptor(part, index) {
       : profile.size,
     footprint: part.footprint,
     hoverTargets: part.footprint?.hoverTargets ?? [],
-    position: part.position ?? defaultGenericPartPosition(index)
+    labelLayout,
+    position: part.position ?? fallbackPosition ?? defaultGenericPartPosition(index)
   };
 }
+
+export function stageLabelLayoutForPart(circuit, partId) {
+  const label = circuit?.layout?.labels?.[partId];
+  if (!label || !isFiniteVector(label.position) || !finitePositive(label.width) || !finitePositive(label.height)) {
+    return null;
+  }
+  return {
+    text: label.text,
+    position: label.position,
+    width: label.width,
+    height: label.height
+  };
+}
+
+const SPECIAL_PART_FALLBACK_POSITIONS = {
+  breadboard: { x: 0, y: 0, z: 0 },
+  arduino: { x: -1.65, y: 0.35, z: 0.02 },
+  oled: { x: 1.55, y: 0.45, z: -0.06 }
+};
 
 const GENERIC_PART_PROFILES = {
   led: {
@@ -797,11 +1013,27 @@ function defaultGenericPartPosition(index) {
   };
 }
 
-function findStagePartId(circuit, preferredIds, typeHints) {
+function findStagePart(circuit, preferredIds, typeHints) {
   const parts = circuit.parts ?? [];
-  return preferredIds.find((id) => parts.some((part) => part.id === id))
-    ?? parts.find((part) => typeHints.includes(part.type))?.id
-    ?? parts.find((part) => typeHints.some((hint) => `${part.id} ${part.label} ${part.description}`.toLowerCase().includes(hint)))?.id;
+  const preferredIndex = parts.findIndex((part) => preferredIds.includes(part.id));
+  if (preferredIndex >= 0) {
+    return { part: parts[preferredIndex], index: preferredIndex };
+  }
+
+  const typeIndex = parts.findIndex((part) => typeHints.includes(part.type));
+  if (typeIndex >= 0) {
+    return { part: parts[typeIndex], index: typeIndex };
+  }
+
+  const textIndex = parts.findIndex((part) => {
+    const searchable = `${part.id ?? ''} ${part.label ?? ''} ${part.description ?? ''}`.toLowerCase();
+    return typeHints.some((hint) => searchable.includes(hint));
+  });
+  return textIndex >= 0 ? { part: parts[textIndex], index: textIndex } : null;
+}
+
+function findStagePartId(circuit, preferredIds, typeHints) {
+  return findStagePart(circuit, preferredIds, typeHints)?.part.id;
 }
 
 // Builds a small reflection environment (a dark room with a few bright panels)
@@ -833,6 +1065,16 @@ function applyStudioEnvironment(renderer, scene) {
   } catch (error) {
     // Metals simply render matte if the environment cannot be generated.
   }
+}
+
+function addDescriptorLabel(root, descriptor, fallbackText, fallbackPosition, fallbackWidth) {
+  const label = descriptor.labelLayout;
+  addLabel(
+    root,
+    label?.text ?? fallbackText,
+    label?.position ? [label.position.x, label.position.y, label.position.z] : fallbackPosition,
+    label?.width ?? fallbackWidth
+  );
 }
 
 function addLabel(root, text, position, width) {

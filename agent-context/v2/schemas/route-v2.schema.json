@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://h-eduware.local/schemas/context-v2/route.schema.json",
+  "title": "ContextV2Routes",
+  "type": "object",
+  "required": ["version", "routes"],
+  "properties": {
+    "version": { "type": "string" },
+    "routes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["routeId", "priority", "policyOnly", "when", "bundleIds", "alwaysInclude", "maxPromptChars", "reason"],
+        "properties": {
+          "routeId": { "type": "string", "minLength": 1 },
+          "priority": { "type": "integer" },
+          "policyOnly": { "type": "boolean" },
+          "when": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["capabilityIds", "supportLevels", "modalities"],
+            "properties": {
+              "capabilityIds": { "type": "array", "items": { "type": "string" } },
+              "supportLevels": {
+                "type": "array",
+                "items": { "type": "string", "enum": ["supported", "partial", "planned", "unsupported"] }
+              },
+              "modalities": { "type": "array", "items": { "type": "string" } },
+              "ambiguity": { "type": "boolean" },
+              "unsafe": { "type": "boolean" }
+            }
+          },
+          "bundleIds": { "type": "array", "items": { "type": "string" } },
+          "alwaysInclude": { "type": "array", "items": { "type": "string" } },
+          "maxPromptChars": { "type": "integer", "minimum": 1 },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

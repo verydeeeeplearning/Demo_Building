@@ -1,0 +1,2 @@
+{"id":"v2-rs485-module-display-en","message":"Show RS-485 module state on the OLED display.","expected":"valid_circuit_synthesis"}
+{"id":"v2-rs485-module-display-ko","message":"RS485 모듈 상태를 OLED에 표시하고 싶어","expected":"valid_circuit_synthesis"}

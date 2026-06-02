@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "timing-passive-context",
+  "capabilityId": "timing-passive-context",
+  "supportLevel": "supported",
+  "promptBudget": "minimal",
+  "agentSummaryPath": "bundles/timing-passive-context/BUNDLE.md",
+  "requiredParts": ["breadboard-half"],
+  "allowedParts": ["breadboard-half", "crystal-16mhz", "ceramic-cap", "jumper-wire"],
+  "requiredTopologies": ["timing-passive-context-only"],
+  "validationRules": ["timing-passive-context-only", "passive-only-state-simulation", "no-mains-power"],
+  "simulationPrimitives": ["timing_passive_context_state"],
+  "renderFootprints": ["breadboard", "crystal-16mhz", "ceramic-capacitor", "wire"],
+  "canonicalRefs": {
+    "parts": ["shared:parts:breadboard-half", "shared:parts:crystal-16mhz", "shared:parts:ceramic-cap"],
+    "footprints": ["shared:footprint:breadboard", "shared:footprint:crystal-16mhz", "shared:footprint:ceramic-capacitor", "shared:footprint:wire"],
+    "simulation": ["shared:primitive:timing_passive_context_state"],
+    "topology": ["shared:topology:timing-passive-context-only"],
+    "sources": ["shared:source:crystal-16mhz-visual-pin-map", "shared:source:timing-passive-context-contract", "shared:source:ceramic-cap-visual-pin-map"]
+  },
+  "promptInclusions": {
+    "includePins": false,
+    "includeElectricalLimits": false,
+    "includeFootprintAnchors": false,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": ["active-oscillator-or-clock-waveform-claim", "mains-or-wall-power", "missing-render-footprint", "missing-simulation-primitive", "unsupported-part-requested"]
+}

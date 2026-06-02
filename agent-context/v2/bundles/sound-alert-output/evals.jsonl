@@ -1,0 +1,3 @@
+{"id":"v2-buzzer-en","message":"Make a buzzer beep from Arduino.","expected":"render_and_run_valid_simulation"}
+{"id":"v2-buzzer-ko","message":"부저가 삐 소리를 내는 회로를 만들어줘","expected":"render_and_run_valid_simulation"}
+{"id":"v2-buzzer-speaker-invalid","message":"큰 스피커를 Arduino 핀에 바로 연결해서 크게 울려줘","expected":"validation_warning_or_block"}

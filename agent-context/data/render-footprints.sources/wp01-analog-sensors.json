@@ -1,0 +1,319 @@
+{
+  "analog-sensor-module-4pin": {
+    "type": "analog-sensor-module-4pin",
+    "width": 0.72,
+    "depth": 0.5,
+    "height": 0.26,
+    "visualStyle": {
+      "shape": "sensor-module",
+      "color": "#2f855a",
+      "material": "pcb-sensor"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.3,
+        "y": 0.08,
+        "z": -0.22,
+        "role": "power",
+        "label": "VCC"
+      },
+      "GND": {
+        "x": -0.1,
+        "y": 0.08,
+        "z": -0.08,
+        "role": "ground",
+        "label": "GND"
+      },
+      "AO": {
+        "x": 0.1,
+        "y": 0.08,
+        "z": 0.08,
+        "role": "analog-output",
+        "label": "AO"
+      },
+      "DO": {
+        "x": 0.3,
+        "y": 0.08,
+        "z": 0.22,
+        "role": "digital-output",
+        "label": "DO"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.42,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard",
+        "stage"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "pins-down",
+      "notes": [
+        "Keep VCC, GND, AO, and DO on distinct rows; supported analog simulations use AO to Arduino A0."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "sensor-value",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "analog-signal",
+        "anchor": "AO",
+        "role": "signal-overlay"
+      },
+      {
+        "id": "sensor-current",
+        "anchor": "VCC",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Analog sensor module",
+        "explainableAs": [
+          "analog-sensor",
+          "educational-readout"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "VCC pin",
+        "pin": "VCC",
+        "explainableAs": [
+          "module-power"
+        ]
+      },
+      {
+        "id": "pin-ao",
+        "label": "AO pin",
+        "pin": "AO",
+        "explainableAs": [
+          "analog-signal"
+        ]
+      },
+      {
+        "id": "pin-do",
+        "label": "DO pin",
+        "pin": "DO",
+        "explainableAs": [
+          "threshold-output"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "GND pin",
+        "pin": "GND",
+        "explainableAs": [
+          "ground-return"
+        ]
+      }
+    ]
+  },
+  "analog-sensor-module-3pin": {
+    "type": "analog-sensor-module-3pin",
+    "width": 0.62,
+    "depth": 0.48,
+    "height": 0.26,
+    "visualStyle": {
+      "shape": "sensor-module",
+      "color": "#2563eb",
+      "material": "pcb-sensor"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.24,
+        "y": 0.08,
+        "z": -0.18,
+        "role": "power",
+        "label": "VCC"
+      },
+      "VS": {
+        "x": -0.24,
+        "y": 0.08,
+        "z": -0.18,
+        "role": "power",
+        "label": "VS"
+      },
+      "OUT": {
+        "x": 0,
+        "y": 0.08,
+        "z": 0,
+        "role": "analog-output",
+        "label": "OUT"
+      },
+      "S": {
+        "x": 0,
+        "y": 0.08,
+        "z": 0,
+        "role": "analog-output",
+        "label": "S"
+      },
+      "GND": {
+        "x": 0.24,
+        "y": 0.08,
+        "z": 0.18,
+        "role": "ground",
+        "label": "GND"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.42,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard",
+        "stage"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "pins-down",
+      "notes": [
+        "Three-pin analog modules expose power, ground, and one analog signal for A0 readout."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "sensor-value",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "analog-signal",
+        "anchor": "OUT",
+        "role": "signal-overlay"
+      },
+      {
+        "id": "sensor-current",
+        "anchor": "VCC",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Analog sensor module",
+        "explainableAs": [
+          "analog-sensor",
+          "educational-readout"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "VCC/VS pin",
+        "pin": "VCC",
+        "explainableAs": [
+          "module-power"
+        ]
+      },
+      {
+        "id": "pin-signal",
+        "label": "Analog signal pin",
+        "pin": "OUT",
+        "explainableAs": [
+          "analog-signal"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "GND pin",
+        "pin": "GND",
+        "explainableAs": [
+          "ground-return"
+        ]
+      }
+    ]
+  },
+  "resistive-sensor-2pin": {
+    "type": "resistive-sensor-2pin",
+    "width": 0.55,
+    "depth": 0.34,
+    "height": 0.12,
+    "visualStyle": {
+      "shape": "flat-resistive-sensor",
+      "color": "#6b7280",
+      "material": "polymer-sensor"
+    },
+    "pinAnchors": {
+      "A": {
+        "x": -0.14,
+        "y": 0.05,
+        "z": -0.18,
+        "role": "resistive-terminal",
+        "label": "A"
+      },
+      "B": {
+        "x": 0.14,
+        "y": 0.05,
+        "z": 0.18,
+        "role": "resistive-terminal",
+        "label": "B"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.26,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard",
+        "stage"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "two-leads-down",
+      "notes": [
+        "Two-pin resistive sensors expose only A/B leads; use a fixed reference resistor to create the analog divider node."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "sensor-value",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "divider-current",
+        "anchor": "A",
+        "role": "current-overlay"
+      },
+      {
+        "id": "analog-signal",
+        "anchor": "B",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Two-pin resistive sensor",
+        "explainableAs": [
+          "resistive-sensor",
+          "voltage-divider-input"
+        ]
+      },
+      {
+        "id": "pin-a",
+        "label": "Terminal A",
+        "pin": "A",
+        "explainableAs": [
+          "resistive-terminal"
+        ]
+      },
+      {
+        "id": "pin-b",
+        "label": "Terminal B",
+        "pin": "B",
+        "explainableAs": [
+          "divider-midpoint-or-terminal"
+        ]
+      }
+    ]
+  }
+}

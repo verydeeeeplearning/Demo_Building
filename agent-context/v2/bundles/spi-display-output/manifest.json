@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "spi-display-output",
+  "capabilityId": "spi-display-output",
+  "supportLevel": "supported",
+  "promptBudget": "minimal",
+  "agentSummaryPath": "bundles/spi-display-output/BUNDLE.md",
+  "requiredParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "tft-18"
+  ],
+  "allowedParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "tft-18",
+    "nokia-5110",
+    "epaper-213",
+    "jumper-wire"
+  ],
+  "requiredTopologies": [
+    "controller-spi-display"
+  ],
+  "validationRules": [
+    "common-ground",
+    "power-rail-valid",
+    "spi-display-data-pin",
+    "spi-display-clock-pin",
+    "spi-display-select-pin",
+    "spi-display-control-pin",
+    "qualitative-sensor-readout-only"
+  ],
+  "simulationPrimitives": [
+    "spi_display_state",
+    "current_flow_animation"
+  ],
+  "renderFootprints": [
+    "arduino",
+    "breadboard",
+    "wire",
+    "tft-18-spi-display",
+    "nokia-5110-display",
+    "epaper-213-display"
+  ],
+  "canonicalRefs": {
+    "parts": [
+      "shared:parts:arduino-uno",
+      "shared:parts:breadboard-half",
+      "shared:parts:tft-18",
+      "shared:parts:nokia-5110",
+      "shared:parts:epaper-213"
+    ],
+    "footprints": [
+      "shared:footprint:arduino",
+      "shared:footprint:breadboard",
+      "shared:footprint:wire",
+      "shared:footprint:tft-18-spi-display",
+      "shared:footprint:nokia-5110-display",
+      "shared:footprint:epaper-213-display"
+    ],
+    "simulation": [
+      "shared:primitive:spi_display_state",
+      "shared:primitive:current_flow_animation"
+    ],
+    "topology": [
+      "shared:topology:controller-spi-display"
+    ],
+    "sources": [
+      "shared:source:tft-18-visual-pin-map",
+      "shared:source:nokia-5110-visual-pin-map",
+      "shared:source:epaper-213-visual-pin-map",
+      "shared:source:spi-display-qualitative-contract"
+    ]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": false,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": [
+    "missing-source-claims",
+    "missing-render-footprint",
+    "missing-simulation-primitive",
+    "unsupported-part-requested"
+  ]
+}

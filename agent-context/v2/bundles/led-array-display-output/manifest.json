@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "led-array-display-output",
+  "capabilityId": "led-array-display-output",
+  "supportLevel": "supported",
+  "promptBudget": "minimal",
+  "agentSummaryPath": "bundles/led-array-display-output/BUNDLE.md",
+  "requiredParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "7seg-4digit-tm1637"
+  ],
+  "allowedParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "7seg-4digit-tm1637",
+    "8x8-matrix-max7219",
+    "jumper-wire"
+  ],
+  "requiredTopologies": [
+    "controller-led-array-display"
+  ],
+  "validationRules": [
+    "common-ground",
+    "power-rail-valid",
+    "led-array-display-data-pin",
+    "led-array-display-clock-pin",
+    "led-array-display-select-pin",
+    "qualitative-sensor-readout-only"
+  ],
+  "simulationPrimitives": [
+    "led_array_display_state",
+    "current_flow_animation"
+  ],
+  "renderFootprints": [
+    "arduino",
+    "breadboard",
+    "wire",
+    "tm1637-4digit-display",
+    "max7219-8x8-matrix"
+  ],
+  "canonicalRefs": {
+    "parts": [
+      "shared:parts:arduino-uno",
+      "shared:parts:breadboard-half",
+      "shared:parts:7seg-4digit-tm1637",
+      "shared:parts:8x8-matrix-max7219"
+    ],
+    "footprints": [
+      "shared:footprint:arduino",
+      "shared:footprint:breadboard",
+      "shared:footprint:wire",
+      "shared:footprint:tm1637-4digit-display",
+      "shared:footprint:max7219-8x8-matrix"
+    ],
+    "simulation": [
+      "shared:primitive:led_array_display_state",
+      "shared:primitive:current_flow_animation"
+    ],
+    "topology": [
+      "shared:topology:controller-led-array-display"
+    ],
+    "sources": [
+      "shared:source:tm1637-4digit-visual-pin-map",
+      "shared:source:max7219-matrix-visual-pin-map",
+      "shared:source:led-array-display-qualitative-contract"
+    ]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": false,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": [
+    "missing-source-claims",
+    "missing-render-footprint",
+    "missing-simulation-primitive",
+    "unsupported-part-requested"
+  ]
+}

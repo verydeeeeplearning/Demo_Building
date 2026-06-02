@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "rotary-encoder-display-readout",
+  "capabilityId": "rotary-encoder-display-readout",
+  "supportLevel": "supported",
+  "promptBudget": "minimal",
+  "agentSummaryPath": "bundles/rotary-encoder-display-readout/BUNDLE.md",
+  "requiredParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "rotary-encoder",
+    "oled-i2c-096"
+  ],
+  "allowedParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "rotary-encoder",
+    "oled-i2c-096",
+    "jumper-wire",
+    "oled-13-i2c",
+    "lcd-16x2",
+    "lcd-20x4"
+  ],
+  "requiredTopologies": [
+    "controller-quadrature-input-display"
+  ],
+  "validationRules": [
+    "encoder-quadrature-pins-defined",
+    "digital-input-pin-exists",
+    "power-rail-valid",
+    "common-ground",
+    "i2c-pin-role-match",
+    "qualitative-sensor-readout-only"
+  ],
+  "simulationPrimitives": [
+    "rotary_encoder_state",
+    "display_static_text",
+    "current_flow_animation"
+  ],
+  "renderFootprints": [
+    "arduino",
+    "breadboard",
+    "oled",
+    "wire",
+    "rotary-encoder-module-5pin",
+    "oled-large",
+    "lcd-character-16x2",
+    "lcd-character-20x4"
+  ],
+  "canonicalRefs": {
+    "parts": [
+      "shared:parts:arduino-uno",
+      "shared:parts:breadboard-half",
+      "shared:parts:rotary-encoder",
+      "shared:parts:oled-i2c-096",
+      "shared:parts:oled-13-i2c",
+      "shared:parts:lcd-16x2",
+      "shared:parts:lcd-20x4"
+    ],
+    "footprints": [
+      "shared:footprint:arduino",
+      "shared:footprint:breadboard",
+      "shared:footprint:oled",
+      "shared:footprint:wire",
+      "shared:footprint:rotary-encoder-module-5pin",
+      "shared:footprint:oled-large",
+      "shared:footprint:lcd-character-16x2",
+      "shared:footprint:lcd-character-20x4"
+    ],
+    "simulation": [
+      "shared:primitive:rotary_encoder_state",
+      "shared:primitive:display_static_text",
+      "shared:primitive:current_flow_animation"
+    ],
+    "topology": [
+      "shared:topology:controller-quadrature-input-display"
+    ],
+    "sources": [
+      "shared:source:arduino-uno-rev3-io-current-20ma",
+      "shared:source:arduino-uno-rev3-i2c-a4-a5",
+      "shared:source:ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "shared:source:breadboard-row-continuity-5-hole",
+      "shared:source:rotary-encoder-visual-pin-map",
+      "shared:source:rotary-encoder-quadrature-contract",
+      "shared:source:oled-13-i2c-visual-pin-map",
+      "shared:source:lcd-16x2-i2c-visual-pin-map",
+      "shared:source:lcd-20x4-i2c-visual-pin-map",
+      "shared:source:i2c-text-display-qualitative-contract"
+    ]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": true,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": [
+    "missing-source-claims",
+    "missing-encoder-power-or-ground",
+    "missing-clk-dt-sw-digital-inputs",
+    "duplicate-digital-input-pins",
+    "missing-oled-display",
+    "missing-render-footprint",
+    "missing-simulation-primitive",
+    "unsupported-part-requested"
+  ]
+}

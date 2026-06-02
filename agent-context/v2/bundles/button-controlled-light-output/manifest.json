@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "button-controlled-light-output",
+  "capabilityId": "button-controlled-light-output",
+  "supportLevel": "supported",
+  "promptBudget": "summary",
+  "agentSummaryPath": "bundles/button-controlled-light-output/BUNDLE.md",
+  "requiredParts": ["arduino-uno", "breadboard-half", "button-tactile", "led-5mm", "resistor-220"],
+  "allowedParts": ["arduino-uno", "breadboard-half", "button-tactile", "led-5mm", "resistor-220", "jumper-wire"],
+  "requiredTopologies": ["controller-digital-input-switch-plus-output"],
+  "validationRules": ["button-pullup-or-pulldown", "series-current-limit", "closed-current-path"],
+  "simulationPrimitives": ["digital_on_off", "current_flow_animation"],
+  "renderFootprints": ["arduino", "breadboard", "button", "led", "resistor", "wire"],
+  "canonicalRefs": {
+    "parts": ["shared:parts:arduino-uno", "shared:parts:breadboard-half", "shared:parts:button-tactile", "shared:parts:led-5mm", "shared:parts:resistor-220"],
+    "footprints": ["shared:footprint:arduino", "shared:footprint:breadboard", "shared:footprint:button", "shared:footprint:led", "shared:footprint:resistor", "shared:footprint:wire"],
+    "simulation": ["shared:primitive:digital_on_off", "shared:primitive:current_flow_animation"],
+    "topology": ["shared:topology:controller-digital-input-switch-plus-output"],
+    "sources": ["shared:source:arduino-uno-rev3-io-current-20ma", "shared:source:breadboard-row-continuity-5-hole", "shared:source:led-5mm-requires-current-limit", "shared:source:led-5mm-anode-cathode-polarity", "shared:source:tactile-button-normally-open"]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": true,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": ["missing-button-reference", "floating-button-input", "missing-series-current-limit", "missing-closed-current-path", "missing-render-footprint", "missing-simulation-primitive", "unsupported-part-requested"]
+}

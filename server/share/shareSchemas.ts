@@ -4,8 +4,42 @@ const ISODateStringSchema = z.string().datetime({ offset: true });
 const ShareIdSchema = z.string().regex(/^[a-f0-9]{32}$/);
 const SafeShortTextSchema = z.string().min(1).max(80);
 const SafeSummarySchema = z.string().min(1).max(280);
+const ShareBuildRunnableReportSchema = z.object({
+  status: z.enum(['runnable', 'blocked']),
+  runnable: z.boolean(),
+  reasons: z.array(z.string().max(500)).max(20),
+  validationStatus: z.string().min(1).max(40),
+  simulationStatus: z.string().min(1).max(40),
+  renderWarningCount: z.number().int().nonnegative(),
+  renderBlockingWarningCount: z.number().int().nonnegative(),
+  renderPartCount: z.number().int().nonnegative(),
+  currentPathCount: z.number().int().nonnegative(),
+  expectedStateCount: z.number().int().nonnegative()
+}).superRefine((report, context) => {
+  if (report.status === 'runnable' && !report.runnable) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Runnable share reports must set runnable=true',
+      path: ['runnable']
+    });
+  }
+  if (report.status === 'blocked' && report.runnable) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Blocked share reports must set runnable=false',
+      path: ['runnable']
+    });
+  }
+  if (report.runnable && report.currentPathCount === 0 && report.expectedStateCount === 0) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Runnable share reports require current-path or expected-state evidence',
+      path: ['currentPathCount']
+    });
+  }
+});
 
-export const ShareSnapshotSchema = z.object({
+const ShareSnapshotBaseSchema = z.object({
   schemaVersion: z.literal(1),
   id: ShareIdSchema.optional(),
   createdAt: ISODateStringSchema,
@@ -36,6 +70,8 @@ export const ShareSnapshotSchema = z.object({
     warnings: z.array(z.string().max(500)).max(30),
     unsupportedItems: z.array(z.string().max(500)).max(30)
   }),
+  buildRunnableReport: ShareBuildRunnableReportSchema.optional(),
+  solverGateResult: z.unknown().optional(),
   simulation: z.object({
     available: z.boolean(),
     runText: z.string().max(120).optional(),
@@ -51,8 +87,43 @@ export const ShareSnapshotSchema = z.object({
   }).optional()
 });
 
+function refineShareSnapshot(snapshot: z.infer<typeof ShareSnapshotBaseSchema>, context: z.RefinementCtx) {
+  const requiresRunnableReport = snapshot.source !== 'demo'
+    && (snapshot.status === 'valid' || snapshot.simulation.available === true);
+  if (requiresRunnableReport && !snapshot.buildRunnableReport) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Agent/imported valid shares require buildRunnableReport evidence',
+      path: ['buildRunnableReport']
+    });
+  }
+  if (snapshot.status === 'valid' && snapshot.source !== 'demo' && snapshot.buildRunnableReport?.runnable !== true) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Valid agent/imported shares require a runnable build report',
+      path: ['buildRunnableReport', 'runnable']
+    });
+  }
+  if (snapshot.simulation.available && snapshot.status !== 'valid') {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Simulation can only be available on valid shares',
+      path: ['simulation', 'available']
+    });
+  }
+  if (snapshot.simulation.available && snapshot.source !== 'demo' && snapshot.buildRunnableReport?.runnable !== true) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Agent/imported simulation availability requires a runnable build report',
+      path: ['buildRunnableReport', 'runnable']
+    });
+  }
+}
+
+export const ShareSnapshotSchema = ShareSnapshotBaseSchema.superRefine(refineShareSnapshot);
+
 export const ShareCreateRequestSchema = z.object({
-  snapshot: ShareSnapshotSchema.omit({ id: true })
+  snapshot: ShareSnapshotBaseSchema.omit({ id: true }).superRefine(refineShareSnapshot)
 });
 
 export const ShareCreateResponseSchema = z.object({

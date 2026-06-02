@@ -431,3 +431,7 @@ The next implementation should not add another isolated hardware demo. It should
 7. Prompt-family eval metrics and failure taxonomy.
 
 The next expansion should add new hardware families only when registry, capability graph, primitive contracts, footprint anchors, validation rules, and evaluation prompts are added together.
+
+## Context v2 Architecture Direction
+
+Context v2 introduces capability bundles as the primary Deepagents retrieval unit. This reduces context bloat by moving from artifact-type loading to bundle-scoped loading. Agent prompts receive compact `BUNDLE.md` summaries and manifest IDs; deterministic tools continue to consume canonical data.

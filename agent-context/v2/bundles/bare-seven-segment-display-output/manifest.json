@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "bare-seven-segment-display-output",
+  "capabilityId": "bare-seven-segment-display-output",
+  "supportLevel": "supported",
+  "promptBudget": "minimal",
+  "agentSummaryPath": "bundles/bare-seven-segment-display-output/BUNDLE.md",
+  "requiredParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "7seg-1digit",
+    "resistor-220"
+  ],
+  "allowedParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "7seg-1digit",
+    "resistor-220",
+    "jumper-wire"
+  ],
+  "requiredTopologies": [
+    "controller-bare-seven-segment-display"
+  ],
+  "validationRules": [
+    "common-ground",
+    "series-current-limit",
+    "bare-seven-segment-common-ground",
+    "bare-seven-segment-segment-resistor",
+    "qualitative-sensor-readout-only"
+  ],
+  "simulationPrimitives": [
+    "bare_seven_segment_display_state",
+    "current_flow_animation"
+  ],
+  "renderFootprints": [
+    "arduino",
+    "breadboard",
+    "wire",
+    "resistor",
+    "seven-segment-1digit"
+  ],
+  "canonicalRefs": {
+    "parts": [
+      "shared:parts:arduino-uno",
+      "shared:parts:breadboard-half",
+      "shared:parts:7seg-1digit",
+      "shared:parts:resistor-220"
+    ],
+    "footprints": [
+      "shared:footprint:arduino",
+      "shared:footprint:breadboard",
+      "shared:footprint:wire",
+      "shared:footprint:resistor",
+      "shared:footprint:seven-segment-1digit"
+    ],
+    "simulation": [
+      "shared:primitive:bare_seven_segment_display_state",
+      "shared:primitive:current_flow_animation"
+    ],
+    "topology": [
+      "shared:topology:controller-bare-seven-segment-display"
+    ],
+    "sources": [
+      "shared:source:seven-segment-1digit-visual-pin-map",
+      "shared:source:bare-seven-segment-current-limit-contract"
+    ]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": false,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": [
+    "missing-source-claims",
+    "missing-current-limit-resistor",
+    "missing-common-ground",
+    "missing-render-footprint",
+    "missing-simulation-primitive",
+    "unsupported-part-requested"
+  ]
+}

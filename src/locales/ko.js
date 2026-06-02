@@ -74,6 +74,9 @@ export const ko = {
     },
     contextCoverage: '참고 자료 확인',
     contextSources: '참고한 자료',
+    sourceBundle: '검증 자료',
+    bundleReady: '준비됨',
+    bundleGap: '근거 부족',
     unsupportedReason: '지원할 수 없는 이유',
     simulationBasis: '동작 확인 기준',
     validationWarnings: '확인이 필요한 점',
@@ -96,6 +99,14 @@ export const ko = {
     step: '단계 보기',
     selectedPath: '선택한 흐름',
     noneSelected: '선택 없음'
+  },
+  solverGate: {
+    diagnosticTitle: '3D 진단 시뮬레이션',
+    diagnosticBody: '장면은 표시하지만, 조립 가능 여부와 전류 흐름은 아직 검증 완료로 표시하지 않습니다.',
+    safeEquivalentTitle: '안전한 대체 시뮬레이션',
+    safeEquivalentBody: '원래 위험한 요청은 만들지 않고, 검증된 저전압 대체 회로만 표시합니다.',
+    placeholderTitle: '대체 부품 시뮬레이션',
+    placeholderBody: '일부 부품은 일반화된 형태로 표시되며, 실제 부품 치수 검증은 제한됩니다.'
   },
   parts: {
     railKicker: '부품함',
@@ -236,6 +247,8 @@ export const ko = {
     draftBody: '이 회로는 초안이거나 추가 검증이 필요합니다.',
     simulation: '동작 설명',
     simulationAvailable: '시뮬레이션 가능',
+    diagnosticAvailable: '3D 진단 가능',
+    diagnosticBody: '3D 진단 장면은 볼 수 있지만, 실행과 전류 흐름 시뮬레이션은 검토가 필요합니다.',
     simulationUnavailable: '시뮬레이션 없음',
     parts: '부품',
     context: '근거',

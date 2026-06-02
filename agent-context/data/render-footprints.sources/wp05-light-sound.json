@@ -1,0 +1,408 @@
+{
+  "active-buzzer": {
+    "type": "active-buzzer",
+    "width": 0.48,
+    "depth": 0.48,
+    "height": 0.32,
+    "visualStyle": {
+      "shape": "buzzer",
+      "color": "#222222",
+      "material": "plastic"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.14,
+        "y": 0.08,
+        "z": -0.14,
+        "role": "positive",
+        "label": "VCC"
+      },
+      "GND": {
+        "x": 0.14,
+        "y": 0.08,
+        "z": 0.14,
+        "role": "ground",
+        "label": "GND"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.46,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "polarity-visible",
+      "notes": [
+        "Treat VCC as the driven positive lead and keep GND on a shared ground return."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "sound-rings",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "buzzer-current",
+        "anchor": "VCC",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Active buzzer body",
+        "explainableAs": [
+          "sound-output",
+          "fixed-tone-load"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "VCC pin",
+        "pin": "VCC",
+        "explainableAs": [
+          "current-entry"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "GND pin",
+        "pin": "GND",
+        "explainableAs": [
+          "ground-return"
+        ]
+      }
+    ]
+  },
+  "rgb-led-common-cathode": {
+    "type": "rgb-led-common-cathode",
+    "width": 0.65,
+    "depth": 0.95,
+    "height": 0.42,
+    "visualStyle": {
+      "shape": "rgb-led",
+      "color": "#ffffff",
+      "material": "translucent-emissive"
+    },
+    "pinAnchors": {
+      "R": {
+        "x": -0.42,
+        "y": 0.05,
+        "z": -0.42,
+        "role": "channel-anode",
+        "label": "R"
+      },
+      "G": {
+        "x": -0.14,
+        "y": 0.05,
+        "z": -0.22,
+        "role": "channel-anode",
+        "label": "G"
+      },
+      "B": {
+        "x": 0.14,
+        "y": 0.05,
+        "z": 0.22,
+        "role": "channel-anode",
+        "label": "B"
+      },
+      "GND": {
+        "x": 0.42,
+        "y": 0.05,
+        "z": 0.42,
+        "role": "ground",
+        "label": "GND"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.52,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "legs-down",
+      "notes": [
+        "Each driven R/G/B anode needs its own series resistor; the common cathode returns to ground."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "rgb-glow",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "rgb-current-red",
+        "anchor": "R",
+        "role": "current-overlay"
+      },
+      {
+        "id": "rgb-current-green",
+        "anchor": "G",
+        "role": "current-overlay"
+      },
+      {
+        "id": "rgb-current-blue",
+        "anchor": "B",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "RGB LED body",
+        "explainableAs": [
+          "multi-channel-light-output",
+          "current-limited-load"
+        ]
+      },
+      {
+        "id": "pin-r",
+        "label": "Red anode",
+        "pin": "R",
+        "explainableAs": [
+          "rgb-channel",
+          "current-entry"
+        ]
+      },
+      {
+        "id": "pin-g",
+        "label": "Green anode",
+        "pin": "G",
+        "explainableAs": [
+          "rgb-channel",
+          "current-entry"
+        ]
+      },
+      {
+        "id": "pin-b",
+        "label": "Blue anode",
+        "pin": "B",
+        "explainableAs": [
+          "rgb-channel",
+          "current-entry"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "Common cathode",
+        "pin": "GND",
+        "explainableAs": [
+          "common-cathode",
+          "ground-return"
+        ]
+      }
+    ]
+  },
+  "laser-diode-module": {
+    "type": "laser-diode-module",
+    "width": 0.48,
+    "depth": 0.42,
+    "height": 0.52,
+    "visualStyle": {
+      "shape": "laser-module",
+      "color": "#17171c",
+      "material": "pcb-module"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.2,
+        "y": 0.1,
+        "z": -0.16,
+        "role": "power",
+        "label": "VCC"
+      },
+      "GND": {
+        "x": 0,
+        "y": 0.1,
+        "z": 0,
+        "role": "ground",
+        "label": "GND"
+      },
+      "S": {
+        "x": 0.2,
+        "y": 0.1,
+        "z": 0.16,
+        "role": "digital-input",
+        "label": "S"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.64,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard",
+        "stage"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "beam-forward",
+      "notes": [
+        "Use only as a qualitative low-voltage module; real laser eye-safety is outside the simulator."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "laser-beam",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "laser-supply-current",
+        "anchor": "VCC",
+        "role": "current-overlay"
+      },
+      {
+        "id": "laser-signal",
+        "anchor": "S",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Laser diode module",
+        "explainableAs": [
+          "powered-light-module",
+          "safety-warning"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "VCC pin",
+        "pin": "VCC",
+        "explainableAs": [
+          "module-power"
+        ]
+      },
+      {
+        "id": "pin-s",
+        "label": "Signal pin",
+        "pin": "S",
+        "explainableAs": [
+          "digital-control-signal"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "GND pin",
+        "pin": "GND",
+        "explainableAs": [
+          "ground-return"
+        ]
+      }
+    ]
+  },
+  "ws2812b-strip": {
+    "type": "ws2812b-strip",
+    "width": 2,
+    "depth": 0.14,
+    "height": 0.08,
+    "visualStyle": {
+      "shape": "addressable-led-strip",
+      "color": "#17171c",
+      "material": "flex-pcb-led"
+    },
+    "pinAnchors": {
+      "5V": {
+        "x": -0.9,
+        "y": 0.08,
+        "z": -0.05,
+        "role": "power",
+        "label": "5V"
+      },
+      "GND": {
+        "x": -0.9,
+        "y": 0.08,
+        "z": 0,
+        "role": "ground",
+        "label": "GND"
+      },
+      "DIN": {
+        "x": -0.9,
+        "y": 0.08,
+        "z": 0.05,
+        "role": "single-wire-data",
+        "label": "DIN"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.28,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage",
+        "beside-breadboard"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "leds-up",
+      "notes": [
+        "Model short educational strips qualitatively and keep DIN, 5V, and GND visually traceable."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "addressable-led-pattern-overlay",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "addressable-led-supply",
+        "anchor": "5V",
+        "role": "current-overlay"
+      },
+      {
+        "id": "addressable-led-data",
+        "anchor": "DIN",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "WS2812B LED strip",
+        "explainableAs": [
+          "addressable-led-display",
+          "power-warning-output"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "5V pad",
+        "pin": "5V",
+        "explainableAs": [
+          "module-power"
+        ]
+      },
+      {
+        "id": "pin-din",
+        "label": "DIN pad",
+        "pin": "DIN",
+        "explainableAs": [
+          "single-wire-data"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "GND pad",
+        "pin": "GND",
+        "explainableAs": [
+          "ground-return"
+        ]
+      }
+    ]
+  }
+}

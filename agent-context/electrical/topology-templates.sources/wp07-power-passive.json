@@ -1,0 +1,125 @@
+[
+  {
+    "id": "external-low-voltage-power-rail",
+    "label": "External low-voltage source to breadboard rails",
+    "description": "A declared low-voltage source or connector provides a positive rail and a ground reference to the breadboard without claiming calibrated current capacity.",
+    "requiredRoles": [
+      "power-source",
+      "ground-return",
+      "power-rail",
+      "ground-rail",
+      "external-power-warning"
+    ],
+    "nets": [
+      { "id": "positive-rail", "kind": "power" },
+      { "id": "ground-rail", "kind": "ground" }
+    ],
+    "connections": [
+      { "fromRole": "power-source.power", "toNet": "positive-rail", "signal": "power" },
+      { "fromRole": "power-rail", "toNet": "positive-rail", "signal": "power" },
+      { "fromRole": "power-source.ground", "toNet": "ground-rail", "signal": "ground" },
+      { "fromRole": "ground-rail", "toNet": "ground-rail", "signal": "ground" }
+    ],
+    "validationRules": [
+      "low-voltage-source-polarity",
+      "power-rail-positive-required",
+      "ground-rail-return-required",
+      "no-mains-power"
+    ],
+    "simulationPrimitiveHints": [
+      "low_voltage_power_rail_state"
+    ]
+  },
+  {
+    "id": "regulated-5v-rail",
+    "label": "External low-voltage source through 7805 regulator",
+    "description": "A declared external low-voltage input feeds a 7805 regulator whose OUT pin provides a qualitative 5V rail with shared ground.",
+    "requiredRoles": [
+      "power-source",
+      "ground-return",
+      "power-input",
+      "voltage-regulator",
+      "regulated-power-output",
+      "power-rail",
+      "ground-rail",
+      "external-power-warning"
+    ],
+    "nets": [
+      { "id": "input-positive", "kind": "power" },
+      { "id": "regulated-5v", "kind": "power" },
+      { "id": "common-ground", "kind": "ground" }
+    ],
+    "connections": [
+      { "fromRole": "power-source.power", "toNet": "input-positive", "signal": "power" },
+      { "fromRole": "voltage-regulator.power-input", "toNet": "input-positive", "signal": "power" },
+      { "fromRole": "voltage-regulator.regulated-power-output", "toNet": "regulated-5v", "signal": "power" },
+      { "fromRole": "power-rail", "toNet": "regulated-5v", "signal": "power" },
+      { "fromRole": "power-source.ground", "toNet": "common-ground", "signal": "ground" },
+      { "fromRole": "voltage-regulator.ground", "toNet": "common-ground", "signal": "ground" },
+      { "fromRole": "ground-rail", "toNet": "common-ground", "signal": "ground" }
+    ],
+    "validationRules": [
+      "regulator-input-required",
+      "regulated-output-to-rail-required",
+      "common-ground",
+      "regulator-qualitative-only",
+      "no-mains-power"
+    ],
+    "simulationPrimitiveHints": [
+      "regulated_5v_rail_state"
+    ]
+  },
+  {
+    "id": "protection-passive-in-series-or-parallel",
+    "label": "Passive protection or filtering component context",
+    "description": "A low-voltage passive protection/filtering part is represented with pin, polarity, and placement evidence as state-only context; passive-only circuits do not generate active current-flow animation.",
+    "requiredRoles": [
+      "passive-context-part",
+      "low-voltage-only",
+      "state-only-simulation"
+    ],
+    "nets": [
+      { "id": "terminal-a-context", "kind": "signal" },
+      { "id": "terminal-b-context", "kind": "signal" }
+    ],
+    "connections": [
+      { "fromRole": "passive-context-part.terminal-a", "toNet": "terminal-a-context", "signal": "passive-context" },
+      { "fromRole": "passive-context-part.terminal-b", "toNet": "terminal-b-context", "signal": "passive-context" }
+    ],
+    "validationRules": [
+      "passive-context-low-voltage-only",
+      "passive-only-state-simulation",
+      "polarized-passive-orientation",
+      "no-mains-power"
+    ],
+    "simulationPrimitiveHints": [
+      "passive_protection_context_state"
+    ]
+  },
+  {
+    "id": "timing-passive-context-only",
+    "label": "Timing passive context-only model",
+    "description": "A crystal or timing passive is represented as a qualitative clock/reference context with no oscillator, timing-accuracy, RF, or active current-flow simulation.",
+    "requiredRoles": [
+      "timing-passive-context",
+      "clock-terminal-pair",
+      "state-only-simulation"
+    ],
+    "nets": [
+      { "id": "clock-terminal-x1", "kind": "signal" },
+      { "id": "clock-terminal-x2", "kind": "signal" }
+    ],
+    "connections": [
+      { "fromRole": "timing-passive-context.x1", "toNet": "clock-terminal-x1", "signal": "clock-context" },
+      { "fromRole": "timing-passive-context.x2", "toNet": "clock-terminal-x2", "signal": "clock-context" }
+    ],
+    "validationRules": [
+      "timing-passive-context-only",
+      "passive-only-state-simulation",
+      "no-mains-power"
+    ],
+    "simulationPrimitiveHints": [
+      "timing_passive_context_state"
+    ]
+  }
+]

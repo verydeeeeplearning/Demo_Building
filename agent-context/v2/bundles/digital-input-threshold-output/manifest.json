@@ -1,0 +1,133 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "digital-input-threshold-output",
+  "capabilityId": "digital-input-threshold-output",
+  "supportLevel": "supported",
+  "promptBudget": "minimal",
+  "agentSummaryPath": "bundles/digital-input-threshold-output/BUNDLE.md",
+  "requiredParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "led-5mm",
+    "resistor-220"
+  ],
+  "allowedParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "led-5mm",
+    "resistor-220",
+    "jumper-wire",
+    "limit-switch",
+    "reed-switch",
+    "slide-switch",
+    "toggle-switch",
+    "ttp223-touch",
+    "hall-effect-sensor",
+    "line-tracker",
+    "pir-hc-sr501",
+    "sw420-vibration",
+    "tilt-ball-sensor"
+  ],
+  "requiredTopologies": [
+    "controller-digital-input-output"
+  ],
+  "validationRules": [
+    "digital-input-pin-exists",
+    "digital-input-reference-defined",
+    "series-current-limit",
+    "closed-current-path",
+    "common-ground",
+    "qualitative-sensor-readout-only"
+  ],
+  "simulationPrimitives": [
+    "digital_input_state",
+    "digital_on_off",
+    "current_flow_animation"
+  ],
+  "renderFootprints": [
+    "arduino",
+    "breadboard",
+    "led",
+    "resistor",
+    "wire",
+    "passive-switch-2pin",
+    "digital-sensor-module-out-3pin",
+    "digital-sensor-module-do-3pin",
+    "digital-sensor-module-sig-3pin",
+    "spdt-switch-nonc-3pin",
+    "spdt-switch-ab-3pin"
+  ],
+  "canonicalRefs": {
+    "parts": [
+      "shared:parts:arduino-uno",
+      "shared:parts:breadboard-half",
+      "shared:parts:led-5mm",
+      "shared:parts:resistor-220",
+      "shared:parts:limit-switch",
+      "shared:parts:reed-switch",
+      "shared:parts:slide-switch",
+      "shared:parts:toggle-switch",
+      "shared:parts:ttp223-touch",
+      "shared:parts:hall-effect-sensor",
+      "shared:parts:line-tracker",
+      "shared:parts:pir-hc-sr501",
+      "shared:parts:sw420-vibration",
+      "shared:parts:tilt-ball-sensor"
+    ],
+    "footprints": [
+      "shared:footprint:arduino",
+      "shared:footprint:breadboard",
+      "shared:footprint:led",
+      "shared:footprint:resistor",
+      "shared:footprint:wire",
+      "shared:footprint:passive-switch-2pin",
+      "shared:footprint:digital-sensor-module-out-3pin",
+      "shared:footprint:digital-sensor-module-do-3pin",
+      "shared:footprint:digital-sensor-module-sig-3pin",
+      "shared:footprint:spdt-switch-nonc-3pin",
+      "shared:footprint:spdt-switch-ab-3pin"
+    ],
+    "simulation": [
+      "shared:primitive:digital_input_state",
+      "shared:primitive:digital_on_off",
+      "shared:primitive:current_flow_animation"
+    ],
+    "topology": [
+      "shared:topology:controller-digital-input-output"
+    ],
+    "sources": [
+      "shared:source:arduino-uno-rev3-io-current-20ma",
+      "shared:source:breadboard-row-continuity-5-hole",
+      "shared:source:led-5mm-requires-current-limit",
+      "shared:source:led-5mm-anode-cathode-polarity",
+      "shared:source:limit-switch-visual-pin-map",
+      "shared:source:reed-switch-visual-pin-map",
+      "shared:source:slide-switch-visual-pin-map",
+      "shared:source:toggle-switch-visual-pin-map",
+      "shared:source:ttp223-touch-visual-pin-map",
+      "shared:source:hall-effect-sensor-visual-pin-map",
+      "shared:source:line-tracker-visual-pin-map",
+      "shared:source:pir-hc-sr501-visual-pin-map",
+      "shared:source:sw420-vibration-visual-pin-map",
+      "shared:source:tilt-ball-sensor-visual-pin-map",
+      "shared:source:passive-digital-switch-pullup-contract",
+      "shared:source:powered-digital-input-module-contract"
+    ]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": true,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": [
+    "missing-digital-input-signal",
+    "floating-passive-switch-input",
+    "missing-powered-sensor-vcc",
+    "missing-powered-sensor-ground",
+    "missing-series-current-limit",
+    "missing-closed-current-path",
+    "missing-render-footprint",
+    "unsupported-part-requested"
+  ]
+}

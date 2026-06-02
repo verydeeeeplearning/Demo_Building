@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "light-sensor-triggered-output",
+  "capabilityId": "light-sensor-triggered-output",
+  "supportLevel": "supported",
+  "promptBudget": "full",
+  "agentSummaryPath": "bundles/light-sensor-triggered-output/BUNDLE.md",
+  "requiredParts": ["arduino-uno", "breadboard-half", "photoresistor-ldr", "led-5mm", "resistor-220"],
+  "allowedParts": ["arduino-uno", "breadboard-half", "photoresistor-ldr", "led-5mm", "resistor-220", "jumper-wire"],
+  "requiredTopologies": ["controller-analog-threshold-output"],
+  "validationRules": ["voltage-divider-required", "analog-input-pin-exists", "threshold-defined", "series-current-limit", "common-ground"],
+  "simulationPrimitives": ["analog_threshold", "digital_on_off", "current_flow_animation"],
+  "renderFootprints": ["arduino", "breadboard", "ldr-module", "led", "resistor", "wire"],
+  "canonicalRefs": {
+    "parts": ["shared:parts:arduino-uno", "shared:parts:breadboard-half", "shared:parts:photoresistor-ldr", "shared:parts:led-5mm", "shared:parts:resistor-220"],
+    "footprints": ["shared:footprint:arduino", "shared:footprint:breadboard", "shared:footprint:ldr-module", "shared:footprint:led", "shared:footprint:resistor", "shared:footprint:wire"],
+    "simulation": ["shared:primitive:analog_threshold", "shared:primitive:digital_on_off", "shared:primitive:current_flow_animation"],
+    "topology": ["shared:topology:controller-analog-threshold-output"],
+    "sources": ["shared:source:arduino-uno-rev3-io-current-20ma", "shared:source:arduino-uno-analog-input-pins-a0-a5", "shared:source:breadboard-row-continuity-5-hole", "shared:source:led-5mm-requires-current-limit", "shared:source:led-5mm-anode-cathode-polarity", "shared:source:arduino-analog-input-variable-resistor-photoresistor", "shared:source:photoresistor-voltage-divider-required"]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": true,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": ["missing-photoresistor-divider", "missing-threshold", "missing-series-current-limit", "missing-common-ground", "missing-render-footprint", "missing-simulation-primitive", "unsupported-part-requested"]
+}

@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "uart-communication-module-readout",
+  "capabilityId": "uart-communication-module-readout",
+  "supportLevel": "supported",
+  "promptBudget": "minimal",
+  "agentSummaryPath": "bundles/uart-communication-module-readout/BUNDLE.md",
+  "requiredParts": ["arduino-uno", "breadboard-half", "oled-i2c-096"],
+  "allowedParts": ["arduino-uno", "breadboard-half", "oled-i2c-096", "jumper-wire", "esp01-wifi", "hc05-bluetooth", "sim800l-gsm", "oled-13-i2c", "lcd-16x2", "lcd-20x4"],
+  "requiredTopologies": ["controller-uart-communication-module", "wireless-module-command-state"],
+  "validationRules": ["uart-communication-module-pins", "i2c-pin-role-match", "common-ground", "power-rail-valid", "wireless-command-state-only", "network-cloud-overclaim-blocked", "radio-power-warning"],
+  "simulationPrimitives": ["display_sensor_value", "display_static_text", "current_flow_animation"],
+  "renderFootprints": ["arduino", "breadboard", "esp01-wifi-module", "hc05-bluetooth-module", "sim800l-gsm-module", "oled", "wire", "oled-large", "lcd-character-16x2", "lcd-character-20x4"],
+  "canonicalRefs": {
+    "parts": ["shared:parts:arduino-uno", "shared:parts:breadboard-half", "shared:parts:oled-i2c-096", "shared:parts:esp01-wifi", "shared:parts:hc05-bluetooth", "shared:parts:sim800l-gsm", "shared:parts:oled-13-i2c", "shared:parts:lcd-16x2", "shared:parts:lcd-20x4"],
+    "footprints": ["shared:footprint:arduino", "shared:footprint:breadboard", "shared:footprint:esp01-wifi-module", "shared:footprint:hc05-bluetooth-module", "shared:footprint:sim800l-gsm-module", "shared:footprint:oled", "shared:footprint:wire", "shared:footprint:oled-large", "shared:footprint:lcd-character-16x2", "shared:footprint:lcd-character-20x4"],
+    "simulation": ["shared:primitive:display_sensor_value", "shared:primitive:display_static_text", "shared:primitive:current_flow_animation"],
+    "topology": ["shared:topology:controller-uart-communication-module", "shared:topology:wireless-module-command-state"],
+    "sources": [
+      "shared:source:arduino-uno-rev3-io-current-20ma",
+      "shared:source:arduino-uno-rev3-i2c-a4-a5",
+      "shared:source:breadboard-row-continuity-5-hole",
+      "shared:source:ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "shared:source:esp01-wifi-visual-pin-map",
+      "shared:source:hc05-bluetooth-visual-pin-map",
+      "shared:source:sim800l-gsm-visual-pin-map",
+      "shared:source:uart-communication-module-command-state-contract",
+      "shared:source:wireless-network-overclaim-block-contract",
+      "shared:source:wireless-radio-power-warning-contract",
+      "shared:source:i2c-text-display-qualitative-contract"
+    ]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": true,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": ["missing-uart-tx-rx", "missing-i2c-display-bus", "missing-common-ground", "network-cloud-overclaim", "unsupported-part-requested"]
+}

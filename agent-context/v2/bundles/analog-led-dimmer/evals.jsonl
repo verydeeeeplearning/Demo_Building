@@ -1,0 +1,2 @@
+{"id":"v2-potentiometer-supported-ko","message":"가변저항으로 LED 밝기를 조절하고 싶어","expected":"render_and_run_valid_simulation"}
+{"id":"v2-trimmer-pot-supported-en","message":"Use a trimmer potentiometer to control LED brightness.","expected":"render_and_run_valid_simulation"}

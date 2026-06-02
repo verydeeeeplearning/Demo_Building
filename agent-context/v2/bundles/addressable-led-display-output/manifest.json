@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "addressable-led-display-output",
+  "capabilityId": "addressable-led-display-output",
+  "supportLevel": "supported",
+  "promptBudget": "minimal",
+  "agentSummaryPath": "bundles/addressable-led-display-output/BUNDLE.md",
+  "requiredParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "neopixel-ring-12"
+  ],
+  "allowedParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "neopixel-ring-12",
+    "jumper-wire",
+    "ws2812b-strip"
+  ],
+  "requiredTopologies": [
+    "controller-addressable-led-display"
+  ],
+  "validationRules": [
+    "common-ground",
+    "power-rail-valid",
+    "addressable-led-data-pin",
+    "addressable-led-power-warning",
+    "qualitative-sensor-readout-only"
+  ],
+  "simulationPrimitives": [
+    "addressable_led_pattern",
+    "current_flow_animation"
+  ],
+  "renderFootprints": [
+    "arduino",
+    "breadboard",
+    "wire",
+    "neopixel-ring-12",
+    "ws2812b-strip"
+  ],
+  "canonicalRefs": {
+    "parts": [
+      "shared:parts:arduino-uno",
+      "shared:parts:breadboard-half",
+      "shared:parts:neopixel-ring-12",
+      "shared:parts:ws2812b-strip"
+    ],
+    "footprints": [
+      "shared:footprint:arduino",
+      "shared:footprint:breadboard",
+      "shared:footprint:wire",
+      "shared:footprint:neopixel-ring-12",
+      "shared:footprint:ws2812b-strip"
+    ],
+    "simulation": [
+      "shared:primitive:addressable_led_pattern",
+      "shared:primitive:current_flow_animation"
+    ],
+    "topology": [
+      "shared:topology:controller-addressable-led-display"
+    ],
+    "sources": [
+      "shared:source:neopixel-ring-12-visual-pin-map",
+      "shared:source:addressable-led-display-qualitative-contract",
+      "shared:source:ws2812b-strip-visual-pin-map"
+    ]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": false,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": [
+    "missing-source-claims",
+    "missing-render-footprint",
+    "missing-simulation-primitive",
+    "unsupported-part-requested",
+    "missing-ws2812b-strip-din"
+  ]
+}

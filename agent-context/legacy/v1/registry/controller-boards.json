@@ -1,0 +1,15 @@
+[
+  {
+    "id": "arduino-uno",
+    "name": "Arduino Uno",
+    "logicVoltage": 5,
+    "supplyPins": ["5V"],
+    "groundPins": ["GND"],
+    "gpioPins": ["D2", "D3", "D8", "D9"],
+    "analogPins": ["A0", "A1", "A2", "A3", "A4/SDA", "A5/SCL"],
+    "pwmPins": ["D3", "D9"],
+    "i2cPins": { "sda": "A4/SDA", "scl": "A5/SCL" },
+    "recommendedMaxSourceMilliamp": 20,
+    "boardCurrentNote": "USB-powered classroom examples should stay conservative."
+  }
+]

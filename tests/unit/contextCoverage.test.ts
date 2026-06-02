@@ -13,6 +13,10 @@ import {
   REQUIRED_CAPABILITY_ARTIFACTS
 } from '../../server/context/contextLayer.ts';
 import { buildContextPacket } from '../../server/context/contextPacket.ts';
+import {
+  buildVisualPartCoverageReport,
+  renderVisualPartCoverageMarkdown
+} from '../../server/context/visualPartCoverageReport.ts';
 import type { SimulationPrimitive } from '../../server/agent/schemas.ts';
 
 test('simulation primitives expose validation, current path, state, UI, overlay, and limitation contracts', async () => {
@@ -45,6 +49,7 @@ test('simulation primitives expose machine-readable current path templates where
   const currentProducingIds = primitives
     .filter((primitive) => primitive.requiresElectricalAnalysis)
     .filter((primitive) => !['current_flow_animation'].includes(primitive.id))
+    .filter((primitive) => !primitive.currentPathRecipe.type.startsWith('state-only'))
     .map((primitive) => primitive.id);
 
   for (const id of currentProducingIds) {
@@ -204,9 +209,10 @@ test('capability graph, part registry, primitives, and render footprints cross-c
   }
 });
 
-test('capability promotion audit blocks incomplete planned capabilities from being marked supported', async () => {
+test('capability promotion audit passes for promoted analog dimmer capability', async () => {
   assert.deepEqual(REQUIRED_CAPABILITY_ARTIFACTS, [
     'capability-graph-entry',
+    'source-claims',
     'part-capability',
     'pin-aliases',
     'validation-rule',
@@ -220,16 +226,10 @@ test('capability promotion audit blocks incomplete planned capabilities from bei
   const report = await auditCapabilityCoverage('analog-led-dimmer');
 
   assert.equal(report.capabilityId, 'analog-led-dimmer');
-  assert.equal(report.supportLevel, 'planned');
-  assert.equal(report.canBeSupported, false);
-  assert.ok(report.present.includes('capability-graph-entry'));
-  assert.ok(report.present.includes('pin-aliases'));
-  assert.ok(report.missing.includes('part-capability'), report.missing.join(', '));
-  assert.ok(report.missing.includes('render-footprint'), report.missing.join(', '));
-  assert.ok(report.missing.includes('validation-rule'), report.missing.join(', '));
-  assert.ok(report.missing.includes('eval-supported-prompt'), report.missing.join(', '));
-  assert.ok(report.missing.includes('browser-visible-verification'), report.missing.join(', '));
-  assert.ok(report.details.some((detail) => /potentiometer-10k/i.test(detail)));
+  assert.equal(report.supportLevel, 'supported');
+  assert.equal(report.recommendedSupportLevel, 'supported');
+  assert.equal(report.canBeSupported, true);
+  assert.deepEqual(report.missing, []);
 });
 
 test('capability promotion audit passes for fully supported starter capabilities', async () => {
@@ -245,13 +245,22 @@ test('capability promotion audit passes for fully supported starter capabilities
   }
 });
 
-test('capability promotion audit recommends planned for incomplete planned capabilities', async () => {
-  const report = await auditCapabilityCoverage('analog-led-dimmer');
+test('capability promotion audit requires source claim coverage for supported capabilities', async () => {
+  const report = await auditCapabilityCoverage('digital-light-output');
 
-  assert.equal(report.supportLevel, 'planned');
-  assert.equal(report.recommendedSupportLevel, 'planned');
-  assert.equal(report.canBeSupported, false);
-  assert.ok(report.missing.length > 0);
+  assert.equal(report.capabilityId, 'digital-light-output');
+  assert.equal(report.canBeSupported, true);
+  assert.ok(report.present.includes('source-claims'));
+  assert.deepEqual(report.missing, []);
+});
+
+test('capability promotion audit recommends supported for completed distance sensor display capability', async () => {
+  const report = await auditCapabilityCoverage('distance-sensor-display');
+
+  assert.equal(report.supportLevel, 'supported');
+  assert.equal(report.recommendedSupportLevel, 'supported');
+  assert.equal(report.canBeSupported, true);
+  assert.deepEqual(report.missing, []);
 });
 
 test('capability promotion audit gates every supported capability', async () => {
@@ -271,7 +280,11 @@ test('capability promotion audit keeps planned capabilities out of supported rel
   const capabilities = await loadCapabilityGraph();
   const planned = capabilities.filter((capability) => capability.supportLevel === 'planned');
 
-  assert.ok(planned.length > 0, 'expected planned capabilities');
+  if (planned.length === 0) {
+    assert.equal(planned.length, 0, 'no planned capabilities remain after the current promotion slice');
+    return;
+  }
+
   for (const capability of planned) {
     const report = await auditCapabilityCoverage(capability.id);
     assert.equal(report.canBeSupported, false, `${capability.id} should not be promotable yet`);
@@ -296,18 +309,18 @@ test('capability promotion gap report aggregates machine-readable blockers by ar
     .map((capability) => capability.id)
     .sort());
 
-  const partCapabilityGap = report.gapsByArtifact.find((gap) => gap.artifact === 'part-capability');
-  assert.ok(partCapabilityGap, 'part-capability gap bucket should exist');
-  assert.ok(partCapabilityGap.capabilityIds.includes('analog-led-dimmer'));
-  assert.ok(partCapabilityGap.capabilityIds.includes('distance-sensor-display'));
-  assert.equal(partCapabilityGap.count, partCapabilityGap.capabilityIds.length);
+  assert.ok(report.readyForSupported.includes('distance-sensor-display'));
+  assert.equal(
+    report.gapsByArtifact.some((gap) => gap.capabilityIds.includes('distance-sensor-display')),
+    false,
+    'distance-sensor-display should have no remaining promotion gap'
+  );
 
-  const browserVerificationGap = report.gapsByArtifact.find((gap) => gap.artifact === 'browser-visible-verification');
-  assert.ok(browserVerificationGap, 'browser-visible-verification gap bucket should exist');
-  assert.ok(browserVerificationGap.capabilityIds.includes('analog-led-dimmer'));
+  const sourceClaimsGap = report.gapsByArtifact.find((gap) => gap.artifact === 'source-claims');
+  assert.ok(sourceClaimsGap, 'source-claims gap bucket should exist for still-unsupported capabilities');
   assert.ok(
-    browserVerificationGap.details.some((detail) => /Missing browser-visible verification/i.test(detail)),
-    browserVerificationGap.details.join(' | ')
+    sourceClaimsGap.details.some((detail) => /autonomous-wireless-robotics|home-security-actuator|high-voltage-load-control/i.test(detail)),
+    sourceClaimsGap.details.join(' | ')
   );
 
   const plannedRecommendations = report.reports
@@ -316,22 +329,72 @@ test('capability promotion gap report aggregates machine-readable blockers by ar
   assert.ok(plannedRecommendations.every((recommendation) => recommendation === 'planned'));
 });
 
-test('visual library expansion audit keeps visual-only parts out of the agent-supported surface', async () => {
+test('visual library expansion audit keeps non-simulation-ready parts out of the agent-supported surface', async () => {
   const report = await auditVisualLibraryExpansion();
 
   assert.ok(report.totalVisualParts >= 100, `expected broad visual library, got ${report.totalVisualParts}`);
   assert.equal(report.unmappedPolicy, 'visual-only');
+  assert.equal(report.contextKnownCount, report.totalVisualParts);
+  assert.deepEqual(report.unrepresentedVisualPartIds, []);
+  assert.deepEqual(report.simulationReadyVisualPartIds, report.agentReadyVisualPartIds);
   assert.ok(report.agentReadyMappings.some((mapping) =>
     mapping.visualPartId === 'arduino-uno-r3' && mapping.agentPartId === 'arduino-uno'
   ));
   assert.ok(report.agentReadyMappings.every((mapping) => mapping.agentPartSupportLevel === 'supported'));
-  assert.ok(report.visualOnlyPartIds.includes('esp32-devkit'), 'ESP32 is visible but not canonical agent-supported');
-  assert.ok(report.visualOnlyPartIds.includes('potentiometer'), 'potentiometer remains visual-only until its context bundle is complete');
-  assert.ok(!report.agentReadyVisualPartIds.includes('potentiometer'));
+  assert.ok(report.contextKnownVisualPartIds.includes('arduino-nano'), 'Arduino Nano is recognized by the context layer');
+  assert.ok(report.contextKnownVisualPartIds.includes('dht11'), 'DHT11 is recognized by the context layer');
+  assert.ok(report.contextKnownVisualPartIds.includes('ldr-module'), 'LDR module is recognized by the context layer');
+  assert.ok(report.contextKnownVisualPartIds.includes('potentiometer'), 'potentiometer is recognized by the context layer');
+  assert.equal(report.bySupportTier['pin-known'], 0, 'all visual pin metadata should now be promoted or explicitly blocked');
+  assert.equal(
+    report.bySupportTier['simulation-ready'] + report.bySupportTier['unsafe-blocked'],
+    report.totalVisualParts,
+    'every visual library part should have a final simulation-ready or unsafe-blocked tier'
+  );
+  assert.ok(report.bySupportTier['simulation-ready'] >= 13, 'crosswalk mappings remain simulation-ready');
+  assert.ok(report.agentReadyVisualPartIds.includes('esp32-devkit'), 'ESP32 is promoted as controller-board context');
+  assert.ok(!report.visualOnlyPartIds.includes('esp32-devkit'), 'ESP32 no longer remains visual-only after WP-08');
+  assert.ok(!report.visualOnlyPartIds.includes('potentiometer'), 'potentiometer is now simulation-ready');
+  assert.ok(!report.visualOnlyPartIds.includes('ldr-module'), 'LDR module is now simulation-ready');
+  assert.ok(!report.visualOnlyPartIds.includes('dht11'), 'DHT11 is now simulation-ready');
+  assert.ok(report.agentReadyVisualPartIds.includes('arduino-nano'));
+  assert.ok(report.agentReadyVisualPartIds.includes('potentiometer'));
+  assert.ok(report.agentReadyVisualPartIds.includes('ldr-module'));
+  assert.ok(report.agentReadyVisualPartIds.includes('dht11'));
 
   const promotionReport = await auditCapabilityPromotionGaps();
   assert.equal(promotionReport.visualLibrary.totalVisualParts, report.totalVisualParts);
-  assert.ok(promotionReport.visualLibrary.visualOnlyPartIds.includes('esp32-devkit'));
+  assert.ok(promotionReport.visualLibrary.agentReadyVisualPartIds.includes('esp32-devkit'));
+});
+
+test('visual part coverage report assigns every visual part to a final target and work package', async () => {
+  const report = await buildVisualPartCoverageReport();
+  const packageTotal = report.packageProgress.reduce((sum, pkg) => sum + pkg.totalParts, 0);
+
+  assert.equal(report.totalVisualParts, 132);
+  assert.equal(report.explicitTargetStateCount, report.totalVisualParts);
+  assert.deepEqual(report.missingTargetStateIds, []);
+  assert.deepEqual(report.missingWorkPackageIds, []);
+  assert.equal(packageTotal, report.totalVisualParts);
+  assert.equal(report.targetStateCounts['simulation-ready'] + report.targetStateCounts['unsafe-blocked'], report.totalVisualParts);
+  const wp01 = report.packageProgress.find((pkg) => pkg.packageId === 'WP-01');
+  assert.ok(wp01, 'WP-01 package should exist');
+  assert.equal(wp01.remainingPartIds.includes('fsr-pressure'), false);
+  assert.equal(wp01.remainingPartIds.includes('thermistor-ntc'), false);
+  assert.ok(report.packageProgress.some((pkg) =>
+    pkg.packageId === 'WP-08'
+    && pkg.achievedParts === pkg.totalParts
+    && pkg.remainingPartIds.length === 0
+  ));
+
+  const mov = report.entries.find((entry) => entry.visualPartId === 'varistor-mov');
+  assert.equal(mov?.targetState, 'unsafe-blocked');
+  assert.equal(mov?.achieved, true);
+
+  const markdown = renderVisualPartCoverageMarkdown(report);
+  assert.match(markdown, /Total visual parts: 132/);
+  assert.match(markdown, /WP-01/);
+  assert.match(markdown, /target achieved/);
 });
 
 test('context coverage distinguishes valid synthesis eligibility from unsafe refusal sufficiency', async () => {
@@ -366,47 +429,56 @@ test('supported circuit requests are eligible for valid circuit synthesis', asyn
   assert.ok(!packet.contextCoverage.sufficientFor.includes('unsafe_refusal'));
 });
 
-test('visual-only library hardware blocks otherwise supported synthesis until context is promoted', async () => {
+test('controller-board context blocks otherwise supported synthesis until circuit substitution evidence is promoted', async () => {
   const packet = await buildContextPacket({
     message: 'Use an Arduino Nano to blink an LED.',
     locale: 'en'
   });
 
   assert.ok(packet.capabilityMatches.some((capability) => capability.id === 'digital-light-output'));
-  assert.ok(packet.supportGaps.some((gap) => /visual-only.*arduino-nano|arduino-nano.*visual-only/i.test(gap)));
+  assert.ok(packet.capabilityMatches.some((capability) => capability.id === 'controller-board-substitution'));
+  assert.ok(packet.supportGaps.some((gap) => /arduino-nano.*controller-board.*selected circuit bundle|arduino-nano.*substitution wiring/i.test(gap)));
   assert.equal(packet.contextCoverage.status, 'insufficient');
   assert.equal(packet.contextCoverage.synthesisEligibility.status, 'ineligible');
   assert.ok(packet.contextCoverage.sufficientFor.includes('unsupported_response'));
   assert.ok(!packet.contextCoverage.sufficientFor.includes('valid_circuit_synthesis'));
-  assert.match(packet.promptBlock, /visual-only/i);
+  assert.match(packet.promptBlock, /controller-board|substitution wiring/i);
   assert.match(packet.promptBlock, /arduino-nano/i);
 });
 
-test('visual-only random hardware requests are explicit support gaps, not vague missing-intent prompts', async () => {
+test('controller-board circuit overreach is an explicit support gap, not a vague missing-intent prompt', async () => {
   const packet = await buildContextPacket({
-    message: 'Build a circuit with ESP32 DevKit and DHT11 temperature sensor.',
+    message: 'Build a circuit with ESP32 DevKit and DHT11 temperature and humidity sensor.',
     locale: 'en'
   });
 
-  assert.ok(packet.supportGaps.some((gap) => /visual-only.*esp32-devkit|esp32-devkit.*visual-only/i.test(gap)));
-  assert.ok(packet.supportGaps.some((gap) => /visual-only.*dht11|dht11.*visual-only/i.test(gap)));
+  assert.ok(packet.capabilityMatches.some((capability) => capability.id === 'dht11-temperature-humidity-display'));
+  assert.equal(packet.contextRoute.routeId, 'v2-dht11-temperature-humidity-display');
+  assert.ok(packet.candidateParts.some((part) => part.id === 'dht11'));
+  assert.ok(packet.supportGaps.some((gap) => /esp32-devkit.*controller-board.*selected circuit bundle|esp32-devkit.*substitution wiring/i.test(gap)));
+  assert.equal(packet.supportGaps.some((gap) => /pin-known.*dht11|dht11.*simulation-ready/i.test(gap)), false);
   assert.equal(packet.contextCoverage.status, 'insufficient');
   assert.equal(packet.contextCoverage.synthesisEligibility.status, 'ineligible');
   assert.ok(packet.contextCoverage.sufficientFor.includes('unsupported_response'));
   assert.ok(!packet.contextCoverage.sufficientFor.includes('valid_circuit_synthesis'));
-  assert.ok(packet.intentSpec.ambiguities.some((item) => /visual-only.*esp32-devkit|dht11/i.test(item)));
+  assert.ok(packet.intentSpec.ambiguities.some((item) => /esp32-devkit.*substitution wiring/i.test(item)));
 });
 
-test('context packet cites selected simulation primitive contracts and render footprint anchors', async () => {
+test('context packet cites selected v2 bundle contracts without loading heavy render catalogs', async () => {
   const packet = await buildContextPacket({
     message: 'Show HELLO on a tiny OLED screen with Arduino Uno and show current flow.',
     locale: 'en'
   });
 
-  assert.ok(packet.simulationPrimitives.some((primitive) => primitive.id === 'display_static_text'));
-  assert.ok(packet.renderFootprints.some((footprint) => footprint.type === 'oled'));
-  assert.ok(packet.contextTrace.some((entry) => entry.sourceId === 'data:simulation-primitives:display_static_text'));
-  assert.ok(packet.contextTrace.some((entry) => entry.sourceId === 'rendering:render-footprint:oled'));
+  assert.equal(packet.contextRoute.routeId, 'v2-display-text-output');
+  assert.ok(packet.retrievalPlan.sourceIds.includes('bundle:display-text-output'));
+  assert.ok(packet.retrievalPlan.omittedSourceIds.includes('simulation:primitives'));
+  assert.ok(packet.retrievalPlan.omittedSourceIds.includes('rendering:render-footprints'));
+  assert.equal(packet.simulationPrimitives.length, 0);
+  assert.equal(packet.renderFootprints.length, 0);
+  assert.ok(packet.contextTrace.some((entry) => entry.sourceId === 'bundle:display-text-output'));
+  assert.match(packet.promptBlock, /Display Text Output/i);
   assert.match(packet.promptBlock, /Simulation primitive contracts/i);
   assert.match(packet.promptBlock, /Render footprint anchors/i);
+  assert.doesNotMatch(packet.promptBlock, /"pinAnchors"\s*:/);
 });

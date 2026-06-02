@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "rs485-communication-module-readout",
+  "capabilityId": "rs485-communication-module-readout",
+  "supportLevel": "supported",
+  "promptBudget": "minimal",
+  "agentSummaryPath": "bundles/rs485-communication-module-readout/BUNDLE.md",
+  "requiredParts": ["arduino-uno", "breadboard-half", "rs485-module", "oled-i2c-096"],
+  "allowedParts": ["arduino-uno", "breadboard-half", "rs485-module", "oled-i2c-096", "jumper-wire", "oled-13-i2c", "lcd-16x2", "lcd-20x4"],
+  "requiredTopologies": ["controller-differential-bus-module"],
+  "validationRules": ["differential-bus-module-pins", "i2c-pin-role-match", "common-ground", "power-rail-valid"],
+  "simulationPrimitives": ["display_sensor_value", "display_static_text", "current_flow_animation"],
+  "renderFootprints": ["arduino", "breadboard", "rs485-transceiver-module", "oled", "wire", "oled-large", "lcd-character-16x2", "lcd-character-20x4"],
+  "canonicalRefs": {
+    "parts": ["shared:parts:arduino-uno", "shared:parts:breadboard-half", "shared:parts:rs485-module", "shared:parts:oled-i2c-096", "shared:parts:oled-13-i2c", "shared:parts:lcd-16x2", "shared:parts:lcd-20x4"],
+    "footprints": ["shared:footprint:arduino", "shared:footprint:breadboard", "shared:footprint:rs485-transceiver-module", "shared:footprint:oled", "shared:footprint:wire", "shared:footprint:oled-large", "shared:footprint:lcd-character-16x2", "shared:footprint:lcd-character-20x4"],
+    "simulation": ["shared:primitive:display_sensor_value", "shared:primitive:display_static_text", "shared:primitive:current_flow_animation"],
+    "topology": ["shared:topology:controller-differential-bus-module"],
+    "sources": [
+      "shared:source:arduino-uno-rev3-io-current-20ma",
+      "shared:source:arduino-uno-rev3-i2c-a4-a5",
+      "shared:source:breadboard-row-continuity-5-hole",
+      "shared:source:ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "shared:source:rs485-module-visual-pin-map",
+      "shared:source:rs485-communication-module-bus-state-contract",
+      "shared:source:i2c-text-display-qualitative-contract"
+    ]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": true,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": ["missing-rs485-ro-di-de", "missing-i2c-display-bus", "missing-common-ground", "unsupported-industrial-network-claim"]
+}

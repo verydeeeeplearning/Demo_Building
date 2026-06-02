@@ -1,0 +1,2 @@
+{"id":"v2-gps-neo6m-display-en","message":"Show GPS NEO-6M NMEA data on the OLED display.","expected":"valid_circuit_synthesis"}
+{"id":"v2-gps-neo6m-display-ko","message":"GPS 모듈 값을 OLED에 표시하고 싶어","expected":"valid_circuit_synthesis"}

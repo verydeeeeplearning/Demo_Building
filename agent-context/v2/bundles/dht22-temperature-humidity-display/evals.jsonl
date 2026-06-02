@@ -1,0 +1,2 @@
+{"id":"v2-dht22-display-en","message":"Show temperature and humidity from a DHT22 on the OLED display.","expected":"valid_circuit_synthesis"}
+{"id":"v2-dht22-display-ko","message":"DHT22 온습도 값을 OLED에 표시하고 싶어","expected":"valid_circuit_synthesis"}

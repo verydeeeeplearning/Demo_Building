@@ -1,5 +1,6 @@
 import {
   AgentConfigurationError,
+  AgentPromptBudgetError,
   AgentStructuredOutputError
 } from './deepAgentRuntime.ts';
 
@@ -21,6 +22,20 @@ export function mapAgentErrorToResponse(error: unknown) {
       body: {
         errorCode: 'AGENT_CONFIGURATION_REQUIRED',
         error: 'The live agent server is not configured.',
+        retryable: false
+      }
+    };
+  }
+
+  if (error instanceof AgentPromptBudgetError) {
+    return {
+      status: 413,
+      body: {
+        errorCode: error.errorCode,
+        error: `The agent prompt exceeded its route budget during ${error.stage}.`,
+        stage: error.stage,
+        actualChars: error.actualChars,
+        maxChars: error.maxChars,
         retryable: false
       }
     };

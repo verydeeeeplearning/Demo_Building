@@ -1,0 +1,722 @@
+{
+  "dip-switch-8pin": {
+    "type": "dip-switch-8pin",
+    "width": 0.8,
+    "depth": 0.48,
+    "height": 0.18,
+    "visualStyle": {
+      "shape": "dip-switch-bank",
+      "color": "#262631",
+      "material": "pcb-input"
+    },
+    "pinAnchors": {
+      "S1A": {
+        "x": -0.33,
+        "y": 0.08,
+        "z": -0.24,
+        "role": "switch-terminal",
+        "label": "S1A"
+      },
+      "S1B": {
+        "x": -0.33,
+        "y": 0.08,
+        "z": 0.24,
+        "role": "switch-terminal",
+        "label": "S1B"
+      },
+      "S2A": {
+        "x": -0.11,
+        "y": 0.08,
+        "z": -0.24,
+        "role": "switch-terminal",
+        "label": "S2A"
+      },
+      "S2B": {
+        "x": -0.11,
+        "y": 0.08,
+        "z": 0.24,
+        "role": "switch-terminal",
+        "label": "S2B"
+      },
+      "S3A": {
+        "x": 0.11,
+        "y": 0.08,
+        "z": -0.24,
+        "role": "switch-terminal",
+        "label": "S3A"
+      },
+      "S3B": {
+        "x": 0.11,
+        "y": 0.08,
+        "z": 0.24,
+        "role": "switch-terminal",
+        "label": "S3B"
+      },
+      "S4A": {
+        "x": 0.33,
+        "y": 0.08,
+        "z": -0.24,
+        "role": "switch-terminal",
+        "label": "S4A"
+      },
+      "S4B": {
+        "x": 0.33,
+        "y": 0.08,
+        "z": 0.24,
+        "role": "switch-terminal",
+        "label": "S4B"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.4,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage",
+        "breadboard"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "pins-down",
+      "notes": [
+        "A 4-way DIP switch is modeled as four independent passive contacts with defined input/reference wiring."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "input-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "input-signal",
+        "anchor": "S1A",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "4-way DIP switch body",
+        "explainableAs": [
+          "multi-switch-input",
+          "configuration-input"
+        ]
+      },
+      {
+        "id": "pin-s1a",
+        "label": "S1A pin",
+        "pin": "S1A",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      },
+      {
+        "id": "pin-s1b",
+        "label": "S1B pin",
+        "pin": "S1B",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      },
+      {
+        "id": "pin-s2a",
+        "label": "S2A pin",
+        "pin": "S2A",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      },
+      {
+        "id": "pin-s2b",
+        "label": "S2B pin",
+        "pin": "S2B",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      },
+      {
+        "id": "pin-s3a",
+        "label": "S3A pin",
+        "pin": "S3A",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      },
+      {
+        "id": "pin-s3b",
+        "label": "S3B pin",
+        "pin": "S3B",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      },
+      {
+        "id": "pin-s4a",
+        "label": "S4A pin",
+        "pin": "S4A",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      },
+      {
+        "id": "pin-s4b",
+        "label": "S4B pin",
+        "pin": "S4B",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      }
+    ]
+  },
+  "matrix-keypad-8pin": {
+    "type": "matrix-keypad-8pin",
+    "width": 1.1,
+    "depth": 0.62,
+    "height": 0.08,
+    "visualStyle": {
+      "shape": "matrix-keypad",
+      "color": "#1a1a2e",
+      "material": "pcb-input"
+    },
+    "pinAnchors": {
+      "R1": {
+        "x": -0.42,
+        "y": 0.08,
+        "z": -0.32,
+        "role": "matrix-row",
+        "label": "R1"
+      },
+      "R2": {
+        "x": -0.28,
+        "y": 0.08,
+        "z": -0.18,
+        "role": "matrix-row",
+        "label": "R2"
+      },
+      "R3": {
+        "x": -0.14,
+        "y": 0.08,
+        "z": -0.04,
+        "role": "matrix-row",
+        "label": "R3"
+      },
+      "R4": {
+        "x": 0,
+        "y": 0.08,
+        "z": 0.1,
+        "role": "matrix-row",
+        "label": "R4"
+      },
+      "C1": {
+        "x": 0.14,
+        "y": 0.08,
+        "z": -0.32,
+        "role": "matrix-column",
+        "label": "C1"
+      },
+      "C2": {
+        "x": 0.28,
+        "y": 0.08,
+        "z": -0.18,
+        "role": "matrix-column",
+        "label": "C2"
+      },
+      "C3": {
+        "x": 0.42,
+        "y": 0.08,
+        "z": -0.04,
+        "role": "matrix-column",
+        "label": "C3"
+      },
+      "C4": {
+        "x": 0.56,
+        "y": 0.08,
+        "z": 0.1,
+        "role": "matrix-column",
+        "label": "C4"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.3,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage",
+        "breadboard"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "pins-down",
+      "notes": [
+        "Rows and columns must connect to distinct Arduino digital pins for qualitative matrix scan simulation."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "input-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "input-signal",
+        "anchor": "R1",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "4x4 matrix keypad body",
+        "explainableAs": [
+          "matrix-keypad",
+          "row-column-input"
+        ]
+      },
+      {
+        "id": "pin-r1",
+        "label": "R1 pin",
+        "pin": "R1",
+        "explainableAs": [
+          "matrix-row"
+        ]
+      },
+      {
+        "id": "pin-r2",
+        "label": "R2 pin",
+        "pin": "R2",
+        "explainableAs": [
+          "matrix-row"
+        ]
+      },
+      {
+        "id": "pin-r3",
+        "label": "R3 pin",
+        "pin": "R3",
+        "explainableAs": [
+          "matrix-row"
+        ]
+      },
+      {
+        "id": "pin-r4",
+        "label": "R4 pin",
+        "pin": "R4",
+        "explainableAs": [
+          "matrix-row"
+        ]
+      },
+      {
+        "id": "pin-c1",
+        "label": "C1 pin",
+        "pin": "C1",
+        "explainableAs": [
+          "matrix-column"
+        ]
+      },
+      {
+        "id": "pin-c2",
+        "label": "C2 pin",
+        "pin": "C2",
+        "explainableAs": [
+          "matrix-column"
+        ]
+      },
+      {
+        "id": "pin-c3",
+        "label": "C3 pin",
+        "pin": "C3",
+        "explainableAs": [
+          "matrix-column"
+        ]
+      },
+      {
+        "id": "pin-c4",
+        "label": "C4 pin",
+        "pin": "C4",
+        "explainableAs": [
+          "matrix-column"
+        ]
+      }
+    ]
+  },
+  "keypad-strip-5pin": {
+    "type": "keypad-strip-5pin",
+    "width": 1,
+    "depth": 0.38,
+    "height": 0.05,
+    "visualStyle": {
+      "shape": "keypad-strip",
+      "color": "#1a1a2e",
+      "material": "pcb-input"
+    },
+    "pinAnchors": {
+      "COM": {
+        "x": -0.4,
+        "y": 0.08,
+        "z": -0.18,
+        "role": "switch-common",
+        "label": "COM"
+      },
+      "K1": {
+        "x": -0.2,
+        "y": 0.08,
+        "z": -0.04,
+        "role": "switch-terminal",
+        "label": "K1"
+      },
+      "K2": {
+        "x": 0,
+        "y": 0.08,
+        "z": 0.1,
+        "role": "switch-terminal",
+        "label": "K2"
+      },
+      "K3": {
+        "x": 0.2,
+        "y": 0.08,
+        "z": -0.18,
+        "role": "switch-terminal",
+        "label": "K3"
+      },
+      "K4": {
+        "x": 0.4,
+        "y": 0.08,
+        "z": -0.04,
+        "role": "switch-terminal",
+        "label": "K4"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.27,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage",
+        "breadboard"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "pins-down",
+      "notes": [
+        "COM is the shared reference; K1-K4 connect to distinct Arduino digital inputs."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "input-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "input-signal",
+        "anchor": "COM",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "1x4 membrane keypad body",
+        "explainableAs": [
+          "keypad-strip",
+          "multi-switch-input"
+        ]
+      },
+      {
+        "id": "pin-com",
+        "label": "COM pin",
+        "pin": "COM",
+        "explainableAs": [
+          "switch-common"
+        ]
+      },
+      {
+        "id": "pin-k1",
+        "label": "K1 pin",
+        "pin": "K1",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      },
+      {
+        "id": "pin-k2",
+        "label": "K2 pin",
+        "pin": "K2",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      },
+      {
+        "id": "pin-k3",
+        "label": "K3 pin",
+        "pin": "K3",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      },
+      {
+        "id": "pin-k4",
+        "label": "K4 pin",
+        "pin": "K4",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      }
+    ]
+  },
+  "joystick-module-5pin": {
+    "type": "joystick-module-5pin",
+    "width": 0.82,
+    "depth": 0.72,
+    "height": 0.5,
+    "visualStyle": {
+      "shape": "joystick-module",
+      "color": "#17171c",
+      "material": "pcb-input"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.34,
+        "y": 0.08,
+        "z": -0.34,
+        "role": "power",
+        "label": "VCC"
+      },
+      "GND": {
+        "x": -0.17,
+        "y": 0.08,
+        "z": -0.2,
+        "role": "ground",
+        "label": "GND"
+      },
+      "VRX": {
+        "x": 0,
+        "y": 0.08,
+        "z": -0.06,
+        "role": "analog-output",
+        "label": "VRX"
+      },
+      "VRY": {
+        "x": 0.17,
+        "y": 0.08,
+        "z": 0.08,
+        "role": "analog-output",
+        "label": "VRY"
+      },
+      "SW": {
+        "x": 0.34,
+        "y": 0.08,
+        "z": 0.22,
+        "role": "digital-output",
+        "label": "SW"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.72,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage",
+        "breadboard"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "pins-down",
+      "notes": [
+        "VRX and VRY must connect to distinct analog inputs; SW is a qualitative button state."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "input-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "input-signal",
+        "anchor": "VCC",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Analog joystick module body",
+        "explainableAs": [
+          "joystick",
+          "dual-analog-input"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "VCC pin",
+        "pin": "VCC",
+        "explainableAs": [
+          "power"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "GND pin",
+        "pin": "GND",
+        "explainableAs": [
+          "ground"
+        ]
+      },
+      {
+        "id": "pin-vrx",
+        "label": "VRX pin",
+        "pin": "VRX",
+        "explainableAs": [
+          "analog-output"
+        ]
+      },
+      {
+        "id": "pin-vry",
+        "label": "VRY pin",
+        "pin": "VRY",
+        "explainableAs": [
+          "analog-output"
+        ]
+      },
+      {
+        "id": "pin-sw",
+        "label": "SW pin",
+        "pin": "SW",
+        "explainableAs": [
+          "digital-output"
+        ]
+      }
+    ]
+  },
+  "rotary-encoder-module-5pin": {
+    "type": "rotary-encoder-module-5pin",
+    "width": 0.72,
+    "depth": 0.62,
+    "height": 0.42,
+    "visualStyle": {
+      "shape": "rotary-encoder-module",
+      "color": "#17171c",
+      "material": "pcb-input"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.32,
+        "y": 0.08,
+        "z": -0.3,
+        "role": "power",
+        "label": "VCC"
+      },
+      "GND": {
+        "x": -0.16,
+        "y": 0.08,
+        "z": -0.16,
+        "role": "ground",
+        "label": "GND"
+      },
+      "CLK": {
+        "x": 0,
+        "y": 0.08,
+        "z": -0.02,
+        "role": "digital-output",
+        "label": "CLK"
+      },
+      "DT": {
+        "x": 0.16,
+        "y": 0.08,
+        "z": 0.12,
+        "role": "digital-output",
+        "label": "DT"
+      },
+      "SW": {
+        "x": 0.32,
+        "y": 0.08,
+        "z": 0.26,
+        "role": "digital-output",
+        "label": "SW"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.64,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage",
+        "breadboard"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "pins-down",
+      "notes": [
+        "CLK, DT, and SW must connect to distinct Arduino digital inputs."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "input-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "input-signal",
+        "anchor": "VCC",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Rotary encoder module body",
+        "explainableAs": [
+          "rotary-encoder",
+          "quadrature-input"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "VCC pin",
+        "pin": "VCC",
+        "explainableAs": [
+          "power"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "GND pin",
+        "pin": "GND",
+        "explainableAs": [
+          "ground"
+        ]
+      },
+      {
+        "id": "pin-clk",
+        "label": "CLK pin",
+        "pin": "CLK",
+        "explainableAs": [
+          "digital-output"
+        ]
+      },
+      {
+        "id": "pin-dt",
+        "label": "DT pin",
+        "pin": "DT",
+        "explainableAs": [
+          "digital-output"
+        ]
+      },
+      {
+        "id": "pin-sw",
+        "label": "SW pin",
+        "pin": "SW",
+        "explainableAs": [
+          "digital-output"
+        ]
+      }
+    ]
+  }
+}

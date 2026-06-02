@@ -1,0 +1,1666 @@
+[
+  {
+    "id": "led-5mm",
+    "kind": "output",
+    "label": "5 mm LED",
+    "aliases": [
+      "led",
+      "light",
+      "lamp",
+      "indicator",
+      "blink"
+    ],
+    "pins": [
+      {
+        "name": "A",
+        "role": "anode",
+        "aliases": [
+          "positive",
+          "+"
+        ]
+      },
+      {
+        "name": "K",
+        "role": "cathode",
+        "aliases": [
+          "negative",
+          "-"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 1.8,
+        "max": 2.4,
+        "nominal": 2
+      },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": true
+    },
+    "protocols": [
+      "gpio"
+    ],
+    "requiredPassives": [
+      {
+        "partId": "resistor-220",
+        "reason": "limit LED current from Arduino GPIO"
+      }
+    ],
+    "renderFootprint": {
+      "type": "led",
+      "width": 0.3,
+      "depth": 0.3,
+      "height": 0.5
+    },
+    "simulationModel": {
+      "type": "diode-load",
+      "nominalCurrentMa": 13.6
+    },
+    "supportLevel": "supported",
+    "capabilities": [
+      "digital-output-load",
+      "visual-indicator",
+      "requires-current-limiting"
+    ],
+    "compatibleSimulationPrimitives": [
+      "digital_on_off",
+      "blink_timer",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Missing current limiting resistor.",
+      "Reversing anode and cathode.",
+      "Connecting directly from 5V to GND."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "piezo-buzzer",
+    "kind": "output",
+    "label": "Piezo buzzer",
+    "aliases": [
+      "buzzer",
+      "beep",
+      "sound",
+      "alarm",
+      "tone"
+    ],
+    "pins": [
+      {
+        "name": "+",
+        "role": "positive",
+        "aliases": [
+          "signal",
+          "vcc"
+        ]
+      },
+      {
+        "name": "-",
+        "role": "ground",
+        "aliases": [
+          "gnd",
+          "negative"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "pwm"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "buzzer",
+      "width": 0.55,
+      "depth": 0.55,
+      "height": 0.35
+    },
+    "simulationModel": {
+      "type": "sound-load",
+      "nominalCurrentMa": 15
+    },
+    "supportLevel": "supported",
+    "capabilities": [
+      "sound-output",
+      "digital-output-load",
+      "pwm-output-load"
+    ],
+    "compatibleSimulationPrimitives": [
+      "buzzer_pulse",
+      "digital_on_off",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Reversing polarity on polarized buzzers.",
+      "Drawing too much current from an I/O pin."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "micro-servo",
+    "kind": "output",
+    "label": "Micro servo",
+    "aliases": [
+      "servo",
+      "servo arm",
+      "move",
+      "sweep",
+      "actuator"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "red"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "brown",
+          "black"
+        ]
+      },
+      {
+        "name": "SIG",
+        "role": "pwm-signal",
+        "aliases": [
+          "signal",
+          "orange"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 4.8,
+        "max": 6,
+        "nominal": 5
+      },
+      "maxCurrentMa": 250,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "pwm",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "servo",
+      "width": 0.8,
+      "depth": 0.42,
+      "height": 0.68
+    },
+    "simulationModel": {
+      "type": "servo-load",
+      "nominalCurrentMa": 120
+    },
+    "supportLevel": "supported",
+    "capabilities": [
+      "motion-output",
+      "pwm-controlled-actuator",
+      "high-current-warning"
+    ],
+    "compatibleSimulationPrimitives": [
+      "servo_angle",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Powering a real servo directly from a weak 5V source.",
+      "Missing common ground between servo and controller.",
+      "Putting signal wire on a non-PWM pin for sweep lessons."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "mg996r-servo",
+    "kind": "output",
+    "label": "MG996R metal gear servo",
+    "aliases": [
+      "mg996r",
+      "mg996r servo",
+      "metal gear servo",
+      "high torque servo",
+      "large servo",
+      "MG996R 서보",
+      "고토크 서보"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "6v",
+          "red"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "brown",
+          "black"
+        ]
+      },
+      {
+        "name": "SIGNAL",
+        "role": "pwm-signal",
+        "aliases": [
+          "sig",
+          "signal",
+          "orange",
+          "pwm"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 4.8,
+        "max": 6,
+        "nominal": 5
+      },
+      "maxCurrentMa": 2500,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "pwm",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "large-servo",
+      "width": 0.96,
+      "depth": 0.56,
+      "height": 0.72
+    },
+    "simulationModel": {
+      "type": "servo-load",
+      "nominalCurrentMa": 450
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "servo-output",
+    "riskLevel": "power-warning",
+    "visualPartIds": [
+      "mg996r-servo"
+    ],
+    "compatibleTopologies": [
+      "controller-servo-external-power-warning"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "mg996r-servo-visual-pin-map",
+      "mg996r-servo-external-power-warning-contract"
+    ],
+    "capabilities": [
+      "motion-output",
+      "pwm-controlled-actuator",
+      "high-current-warning",
+      "external-power-warning"
+    ],
+    "compatibleSimulationPrimitives": [
+      "servo_angle",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Powering a real high-torque servo from an Arduino GPIO pin.",
+      "Forgetting the common ground between servo power and controller signal.",
+      "Treating qualitative servo-angle simulation as a torque or stall-current calculation."
+    ],
+    "safeSubstitutes": [
+      "micro-servo"
+    ]
+  },
+  {
+    "id": "dc-motor-130",
+    "kind": "output",
+    "label": "DC Motor 130",
+    "aliases": [
+      "dc motor",
+      "130 motor",
+      "brushed motor",
+      "toy motor",
+      "motor",
+      "DC 모터",
+      "모터"
+    ],
+    "pins": [
+      {
+        "name": "M+",
+        "role": "power",
+        "aliases": [
+          "+",
+          "positive"
+        ]
+      },
+      {
+        "name": "M-",
+        "role": "switched-ground",
+        "aliases": [
+          "-",
+          "negative"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3,
+        "max": 6,
+        "nominal": 5
+      },
+      "maxCurrentMa": 500,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "low-side-switch",
+      "pwm"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "dc-motor",
+      "width": 0.5,
+      "depth": 0.5,
+      "height": 0.8
+    },
+    "simulationModel": {
+      "type": "low-side-switched-inductive-load",
+      "nominalCurrentMa": 180
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "motor-or-inductive-output",
+    "riskLevel": "high-current",
+    "visualPartIds": [
+      "dc-motor-130"
+    ],
+    "compatibleTopologies": [
+      "controller-transistor-low-side-load",
+      "controller-mosfet-module-load"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "irf520-mosfet",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "dc-motor-130-visual-pin-map",
+      "low-side-inductive-load-simulation-contract"
+    ],
+    "capabilities": [
+      "motor-output",
+      "inductive-load",
+      "low-side-switched-load",
+      "high-current-warning",
+      "flyback-warning"
+    ],
+    "compatibleSimulationPrimitives": [
+      "low_side_switched_load_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Connecting the motor directly to an Arduino GPIO pin.",
+      "Forgetting the low-side transistor or MOSFET driver.",
+      "Forgetting common ground between controller and motor supply.",
+      "Omitting flyback/protection on a real motor circuit."
+    ],
+    "safeSubstitutes": [
+      "vibration-motor"
+    ]
+  },
+  {
+    "id": "dc-fan-5v",
+    "kind": "output",
+    "label": "5V DC cooling fan",
+    "aliases": [
+      "dc fan",
+      "5v fan",
+      "cooling fan",
+      "fan",
+      "팬",
+      "쿨링팬"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "+",
+          "positive"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "switched-ground",
+        "aliases": [
+          "-",
+          "negative"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 5,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 250,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "low-side-switch",
+      "pwm"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "dc-fan",
+      "width": 0.8,
+      "depth": 0.25,
+      "height": 0.8
+    },
+    "simulationModel": {
+      "type": "low-side-switched-inductive-load",
+      "nominalCurrentMa": 120
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "motor-or-inductive-output",
+    "riskLevel": "power-warning",
+    "visualPartIds": [
+      "dc-fan-5v"
+    ],
+    "compatibleTopologies": [
+      "controller-transistor-low-side-load",
+      "controller-mosfet-module-load"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "irf520-mosfet",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "dc-fan-5v-visual-pin-map",
+      "low-side-inductive-load-simulation-contract"
+    ],
+    "capabilities": [
+      "motor-output",
+      "inductive-load",
+      "low-side-switched-load",
+      "external-power-warning",
+      "flyback-warning"
+    ],
+    "compatibleSimulationPrimitives": [
+      "low_side_switched_load_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Driving the fan from a GPIO pin instead of a switch driver.",
+      "Forgetting common ground.",
+      "Treating fan speed simulation as a calibrated airflow model."
+    ],
+    "safeSubstitutes": [
+      "dc-motor-130"
+    ]
+  },
+  {
+    "id": "mini-water-pump",
+    "kind": "output",
+    "label": "Mini water pump",
+    "aliases": [
+      "water pump",
+      "mini pump",
+      "pump",
+      "submersible pump",
+      "워터펌프",
+      "펌프"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "+",
+          "positive"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "switched-ground",
+        "aliases": [
+          "-",
+          "negative"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3,
+        "max": 6,
+        "nominal": 5
+      },
+      "maxCurrentMa": 600,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "low-side-switch",
+      "pwm"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "mini-water-pump",
+      "width": 0.7,
+      "depth": 0.6,
+      "height": 0.55
+    },
+    "simulationModel": {
+      "type": "low-side-switched-inductive-load",
+      "nominalCurrentMa": 220
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "motor-or-inductive-output",
+    "riskLevel": "high-current",
+    "visualPartIds": [
+      "mini-water-pump"
+    ],
+    "compatibleTopologies": [
+      "controller-mosfet-module-load"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "irf520-mosfet",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "mini-water-pump-visual-pin-map",
+      "low-side-inductive-load-simulation-contract"
+    ],
+    "capabilities": [
+      "motor-output",
+      "fluid-output",
+      "inductive-load",
+      "low-side-switched-load",
+      "high-current-warning",
+      "flyback-warning"
+    ],
+    "compatibleSimulationPrimitives": [
+      "low_side_switched_load_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Powering the pump from Arduino GPIO.",
+      "Forgetting that the classroom simulation does not model real water flow or stall current.",
+      "Forgetting common ground and inductive-load protection."
+    ],
+    "safeSubstitutes": [
+      "dc-fan-5v"
+    ]
+  },
+  {
+    "id": "solenoid-valve",
+    "kind": "output",
+    "label": "Solenoid valve",
+    "aliases": [
+      "solenoid",
+      "solenoid valve",
+      "valve",
+      "전자밸브",
+      "솔레노이드"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "+",
+          "positive"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "switched-ground",
+        "aliases": [
+          "-",
+          "negative"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 5,
+        "max": 12,
+        "nominal": 5
+      },
+      "maxCurrentMa": 600,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "low-side-switch"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "solenoid-valve",
+      "width": 0.7,
+      "depth": 0.9,
+      "height": 0.7
+    },
+    "simulationModel": {
+      "type": "low-side-switched-inductive-load",
+      "nominalCurrentMa": 260
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "motor-or-inductive-output",
+    "riskLevel": "high-current",
+    "visualPartIds": [
+      "solenoid-valve"
+    ],
+    "compatibleTopologies": [
+      "controller-mosfet-module-load"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "irf520-mosfet",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "solenoid-valve-visual-pin-map",
+      "low-side-inductive-load-simulation-contract"
+    ],
+    "capabilities": [
+      "valve-output",
+      "inductive-load",
+      "low-side-switched-load",
+      "high-current-warning",
+      "flyback-warning"
+    ],
+    "compatibleSimulationPrimitives": [
+      "low_side_switched_load_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Driving a solenoid coil directly from a GPIO pin.",
+      "Forgetting flyback/protection for a real inductive coil.",
+      "Treating the simulation as pneumatic or fluid-flow physics."
+    ],
+    "safeSubstitutes": [
+      "dc-motor-130"
+    ]
+  },
+  {
+    "id": "vibration-motor",
+    "kind": "output",
+    "label": "Vibration motor module",
+    "aliases": [
+      "vibration motor",
+      "haptic motor",
+      "vibration module",
+      "진동 모터",
+      "진동모터"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "-"
+        ]
+      },
+      {
+        "name": "IN",
+        "role": "digital-input",
+        "aliases": [
+          "signal",
+          "s"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 120,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "pwm",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "vibration-motor-module",
+      "width": 0.5,
+      "depth": 0.15,
+      "height": 0.5
+    },
+    "simulationModel": {
+      "type": "low-side-switched-inductive-load",
+      "nominalCurrentMa": 90
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "motor-or-inductive-output",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "vibration-motor"
+    ],
+    "compatibleTopologies": [
+      "controller-mosfet-module-load"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "vibration-motor-visual-pin-map",
+      "low-side-inductive-load-simulation-contract"
+    ],
+    "capabilities": [
+      "motor-output",
+      "haptic-output",
+      "logic-controlled-load",
+      "low-side-switched-load",
+      "external-power-warning"
+    ],
+    "compatibleSimulationPrimitives": [
+      "low_side_switched_load_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Confusing the module input pin with the motor power path.",
+      "Forgetting common ground.",
+      "Treating the vibration animation as calibrated force or frequency."
+    ],
+    "safeSubstitutes": [
+      "active-buzzer"
+    ]
+  },
+  {
+    "id": "relay-1ch",
+    "kind": "output",
+    "label": "1-channel relay module",
+    "aliases": [
+      "relay",
+      "1 channel relay",
+      "single relay module",
+      "relay module",
+      "릴레이",
+      "1채널 릴레이"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": ["5v", "coil power"]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": ["ground"]
+      },
+      {
+        "name": "IN",
+        "role": "digital-input",
+        "aliases": ["signal", "control"]
+      },
+      {
+        "name": "COM",
+        "role": "relay-common",
+        "aliases": ["common", "contact common"]
+      },
+      {
+        "name": "NO",
+        "role": "relay-normally-open",
+        "aliases": ["normally open", "switched output"]
+      },
+      {
+        "name": "NC",
+        "role": "relay-normally-closed",
+        "aliases": ["normally closed"]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 5,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 80,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "relay-contact",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "relay-module-1ch",
+      "width": 0.85,
+      "depth": 0.65,
+      "height": 0.2
+    },
+    "simulationModel": {
+      "type": "relay-switch",
+      "nominalCurrentMa": 70
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "relay-output",
+    "riskLevel": "power-warning",
+    "visualPartIds": [
+      "relay-1ch"
+    ],
+    "compatibleTopologies": [
+      "controller-relay-low-voltage-load"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "led-5mm",
+      "resistor-220",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "relay-1ch-visual-pin-map",
+      "relay-low-voltage-simulation-contract"
+    ],
+    "capabilities": [
+      "relay-module",
+      "logic-controlled-switch",
+      "low-voltage-contact-load",
+      "mains-blocked",
+      "power-warning"
+    ],
+    "compatibleSimulationPrimitives": [
+      "relay_switch_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Using the relay example for mains or wall power.",
+      "Forgetting VCC, GND, and IN on the relay input side.",
+      "Forgetting a separate low-voltage contact load path through COM and NO.",
+      "Treating the relay animation as real contact rating, isolation, or safety design."
+    ],
+    "safeSubstitutes": [
+      "led-5mm",
+      "relay-4ch"
+    ]
+  },
+  {
+    "id": "relay-4ch",
+    "kind": "output",
+    "label": "4-channel relay module",
+    "aliases": [
+      "4 channel relay",
+      "four channel relay",
+      "multi relay module",
+      "relay board",
+      "4채널 릴레이",
+      "릴레이 보드"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": ["5v", "coil power"]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": ["ground"]
+      },
+      {
+        "name": "IN1",
+        "role": "digital-input",
+        "aliases": ["channel 1 control"]
+      },
+      {
+        "name": "IN2",
+        "role": "digital-input",
+        "aliases": ["channel 2 control"]
+      },
+      {
+        "name": "IN3",
+        "role": "digital-input",
+        "aliases": ["channel 3 control"]
+      },
+      {
+        "name": "IN4",
+        "role": "digital-input",
+        "aliases": ["channel 4 control"]
+      },
+      {
+        "name": "COM1",
+        "role": "relay-common",
+        "aliases": ["channel 1 common"]
+      },
+      {
+        "name": "NO1",
+        "role": "relay-normally-open",
+        "aliases": ["channel 1 normally open"]
+      },
+      {
+        "name": "NC1",
+        "role": "relay-normally-closed",
+        "aliases": ["channel 1 normally closed"]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 5,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 320,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "relay-contact",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "relay-module-4ch",
+      "width": 1.8,
+      "depth": 0.65,
+      "height": 0.2
+    },
+    "simulationModel": {
+      "type": "relay-switch",
+      "nominalCurrentMa": 280
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "relay-output",
+    "riskLevel": "power-warning",
+    "visualPartIds": [
+      "relay-4ch"
+    ],
+    "compatibleTopologies": [
+      "controller-relay-low-voltage-load"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "led-5mm",
+      "resistor-220",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "relay-4ch-visual-pin-map",
+      "relay-low-voltage-simulation-contract"
+    ],
+    "capabilities": [
+      "relay-module",
+      "logic-controlled-switch",
+      "multi-channel-relay",
+      "low-voltage-contact-load",
+      "mains-blocked",
+      "power-warning"
+    ],
+    "compatibleSimulationPrimitives": [
+      "relay_switch_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Using classroom relay examples for mains or wall power.",
+      "Forgetting common ground and input control on each used channel.",
+      "Forgetting that only one low-voltage channel is simulated unless the spec defines more channels.",
+      "Treating the relay animation as real contact rating, isolation, or safety design."
+    ],
+    "safeSubstitutes": [
+      "relay-1ch",
+      "led-5mm"
+    ]
+  },
+  {
+    "id": "active-buzzer",
+    "kind": "output",
+    "label": "Active buzzer",
+    "aliases": [
+      "active buzzer",
+      "buzzer module",
+      "fixed tone buzzer",
+      "beep module",
+      "능동 부저",
+      "액티브 부저"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "positive",
+        "aliases": [
+          "+",
+          "signal",
+          "in"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "-",
+          "negative"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "active-buzzer",
+      "width": 0.48,
+      "depth": 0.48,
+      "height": 0.32
+    },
+    "simulationModel": {
+      "type": "sound-load",
+      "nominalCurrentMa": 15
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "sound-output",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "active-buzzer"
+    ],
+    "compatibleTopologies": [
+      "controller-direct-low-current-load"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "active-buzzer-visual-pin-map",
+      "active-buzzer-fixed-tone-qualitative-contract"
+    ],
+    "capabilities": [
+      "sound-output",
+      "digital-output-load",
+      "direct-low-current-load"
+    ],
+    "compatibleSimulationPrimitives": [
+      "buzzer_pulse",
+      "digital_on_off",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Forgetting the ground return.",
+      "Treating an active buzzer as a frequency-accurate speaker."
+    ],
+    "safeSubstitutes": [
+      "piezo-buzzer"
+    ]
+  },
+  {
+    "id": "rgb-led-common-cathode",
+    "kind": "output",
+    "label": "RGB LED common cathode",
+    "aliases": [
+      "rgb led",
+      "common cathode rgb led",
+      "three color led",
+      "full color led",
+      "RGB LED",
+      "공통 캐소드 RGB LED"
+    ],
+    "pins": [
+      {
+        "name": "R",
+        "role": "channel-anode",
+        "aliases": [
+          "red",
+          "red anode"
+        ]
+      },
+      {
+        "name": "G",
+        "role": "channel-anode",
+        "aliases": [
+          "green",
+          "green anode"
+        ]
+      },
+      {
+        "name": "B",
+        "role": "channel-anode",
+        "aliases": [
+          "blue",
+          "blue anode"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "common cathode",
+          "cathode",
+          "-"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 1.8,
+        "max": 3.4,
+        "nominal": 2.8
+      },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": true
+    },
+    "protocols": [
+      "gpio",
+      "pwm"
+    ],
+    "requiredPassives": [
+      {
+        "partId": "resistor-220",
+        "reason": "limit each driven RGB LED channel current"
+      }
+    ],
+    "renderFootprint": {
+      "type": "rgb-led-common-cathode",
+      "width": 0.35,
+      "depth": 0.35,
+      "height": 0.42
+    },
+    "simulationModel": {
+      "type": "rgb-led-load",
+      "nominalCurrentMa": 13.6
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "light-output",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "rgb-led-common-cathode"
+    ],
+    "compatibleTopologies": [
+      "controller-rgb-led-current-limited-output"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "resistor-220",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "rgb-led-common-cathode-visual-pin-map",
+      "rgb-led-current-limit-per-channel"
+    ],
+    "capabilities": [
+      "rgb-light-output",
+      "multi-channel-light-output",
+      "requires-current-limiting",
+      "digital-output-load"
+    ],
+    "compatibleSimulationPrimitives": [
+      "rgb_led_color_mix",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Using one resistor for multiple color channels.",
+      "Forgetting that the common cathode must return to ground."
+    ],
+    "safeSubstitutes": [
+      "led-5mm"
+    ]
+  },
+  {
+    "id": "laser-diode-module",
+    "kind": "output",
+    "label": "Laser diode module",
+    "aliases": [
+      "laser",
+      "laser diode",
+      "laser module",
+      "red laser module",
+      "레이저",
+      "레이저 모듈"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "-",
+          "negative"
+        ]
+      },
+      {
+        "name": "S",
+        "role": "digital-input",
+        "aliases": [
+          "signal",
+          "in",
+          "sig"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 30,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "laser-diode-module",
+      "width": 0.48,
+      "depth": 0.42,
+      "height": 0.52
+    },
+    "simulationModel": {
+      "type": "powered-light-module-load",
+      "nominalCurrentMa": 25
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "light-output",
+    "riskLevel": "power-warning",
+    "visualPartIds": [
+      "laser-diode-module"
+    ],
+    "compatibleTopologies": [
+      "controller-powered-light-module-output"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "laser-diode-module-visual-pin-map",
+      "laser-diode-module-qualitative-contract"
+    ],
+    "capabilities": [
+      "powered-light-output",
+      "digital-controlled-module",
+      "power-warning-output"
+    ],
+    "compatibleSimulationPrimitives": [
+      "powered_light_module_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Aiming a real laser at eyes or reflective surfaces.",
+      "Missing VCC/GND while only wiring the signal pin."
+    ],
+    "safeSubstitutes": [
+      "led-5mm"
+    ]
+  },
+  {
+    "id": "ws2812b-strip",
+    "kind": "output",
+    "label": "WS2812B LED strip",
+    "aliases": [
+      "ws2812b strip",
+      "ws2812 strip",
+      "addressable led strip",
+      "neopixel strip",
+      "rgb led strip",
+      "주소지정 LED 스트립"
+    ],
+    "pins": [
+      {
+        "name": "5V",
+        "role": "power",
+        "aliases": [
+          "vcc",
+          "vin",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "-"
+        ]
+      },
+      {
+        "name": "DIN",
+        "role": "single-wire-data",
+        "aliases": [
+          "data in",
+          "signal",
+          "ws2812 data"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 4,
+        "max": 5.5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 900,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "addressable-led",
+      "single-wire-data",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "ws2812b-strip",
+      "width": 2,
+      "depth": 0.14,
+      "height": 0.08
+    },
+    "simulationModel": {
+      "type": "addressable-led-display-load",
+      "nominalCurrentMa": 180
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "display-led-array",
+    "riskLevel": "power-warning",
+    "visualPartIds": [
+      "ws2812b-strip"
+    ],
+    "compatibleTopologies": [
+      "controller-addressable-led-display"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "arduino-io-pin-powers-full-brightness-strip"
+    ],
+    "sourceClaimIds": [
+      "ws2812b-strip-visual-pin-map",
+      "addressable-led-display-qualitative-contract"
+    ],
+    "capabilities": [
+      "addressable-led-display",
+      "rgb-light-output",
+      "single-wire-data-display",
+      "power-warning-output"
+    ],
+    "compatibleSimulationPrimitives": [
+      "addressable_led_pattern",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Powering a long strip at full brightness from an Arduino I/O pin.",
+      "Forgetting common ground.",
+      "Connecting data to the output side instead of DIN."
+    ],
+    "safeSubstitutes": [
+      "neopixel-ring-12",
+      "led-5mm"
+    ]
+  },
+  {
+    "id": "stepper-28byj48",
+    "kind": "output",
+    "label": "28BYJ-48 stepper motor",
+    "aliases": [
+      "28byj-48",
+      "28byj48",
+      "28byj-48 stepper",
+      "unipolar stepper",
+      "gear stepper",
+      "스테퍼 모터",
+      "스텝 모터"
+    ],
+    "pins": [
+      {
+        "name": "IN1",
+        "role": "stepper-phase",
+        "aliases": ["phase 1", "coil 1"]
+      },
+      {
+        "name": "IN2",
+        "role": "stepper-phase",
+        "aliases": ["phase 2", "coil 2"]
+      },
+      {
+        "name": "IN3",
+        "role": "stepper-phase",
+        "aliases": ["phase 3", "coil 3"]
+      },
+      {
+        "name": "IN4",
+        "role": "stepper-phase",
+        "aliases": ["phase 4", "coil 4"]
+      },
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": ["5v", "common"]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 5,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 240,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "four-phase-stepper",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "unipolar-stepper",
+      "width": 0.7,
+      "depth": 0.7,
+      "height": 0.85
+    },
+    "simulationModel": {
+      "type": "qualitative-stepper-load",
+      "nominalCurrentMa": 180
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "motor-or-inductive-output",
+    "riskLevel": "high-current",
+    "visualPartIds": [
+      "stepper-28byj48"
+    ],
+    "compatibleTopologies": [
+      "controller-uln2003-unipolar-stepper"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "uln2003-driver",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "stepper-28byj48-visual-pin-map",
+      "stepper-driver-simulation-contract"
+    ],
+    "capabilities": [
+      "stepper-motor",
+      "unipolar-stepper",
+      "inductive-load",
+      "high-current-warning"
+    ],
+    "compatibleSimulationPrimitives": [
+      "stepper_motor_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Trying to drive the stepper phase wires directly from Arduino pins.",
+      "Using a 28BYJ-48 stepper without the ULN2003 driver module.",
+      "Forgetting common ground between controller and driver.",
+      "Treating qualitative step animation as torque, speed, or current sizing."
+    ],
+    "safeSubstitutes": [
+      "micro-servo"
+    ]
+  },
+  {
+    "id": "nema17-stepper",
+    "kind": "output",
+    "label": "NEMA 17 stepper motor",
+    "aliases": [
+      "nema17",
+      "nema 17",
+      "nema17 stepper",
+      "bipolar stepper",
+      "3d printer stepper",
+      "NEMA17 스테퍼",
+      "바이폴라 스테퍼"
+    ],
+    "pins": [
+      {
+        "name": "A+",
+        "role": "coil-a-positive",
+        "aliases": ["1a", "coil a+"]
+      },
+      {
+        "name": "A-",
+        "role": "coil-a-negative",
+        "aliases": ["1b", "coil a-"]
+      },
+      {
+        "name": "B+",
+        "role": "coil-b-positive",
+        "aliases": ["2a", "coil b+"]
+      },
+      {
+        "name": "B-",
+        "role": "coil-b-negative",
+        "aliases": ["2b", "coil b-"]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 5,
+        "max": 12,
+        "nominal": 12
+      },
+      "maxCurrentMa": 1000,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "bipolar-stepper",
+      "step-dir-driver"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "nema17-stepper",
+      "width": 1.1,
+      "depth": 1.1,
+      "height": 1.2
+    },
+    "simulationModel": {
+      "type": "qualitative-stepper-load",
+      "nominalCurrentMa": 350
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "motor-or-inductive-output",
+    "riskLevel": "high-current",
+    "visualPartIds": [
+      "nema17-stepper"
+    ],
+    "compatibleTopologies": [
+      "controller-step-dir-bipolar-stepper"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "a4988-stepper",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "nema17-stepper-visual-pin-map",
+      "stepper-driver-simulation-contract"
+    ],
+    "capabilities": [
+      "stepper-motor",
+      "bipolar-stepper",
+      "inductive-load",
+      "high-current-warning",
+      "external-power-warning"
+    ],
+    "compatibleSimulationPrimitives": [
+      "stepper_motor_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Connecting NEMA 17 coils directly to Arduino pins.",
+      "Using STEP/DIR drivers without motor power, common ground, or current-limit awareness.",
+      "Swapping coil pairs A/B.",
+      "Treating qualitative step animation as real torque, speed, heat, or current sizing."
+    ],
+    "safeSubstitutes": [
+      "stepper-28byj48",
+      "micro-servo"
+    ]
+  }
+]

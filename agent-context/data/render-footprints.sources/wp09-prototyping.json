@@ -1,0 +1,214 @@
+{
+  "breadboard-full": {
+    "type": "breadboard-full",
+    "width": 6.7,
+    "depth": 2.55,
+    "height": 0.18,
+    "visualStyle": { "shape": "breadboard", "color": "#eeece7", "material": "matte-plastic" },
+    "pinAnchors": {
+      "PWR+": { "x": -3.05, "y": 0.12, "z": -1.05, "role": "power-rail", "label": "PWR+" },
+      "PWR-": { "x": -3.05, "y": 0.12, "z": 1.05, "role": "ground-rail", "label": "PWR-" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.28, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "horizontal",
+      "notes": ["Full-size breadboard is represented as a larger placement surface; rail bridges still need explicit wiring."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "surface-state", "anchor": "labelAnchor", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "Full-size breadboard body", "explainableAs": ["placement-surface", "breadboard-topology"] },
+      { "id": "positive-rail", "label": "PWR+ rail", "pin": "PWR+", "explainableAs": ["power-rail"] },
+      { "id": "negative-rail", "label": "PWR- rail", "pin": "PWR-", "explainableAs": ["ground-rail"] }
+    ]
+  },
+  "breadboard-mini": {
+    "type": "breadboard-mini",
+    "width": 3.05,
+    "depth": 1.55,
+    "height": 0.14,
+    "visualStyle": { "shape": "breadboard", "color": "#f4f0e8", "material": "matte-plastic" },
+    "pinAnchors": {
+      "PWR+": { "x": -1.25, "y": 0.1, "z": -0.56, "role": "power-rail", "label": "PWR+" },
+      "PWR-": { "x": -1.25, "y": 0.1, "z": 0.56, "role": "ground-rail", "label": "PWR-" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.24, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "horizontal",
+      "notes": ["Mini breadboard is a compact placement surface and should not be assumed to share half-size rail geometry."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "surface-state", "anchor": "labelAnchor", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "Mini breadboard body", "explainableAs": ["placement-surface", "breadboard-topology"] },
+      { "id": "positive-rail", "label": "PWR+ rail", "pin": "PWR+", "explainableAs": ["power-rail"] },
+      { "id": "negative-rail", "label": "PWR- rail", "pin": "PWR-", "explainableAs": ["ground-rail"] }
+    ]
+  },
+  "perfboard-5x7": {
+    "type": "perfboard-5x7",
+    "width": 4.8,
+    "depth": 3.35,
+    "height": 0.08,
+    "visualStyle": { "shape": "perfboard", "color": "#5a2c00", "material": "phenolic-copper" },
+    "pinAnchors": {
+      "PAD": { "x": 0, "y": 0.08, "z": 0, "role": "signal", "label": "PAD" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.22, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "pads-up",
+      "notes": ["Perfboard pads are visual context only; solder bridges and copper traces are not inferred."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "surface-state", "anchor": "labelAnchor", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "Perfboard surface", "explainableAs": ["placement-surface", "soldered-layout-context"] },
+      { "id": "pad-field", "label": "Copper pad field", "pin": "PAD", "explainableAs": ["unconnected-pad-field"] }
+    ]
+  },
+  "pcb-blank-single": {
+    "type": "pcb-blank-single",
+    "width": 5.1,
+    "depth": 3.75,
+    "height": 0.07,
+    "visualStyle": { "shape": "blank-pcb", "color": "#1c7a38", "material": "fr4-copper" },
+    "pinAnchors": {
+      "PAD": { "x": 0, "y": 0.08, "z": 0, "role": "signal", "label": "PAD" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.22, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "copper-side-up",
+      "notes": ["Blank PCB is context-only; no etched nets are inferred by the simulator."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "surface-state", "anchor": "labelAnchor", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "Blank PCB surface", "explainableAs": ["placement-surface", "pcb-layout-context"] },
+      { "id": "copper-area", "label": "Copper area", "pin": "PAD", "explainableAs": ["unrouted-copper"] }
+    ]
+  },
+  "proto-shield-uno": {
+    "type": "proto-shield-uno",
+    "width": 5.2,
+    "depth": 3.95,
+    "height": 0.16,
+    "visualStyle": { "shape": "arduino-shield", "color": "#228822", "material": "pcb" },
+    "pinAnchors": {
+      "5V": { "x": -1.85, "y": 0.18, "z": 1.45, "role": "power", "label": "5V" },
+      "GND": { "x": -1.55, "y": 0.18, "z": 1.45, "role": "ground", "label": "GND" },
+      "D2": { "x": -1.25, "y": 0.18, "z": -1.45, "role": "digital", "label": "D2" },
+      "A0": { "x": 1.45, "y": 0.18, "z": 1.45, "role": "analog", "label": "A0" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.34, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage", "board"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "stacking-headers-down",
+      "notes": ["Prototype shield shows representative Uno power, ground, digital, and analog anchors; it is not a standalone controller."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "shield-state", "anchor": "labelAnchor", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "Uno prototype shield", "explainableAs": ["placement-surface", "arduino-shield-context"] },
+      { "id": "pin-5v", "label": "5V pass-through", "pin": "5V", "explainableAs": ["power-pass-through"] },
+      { "id": "pin-gnd", "label": "Ground pass-through", "pin": "GND", "explainableAs": ["ground-pass-through"] },
+      { "id": "pin-d2", "label": "D2 pass-through", "pin": "D2", "explainableAs": ["digital-pass-through"] },
+      { "id": "pin-a0", "label": "A0 pass-through", "pin": "A0", "explainableAs": ["analog-pass-through"] }
+    ]
+  },
+  "header-male-40pin": {
+    "type": "header-male-40pin",
+    "width": 5.1,
+    "depth": 0.18,
+    "height": 0.32,
+    "visualStyle": { "shape": "pin-header", "color": "#17171c", "material": "plastic-metal" },
+    "pinAnchors": {
+      "A": { "x": -2.35, "y": 0.22, "z": 0, "role": "signal", "label": "A" },
+      "B": { "x": 2.35, "y": 0.22, "z": 0, "role": "signal", "label": "B" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.46, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage", "board", "breadboard"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "pins-down",
+      "notes": ["Header strip is connector context; it does not create an electrical net without explicit wiring or soldering."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "connector-state", "anchor": "labelAnchor", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "Male header strip", "explainableAs": ["connector", "header-strip"] },
+      { "id": "pin-a", "label": "Header end A", "pin": "A", "explainableAs": ["signal-terminal"] },
+      { "id": "pin-b", "label": "Header end B", "pin": "B", "explainableAs": ["signal-terminal"] }
+    ]
+  },
+  "header-female-40pin": {
+    "type": "header-female-40pin",
+    "width": 5.1,
+    "depth": 0.24,
+    "height": 0.24,
+    "visualStyle": { "shape": "socket-header", "color": "#151515", "material": "plastic-metal" },
+    "pinAnchors": {
+      "A": { "x": -2.35, "y": 0.18, "z": 0, "role": "signal", "label": "A" },
+      "B": { "x": 2.35, "y": 0.18, "z": 0, "role": "signal", "label": "B" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.4, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage", "board", "breadboard"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "sockets-up",
+      "notes": ["Female header is connector context; mating orientation and nets must be explicit in real builds."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "connector-state", "anchor": "labelAnchor", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "Female header socket", "explainableAs": ["connector", "header-socket"] },
+      { "id": "pin-a", "label": "Header end A", "pin": "A", "explainableAs": ["signal-terminal"] },
+      { "id": "pin-b", "label": "Header end B", "pin": "B", "explainableAs": ["signal-terminal"] }
+    ]
+  },
+  "screw-terminal-4pin": {
+    "type": "screw-terminal-4pin",
+    "width": 1.05,
+    "depth": 0.35,
+    "height": 0.32,
+    "visualStyle": { "shape": "screw-terminal", "color": "#008800", "material": "plastic-metal" },
+    "pinAnchors": {
+      "A": { "x": -0.36, "y": 0.22, "z": 0, "role": "signal", "label": "A" },
+      "B": { "x": -0.12, "y": 0.22, "z": 0, "role": "signal", "label": "B" },
+      "C": { "x": 0.12, "y": 0.22, "z": 0, "role": "signal", "label": "C" },
+      "D": { "x": 0.36, "y": 0.22, "z": 0, "role": "signal", "label": "D" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.46, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["stage", "board"],
+      "breadboardCompatible": false,
+      "defaultOrientation": "terminals-up",
+      "notes": ["4-pin terminal block is modeled as low-voltage connector context and never as a mains connector."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "connector-state", "anchor": "labelAnchor", "role": "state-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "4-pin screw terminal", "explainableAs": ["connector", "terminal-block"] },
+      { "id": "pin-a", "label": "Terminal A", "pin": "A", "explainableAs": ["signal-terminal"] },
+      { "id": "pin-b", "label": "Terminal B", "pin": "B", "explainableAs": ["signal-terminal"] },
+      { "id": "pin-c", "label": "Terminal C", "pin": "C", "explainableAs": ["signal-terminal"] },
+      { "id": "pin-d", "label": "Terminal D", "pin": "D", "explainableAs": ["signal-terminal"] }
+    ]
+  }
+}

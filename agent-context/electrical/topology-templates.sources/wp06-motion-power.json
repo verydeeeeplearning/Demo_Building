@@ -1,0 +1,604 @@
+[
+  {
+    "id": "controller-servo-external-power-warning",
+    "label": "Controller PWM servo with external-power warning",
+    "description": "A controller provides PWM signal and a common reference to a high-torque servo model while keeping the real-hardware external power warning explicit.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "pwm-output",
+      "pwm-actuator",
+      "external-power-warning"
+    ],
+    "nets": [
+      {
+        "id": "vcc",
+        "kind": "power"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      },
+      {
+        "id": "pwm-signal",
+        "kind": "signal"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "pwm-actuator.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "pwm-actuator.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.pwm-output",
+        "toNet": "pwm-signal",
+        "signal": "pwm"
+      },
+      {
+        "fromRole": "pwm-actuator.signal",
+        "toNet": "pwm-signal",
+        "signal": "pwm"
+      }
+    ],
+    "validationRules": [
+      "pwm-pin-required",
+      "common-ground",
+      "high-current-warning"
+    ],
+    "simulationPrimitiveHints": [
+      "servo_angle",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-transistor-low-side-load",
+    "label": "Controller low-side NPN transistor switched load",
+    "description": "A controller drives a base resistor into a low-side NPN transistor so an external low-voltage motor-like load can switch without drawing load current from GPIO.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-output",
+      "base-resistor",
+      "low-side-driver",
+      "inductive-load",
+      "flyback-warning"
+    ],
+    "nets": [
+      {
+        "id": "load-vcc",
+        "kind": "power"
+      },
+      {
+        "id": "switched-return",
+        "kind": "mixed"
+      },
+      {
+        "id": "logic-control",
+        "kind": "signal"
+      },
+      {
+        "id": "common-ground",
+        "kind": "ground"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "load-vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "inductive-load.power",
+        "toNet": "load-vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "inductive-load.switched-ground",
+        "toNet": "switched-return",
+        "signal": "power"
+      },
+      {
+        "fromRole": "low-side-driver.collector",
+        "toNet": "switched-return",
+        "signal": "power"
+      },
+      {
+        "fromRole": "low-side-driver.emitter",
+        "toNet": "common-ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "common-ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "logic-control",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "base-resistor.terminal",
+        "toNet": "logic-control",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "low-side-driver.base",
+        "toNet": "logic-control",
+        "signal": "digital"
+      }
+    ],
+    "validationRules": [
+      "motor-driver-required",
+      "base-resistor-required",
+      "common-ground",
+      "high-current-warning",
+      "flyback-warning"
+    ],
+    "simulationPrimitiveHints": [
+      "low_side_switched_load_state",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-mosfet-module-load",
+    "label": "Controller MOSFET/module switched load",
+    "description": "A controller drives a MOSFET module or self-contained motor module so low-voltage motor-like loads use a separated load current path and a low-current control signal.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-output",
+      "low-side-driver",
+      "inductive-load",
+      "flyback-warning"
+    ],
+    "nets": [
+      {
+        "id": "load-vcc",
+        "kind": "power"
+      },
+      {
+        "id": "switched-return",
+        "kind": "mixed"
+      },
+      {
+        "id": "logic-control",
+        "kind": "signal"
+      },
+      {
+        "id": "common-ground",
+        "kind": "ground"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "load-vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "low-side-driver.power",
+        "toNet": "load-vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "inductive-load.power",
+        "toNet": "load-vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "inductive-load.switched-ground",
+        "toNet": "switched-return",
+        "signal": "power"
+      },
+      {
+        "fromRole": "low-side-driver.switched-ground",
+        "toNet": "switched-return",
+        "signal": "power"
+      },
+      {
+        "fromRole": "low-side-driver.ground",
+        "toNet": "common-ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "common-ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "logic-control",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "low-side-driver.signal",
+        "toNet": "logic-control",
+        "signal": "digital"
+      }
+    ],
+    "validationRules": [
+      "motor-driver-required",
+      "module-signal-required",
+      "common-ground",
+      "high-current-warning",
+      "flyback-warning"
+    ],
+    "simulationPrimitiveHints": [
+      "low_side_switched_load_state",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-uln2003-unipolar-stepper",
+    "label": "Controller ULN2003 unipolar stepper driver",
+    "description": "A controller sends four phase signals into a ULN2003 driver module so a 28BYJ-48 stepper can rotate qualitatively without driving coils directly from GPIO.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-output",
+      "stepper-driver",
+      "unipolar-stepper",
+      "stepper-phase-lines",
+      "high-current-warning"
+    ],
+    "nets": [
+      {
+        "id": "driver-vcc",
+        "kind": "power"
+      },
+      {
+        "id": "common-ground",
+        "kind": "ground"
+      },
+      {
+        "id": "phase-control",
+        "kind": "signal"
+      },
+      {
+        "id": "phase-drive",
+        "kind": "mixed"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "driver-vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "stepper-driver.power",
+        "toNet": "driver-vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "unipolar-stepper.power",
+        "toNet": "driver-vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "common-ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "stepper-driver.ground",
+        "toNet": "common-ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "phase-control",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "stepper-driver.input",
+        "toNet": "phase-control",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "stepper-driver.phase-output",
+        "toNet": "phase-drive",
+        "signal": "power"
+      },
+      {
+        "fromRole": "unipolar-stepper.phase",
+        "toNet": "phase-drive",
+        "signal": "power"
+      }
+    ],
+    "validationRules": [
+      "stepper-driver-required",
+      "stepper-phase-lines-required",
+      "common-ground",
+      "high-current-warning"
+    ],
+    "simulationPrimitiveHints": [
+      "stepper_motor_state",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-step-dir-bipolar-stepper",
+    "label": "Controller STEP/DIR bipolar stepper driver",
+    "description": "A controller sends STEP and DIR logic into an A4988/DRV8825-style driver, which drives the two qualitative coil pairs of a NEMA 17 stepper.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-output",
+      "stepper-driver",
+      "bipolar-stepper",
+      "step-dir-control",
+      "stepper-phase-lines",
+      "high-current-warning",
+      "external-power-warning"
+    ],
+    "nets": [
+      {
+        "id": "motor-vcc",
+        "kind": "power"
+      },
+      {
+        "id": "common-ground",
+        "kind": "ground"
+      },
+      {
+        "id": "step-dir-control",
+        "kind": "signal"
+      },
+      {
+        "id": "coil-drive",
+        "kind": "mixed"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "motor-vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "stepper-driver.motor-power",
+        "toNet": "motor-vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "common-ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "stepper-driver.ground",
+        "toNet": "common-ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "step-dir-control",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "stepper-driver.step-dir-input",
+        "toNet": "step-dir-control",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "stepper-driver.coil-output",
+        "toNet": "coil-drive",
+        "signal": "power"
+      },
+      {
+        "fromRole": "bipolar-stepper.coil",
+        "toNet": "coil-drive",
+        "signal": "power"
+      }
+    ],
+    "validationRules": [
+      "stepper-driver-required",
+      "stepper-step-dir-required",
+      "stepper-phase-lines-required",
+      "common-ground",
+      "high-current-warning",
+      "current-limit-warning"
+    ],
+    "simulationPrimitiveHints": [
+      "stepper_motor_state",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-hbridge-dc-motor",
+    "label": "Controller H-bridge DC motor driver",
+    "description": "A controller sends enable and direction signals into an L293D/L298N-style H-bridge so a small DC motor can change direction without drawing motor current from GPIO.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-output",
+      "hbridge-driver",
+      "dc-motor-load",
+      "hbridge-control",
+      "hbridge-motor-output",
+      "high-current-warning"
+    ],
+    "nets": [
+      {
+        "id": "motor-vcc",
+        "kind": "power"
+      },
+      {
+        "id": "logic-control",
+        "kind": "signal"
+      },
+      {
+        "id": "motor-drive",
+        "kind": "mixed"
+      },
+      {
+        "id": "common-ground",
+        "kind": "ground"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "motor-vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "hbridge-driver.motor-power",
+        "toNet": "motor-vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "common-ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "hbridge-driver.ground",
+        "toNet": "common-ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "logic-control",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "hbridge-driver.control-input",
+        "toNet": "logic-control",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "hbridge-driver.motor-output",
+        "toNet": "motor-drive",
+        "signal": "power"
+      },
+      {
+        "fromRole": "dc-motor-load.terminal",
+        "toNet": "motor-drive",
+        "signal": "power"
+      }
+    ],
+    "validationRules": [
+      "hbridge-driver-required",
+      "hbridge-control-required",
+      "common-ground",
+      "high-current-warning",
+      "external-power-warning"
+    ],
+    "simulationPrimitiveHints": [
+      "hbridge_motor_state",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-relay-low-voltage-load",
+    "label": "Controller relay module with low-voltage contact load",
+    "description": "A controller drives a relay module input while the relay contact side switches only a low-voltage classroom load path.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-output",
+      "relay-module",
+      "relay-control",
+      "relay-contact-load",
+      "low-voltage-contact-load",
+      "mains-blocked"
+    ],
+    "nets": [
+      {
+        "id": "relay-vcc",
+        "kind": "power"
+      },
+      {
+        "id": "common-ground",
+        "kind": "ground"
+      },
+      {
+        "id": "relay-control",
+        "kind": "signal"
+      },
+      {
+        "id": "contact-load",
+        "kind": "mixed"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "relay-vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "relay-module.power",
+        "toNet": "relay-vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "common-ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "relay-module.ground",
+        "toNet": "common-ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "relay-control",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "relay-module.input",
+        "toNet": "relay-control",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "relay-module.contact",
+        "toNet": "contact-load",
+        "signal": "power"
+      },
+      {
+        "fromRole": "relay-contact-load.terminal",
+        "toNet": "contact-load",
+        "signal": "power"
+      }
+    ],
+    "validationRules": [
+      "relay-control-required",
+      "relay-load-contact-required",
+      "relay-low-voltage-load-only",
+      "common-ground",
+      "high-current-warning"
+    ],
+    "simulationPrimitiveHints": [
+      "relay_switch_state",
+      "current_flow_animation"
+    ]
+  }
+]

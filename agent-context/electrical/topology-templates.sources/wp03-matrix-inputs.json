@@ -1,0 +1,369 @@
+[
+  {
+    "id": "controller-matrix-input-display",
+    "label": "Controller matrix or multi-switch input plus I2C display",
+    "description": "A controller scans multiple switch, keypad, or row/column input lines and shows the qualitative key or switch state on an I2C OLED.",
+    "requiredRoles": [
+      "controller",
+      "matrix-input",
+      "digital-input",
+      "digital-output",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module",
+      "ground-return"
+    ],
+    "nets": [
+      {
+        "id": "scan-lines",
+        "kind": "signal"
+      },
+      {
+        "id": "sense-lines",
+        "kind": "signal"
+      },
+      {
+        "id": "i2c-data",
+        "kind": "signal"
+      },
+      {
+        "id": "i2c-clock",
+        "kind": "signal"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "scan-lines",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "matrix-input.scan",
+        "toNet": "scan-lines",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "controller.digital-input",
+        "toNet": "sense-lines",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "matrix-input.sense",
+        "toNet": "sense-lines",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "matrix-input.reference",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.i2c-data",
+        "toNet": "i2c-data",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "i2c-module.data",
+        "toNet": "i2c-data",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "controller.i2c-clock",
+        "toNet": "i2c-clock",
+        "signal": "i2c-clock"
+      },
+      {
+        "fromRole": "i2c-module.clock",
+        "toNet": "i2c-clock",
+        "signal": "i2c-clock"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "i2c-module.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      }
+    ],
+    "validationRules": [
+      "matrix-input-lines-distinct",
+      "matrix-input-reference-defined",
+      "i2c-pin-role-match",
+      "common-ground",
+      "qualitative-sensor-readout-only"
+    ],
+    "simulationPrimitiveHints": [
+      "matrix_input_state",
+      "display_static_text",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-dual-analog-input-display",
+    "label": "Controller dual analog joystick plus I2C display",
+    "description": "A controller powers a joystick module, reads VRX/VRY on two distinct analog inputs and SW on a digital input, then displays qualitative position.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "analog-input",
+      "digital-input",
+      "joystick-input",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "nets": [
+      {
+        "id": "vcc",
+        "kind": "power"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      },
+      {
+        "id": "x-axis",
+        "kind": "signal"
+      },
+      {
+        "id": "y-axis",
+        "kind": "signal"
+      },
+      {
+        "id": "switch",
+        "kind": "signal"
+      },
+      {
+        "id": "i2c-data",
+        "kind": "signal"
+      },
+      {
+        "id": "i2c-clock",
+        "kind": "signal"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "joystick-input.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "joystick-input.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "joystick-input.x-axis",
+        "toNet": "x-axis",
+        "signal": "analog"
+      },
+      {
+        "fromRole": "controller.analog-input",
+        "toNet": "x-axis",
+        "signal": "analog"
+      },
+      {
+        "fromRole": "joystick-input.y-axis",
+        "toNet": "y-axis",
+        "signal": "analog"
+      },
+      {
+        "fromRole": "controller.analog-input",
+        "toNet": "y-axis",
+        "signal": "analog"
+      },
+      {
+        "fromRole": "joystick-input.switch",
+        "toNet": "switch",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "controller.digital-input",
+        "toNet": "switch",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "controller.i2c-data",
+        "toNet": "i2c-data",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "i2c-module.data",
+        "toNet": "i2c-data",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "controller.i2c-clock",
+        "toNet": "i2c-clock",
+        "signal": "i2c-clock"
+      },
+      {
+        "fromRole": "i2c-module.clock",
+        "toNet": "i2c-clock",
+        "signal": "i2c-clock"
+      }
+    ],
+    "validationRules": [
+      "joystick-axis-pins-defined",
+      "digital-input-pin-exists",
+      "power-rail-valid",
+      "common-ground",
+      "i2c-pin-role-match",
+      "qualitative-sensor-readout-only"
+    ],
+    "simulationPrimitiveHints": [
+      "joystick_position_state",
+      "display_static_text",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-quadrature-input-display",
+    "label": "Controller rotary encoder plus I2C display",
+    "description": "A controller powers a rotary encoder, reads distinct CLK/DT/SW digital inputs, and shows qualitative direction/count state on an I2C OLED.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-input",
+      "quadrature-input",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "nets": [
+      {
+        "id": "vcc",
+        "kind": "power"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      },
+      {
+        "id": "clk",
+        "kind": "signal"
+      },
+      {
+        "id": "dt",
+        "kind": "signal"
+      },
+      {
+        "id": "sw",
+        "kind": "signal"
+      },
+      {
+        "id": "i2c-data",
+        "kind": "signal"
+      },
+      {
+        "id": "i2c-clock",
+        "kind": "signal"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "quadrature-input.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "quadrature-input.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "quadrature-input.clk",
+        "toNet": "clk",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "controller.digital-input",
+        "toNet": "clk",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "quadrature-input.dt",
+        "toNet": "dt",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "controller.digital-input",
+        "toNet": "dt",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "quadrature-input.sw",
+        "toNet": "sw",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "controller.digital-input",
+        "toNet": "sw",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "controller.i2c-data",
+        "toNet": "i2c-data",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "i2c-module.data",
+        "toNet": "i2c-data",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "controller.i2c-clock",
+        "toNet": "i2c-clock",
+        "signal": "i2c-clock"
+      },
+      {
+        "fromRole": "i2c-module.clock",
+        "toNet": "i2c-clock",
+        "signal": "i2c-clock"
+      }
+    ],
+    "validationRules": [
+      "encoder-quadrature-pins-defined",
+      "digital-input-pin-exists",
+      "power-rail-valid",
+      "common-ground",
+      "i2c-pin-role-match",
+      "qualitative-sensor-readout-only"
+    ],
+    "simulationPrimitiveHints": [
+      "rotary_encoder_state",
+      "display_static_text",
+      "current_flow_animation"
+    ]
+  }
+]

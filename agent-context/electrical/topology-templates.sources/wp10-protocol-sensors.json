@@ -1,0 +1,209 @@
+[
+  {
+    "id": "controller-i2c-sensor-display",
+    "label": "Controller I2C protocol sensor readout on I2C display",
+    "description": "A controller powers a low-voltage I2C sensor and an I2C text display, shares SDA/SCL, and shows a qualitative classroom readout.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "i2c-data",
+      "i2c-clock",
+      "protocol-sensor",
+      "i2c-module"
+    ],
+    "nets": [
+      { "id": "vcc", "kind": "power" },
+      { "id": "ground", "kind": "ground" },
+      { "id": "sda", "kind": "signal" },
+      { "id": "scl", "kind": "signal" }
+    ],
+    "connections": [
+      { "fromRole": "controller.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "protocol-sensor.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "i2c-module.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "controller.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "protocol-sensor.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "i2c-module.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "controller.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "protocol-sensor.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "i2c-module.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "controller.i2c-clock", "toNet": "scl", "signal": "i2c-clock" },
+      { "fromRole": "protocol-sensor.i2c-clock", "toNet": "scl", "signal": "i2c-clock" },
+      { "fromRole": "i2c-module.i2c-clock", "toNet": "scl", "signal": "i2c-clock" }
+    ],
+    "validationRules": [
+      "i2c-protocol-sensor-pins",
+      "i2c-pin-role-match",
+      "common-ground",
+      "power-rail-valid",
+      "qualitative-sensor-readout-only"
+    ],
+    "simulationPrimitiveHints": [
+      "display_sensor_value",
+      "display_static_text",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-clocked-data-sensor-i2c-display",
+    "label": "Controller clocked-data sensor readout on I2C display",
+    "description": "A controller powers a low-voltage clocked-data sensor such as HX711, reads data/clock pins, and shows a qualitative value on an I2C display.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-input",
+      "digital-output",
+      "protocol-sensor",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "nets": [
+      { "id": "vcc", "kind": "power" },
+      { "id": "ground", "kind": "ground" },
+      { "id": "data", "kind": "signal" },
+      { "id": "clock", "kind": "signal" },
+      { "id": "sda", "kind": "signal" },
+      { "id": "scl", "kind": "signal" }
+    ],
+    "connections": [
+      { "fromRole": "controller.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "protocol-sensor.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "i2c-module.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "controller.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "protocol-sensor.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "i2c-module.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "protocol-sensor.digital-data", "toNet": "data", "signal": "gpio" },
+      { "fromRole": "controller.digital-input", "toNet": "data", "signal": "gpio" },
+      { "fromRole": "controller.digital-output", "toNet": "clock", "signal": "gpio" },
+      { "fromRole": "protocol-sensor.digital-clock", "toNet": "clock", "signal": "gpio" },
+      { "fromRole": "controller.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "i2c-module.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "controller.i2c-clock", "toNet": "scl", "signal": "i2c-clock" },
+      { "fromRole": "i2c-module.i2c-clock", "toNet": "scl", "signal": "i2c-clock" }
+    ],
+    "validationRules": [
+      "clocked-data-sensor-pins",
+      "digital-input-pin-exists",
+      "output-pin-exists",
+      "i2c-pin-role-match",
+      "common-ground",
+      "qualitative-sensor-readout-only"
+    ],
+    "simulationPrimitiveHints": [
+      "display_sensor_value",
+      "display_static_text",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-spi-sensor-display",
+    "label": "Controller SPI protocol sensor readout on I2C display",
+    "description": "A controller powers a low-voltage SPI sensor module, connects SCK/MOSI/MISO/CS to digital pins, and displays a qualitative readout on an I2C text display.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "spi-clock",
+      "spi-mosi",
+      "spi-miso",
+      "spi-select",
+      "protocol-sensor",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "nets": [
+      { "id": "vcc", "kind": "power" },
+      { "id": "ground", "kind": "ground" },
+      { "id": "sck", "kind": "signal" },
+      { "id": "mosi", "kind": "signal" },
+      { "id": "miso", "kind": "signal" },
+      { "id": "cs", "kind": "signal" },
+      { "id": "sda", "kind": "signal" },
+      { "id": "scl", "kind": "signal" }
+    ],
+    "connections": [
+      { "fromRole": "controller.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "protocol-sensor.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "controller.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "protocol-sensor.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "controller.digital-output", "toNet": "sck", "signal": "spi" },
+      { "fromRole": "protocol-sensor.spi-clock", "toNet": "sck", "signal": "spi" },
+      { "fromRole": "controller.digital-output", "toNet": "mosi", "signal": "spi" },
+      { "fromRole": "protocol-sensor.spi-mosi", "toNet": "mosi", "signal": "spi" },
+      { "fromRole": "protocol-sensor.spi-miso", "toNet": "miso", "signal": "spi" },
+      { "fromRole": "controller.digital-input", "toNet": "miso", "signal": "spi" },
+      { "fromRole": "controller.digital-output", "toNet": "cs", "signal": "spi" },
+      { "fromRole": "protocol-sensor.spi-select", "toNet": "cs", "signal": "spi" },
+      { "fromRole": "controller.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "i2c-module.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "controller.i2c-clock", "toNet": "scl", "signal": "i2c-clock" },
+      { "fromRole": "i2c-module.i2c-clock", "toNet": "scl", "signal": "i2c-clock" }
+    ],
+    "validationRules": [
+      "spi-sensor-clock-pin",
+      "spi-sensor-data-pins",
+      "spi-sensor-select-pin",
+      "i2c-pin-role-match",
+      "common-ground",
+      "qualitative-sensor-readout-only"
+    ],
+    "simulationPrimitiveHints": [
+      "display_sensor_value",
+      "display_static_text",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-uart-sensor-display",
+    "label": "Controller UART protocol sensor readout on I2C display",
+    "description": "A controller powers a low-voltage UART sensor, connects sensor TX to controller RX, and shows a qualitative classroom readout on an I2C display.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "serial-rx",
+      "serial-tx",
+      "protocol-sensor",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "nets": [
+      { "id": "vcc", "kind": "power" },
+      { "id": "ground", "kind": "ground" },
+      { "id": "sensor-tx", "kind": "signal" },
+      { "id": "sda", "kind": "signal" },
+      { "id": "scl", "kind": "signal" }
+    ],
+    "connections": [
+      { "fromRole": "controller.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "protocol-sensor.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "i2c-module.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "controller.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "protocol-sensor.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "i2c-module.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "protocol-sensor.serial-tx", "toNet": "sensor-tx", "signal": "uart" },
+      { "fromRole": "controller.serial-rx", "toNet": "sensor-tx", "signal": "uart" },
+      { "fromRole": "controller.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "i2c-module.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "controller.i2c-clock", "toNet": "scl", "signal": "i2c-clock" },
+      { "fromRole": "i2c-module.i2c-clock", "toNet": "scl", "signal": "i2c-clock" }
+    ],
+    "validationRules": [
+      "uart-sensor-tx-rx-crossing",
+      "i2c-pin-role-match",
+      "common-ground",
+      "power-rail-valid",
+      "qualitative-sensor-readout-only"
+    ],
+    "simulationPrimitiveHints": [
+      "display_sensor_value",
+      "display_static_text",
+      "current_flow_animation"
+    ]
+  }
+]

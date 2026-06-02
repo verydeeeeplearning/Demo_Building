@@ -1,0 +1,96 @@
+[
+  {
+    "id": "uart-communication-module-readout",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "esp01 wifi status on oled",
+      "hc05 bluetooth status display",
+      "sim800l status display",
+      "uart communication module readout",
+      "wifi module command state",
+      "bluetooth module command state",
+      "GSM 모듈 상태 표시",
+      "블루투스 모듈 OLED 표시"
+    ],
+    "requiredEvidence": ["esp01", "esp-01", "hc05", "hc-05", "sim800l", "uart communication", "wifi module", "bluetooth module", "gsm module"],
+    "negativeEvidence": ["cloud", "internet service", "phone pairing", "sms sending", "call", "tracking", "security alarm"],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "Show HC-05 Bluetooth module status on the OLED display",
+      "Show ESP-01 WiFi AT command state on OLED",
+      "SIM800L GSM module status를 OLED에 표시"
+    ],
+    "inputModalities": ["communication-module", "wireless-communication", "uart-module"],
+    "outputModalities": ["display", "module-state"],
+    "requiredRoles": ["controller", "power-source", "ground-return", "serial-rx", "serial-tx", "i2c-data", "i2c-clock", "i2c-module"],
+    "requiredParts": ["arduino-uno", "breadboard-half", "oled-i2c-096"],
+    "optionalParts": ["jumper-wire", "esp01-wifi", "hc05-bluetooth", "sim800l-gsm", "oled-13-i2c", "lcd-16x2", "lcd-20x4"],
+    "protocols": ["uart", "i2c", "power"],
+    "simulationPrimitives": ["display_sensor_value", "display_static_text", "current_flow_animation"],
+    "renderFootprints": ["arduino", "breadboard", "esp01-wifi-module", "hc05-bluetooth-module", "sim800l-gsm-module", "oled", "wire", "oled-large", "lcd-character-16x2", "lcd-character-20x4"],
+    "validationRules": ["uart-communication-module-pins", "i2c-pin-role-match", "common-ground", "power-rail-valid", "wireless-command-state-only", "network-cloud-overclaim-blocked"],
+    "commonMistakes": ["Swapping UART TX/RX.", "Assuming real WiFi, Bluetooth pairing, SMS, calls, or cloud networking is simulated."],
+    "safeAlternatives": ["uart-sensor-display-readout", "spi-communication-module-readout"]
+  },
+  {
+    "id": "spi-communication-module-readout",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "lora module status on oled",
+      "nrf24l01 radio status",
+      "mcp2515 can status display",
+      "usb host shield spi status",
+      "spi communication module readout",
+      "LoRa 상태 OLED 표시",
+      "CAN 모듈 상태 표시"
+    ],
+    "requiredEvidence": ["lora", "ra-02", "nrf24", "nrf24l01", "mcp2515", "can bus", "usb host", "spi communication"],
+    "negativeEvidence": ["real radio range", "vehicle control", "usb device enumeration", "internet", "security"],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "Show LoRa Ra-02 module status on the OLED display",
+      "Show MCP2515 CAN module SPI state on OLED",
+      "USB host shield 상태를 OLED에 표시"
+    ],
+    "inputModalities": ["communication-module", "wireless-communication", "wired-communication", "spi-module"],
+    "outputModalities": ["display", "module-state"],
+    "requiredRoles": ["controller", "power-source", "ground-return", "spi-clock", "spi-mosi", "spi-miso", "spi-select", "i2c-data", "i2c-clock", "i2c-module"],
+    "requiredParts": ["arduino-uno", "breadboard-half", "oled-i2c-096"],
+    "optionalParts": ["jumper-wire", "lora-ra02", "nrf24l01-radio", "mcp2515-can", "usb-host-shield", "oled-13-i2c", "lcd-16x2", "lcd-20x4"],
+    "protocols": ["spi", "i2c", "power"],
+    "simulationPrimitives": ["display_sensor_value", "display_static_text", "current_flow_animation"],
+    "renderFootprints": ["arduino", "breadboard", "lora-ra02-module", "nrf24l01-radio-module", "mcp2515-can-module", "usb-host-shield-module", "oled", "wire", "oled-large", "lcd-character-16x2", "lcd-character-20x4"],
+    "validationRules": ["spi-communication-module-pins", "i2c-pin-role-match", "common-ground", "power-rail-valid", "network-cloud-overclaim-blocked", "radio-power-warning"],
+    "commonMistakes": ["Swapping SPI MOSI/MISO/SCK/CS pins.", "Assuming real RF range, vehicle CAN behavior, or USB device enumeration is simulated."],
+    "safeAlternatives": ["spi-sensor-display-readout", "uart-communication-module-readout"]
+  },
+  {
+    "id": "rs485-communication-module-readout",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "rs485 module status on oled",
+      "max485 transceiver display",
+      "differential bus module readout",
+      "rs-485 state display",
+      "RS485 모듈 상태 표시"
+    ],
+    "requiredEvidence": ["rs485", "rs-485", "max485", "differential bus"],
+    "negativeEvidence": ["industrial network", "long cable", "mains", "fieldbus certification"],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "Show RS-485 module state on the OLED display",
+      "MAX485 transceiver 상태를 OLED에 표시"
+    ],
+    "inputModalities": ["communication-module", "wired-communication", "differential-bus"],
+    "outputModalities": ["display", "module-state"],
+    "requiredRoles": ["controller", "power-source", "ground-return", "serial-rx", "serial-tx", "enable", "i2c-data", "i2c-clock", "i2c-module"],
+    "requiredParts": ["arduino-uno", "breadboard-half", "rs485-module", "oled-i2c-096"],
+    "optionalParts": ["jumper-wire", "oled-13-i2c", "lcd-16x2", "lcd-20x4"],
+    "protocols": ["uart", "rs485-differential-state", "i2c", "power"],
+    "simulationPrimitives": ["display_sensor_value", "display_static_text", "current_flow_animation"],
+    "renderFootprints": ["arduino", "breadboard", "rs485-transceiver-module", "oled", "wire", "oled-large", "lcd-character-16x2", "lcd-character-20x4"],
+    "validationRules": ["differential-bus-module-pins", "i2c-pin-role-match", "common-ground", "power-rail-valid"],
+    "commonMistakes": ["Swapping RO and DI direction.", "Assuming long-cable termination, industrial noise, or certification behavior is simulated."],
+    "safeAlternatives": ["uart-communication-module-readout"]
+  }
+]

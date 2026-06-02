@@ -1,0 +1,41 @@
+[
+  {
+    "partId": "jumper-wire",
+    "electricalModel": { "kind": "ideal_wire", "nominalCurrentMilliamp": 0 }
+  },
+  {
+    "partId": "resistor-220",
+    "electricalModel": { "kind": "resistor", "resistanceOhms": 220, "tolerancePercent": 5, "powerRatingWatt": 0.25 }
+  },
+  {
+    "partId": "led-5mm",
+    "electricalModel": {
+      "kind": "led_diode_simplified",
+      "forwardVoltageTypical": 2,
+      "recommendedCurrentMilliamp": 10,
+      "absoluteMaxCurrentMilliamp": 20,
+      "requiresCurrentLimiting": true,
+      "polaritySensitive": true
+    }
+  },
+  {
+    "partId": "button-tactile",
+    "electricalModel": { "kind": "button_switch", "nominalCurrentMilliamp": 1 }
+  },
+  {
+    "partId": "oled-i2c-096",
+    "electricalModel": { "kind": "oled_i2c_module", "nominalCurrentMilliamp": 18 }
+  },
+  {
+    "partId": "piezo-buzzer",
+    "electricalModel": { "kind": "buzzer_module", "nominalCurrentMilliamp": 15 }
+  },
+  {
+    "partId": "micro-servo",
+    "electricalModel": { "kind": "servo_module", "nominalCurrentMilliamp": 120, "warning": "Real servos may need external power." }
+  },
+  {
+    "partId": "dc-motor",
+    "electricalModel": { "kind": "dc_motor_requires_driver", "nominalCurrentMilliamp": 0 }
+  }
+]

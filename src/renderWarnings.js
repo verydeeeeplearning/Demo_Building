@@ -25,7 +25,13 @@ ${rows}
 `;
 }
 
-function renderWarningMessage(warning, locale) {
+export function renderWarningMessage(warning, locale) {
+  if (isInternalDiagnosticWarning(warning)) {
+    return locale === 'ko'
+      ? '이 장면은 검토용 3D 보기입니다. 조립이나 전류 흐름 실행은 충분한 자료가 확인될 때까지 꺼져 있습니다.'
+      : 'This is a review-only 3D view. Build and current-flow controls stay off until enough evidence is checked.';
+  }
+
   if (locale !== 'ko') {
     return warning.message;
   }
@@ -38,10 +44,18 @@ function renderWarningMessage(warning, locale) {
     RENDER_CONNECTION_TOO_SHORT: '연결선의 양 끝이 같은 위치에 가까워 전선이 보이지 않거나 실제 배선처럼 보이지 않을 수 있습니다.',
     BREADBOARD_PIN_ROW_COLLAPSE: '여러 핀이 같은 브레드보드 줄에 겹쳐 실제 조립처럼 신뢰하기 어렵습니다.',
     BREADBOARD_PIN_GRID_MISALIGNMENT: '핀이 브레드보드 구멍 위치에 맞지 않아 실제 조립 위치처럼 신뢰하기 어렵습니다.',
+    PART_COLLISION: '부품 외형이 서로 겹쳐 보여 실제 배치처럼 신뢰하기 어렵습니다.',
+    CAMERA_CLIPPING: '카메라 구도가 장면 전체를 충분히 담지 못해 일부 부품이 잘려 보일 수 있습니다.',
+    LABEL_OVERLAP: '라벨이 다른 라벨이나 부품과 겹쳐 보여 설명 표시 위치를 다듬어야 합니다.',
     BREADBOARD_PHYSICAL_NODE_CONFLICT: '논리적으로 연결되지 않은 핀들이 같은 브레드보드 구멍에 있어 실제 회로에서는 의도치 않게 서로 연결될 수 있습니다.',
     BREADBOARD_CONTINUITY_CONFLICT: '논리적으로 연결되지 않은 핀들이 같은 브레드보드 연결 줄에 있어 실제 회로에서는 의도치 않게 서로 연결될 수 있습니다.',
     BREADBOARD_RAIL_CONFLICT: '논리적으로 연결되지 않은 핀들이 같은 브레드보드 전원 레일에 있어 실제 회로에서는 의도치 않게 서로 연결될 수 있습니다.'
   };
 
   return messages[warning.code] || warning.message;
+}
+
+function isInternalDiagnosticWarning(warning) {
+  const text = `${warning.code || ''} ${warning.message || ''}`;
+  return /DIAGNOSTIC_RENDER_ONLY|validation status is unsupported|simulation status is unsupported|context[-_ ]?support[-_ ]?gap|canonical context|valid synthesis|support bundle|part[-_ ]?capability|simulation[-_ ]?primitive|verified support data/i.test(text);
 }

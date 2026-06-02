@@ -1,0 +1,1811 @@
+[
+  {
+    "bundleId": "display-text-output-starter",
+    "capabilityId": "display-text-output",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "oled-i2c-096",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-rev3-i2c-a4-a5",
+      "ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "breadboard-row-continuity-5-hole",
+      "oled-13-i2c-visual-pin-map",
+      "lcd-16x2-i2c-visual-pin-map",
+      "lcd-20x4-i2c-visual-pin-map",
+      "i2c-text-display-qualitative-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "oled-current",
+      "lcd-16x2-text-supported"
+    ]
+  },
+  {
+    "bundleId": "digital-light-output-starter",
+    "capabilityId": "digital-light-output",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "led-5mm",
+      "resistor-220",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-rev3-d9-pwm-pin",
+      "breadboard-row-continuity-5-hole",
+      "led-5mm-requires-current-limit",
+      "led-5mm-anode-cathode-polarity",
+      "rgb-led-common-cathode-visual-pin-map",
+      "rgb-led-current-limit-per-channel",
+      "laser-diode-module-visual-pin-map",
+      "laser-diode-module-qualitative-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "led-blink"
+    ]
+  },
+  {
+    "bundleId": "button-controlled-light-output-starter",
+    "capabilityId": "button-controlled-light-output",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "button-tactile",
+      "led-5mm",
+      "resistor-220",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "breadboard-row-continuity-5-hole",
+      "led-5mm-requires-current-limit",
+      "led-5mm-anode-cathode-polarity",
+      "tactile-button-normally-open"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "button-led"
+    ]
+  },
+  {
+    "bundleId": "sound-alert-output-starter",
+    "capabilityId": "sound-alert-output",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "piezo-buzzer",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "breadboard-row-continuity-5-hole",
+      "piezo-buzzer-arduino-tone-output",
+      "active-buzzer-visual-pin-map",
+      "active-buzzer-fixed-tone-qualitative-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "buzzer-alarm"
+    ]
+  },
+  {
+    "bundleId": "servo-motion-output-starter",
+    "capabilityId": "servo-motion-output",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "micro-servo",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-rev3-d9-pwm-pin",
+      "breadboard-row-continuity-5-hole",
+      "micro-servo-three-wire-pwm-signal",
+      "mg996r-servo-visual-pin-map",
+      "mg996r-servo-external-power-warning-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "servo-motion"
+    ]
+  },
+  {
+    "bundleId": "low-side-switched-load-output-starter",
+    "capabilityId": "low-side-switched-load-output",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "irf520-mosfet",
+      "dc-motor-130",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "breadboard-row-continuity-5-hole",
+      "2n2222-npn-visual-pin-map",
+      "irf520-mosfet-visual-pin-map",
+      "dc-motor-130-visual-pin-map",
+      "dc-fan-5v-visual-pin-map",
+      "mini-water-pump-visual-pin-map",
+      "solenoid-valve-visual-pin-map",
+      "vibration-motor-visual-pin-map",
+      "low-side-inductive-load-simulation-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "dc-motor-mosfet-supported",
+      "mains-motor-counterexample"
+    ]
+  },
+  {
+    "bundleId": "stepper-motor-output-starter",
+    "capabilityId": "stepper-motor-output",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "uln2003-driver",
+      "stepper-28byj48",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "breadboard-row-continuity-5-hole",
+      "stepper-28byj48-visual-pin-map",
+      "nema17-stepper-visual-pin-map",
+      "uln2003-driver-visual-pin-map",
+      "a4988-stepper-visual-pin-map",
+      "drv8825-stepper-visual-pin-map",
+      "stepper-driver-simulation-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "stepper-28byj48-uln2003-supported",
+      "direct-stepper-gpio-counterexample"
+    ]
+  },
+  {
+    "bundleId": "hbridge-motor-output-starter",
+    "capabilityId": "hbridge-motor-output",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "l298n-driver",
+      "dc-motor-130",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "breadboard-row-continuity-5-hole",
+      "l298n-driver-visual-pin-map",
+      "l293d-driver-visual-pin-map",
+      "dc-motor-130-visual-pin-map",
+      "hbridge-dc-motor-simulation-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "l298n-dc-motor-supported",
+      "direct-hbridge-motor-counterexample"
+    ]
+  },
+  {
+    "bundleId": "relay-low-voltage-output-starter",
+    "capabilityId": "relay-low-voltage-output",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "relay-1ch",
+      "led-5mm",
+      "resistor-220",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "breadboard-row-continuity-5-hole",
+      "led-5mm-requires-current-limit",
+      "led-5mm-anode-cathode-polarity",
+      "relay-1ch-visual-pin-map",
+      "relay-4ch-visual-pin-map",
+      "relay-low-voltage-simulation-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "relay-low-voltage-led-supported",
+      "mains-relay-counterexample"
+    ]
+  },
+  {
+    "bundleId": "analog-led-dimmer-starter",
+    "capabilityId": "analog-led-dimmer",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "potentiometer-10k",
+      "trimmer-pot",
+      "led-5mm",
+      "resistor-220",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-rev3-d9-pwm-pin",
+      "arduino-uno-analog-input-pins-a0-a5",
+      "breadboard-row-continuity-5-hole",
+      "led-5mm-requires-current-limit",
+      "led-5mm-anode-cathode-polarity",
+      "potentiometer-three-pin-analog-input",
+      "trimmer-pot-visual-pin-map",
+      "trimmer-pot-analog-divider-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "potentiometer-supported",
+      "korean-potentiometer-supported",
+      "trimmer-pot-supported"
+    ]
+  },
+  {
+    "bundleId": "light-sensor-triggered-output-starter",
+    "capabilityId": "light-sensor-triggered-output",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "photoresistor-ldr",
+      "led-5mm",
+      "resistor-220",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-analog-input-pins-a0-a5",
+      "breadboard-row-continuity-5-hole",
+      "led-5mm-requires-current-limit",
+      "led-5mm-anode-cathode-polarity",
+      "arduino-analog-input-variable-resistor-photoresistor",
+      "photoresistor-voltage-divider-required"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "photoresistor-supported"
+    ]
+  },
+  {
+    "bundleId": "distance-sensor-display-starter",
+    "capabilityId": "distance-sensor-display",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "ultrasonic-hc-sr04",
+      "oled-i2c-096",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-rev3-i2c-a4-a5",
+      "breadboard-row-continuity-5-hole",
+      "ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "hc-sr04-four-pin-5v-trigger-echo",
+      "hc-sr04-trigger-echo-distance-timing",
+      "oled-13-i2c-visual-pin-map",
+      "lcd-16x2-i2c-visual-pin-map",
+      "lcd-20x4-i2c-visual-pin-map",
+      "i2c-text-display-qualitative-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "ultrasonic-display-supported",
+      "oled-13-distance-supported"
+    ]
+  },
+  {
+    "bundleId": "dht11-temperature-humidity-display-starter",
+    "capabilityId": "dht11-temperature-humidity-display",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "dht11",
+      "oled-i2c-096",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-rev3-i2c-a4-a5",
+      "breadboard-row-continuity-5-hole",
+      "ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "dht11-power-current-sampling",
+      "dht11-vdd-data-gnd-single-bus",
+      "dht11-40bit-temperature-humidity-data",
+      "oled-13-i2c-visual-pin-map",
+      "lcd-16x2-i2c-visual-pin-map",
+      "lcd-20x4-i2c-visual-pin-map",
+      "i2c-text-display-qualitative-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "dht11-display-supported",
+      "lcd-20x4-dht11-supported"
+    ]
+  },
+  {
+    "bundleId": "analog-sensor-display-readout-starter",
+    "capabilityId": "analog-sensor-display-readout",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "oled-i2c-096",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-analog-input-pins-a0-a5",
+      "breadboard-row-continuity-5-hole",
+      "analog-sensor-readout-educational-only",
+      "analog-sensor-simulation-contract",
+      "soil-moisture-visual-pin-map",
+      "water-level-sensor-visual-pin-map",
+      "tmp36-temp-visual-pin-map",
+      "acs712-current-visual-pin-map",
+      "rain-sensor-visual-pin-map",
+      "flame-sensor-visual-pin-map",
+      "mq2-gas-visual-pin-map",
+      "sound-sensor-visual-pin-map",
+      "arduino-uno-rev3-i2c-a4-a5",
+      "ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "fsr-pressure-visual-pin-map",
+      "thermistor-ntc-visual-pin-map",
+      "resistor-10k-reference-divider",
+      "resistive-sensor-divider-required",
+      "resistive-sensor-qualitative-contract",
+      "thermistor-ntc-divider-reference",
+      "oled-13-i2c-visual-pin-map",
+      "lcd-16x2-i2c-visual-pin-map",
+      "lcd-20x4-i2c-visual-pin-map",
+      "i2c-text-display-qualitative-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "soil-moisture-display-supported",
+      "water-level-display-supported",
+      "fsr-pressure-display-supported",
+      "thermistor-display-supported"
+    ]
+  },
+  {
+    "bundleId": "analog-sensor-threshold-output-starter",
+    "capabilityId": "analog-sensor-threshold-output",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "led-5mm",
+      "resistor-220",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-analog-input-pins-a0-a5",
+      "breadboard-row-continuity-5-hole",
+      "analog-sensor-readout-educational-only",
+      "analog-sensor-simulation-contract",
+      "soil-moisture-visual-pin-map",
+      "water-level-sensor-visual-pin-map",
+      "tmp36-temp-visual-pin-map",
+      "acs712-current-visual-pin-map",
+      "rain-sensor-visual-pin-map",
+      "arduino-analog-input-variable-resistor-photoresistor",
+      "photoresistor-voltage-divider-required",
+      "flame-sensor-visual-pin-map",
+      "mq2-gas-visual-pin-map",
+      "sound-sensor-visual-pin-map",
+      "led-5mm-requires-current-limit",
+      "led-5mm-anode-cathode-polarity",
+      "fsr-pressure-visual-pin-map",
+      "thermistor-ntc-visual-pin-map",
+      "resistor-10k-reference-divider",
+      "resistive-sensor-divider-required",
+      "resistive-sensor-qualitative-contract",
+      "thermistor-ntc-divider-reference"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "rain-sensor-threshold-supported",
+      "sound-sensor-threshold-supported",
+      "fsr-pressure-threshold-supported",
+      "thermistor-threshold-supported"
+    ]
+  },
+  {
+    "bundleId": "digital-input-display-readout-starter",
+    "capabilityId": "digital-input-display-readout",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "oled-i2c-096",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "breadboard-row-continuity-5-hole",
+      "arduino-uno-rev3-i2c-a4-a5",
+      "ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "limit-switch-visual-pin-map",
+      "reed-switch-visual-pin-map",
+      "slide-switch-visual-pin-map",
+      "toggle-switch-visual-pin-map",
+      "ttp223-touch-visual-pin-map",
+      "hall-effect-sensor-visual-pin-map",
+      "ir-receiver-visual-pin-map",
+      "line-tracker-visual-pin-map",
+      "pir-hc-sr501-visual-pin-map",
+      "sw420-vibration-visual-pin-map",
+      "tilt-ball-sensor-visual-pin-map",
+      "tcs3200-color-visual-pin-map",
+      "passive-digital-switch-pullup-contract",
+      "powered-digital-input-module-contract",
+      "pulse-digital-sensor-qualitative-contract",
+      "oled-13-i2c-visual-pin-map",
+      "lcd-16x2-i2c-visual-pin-map",
+      "lcd-20x4-i2c-visual-pin-map",
+      "i2c-text-display-qualitative-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "pir-motion-display-supported",
+      "limit-switch-display-supported",
+      "tcs3200-color-display-supported"
+    ]
+  },
+  {
+    "bundleId": "digital-input-threshold-output-starter",
+    "capabilityId": "digital-input-threshold-output",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "led-5mm",
+      "resistor-220",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "breadboard-row-continuity-5-hole",
+      "led-5mm-requires-current-limit",
+      "led-5mm-anode-cathode-polarity",
+      "limit-switch-visual-pin-map",
+      "reed-switch-visual-pin-map",
+      "slide-switch-visual-pin-map",
+      "toggle-switch-visual-pin-map",
+      "ttp223-touch-visual-pin-map",
+      "hall-effect-sensor-visual-pin-map",
+      "line-tracker-visual-pin-map",
+      "pir-hc-sr501-visual-pin-map",
+      "sw420-vibration-visual-pin-map",
+      "tilt-ball-sensor-visual-pin-map",
+      "passive-digital-switch-pullup-contract",
+      "powered-digital-input-module-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "pir-motion-led-supported",
+      "limit-switch-led-supported",
+      "touch-led-supported"
+    ]
+  },
+  {
+    "supportLevel": "supported",
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "bundleId": "matrix-input-display-readout-starter",
+    "capabilityId": "matrix-input-display-readout",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "oled-i2c-096",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-rev3-i2c-a4-a5",
+      "ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "breadboard-row-continuity-5-hole",
+      "dip-switch-4-pin-map",
+      "keypad-4x4-matrix-pin-map",
+      "membrane-keypad-1x4-pin-map",
+      "matrix-input-row-column-contract",
+      "multi-switch-input-reference-contract",
+      "matrix-input-qualitative-contract",
+      "oled-13-i2c-visual-pin-map",
+      "lcd-16x2-i2c-visual-pin-map",
+      "lcd-20x4-i2c-visual-pin-map",
+      "i2c-text-display-qualitative-contract"
+    ],
+    "browserEvidenceIds": [
+      "keypad-display-supported",
+      "dip-switch-display-supported",
+      "membrane-keypad-display-supported"
+    ]
+  },
+  {
+    "supportLevel": "supported",
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "bundleId": "joystick-display-readout-starter",
+    "capabilityId": "joystick-display-readout",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "joystick-module",
+      "oled-i2c-096",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-analog-input-pins-a0-a5",
+      "arduino-uno-rev3-i2c-a4-a5",
+      "ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "breadboard-row-continuity-5-hole",
+      "joystick-module-visual-pin-map",
+      "dual-analog-joystick-contract",
+      "oled-13-i2c-visual-pin-map",
+      "lcd-16x2-i2c-visual-pin-map",
+      "lcd-20x4-i2c-visual-pin-map",
+      "i2c-text-display-qualitative-contract"
+    ],
+    "browserEvidenceIds": [
+      "joystick-display-supported"
+    ]
+  },
+  {
+    "supportLevel": "supported",
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "bundleId": "rotary-encoder-display-readout-starter",
+    "capabilityId": "rotary-encoder-display-readout",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "rotary-encoder",
+      "oled-i2c-096",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-rev3-i2c-a4-a5",
+      "ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "breadboard-row-continuity-5-hole",
+      "rotary-encoder-visual-pin-map",
+      "rotary-encoder-quadrature-contract",
+      "oled-13-i2c-visual-pin-map",
+      "lcd-16x2-i2c-visual-pin-map",
+      "lcd-20x4-i2c-visual-pin-map",
+      "i2c-text-display-qualitative-contract"
+    ],
+    "browserEvidenceIds": [
+      "rotary-encoder-display-supported"
+    ]
+  },
+  {
+    "bundleId": "bare-seven-segment-display-output-starter",
+    "capabilityId": "bare-seven-segment-display-output",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "7seg-1digit",
+      "resistor-220",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "seven-segment-1digit-visual-pin-map",
+      "bare-seven-segment-current-limit-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "bare-7seg-single-digit-supported"
+    ]
+  },
+  {
+    "bundleId": "led-array-display-output-starter",
+    "capabilityId": "led-array-display-output",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "7seg-4digit-tm1637",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "tm1637-4digit-visual-pin-map",
+      "max7219-matrix-visual-pin-map",
+      "led-array-display-qualitative-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "tm1637-number-display-supported",
+      "max7219-pattern-display-supported"
+    ]
+  },
+  {
+    "bundleId": "addressable-led-display-output-starter",
+    "capabilityId": "addressable-led-display-output",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "neopixel-ring-12",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "neopixel-ring-12-visual-pin-map",
+      "addressable-led-display-qualitative-contract",
+      "ws2812b-strip-visual-pin-map"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "neopixel-ring-pattern-supported"
+    ]
+  },
+  {
+    "bundleId": "spi-display-output-starter",
+    "capabilityId": "spi-display-output",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "tft-18",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "tft-18-visual-pin-map",
+      "nokia-5110-visual-pin-map",
+      "epaper-213-visual-pin-map",
+      "spi-display-qualitative-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "tft-spi-display-supported",
+      "nokia-5110-display-supported",
+      "epaper-213-display-supported"
+    ]
+  },
+  {
+    "bundleId": "low-voltage-power-rail-starter",
+    "capabilityId": "low-voltage-power-rail",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "breadboard-half",
+      "breadboard-psu",
+      "9v-battery-clip",
+      "aa-battery-holder",
+      "lipo-battery-1s",
+      "barrel-jack",
+      "screw-terminal-2pin",
+      "7805-regulator",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "breadboard-row-continuity-5-hole",
+      "breadboard-psu-visual-pin-map",
+      "9v-battery-clip-visual-pin-map",
+      "aa-battery-holder-visual-pin-map",
+      "lipo-battery-1s-visual-pin-map",
+      "lipo-battery-power-warning-contract",
+      "barrel-jack-visual-pin-map",
+      "screw-terminal-2pin-visual-pin-map",
+      "7805-regulator-visual-pin-map",
+      "low-voltage-power-rail-simulation-contract",
+      "external-low-voltage-power-connector-contract",
+      "7805-regulated-5v-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "breadboard-psu-power-rail-supported",
+      "7805-regulated-rail-supported"
+    ]
+  },
+  {
+    "bundleId": "passive-protection-context-starter",
+    "capabilityId": "passive-protection-context",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "breadboard-half",
+      "ceramic-cap",
+      "electrolytic-cap",
+      "diode-1n4007",
+      "schottky-diode",
+      "zener-diode",
+      "polyfuse",
+      "inductor-axial",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "ceramic-cap-visual-pin-map",
+      "electrolytic-cap-visual-pin-map",
+      "diode-1n4007-visual-pin-map",
+      "schottky-diode-visual-pin-map",
+      "zener-diode-visual-pin-map",
+      "polyfuse-visual-pin-map",
+      "inductor-axial-visual-pin-map",
+      "passive-protection-context-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "passive-protection-context-supported",
+      "mains-mov-protection-counterexample"
+    ]
+  },
+  {
+    "bundleId": "timing-passive-context-starter",
+    "capabilityId": "timing-passive-context",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "breadboard-half",
+      "crystal-16mhz",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "crystal-16mhz-visual-pin-map",
+      "ceramic-cap-visual-pin-map",
+      "timing-passive-context-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "timing-passive-context-supported"
+    ]
+  },
+  {
+    "bundleId": "prototyping-surface-context-starter",
+    "capabilityId": "prototyping-surface-context",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "breadboard-half",
+      "breadboard-full",
+      "breadboard-mini",
+      "perfboard-5x7",
+      "pcb-blank-single",
+      "proto-shield-uno",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "breadboard-full-visual-pin-map",
+      "breadboard-mini-visual-pin-map",
+      "perfboard-5x7-visual-pin-map",
+      "pcb-blank-single-visual-pin-map",
+      "proto-shield-uno-visual-pin-map",
+      "prototyping-surface-context-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "prototyping-surface-context-supported",
+      "mains-prototyping-surface-counterexample"
+    ]
+  },
+  {
+    "bundleId": "connector-wiring-context-starter",
+    "capabilityId": "connector-wiring-context",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "jumper-wire",
+      "header-male-40pin",
+      "header-female-40pin",
+      "screw-terminal-4pin",
+      "breadboard-half"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "header-male-40pin-visual-pin-map",
+      "header-female-40pin-visual-pin-map",
+      "screw-terminal-4pin-visual-pin-map",
+      "connector-wiring-context-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "connector-wiring-context-supported",
+      "mains-terminal-block-counterexample"
+    ]
+  },
+  {
+    "bundleId": "dht22-temperature-humidity-display-starter",
+    "capabilityId": "dht22-temperature-humidity-display",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "dht22",
+      "oled-i2c-096",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-rev3-i2c-a4-a5",
+      "breadboard-row-continuity-5-hole",
+      "ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "dht22-visual-pin-map",
+      "dht22-single-wire-temperature-humidity-contract",
+      "protocol-sensor-display-qualitative-contract",
+      "i2c-text-display-qualitative-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "dht22-display-supported",
+      "protocol-sensor-medical-counterexample"
+    ]
+  },
+  {
+    "bundleId": "i2c-sensor-display-readout-starter",
+    "capabilityId": "i2c-sensor-display-readout",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "bmp280",
+      "oled-i2c-096",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-rev3-i2c-a4-a5",
+      "breadboard-row-continuity-5-hole",
+      "ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "bmp280-visual-pin-map",
+      "mpu6050-visual-pin-map",
+      "hmc5883l-visual-pin-map",
+      "max30102-pulse-visual-pin-map",
+      "i2c-protocol-sensor-display-contract",
+      "protocol-sensor-display-qualitative-contract",
+      "i2c-text-display-qualitative-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "bmp280-display-supported",
+      "protocol-sensor-medical-counterexample"
+    ]
+  },
+  {
+    "bundleId": "clocked-data-sensor-display-readout-starter",
+    "capabilityId": "clocked-data-sensor-display-readout",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "hx711-loadcell",
+      "oled-i2c-096",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-rev3-i2c-a4-a5",
+      "breadboard-row-continuity-5-hole",
+      "ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "hx711-loadcell-visual-pin-map",
+      "clocked-data-sensor-display-contract",
+      "protocol-sensor-display-qualitative-contract",
+      "i2c-text-display-qualitative-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "hx711-display-supported",
+      "protocol-sensor-certified-scale-counterexample"
+    ]
+  },
+  {
+    "bundleId": "spi-sensor-display-readout-starter",
+    "capabilityId": "spi-sensor-display-readout",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "rc522-rfid",
+      "oled-i2c-096",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-rev3-i2c-a4-a5",
+      "breadboard-row-continuity-5-hole",
+      "ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "rc522-rfid-visual-pin-map",
+      "spi-sensor-display-contract",
+      "protocol-sensor-display-qualitative-contract",
+      "i2c-text-display-qualitative-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "rc522-rfid-display-supported",
+      "protocol-sensor-security-counterexample"
+    ]
+  },
+  {
+    "bundleId": "uart-sensor-display-readout-starter",
+    "capabilityId": "uart-sensor-display-readout",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "gps-neo6m",
+      "oled-i2c-096",
+      "jumper-wire"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-rev3-i2c-a4-a5",
+      "breadboard-row-continuity-5-hole",
+      "ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "gps-neo6m-visual-pin-map",
+      "uart-sensor-display-contract",
+      "protocol-sensor-display-qualitative-contract",
+      "i2c-text-display-qualitative-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "gps-neo6m-display-supported",
+      "protocol-sensor-tracking-counterexample"
+    ]
+  },
+  {
+    "bundleId": "uart-communication-module-readout-starter",
+    "capabilityId": "uart-communication-module-readout",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "oled-i2c-096"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-rev3-i2c-a4-a5",
+      "breadboard-row-continuity-5-hole",
+      "ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "esp01-wifi-visual-pin-map",
+      "hc05-bluetooth-visual-pin-map",
+      "sim800l-gsm-visual-pin-map",
+      "uart-communication-module-command-state-contract",
+      "wireless-network-overclaim-block-contract",
+      "wireless-radio-power-warning-contract",
+      "i2c-text-display-qualitative-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "hc05-bluetooth-display-supported",
+      "wireless-network-overclaim-counterexample"
+    ]
+  },
+  {
+    "bundleId": "spi-communication-module-readout-starter",
+    "capabilityId": "spi-communication-module-readout",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "oled-i2c-096"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-rev3-i2c-a4-a5",
+      "breadboard-row-continuity-5-hole",
+      "ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "lora-ra02-visual-pin-map",
+      "nrf24l01-radio-visual-pin-map",
+      "mcp2515-can-visual-pin-map",
+      "usb-host-shield-visual-pin-map",
+      "spi-communication-module-bus-state-contract",
+      "wireless-network-overclaim-block-contract",
+      "wireless-radio-power-warning-contract",
+      "usb-host-device-overclaim-block-contract",
+      "i2c-text-display-qualitative-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "lora-ra02-display-supported",
+      "usb-host-overclaim-counterexample"
+    ]
+  },
+  {
+    "bundleId": "rs485-communication-module-readout-starter",
+    "capabilityId": "rs485-communication-module-readout",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "rs485-module",
+      "oled-i2c-096"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-rev3-i2c-a4-a5",
+      "breadboard-row-continuity-5-hole",
+      "ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "rs485-module-visual-pin-map",
+      "rs485-communication-module-bus-state-contract",
+      "i2c-text-display-qualitative-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json"
+    ],
+    "browserEvidenceIds": [
+      "rs485-module-display-supported"
+    ]
+  },
+  {
+    "bundleId": "controller-board-substitution-starter",
+    "capabilityId": "controller-board-substitution",
+    "supportLevel": "supported",
+    "requiredParts": [],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-rev3-d9-pwm-pin",
+      "controller-board-pin-map-substitution-contract",
+      "controller-board-voltage-domain-policy-contract",
+      "controller-board-context-only-contract",
+      "arduino-nano-visual-pin-map",
+      "arduino-mega2560-visual-pin-map",
+      "arduino-leonardo-visual-pin-map",
+      "arduino-micro-visual-pin-map",
+      "arduino-pro-mini-visual-pin-map",
+      "attiny85-board-visual-pin-map",
+      "esp32-devkit-visual-pin-map",
+      "esp8266-nodemcu-visual-pin-map",
+      "raspberry-pi-pico-visual-pin-map",
+      "stm32-bluepill-visual-pin-map",
+      "teensy40-visual-pin-map"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "electrical/topology-templates.json"
+    ],
+    "browserEvidenceIds": [
+      "controller-board-pin-map-supported",
+      "controller-board-wifi-counterexample"
+    ]
+  },
+  {
+    "bundleId": "logic-interface-context-starter",
+    "capabilityId": "logic-interface-context",
+    "supportLevel": "supported",
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "oled-i2c-096"
+    ],
+    "requiredArtifacts": [
+      "source-claims",
+      "capability-graph-entry",
+      "part-capability",
+      "pin-aliases",
+      "validation-rule",
+      "simulation-primitive",
+      "render-footprint",
+      "eval-supported-prompt",
+      "eval-unsupported-counterexample",
+      "browser-visible-verification"
+    ],
+    "sourceClaimIds": [
+      "arduino-uno-rev3-io-current-20ma",
+      "arduino-uno-rev3-i2c-a4-a5",
+      "breadboard-row-continuity-5-hole",
+      "ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "74hc595-shift-visual-pin-map",
+      "pcf8574-expander-visual-pin-map",
+      "ads1115-adc-visual-pin-map",
+      "mcp3008-adc-visual-pin-map",
+      "ne555-timer-visual-pin-map",
+      "lm358-opamp-visual-pin-map",
+      "i2c-level-shifter-visual-pin-map",
+      "logic-interface-qualitative-state-contract",
+      "precision-analog-overclaim-block-contract",
+      "timer-frequency-overclaim-block-contract",
+      "level-shift-voltage-domain-contract",
+      "i2c-text-display-qualitative-contract"
+    ],
+    "canonicalFiles": [
+      "registry/part-capabilities.json",
+      "data/capability-graph.json",
+      "data/render-footprints.json",
+      "simulation/primitives.json",
+      "ontology/pin-aliases.json",
+      "electrical/topology-templates.json"
+    ],
+    "browserEvidenceIds": [
+      "ads1115-interface-display-supported",
+      "shift-register-interface-display-supported",
+      "precision-adc-overclaim-counterexample",
+      "timer-frequency-overclaim-counterexample"
+    ]
+  }
+]

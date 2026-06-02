@@ -1,0 +1,1072 @@
+[
+  {
+    "id": "2n2222-npn",
+    "kind": "output",
+    "label": "2N2222 NPN transistor",
+    "aliases": [
+      "2n2222",
+      "2n2222 transistor",
+      "npn transistor",
+      "low side transistor",
+      "transistor switch",
+      "트랜지스터",
+      "NPN 트랜지스터"
+    ],
+    "pins": [
+      {
+        "name": "B",
+        "role": "digital-input",
+        "aliases": [
+          "base",
+          "input"
+        ]
+      },
+      {
+        "name": "C",
+        "role": "switched-output",
+        "aliases": [
+          "collector",
+          "load"
+        ]
+      },
+      {
+        "name": "E",
+        "role": "ground",
+        "aliases": [
+          "emitter",
+          "gnd"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 40,
+        "nominal": 5
+      },
+      "maxCurrentMa": 600,
+      "requiresCurrentLimiting": true
+    },
+    "protocols": [
+      "gpio",
+      "low-side-switch"
+    ],
+    "requiredPassives": [
+      {
+        "partId": "resistor-220",
+        "reason": "limit base current in the educational low-side switching model"
+      }
+    ],
+    "renderFootprint": {
+      "type": "to92-transistor",
+      "width": 0.32,
+      "depth": 0.16,
+      "height": 0.42
+    },
+    "simulationModel": {
+      "type": "low-side-switch-driver",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "discrete-switch-ic",
+    "riskLevel": "power-warning",
+    "visualPartIds": [
+      "2n2222-npn"
+    ],
+    "compatibleTopologies": [
+      "controller-transistor-low-side-load"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "resistor-220",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "2n2222-npn-visual-pin-map",
+      "low-side-inductive-load-simulation-contract"
+    ],
+    "capabilities": [
+      "low-side-switch-driver",
+      "discrete-transistor-switch",
+      "high-current-warning",
+      "flyback-warning"
+    ],
+    "compatibleSimulationPrimitives": [
+      "hbridge_motor_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Driving an inductive motor load directly from an Arduino GPIO pin.",
+      "Forgetting the base resistor between the Arduino output and transistor base.",
+      "Forgetting common ground between the controller and switched load supply.",
+      "Omitting flyback/protection when switching real inductive loads."
+    ],
+    "safeSubstitutes": [
+      "irf520-mosfet"
+    ]
+  },
+  {
+    "id": "irf520-mosfet",
+    "kind": "output",
+    "label": "IRF520 MOSFET module",
+    "aliases": [
+      "irf520",
+      "irf520 mosfet",
+      "mosfet module",
+      "mosfet switch",
+      "low side mosfet",
+      "모스펫",
+      "MOSFET 모듈"
+    ],
+    "pins": [
+      {
+        "name": "VIN",
+        "role": "power",
+        "aliases": [
+          "vcc",
+          "supply"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "-"
+        ]
+      },
+      {
+        "name": "SIG",
+        "role": "digital-input",
+        "aliases": [
+          "signal",
+          "in"
+        ]
+      },
+      {
+        "name": "V+",
+        "role": "load-power",
+        "aliases": [
+          "load+",
+          "output+"
+        ]
+      },
+      {
+        "name": "V-",
+        "role": "switched-ground",
+        "aliases": [
+          "load-",
+          "output-"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3,
+        "max": 24,
+        "nominal": 5
+      },
+      "maxCurrentMa": 1000,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "pwm",
+      "low-side-switch"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "mosfet-module",
+      "width": 0.62,
+      "depth": 0.46,
+      "height": 0.2
+    },
+    "simulationModel": {
+      "type": "low-side-switch-driver",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "driver-ic",
+    "riskLevel": "power-warning",
+    "visualPartIds": [
+      "irf520-mosfet"
+    ],
+    "compatibleTopologies": [
+      "controller-mosfet-module-load"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "irf520-mosfet-visual-pin-map",
+      "low-side-inductive-load-simulation-contract"
+    ],
+    "capabilities": [
+      "low-side-switch-driver",
+      "mosfet-module-driver",
+      "pwm-controlled-load-driver",
+      "high-current-warning",
+      "flyback-warning"
+    ],
+    "compatibleSimulationPrimitives": [
+      "hbridge_motor_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Treating the MOSFET module as a motor load instead of a low-side driver.",
+      "Forgetting common ground between Arduino GND and module GND.",
+      "Connecting a motor directly to GPIO instead of through the switched output terminals.",
+      "Using the simulation as a real current or thermal design calculation."
+    ],
+    "safeSubstitutes": [
+      "2n2222-npn"
+    ]
+  },
+  {
+    "id": "l298n-driver",
+    "kind": "output",
+    "label": "L298N motor driver module",
+    "aliases": [
+      "l298n",
+      "l298n driver",
+      "l298n motor driver",
+      "h bridge driver",
+      "dual h bridge",
+      "L298N 드라이버",
+      "H브리지 드라이버"
+    ],
+    "pins": [
+      {
+        "name": "ENA",
+        "role": "enable",
+        "aliases": ["enable a", "pwm enable"]
+      },
+      {
+        "name": "IN1",
+        "role": "digital-input",
+        "aliases": ["direction input 1"]
+      },
+      {
+        "name": "IN2",
+        "role": "digital-input",
+        "aliases": ["direction input 2"]
+      },
+      {
+        "name": "IN3",
+        "role": "digital-input",
+        "aliases": ["direction input 3"]
+      },
+      {
+        "name": "IN4",
+        "role": "digital-input",
+        "aliases": ["direction input 4"]
+      },
+      {
+        "name": "ENB",
+        "role": "enable",
+        "aliases": ["enable b"]
+      },
+      {
+        "name": "VS",
+        "role": "motor-power",
+        "aliases": ["motor supply", "12v", "v motor"]
+      },
+      {
+        "name": "VCC",
+        "role": "logic-power",
+        "aliases": ["5v logic", "logic supply"]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": ["ground"]
+      },
+      {
+        "name": "OUT1",
+        "role": "hbridge-output",
+        "aliases": ["motor a output 1"]
+      },
+      {
+        "name": "OUT2",
+        "role": "hbridge-output",
+        "aliases": ["motor a output 2"]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 5,
+        "max": 12,
+        "nominal": 5
+      },
+      "maxCurrentMa": 1000,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "pwm",
+      "h-bridge",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "hbridge-driver-module",
+      "width": 1.1,
+      "depth": 0.85,
+      "height": 0.3
+    },
+    "simulationModel": {
+      "type": "hbridge-motor-driver",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "driver-ic",
+    "riskLevel": "high-current",
+    "visualPartIds": [
+      "l298n-driver"
+    ],
+    "compatibleTopologies": [
+      "controller-hbridge-dc-motor"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "dc-motor-130",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "l298n-driver-visual-pin-map",
+      "hbridge-dc-motor-simulation-contract"
+    ],
+    "capabilities": [
+      "hbridge-driver",
+      "dc-motor-driver",
+      "direction-control",
+      "pwm-enable",
+      "high-current-warning",
+      "external-power-warning"
+    ],
+    "compatibleSimulationPrimitives": [
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Connecting a DC motor directly to Arduino GPIO instead of through the H-bridge outputs.",
+      "Forgetting common ground between Arduino and the driver module.",
+      "Missing ENA plus IN1/IN2 control signals for the active motor channel.",
+      "Treating qualitative motor direction simulation as current, torque, or thermal sizing."
+    ],
+    "safeSubstitutes": [
+      "irf520-mosfet",
+      "l293d-driver"
+    ]
+  },
+  {
+    "id": "l293d-driver",
+    "kind": "output",
+    "label": "L293D motor driver IC",
+    "aliases": [
+      "l293d",
+      "l293d driver",
+      "l293d motor driver",
+      "h bridge ic",
+      "quad half bridge",
+      "L293D 드라이버"
+    ],
+    "pins": [
+      {
+        "name": "VCC1",
+        "role": "logic-power",
+        "aliases": ["logic supply", "5v logic"]
+      },
+      {
+        "name": "VCC2",
+        "role": "motor-power",
+        "aliases": ["motor supply", "v motor"]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": ["ground"]
+      },
+      {
+        "name": "EN1",
+        "role": "enable",
+        "aliases": ["enable 1", "pwm enable"]
+      },
+      {
+        "name": "IN1",
+        "role": "digital-input",
+        "aliases": ["direction input 1"]
+      },
+      {
+        "name": "IN2",
+        "role": "digital-input",
+        "aliases": ["direction input 2"]
+      },
+      {
+        "name": "OUT1",
+        "role": "hbridge-output",
+        "aliases": ["motor output 1"]
+      },
+      {
+        "name": "OUT2",
+        "role": "hbridge-output",
+        "aliases": ["motor output 2"]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 5,
+        "max": 12,
+        "nominal": 5
+      },
+      "maxCurrentMa": 600,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "pwm",
+      "h-bridge",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "hbridge-driver-ic",
+      "width": 0.6,
+      "depth": 0.4,
+      "height": 0.25
+    },
+    "simulationModel": {
+      "type": "hbridge-motor-driver",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "driver-ic",
+    "riskLevel": "high-current",
+    "visualPartIds": [
+      "l293d-driver"
+    ],
+    "compatibleTopologies": [
+      "controller-hbridge-dc-motor"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "dc-motor-130",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "l293d-driver-visual-pin-map",
+      "hbridge-dc-motor-simulation-contract"
+    ],
+    "capabilities": [
+      "hbridge-driver",
+      "dc-motor-driver",
+      "direction-control",
+      "pwm-enable",
+      "high-current-warning"
+    ],
+    "compatibleSimulationPrimitives": [
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Forgetting VCC1 logic power, VCC2 motor power, or common ground.",
+      "Missing EN1 plus IN1/IN2 control signals.",
+      "Connecting the motor to logic pins instead of OUT1/OUT2.",
+      "Treating the educational model as current, torque, or heat sizing."
+    ],
+    "safeSubstitutes": [
+      "l298n-driver",
+      "irf520-mosfet"
+    ]
+  },
+  {
+    "id": "uln2003-driver",
+    "kind": "output",
+    "label": "ULN2003 stepper driver module",
+    "aliases": [
+      "uln2003",
+      "uln2003 driver",
+      "28byj driver",
+      "stepper driver board",
+      "ULN2003 드라이버"
+    ],
+    "pins": [
+      {
+        "name": "IN1",
+        "role": "digital-input",
+        "aliases": ["phase input 1"]
+      },
+      {
+        "name": "IN2",
+        "role": "digital-input",
+        "aliases": ["phase input 2"]
+      },
+      {
+        "name": "IN3",
+        "role": "digital-input",
+        "aliases": ["phase input 3"]
+      },
+      {
+        "name": "IN4",
+        "role": "digital-input",
+        "aliases": ["phase input 4"]
+      },
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": ["5v", "motor power"]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": ["ground"]
+      },
+      {
+        "name": "OUT1",
+        "role": "stepper-phase-output",
+        "aliases": ["motor in1"]
+      },
+      {
+        "name": "OUT2",
+        "role": "stepper-phase-output",
+        "aliases": ["motor in2"]
+      },
+      {
+        "name": "OUT3",
+        "role": "stepper-phase-output",
+        "aliases": ["motor in3"]
+      },
+      {
+        "name": "OUT4",
+        "role": "stepper-phase-output",
+        "aliases": ["motor in4"]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 5,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 500,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "four-phase-stepper",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "uln2003-stepper-driver",
+      "width": 0.75,
+      "depth": 0.55,
+      "height": 0.16
+    },
+    "simulationModel": {
+      "type": "stepper-driver",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "driver-ic",
+    "riskLevel": "power-warning",
+    "visualPartIds": [
+      "uln2003-driver"
+    ],
+    "compatibleTopologies": [
+      "controller-uln2003-unipolar-stepper"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "stepper-28byj48",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "uln2003-driver-visual-pin-map",
+      "stepper-driver-simulation-contract"
+    ],
+    "capabilities": [
+      "stepper-driver",
+      "unipolar-stepper-driver",
+      "high-current-warning"
+    ],
+    "compatibleSimulationPrimitives": [
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Skipping the driver and connecting the stepper directly to Arduino pins.",
+      "Forgetting VCC or GND on the driver module.",
+      "Wiring fewer than four phase inputs for a 28BYJ-48 lesson."
+    ],
+    "safeSubstitutes": [
+      "a4988-stepper"
+    ]
+  },
+  {
+    "id": "a4988-stepper",
+    "kind": "output",
+    "label": "A4988 stepper driver module",
+    "aliases": [
+      "a4988",
+      "a4988 stepper",
+      "step dir driver",
+      "bipolar stepper driver",
+      "A4988 드라이버"
+    ],
+    "pins": [
+      {
+        "name": "VMOT",
+        "role": "motor-power",
+        "aliases": ["motor supply", "v motor"]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": ["ground"]
+      },
+      {
+        "name": "STEP",
+        "role": "step-signal",
+        "aliases": ["pulse", "step input"]
+      },
+      {
+        "name": "DIR",
+        "role": "direction-signal",
+        "aliases": ["direction", "dir input"]
+      },
+      {
+        "name": "EN",
+        "role": "enable",
+        "aliases": ["enable", "sleep enable"]
+      },
+      {
+        "name": "1A",
+        "role": "coil-a-positive",
+        "aliases": ["A+", "motor A+"]
+      },
+      {
+        "name": "1B",
+        "role": "coil-a-negative",
+        "aliases": ["A-", "motor A-"]
+      },
+      {
+        "name": "2A",
+        "role": "coil-b-positive",
+        "aliases": ["B+", "motor B+"]
+      },
+      {
+        "name": "2B",
+        "role": "coil-b-negative",
+        "aliases": ["B-", "motor B-"]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 5,
+        "max": 12,
+        "nominal": 12
+      },
+      "maxCurrentMa": 1000,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "step-dir",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "step-dir-stepper-driver",
+      "width": 0.6,
+      "depth": 0.5,
+      "height": 0.16
+    },
+    "simulationModel": {
+      "type": "stepper-driver",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "driver-ic",
+    "riskLevel": "high-current",
+    "visualPartIds": [
+      "a4988-stepper"
+    ],
+    "compatibleTopologies": [
+      "controller-step-dir-bipolar-stepper"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "nema17-stepper",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "a4988-stepper-visual-pin-map",
+      "stepper-driver-simulation-contract"
+    ],
+    "capabilities": [
+      "stepper-driver",
+      "step-dir-driver",
+      "bipolar-stepper-driver",
+      "high-current-warning",
+      "external-power-warning"
+    ],
+    "compatibleSimulationPrimitives": [
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Forgetting STEP and DIR signals.",
+      "Connecting a NEMA 17 motor without respecting coil pairs.",
+      "Treating the educational simulation as current-limit, heat, or torque sizing."
+    ],
+    "safeSubstitutes": [
+      "drv8825-stepper",
+      "uln2003-driver"
+    ]
+  },
+  {
+    "id": "drv8825-stepper",
+    "kind": "output",
+    "label": "DRV8825 stepper driver module",
+    "aliases": [
+      "drv8825",
+      "drv8825 stepper",
+      "step dir driver",
+      "bipolar stepper driver",
+      "DRV8825 드라이버"
+    ],
+    "pins": [
+      {
+        "name": "VMOT",
+        "role": "motor-power",
+        "aliases": ["motor supply", "v motor"]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": ["ground"]
+      },
+      {
+        "name": "STEP",
+        "role": "step-signal",
+        "aliases": ["pulse", "step input"]
+      },
+      {
+        "name": "DIR",
+        "role": "direction-signal",
+        "aliases": ["direction", "dir input"]
+      },
+      {
+        "name": "EN",
+        "role": "enable",
+        "aliases": ["enable"]
+      },
+      {
+        "name": "1A",
+        "role": "coil-a-positive",
+        "aliases": ["A+", "motor A+"]
+      },
+      {
+        "name": "1B",
+        "role": "coil-a-negative",
+        "aliases": ["A-", "motor A-"]
+      },
+      {
+        "name": "2A",
+        "role": "coil-b-positive",
+        "aliases": ["B+", "motor B+"]
+      },
+      {
+        "name": "2B",
+        "role": "coil-b-negative",
+        "aliases": ["B-", "motor B-"]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 5,
+        "max": 12,
+        "nominal": 12
+      },
+      "maxCurrentMa": 1000,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "step-dir",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "step-dir-stepper-driver",
+      "width": 0.6,
+      "depth": 0.5,
+      "height": 0.16
+    },
+    "simulationModel": {
+      "type": "stepper-driver",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "driver-ic",
+    "riskLevel": "high-current",
+    "visualPartIds": [
+      "drv8825-stepper"
+    ],
+    "compatibleTopologies": [
+      "controller-step-dir-bipolar-stepper"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "nema17-stepper",
+      "jumper-wire"
+    ],
+    "sourceClaimIds": [
+      "drv8825-stepper-visual-pin-map",
+      "stepper-driver-simulation-contract"
+    ],
+    "capabilities": [
+      "stepper-driver",
+      "step-dir-driver",
+      "bipolar-stepper-driver",
+      "high-current-warning",
+      "external-power-warning"
+    ],
+    "compatibleSimulationPrimitives": [
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Forgetting STEP and DIR signals.",
+      "Swapping coil pairs between A and B outputs.",
+      "Treating the educational simulation as current-limit, heat, or torque sizing."
+    ],
+    "safeSubstitutes": [
+      "a4988-stepper",
+      "uln2003-driver"
+    ]
+  },
+  {
+    "id": "74hc595-shift",
+    "kind": "input",
+    "label": "74HC595 shift register",
+    "aliases": ["74hc595", "shift register", "serial-in parallel-out", "SIPO shift register", "시프트 레지스터"],
+    "pins": [
+      { "name": "VCC", "role": "power", "aliases": ["5v", "power"] },
+      { "name": "GND", "role": "ground", "aliases": ["ground"] },
+      { "name": "SER", "role": "data", "aliases": ["data", "ds", "serial data"] },
+      { "name": "SRCLK", "role": "clock", "aliases": ["shift clock", "shcp"] },
+      { "name": "RCLK", "role": "latch", "aliases": ["storage clock", "stcp", "latch"] },
+      { "name": "OE", "role": "enable", "aliases": ["output enable"] }
+    ],
+    "electrical": { "voltageRange": { "min": 2, "max": 6, "nominal": 5 }, "maxCurrentMa": 70, "requiresCurrentLimiting": false },
+    "protocols": ["gpio", "shift-register", "power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "dip-logic-74hc595", "width": 0.62, "depth": 0.32, "height": 0.1 },
+    "simulationModel": { "type": "logic-interface-state", "nominalCurrentMa": 8 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "logic-or-interface-ic",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["74hc595-shift"],
+    "compatibleTopologies": ["controller-logic-interface-context"],
+    "requiredExternalParts": ["arduino-uno", "breadboard-half", "oled-i2c-096", "jumper-wire"],
+    "sourceClaimIds": ["74hc595-shift-visual-pin-map", "logic-interface-qualitative-state-contract"],
+    "capabilities": ["logic-interface", "shift-register-interface", "gpio-interface-state", "qualitative-interface-readout"],
+    "compatibleSimulationPrimitives": ["display_sensor_value", "current_flow_animation"],
+    "commonMistakes": ["Forgetting latch and clock as distinct control signals.", "Treating the educational model as chip-timing accurate."],
+    "safeSubstitutes": ["pcf8574-expander"]
+  },
+  {
+    "id": "pcf8574-expander",
+    "kind": "input",
+    "label": "PCF8574 I2C I/O expander",
+    "aliases": ["pcf8574", "i2c expander", "io expander", "i/o expander", "I2C 확장기"],
+    "pins": [
+      { "name": "VCC", "role": "power", "aliases": ["5v", "power"] },
+      { "name": "GND", "role": "ground", "aliases": ["ground"] },
+      { "name": "SCL", "role": "i2c-clock", "aliases": ["clock"] },
+      { "name": "SDA", "role": "i2c-data", "aliases": ["data"] },
+      { "name": "INT", "role": "interrupt", "aliases": ["interrupt"] }
+    ],
+    "electrical": { "voltageRange": { "min": 2.5, "max": 6, "nominal": 5 }, "maxCurrentMa": 25, "requiresCurrentLimiting": false },
+    "protocols": ["i2c", "gpio-expander", "power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "i2c-expander-pcf8574", "width": 0.62, "depth": 0.32, "height": 0.1 },
+    "simulationModel": { "type": "logic-interface-state", "nominalCurrentMa": 5 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "logic-or-interface-ic",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["pcf8574-expander"],
+    "compatibleTopologies": ["controller-i2c-interface-context"],
+    "requiredExternalParts": ["arduino-uno", "breadboard-half", "oled-i2c-096", "jumper-wire"],
+    "sourceClaimIds": ["pcf8574-expander-visual-pin-map", "logic-interface-qualitative-state-contract"],
+    "capabilities": ["logic-interface", "i2c-interface", "io-expander-interface", "qualitative-interface-readout"],
+    "compatibleSimulationPrimitives": ["display_sensor_value", "current_flow_animation"],
+    "commonMistakes": ["Swapping SDA and SCL.", "Assuming all downstream expanded I/O loads are automatically validated."],
+    "safeSubstitutes": ["74hc595-shift"]
+  },
+  {
+    "id": "ads1115-adc",
+    "kind": "input",
+    "label": "ADS1115 ADC module",
+    "aliases": ["ads1115", "i2c adc", "external adc", "adc module", "ADC 모듈"],
+    "pins": [
+      { "name": "VCC", "role": "power", "aliases": ["vdd", "power"] },
+      { "name": "GND", "role": "ground", "aliases": ["ground"] },
+      { "name": "SCL", "role": "i2c-clock", "aliases": ["clock"] },
+      { "name": "SDA", "role": "i2c-data", "aliases": ["data"] },
+      { "name": "A0", "role": "analog-input", "aliases": ["ain0", "channel 0"] },
+      { "name": "A1", "role": "analog-input", "aliases": ["ain1", "channel 1"] }
+    ],
+    "electrical": { "voltageRange": { "min": 2, "max": 5.5, "nominal": 5 }, "maxCurrentMa": 10, "requiresCurrentLimiting": false },
+    "protocols": ["i2c", "adc-readout", "power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "ads1115-adc-module", "width": 0.66, "depth": 0.42, "height": 0.12 },
+    "simulationModel": { "type": "logic-interface-state", "nominalCurrentMa": 2 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "analog-interface-ic",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["ads1115-adc"],
+    "compatibleTopologies": ["controller-i2c-interface-context"],
+    "requiredExternalParts": ["arduino-uno", "breadboard-half", "oled-i2c-096", "jumper-wire"],
+    "sourceClaimIds": ["ads1115-adc-visual-pin-map", "logic-interface-qualitative-state-contract", "precision-analog-overclaim-block-contract"],
+    "capabilities": ["logic-interface", "analog-interface", "i2c-interface", "external-adc-interface", "qualitative-interface-readout"],
+    "compatibleSimulationPrimitives": ["display_sensor_value", "current_flow_animation"],
+    "commonMistakes": ["Treating qualitative ADC readout as calibrated precision measurement.", "Forgetting the I2C display/readout evidence."],
+    "safeSubstitutes": ["mcp3008-adc"]
+  },
+  {
+    "id": "mcp3008-adc",
+    "kind": "input",
+    "label": "MCP3008 SPI ADC",
+    "aliases": ["mcp3008", "spi adc", "external adc", "8 channel adc", "SPI ADC"],
+    "pins": [
+      { "name": "VDD", "role": "power", "aliases": ["vcc", "power"] },
+      { "name": "GND", "role": "ground", "aliases": ["ground"] },
+      { "name": "CLK", "role": "spi-clock", "aliases": ["clock", "sck"] },
+      { "name": "DOUT", "role": "spi-miso", "aliases": ["miso"] },
+      { "name": "DIN", "role": "spi-mosi", "aliases": ["mosi"] },
+      { "name": "CS", "role": "spi-select", "aliases": ["chip select"] }
+    ],
+    "electrical": { "voltageRange": { "min": 2.7, "max": 5.5, "nominal": 5 }, "maxCurrentMa": 10, "requiresCurrentLimiting": false },
+    "protocols": ["spi", "adc-readout", "power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "mcp3008-adc-ic", "width": 0.72, "depth": 0.34, "height": 0.1 },
+    "simulationModel": { "type": "logic-interface-state", "nominalCurrentMa": 1 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "analog-interface-ic",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["mcp3008-adc"],
+    "compatibleTopologies": ["controller-spi-interface-context"],
+    "requiredExternalParts": ["arduino-uno", "breadboard-half", "oled-i2c-096", "jumper-wire"],
+    "sourceClaimIds": ["mcp3008-adc-visual-pin-map", "logic-interface-qualitative-state-contract", "precision-analog-overclaim-block-contract"],
+    "capabilities": ["logic-interface", "analog-interface", "spi-interface", "external-adc-interface", "qualitative-interface-readout"],
+    "compatibleSimulationPrimitives": ["display_sensor_value", "current_flow_animation"],
+    "commonMistakes": ["Swapping SPI DIN/DOUT.", "Treating qualitative ADC readout as calibrated precision measurement."],
+    "safeSubstitutes": ["ads1115-adc"]
+  },
+  {
+    "id": "ne555-timer",
+    "kind": "input",
+    "label": "NE555 timer IC",
+    "aliases": ["ne555", "555 timer", "timer ic", "타이머 IC"],
+    "pins": [
+      { "name": "VCC", "role": "power", "aliases": ["power"] },
+      { "name": "GND", "role": "ground", "aliases": ["ground"] },
+      { "name": "OUT", "role": "digital-output", "aliases": ["output"] },
+      { "name": "TRIG", "role": "trigger", "aliases": ["trigger"] },
+      { "name": "THR", "role": "threshold", "aliases": ["threshold"] },
+      { "name": "RST", "role": "reset", "aliases": ["reset"] }
+    ],
+    "electrical": { "voltageRange": { "min": 4.5, "max": 15, "nominal": 5 }, "maxCurrentMa": 200, "requiresCurrentLimiting": false },
+    "protocols": ["gpio", "timing-context", "power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "dip-timer-ne555", "width": 0.54, "depth": 0.3, "height": 0.1 },
+    "simulationModel": { "type": "logic-interface-state", "nominalCurrentMa": 8 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "logic-or-interface-ic",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["ne555-timer"],
+    "compatibleTopologies": ["controller-analog-timing-interface-context"],
+    "requiredExternalParts": ["arduino-uno", "breadboard-half", "oled-i2c-096", "jumper-wire"],
+    "sourceClaimIds": ["ne555-timer-visual-pin-map", "logic-interface-qualitative-state-contract", "timer-frequency-overclaim-block-contract"],
+    "capabilities": ["logic-interface", "timer-interface", "timing-interface-context", "qualitative-interface-readout"],
+    "compatibleSimulationPrimitives": ["display_sensor_value", "current_flow_animation"],
+    "commonMistakes": ["Expecting exact RC oscillator frequency without a full analog timing network.", "Using the timer output as a high-current driver."],
+    "safeSubstitutes": ["74hc595-shift"]
+  },
+  {
+    "id": "lm358-opamp",
+    "kind": "input",
+    "label": "LM358 op-amp",
+    "aliases": ["lm358", "op amp", "op-amp", "operational amplifier", "오피앰프"],
+    "pins": [
+      { "name": "VCC", "role": "power", "aliases": ["power"] },
+      { "name": "GND", "role": "ground", "aliases": ["ground"] },
+      { "name": "IN+", "role": "analog-input", "aliases": ["non-inverting"] },
+      { "name": "IN-", "role": "analog-input", "aliases": ["inverting"] },
+      { "name": "OUT", "role": "analog-output", "aliases": ["output"] }
+    ],
+    "electrical": { "voltageRange": { "min": 3, "max": 32, "nominal": 5 }, "maxCurrentMa": 40, "requiresCurrentLimiting": false },
+    "protocols": ["analog", "opamp-context", "power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "dip-opamp-lm358", "width": 0.54, "depth": 0.3, "height": 0.1 },
+    "simulationModel": { "type": "logic-interface-state", "nominalCurrentMa": 2 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "analog-interface-ic",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["lm358-opamp"],
+    "compatibleTopologies": ["controller-analog-timing-interface-context"],
+    "requiredExternalParts": ["arduino-uno", "breadboard-half", "oled-i2c-096", "jumper-wire"],
+    "sourceClaimIds": ["lm358-opamp-visual-pin-map", "logic-interface-qualitative-state-contract", "precision-analog-overclaim-block-contract"],
+    "capabilities": ["logic-interface", "analog-interface", "opamp-interface-context", "qualitative-interface-readout"],
+    "compatibleSimulationPrimitives": ["display_sensor_value", "current_flow_animation"],
+    "commonMistakes": ["Expecting rail-to-rail precision or analog stability modeling.", "Treating the educational model as an op-amp design calculator."],
+    "safeSubstitutes": ["ads1115-adc"]
+  },
+  {
+    "id": "i2c-level-shifter",
+    "kind": "input",
+    "label": "I2C level shifter module",
+    "aliases": ["level shifter", "i2c level shifter", "logic level converter", "레벨 시프터"],
+    "pins": [
+      { "name": "HV", "role": "power", "aliases": ["high voltage side", "5v"] },
+      { "name": "LV", "role": "power", "aliases": ["low voltage side", "3v3"] },
+      { "name": "GND", "role": "ground", "aliases": ["ground"] },
+      { "name": "HV1", "role": "level-shift-high", "aliases": ["high side signal"] },
+      { "name": "LV1", "role": "level-shift-low", "aliases": ["low side signal"] }
+    ],
+    "electrical": { "voltageRange": { "min": 1.8, "max": 5.5, "nominal": 3.3 }, "maxCurrentMa": 20, "requiresCurrentLimiting": false },
+    "protocols": ["i2c", "level-shift", "power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "i2c-level-shifter-module", "width": 0.64, "depth": 0.42, "height": 0.12 },
+    "simulationModel": { "type": "logic-interface-state", "nominalCurrentMa": 1 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "level-shifter-interface",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["i2c-level-shifter"],
+    "compatibleTopologies": ["level-shifted-i2c-bus"],
+    "requiredExternalParts": ["arduino-uno", "breadboard-half", "oled-i2c-096", "jumper-wire"],
+    "sourceClaimIds": ["i2c-level-shifter-visual-pin-map", "logic-interface-qualitative-state-contract", "level-shift-voltage-domain-contract"],
+    "capabilities": ["logic-interface", "level-shifter-interface", "i2c-interface", "voltage-domain-context", "qualitative-interface-readout"],
+    "compatibleSimulationPrimitives": ["display_sensor_value", "current_flow_animation"],
+    "commonMistakes": ["Powering HV and LV from the same voltage when a level shift is required.", "Assuming every downstream mixed-voltage device is validated automatically."],
+    "safeSubstitutes": ["pcf8574-expander"]
+  }
+]

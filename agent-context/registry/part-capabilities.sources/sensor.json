@@ -1,0 +1,2407 @@
+[
+  {
+    "id": "photoresistor-ldr",
+    "kind": "input",
+    "label": "LDR light sensor module",
+    "aliases": [
+      "photoresistor",
+      "ldr",
+      "light sensor",
+      "light-dependent resistor",
+      "조도 센서",
+      "빛 센서"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "-"
+        ]
+      },
+      {
+        "name": "AO",
+        "role": "analog-output",
+        "aliases": [
+          "analog out",
+          "analog signal",
+          "A0"
+        ]
+      },
+      {
+        "name": "DO",
+        "role": "digital-output",
+        "aliases": [
+          "digital out",
+          "threshold output"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3.3,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 5,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "analog-input",
+      "digital-threshold",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "ldr-module",
+      "width": 0.62,
+      "depth": 0.48,
+      "height": 0.26
+    },
+    "simulationModel": {
+      "type": "analog-light-sensor",
+      "nominalCurrentMa": 0.5
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "analog-input",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "ldr-module"
+    ],
+    "capabilities": [
+      "analog-input",
+      "light-sensor",
+      "threshold-input"
+    ],
+    "compatibleSimulationPrimitives": [
+      "analog_threshold",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Using AO without connecting the module to 5V and GND.",
+      "Expecting a real lux-calibrated reading from the simplified classroom simulation."
+    ],
+    "safeSubstitutes": [
+      "potentiometer-10k",
+      "button-tactile"
+    ]
+  },
+  {
+    "id": "ultrasonic-hc-sr04",
+    "kind": "input",
+    "label": "HC-SR04 ultrasonic distance sensor",
+    "aliases": [
+      "ultrasonic sensor",
+      "distance sensor",
+      "hc-sr04",
+      "sonar sensor",
+      "초음파 센서",
+      "거리 센서"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "-"
+        ]
+      },
+      {
+        "name": "TRIG",
+        "role": "digital-input",
+        "aliases": [
+          "trigger",
+          "trig",
+          "start pulse"
+        ]
+      },
+      {
+        "name": "ECHO",
+        "role": "digital-output",
+        "aliases": [
+          "echo",
+          "pulse output",
+          "distance pulse"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 4.5,
+        "max": 5.5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "timed-pulse",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "ultrasonic-sensor",
+      "width": 1,
+      "depth": 0.55,
+      "height": 0.42
+    },
+    "simulationModel": {
+      "type": "distance-pulse-sensor",
+      "nominalCurrentMa": 15
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "digital-distance-sensor",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "ultrasonic-hcsr04"
+    ],
+    "capabilities": [
+      "distance-sensor",
+      "timed-pulse-input",
+      "digital-sensor"
+    ],
+    "compatibleSimulationPrimitives": [
+      "display_sensor_value",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Swapping TRIG and ECHO.",
+      "Powering the module without a shared Arduino ground.",
+      "Trying to use it as an analog sensor instead of a timed digital pulse sensor."
+    ],
+    "safeSubstitutes": [
+      "photoresistor-ldr",
+      "potentiometer-10k"
+    ]
+  },
+  {
+    "id": "dht11",
+    "kind": "input",
+    "label": "DHT11 temperature and humidity sensor",
+    "aliases": [
+      "dht11",
+      "dht11 sensor",
+      "temperature humidity sensor",
+      "temperature and humidity",
+      "온습도 센서",
+      "온도 습도 센서"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "vdd",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "-"
+        ]
+      },
+      {
+        "name": "DAT",
+        "role": "single-wire-data",
+        "aliases": [
+          "data",
+          "signal",
+          "single bus",
+          "single-wire data"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3.5,
+        "max": 5.5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 0.3,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "single-wire-data",
+      "gpio",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "dht11-sensor",
+      "width": 0.72,
+      "depth": 0.95,
+      "height": 0.32
+    },
+    "simulationModel": {
+      "type": "temperature-humidity-digital-sensor",
+      "nominalCurrentMa": 0.3
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "digital-environment-sensor",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "dht11"
+    ],
+    "compatibleTopologies": [
+      "controller-single-wire-sensor-i2c-display"
+    ],
+    "sourceClaimIds": [
+      "dht11-power-current-sampling",
+      "dht11-vdd-data-gnd-single-bus",
+      "dht11-40bit-temperature-humidity-data"
+    ],
+    "capabilities": [
+      "temperature-humidity-sensor",
+      "single-wire-data-sensor",
+      "digital-sensor"
+    ],
+    "compatibleSimulationPrimitives": [
+      "display_sensor_value",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Leaving DAT disconnected from a digital Arduino pin.",
+      "Forgetting the shared ground with the OLED display.",
+      "Treating the qualitative readout as a calibrated weather station."
+    ],
+    "safeSubstitutes": [
+      "ultrasonic-hc-sr04",
+      "photoresistor-ldr"
+    ]
+  },
+  {
+    "id": "dht22",
+    "kind": "input",
+    "label": "DHT22 temperature and humidity sensor",
+    "aliases": [
+      "dht22",
+      "dht22 sensor",
+      "am2302",
+      "temperature humidity sensor",
+      "온습도 센서",
+      "DHT22 온습도"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": ["5v", "vdd", "+"]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": ["ground", "-"]
+      },
+      {
+        "name": "DAT",
+        "role": "single-wire-data",
+        "aliases": ["data", "signal", "single-wire data"]
+      }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 3.3, "max": 5.5, "nominal": 5 },
+      "maxCurrentMa": 2.5,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["single-wire-data", "gpio", "power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "dht22-sensor", "width": 0.78, "depth": 1.02, "height": 0.34 },
+    "simulationModel": {
+      "type": "temperature-humidity-digital-sensor",
+      "nominalCurrentMa": 1.5
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "digital-environment-sensor",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["dht22"],
+    "compatibleTopologies": ["controller-single-wire-sensor-i2c-display"],
+    "sourceClaimIds": [
+      "dht22-visual-pin-map",
+      "dht22-single-wire-temperature-humidity-contract",
+      "protocol-sensor-display-qualitative-contract"
+    ],
+    "capabilities": [
+      "temperature-humidity-sensor",
+      "single-wire-data-sensor",
+      "protocol-sensor",
+      "digital-sensor"
+    ],
+    "compatibleSimulationPrimitives": ["display_sensor_value", "current_flow_animation"],
+    "commonMistakes": [
+      "Leaving DAT disconnected from a digital Arduino input.",
+      "Treating the classroom readout as calibrated weather-station data."
+    ],
+    "safeSubstitutes": ["dht11", "bmp280"]
+  },
+  {
+    "id": "bmp280",
+    "kind": "input",
+    "label": "BMP280 pressure and temperature sensor",
+    "aliases": ["bmp280", "barometric pressure sensor", "pressure sensor", "BMP280 압력 센서"],
+    "pins": [
+      { "name": "VCC", "role": "power", "aliases": ["3.3v", "5v", "vin", "+"] },
+      { "name": "GND", "role": "ground", "aliases": ["ground", "-"] },
+      { "name": "SCL", "role": "i2c-clock", "aliases": ["clock", "scl"] },
+      { "name": "SDA", "role": "i2c-data", "aliases": ["data", "sda"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 3.3, "max": 5, "nominal": 3.3 },
+      "maxCurrentMa": 1,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["i2c", "power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "bmp280-module", "width": 0.58, "depth": 0.46, "height": 0.12 },
+    "simulationModel": { "type": "i2c-environment-sensor", "nominalCurrentMa": 0.7 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "protocol-sensor",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["bmp280"],
+    "compatibleTopologies": ["controller-i2c-sensor-display"],
+    "sourceClaimIds": [
+      "bmp280-visual-pin-map",
+      "i2c-protocol-sensor-display-contract",
+      "protocol-sensor-display-qualitative-contract"
+    ],
+    "capabilities": ["protocol-sensor", "i2c-protocol-sensor", "environment-sensor", "digital-sensor"],
+    "compatibleSimulationPrimitives": ["display_sensor_value", "current_flow_animation"],
+    "commonMistakes": [
+      "Swapping SDA and SCL.",
+      "Claiming calibrated altitude or weather-station accuracy from the educational simulation."
+    ],
+    "safeSubstitutes": ["dht22", "tmp36-temp"]
+  },
+  {
+    "id": "mpu6050",
+    "kind": "input",
+    "label": "MPU-6050 accelerometer and gyroscope module",
+    "aliases": ["mpu6050", "mpu-6050", "imu", "accelerometer gyro", "자이로 센서", "IMU 센서"],
+    "pins": [
+      { "name": "VCC", "role": "power", "aliases": ["3.3v", "5v", "vin", "+"] },
+      { "name": "GND", "role": "ground", "aliases": ["ground", "-"] },
+      { "name": "SCL", "role": "i2c-clock", "aliases": ["clock", "scl"] },
+      { "name": "SDA", "role": "i2c-data", "aliases": ["data", "sda"] },
+      { "name": "INT", "role": "digital-output", "aliases": ["interrupt", "int"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 3.3, "max": 5, "nominal": 3.3 },
+      "maxCurrentMa": 4,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["i2c", "power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "mpu6050-module", "width": 0.68, "depth": 0.48, "height": 0.12 },
+    "simulationModel": { "type": "i2c-motion-sensor", "nominalCurrentMa": 3.9 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "protocol-sensor",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["mpu6050"],
+    "compatibleTopologies": ["controller-i2c-sensor-display"],
+    "sourceClaimIds": [
+      "mpu6050-visual-pin-map",
+      "i2c-protocol-sensor-display-contract",
+      "protocol-sensor-display-qualitative-contract"
+    ],
+    "capabilities": ["protocol-sensor", "i2c-protocol-sensor", "motion-sensor", "digital-sensor"],
+    "compatibleSimulationPrimitives": ["display_sensor_value", "current_flow_animation"],
+    "commonMistakes": [
+      "Swapping SDA and SCL.",
+      "Treating qualitative tilt/acceleration state as navigation-grade orientation."
+    ],
+    "safeSubstitutes": ["joystick-module", "hmc5883l"]
+  },
+  {
+    "id": "hmc5883l",
+    "kind": "input",
+    "label": "HMC5883L compass sensor module",
+    "aliases": ["hmc5883l", "compass sensor", "magnetometer", "digital compass", "나침반 센서"],
+    "pins": [
+      { "name": "VCC", "role": "power", "aliases": ["3.3v", "5v", "vin", "+"] },
+      { "name": "GND", "role": "ground", "aliases": ["ground", "-"] },
+      { "name": "SCL", "role": "i2c-clock", "aliases": ["clock", "scl"] },
+      { "name": "SDA", "role": "i2c-data", "aliases": ["data", "sda"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 3.3, "max": 5, "nominal": 3.3 },
+      "maxCurrentMa": 1,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["i2c", "power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "hmc5883l-module", "width": 0.58, "depth": 0.42, "height": 0.12 },
+    "simulationModel": { "type": "i2c-magnetometer-sensor", "nominalCurrentMa": 0.2 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "protocol-sensor",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["hmc5883l"],
+    "compatibleTopologies": ["controller-i2c-sensor-display"],
+    "sourceClaimIds": [
+      "hmc5883l-visual-pin-map",
+      "i2c-protocol-sensor-display-contract",
+      "protocol-sensor-display-qualitative-contract"
+    ],
+    "capabilities": ["protocol-sensor", "i2c-protocol-sensor", "magnetometer-sensor", "digital-sensor"],
+    "compatibleSimulationPrimitives": ["display_sensor_value", "current_flow_animation"],
+    "commonMistakes": [
+      "Swapping SDA and SCL.",
+      "Using the classroom compass readout as a navigation or safety instrument."
+    ],
+    "safeSubstitutes": ["mpu6050", "hall-effect-sensor"]
+  },
+  {
+    "id": "hx711-loadcell",
+    "kind": "input",
+    "label": "HX711 load cell amplifier module",
+    "aliases": ["hx711", "hx711 load cell", "load cell amp", "weight sensor", "로드셀", "무게 센서"],
+    "pins": [
+      { "name": "VCC", "role": "power", "aliases": ["5v", "vcc", "+"] },
+      { "name": "GND", "role": "ground", "aliases": ["ground", "-"] },
+      { "name": "DT", "role": "digital-data", "aliases": ["data", "dout", "dt"] },
+      { "name": "SCK", "role": "digital-clock", "aliases": ["clock", "sck"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 2.7, "max": 5.5, "nominal": 5 },
+      "maxCurrentMa": 1.5,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["clocked-data", "power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "hx711-loadcell-module", "width": 0.66, "depth": 0.48, "height": 0.12 },
+    "simulationModel": { "type": "clocked-data-loadcell-sensor", "nominalCurrentMa": 1.5 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "protocol-sensor",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["hx711-loadcell"],
+    "compatibleTopologies": ["controller-clocked-data-sensor-i2c-display"],
+    "sourceClaimIds": [
+      "hx711-loadcell-visual-pin-map",
+      "clocked-data-sensor-display-contract",
+      "protocol-sensor-display-qualitative-contract"
+    ],
+    "capabilities": ["protocol-sensor", "clocked-data-protocol-sensor", "loadcell-sensor", "digital-sensor"],
+    "compatibleSimulationPrimitives": ["display_sensor_value", "current_flow_animation"],
+    "commonMistakes": [
+      "Swapping DT and SCK.",
+      "Claiming legal-for-trade weight, calibration, or certified scale accuracy."
+    ],
+    "safeSubstitutes": ["fsr-pressure", "potentiometer-10k"]
+  },
+  {
+    "id": "gps-neo6m",
+    "kind": "input",
+    "label": "NEO-6M GPS receiver module",
+    "aliases": ["gps-neo6m", "neo-6m", "gps module", "nmea gps", "GPS 모듈"],
+    "pins": [
+      { "name": "VCC", "role": "power", "aliases": ["5v", "vcc", "+"] },
+      { "name": "GND", "role": "ground", "aliases": ["ground", "-"] },
+      { "name": "TX", "role": "serial-tx", "aliases": ["tx", "nmea output"] },
+      { "name": "RX", "role": "serial-rx", "aliases": ["rx", "config input"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 3.3, "max": 5, "nominal": 5 },
+      "maxCurrentMa": 45,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["uart", "nmea", "power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "gps-neo6m-module", "width": 0.78, "depth": 0.68, "height": 0.14 },
+    "simulationModel": { "type": "uart-gps-sensor", "nominalCurrentMa": 35 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "protocol-sensor",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["gps-neo6m"],
+    "compatibleTopologies": ["controller-uart-sensor-display"],
+    "sourceClaimIds": [
+      "gps-neo6m-visual-pin-map",
+      "uart-sensor-display-contract",
+      "protocol-sensor-display-qualitative-contract"
+    ],
+    "capabilities": ["protocol-sensor", "uart-protocol-sensor", "gps-sensor", "digital-sensor"],
+    "compatibleSimulationPrimitives": ["display_sensor_value", "current_flow_animation"],
+    "commonMistakes": [
+      "Connecting GPS TX to Arduino TX instead of RX.",
+      "Using the educational readout for navigation, tracking, or safety decisions."
+    ],
+    "safeSubstitutes": ["bmp280", "hmc5883l"]
+  },
+  {
+    "id": "rc522-rfid",
+    "kind": "input",
+    "label": "RC522 RFID reader module",
+    "aliases": ["rc522", "rfid reader", "mfrc522", "13.56 mhz rfid", "RFID 리더"],
+    "pins": [
+      { "name": "3V3", "role": "power", "aliases": ["3.3v", "vcc", "+"] },
+      { "name": "GND", "role": "ground", "aliases": ["ground", "-"] },
+      { "name": "SCK", "role": "spi-clock", "aliases": ["clock", "sck"] },
+      { "name": "MOSI", "role": "spi-mosi", "aliases": ["mosi", "data in"] },
+      { "name": "MISO", "role": "spi-miso", "aliases": ["miso", "data out"] },
+      { "name": "CS", "role": "spi-select", "aliases": ["ss", "sda", "chip select"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 3.3, "max": 3.3, "nominal": 3.3 },
+      "maxCurrentMa": 30,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["spi", "power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "rc522-rfid-module", "width": 0.92, "depth": 0.78, "height": 0.12 },
+    "simulationModel": { "type": "spi-rfid-sensor", "nominalCurrentMa": 26 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "protocol-sensor",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["rc522-rfid"],
+    "compatibleTopologies": ["controller-spi-sensor-display"],
+    "sourceClaimIds": [
+      "rc522-rfid-visual-pin-map",
+      "spi-sensor-display-contract",
+      "protocol-sensor-display-qualitative-contract"
+    ],
+    "capabilities": ["protocol-sensor", "spi-protocol-sensor", "rfid-sensor", "digital-sensor"],
+    "compatibleSimulationPrimitives": ["display_sensor_value", "current_flow_animation"],
+    "commonMistakes": [
+      "Powering the RC522 from 5V instead of the 3.3V rail.",
+      "Using the tag readout for real access control, payment, or security."
+    ],
+    "safeSubstitutes": ["button-tactile", "limit-switch"]
+  },
+  {
+    "id": "max30102-pulse",
+    "kind": "input",
+    "label": "MAX30102 optical pulse sensor module",
+    "aliases": ["max30102", "pulse sensor", "heart rate sensor", "optical pulse", "맥박 센서"],
+    "pins": [
+      { "name": "VIN", "role": "power", "aliases": ["vin", "3.3v", "5v", "+"] },
+      { "name": "GND", "role": "ground", "aliases": ["ground", "-"] },
+      { "name": "SCL", "role": "i2c-clock", "aliases": ["clock", "scl"] },
+      { "name": "SDA", "role": "i2c-data", "aliases": ["data", "sda"] },
+      { "name": "INT", "role": "digital-output", "aliases": ["interrupt", "int"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 3.3, "max": 5, "nominal": 3.3 },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["i2c", "power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "max30102-pulse-module", "width": 0.58, "depth": 0.46, "height": 0.12 },
+    "simulationModel": { "type": "i2c-optical-pulse-sensor", "nominalCurrentMa": 1.2 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "protocol-sensor",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["max30102-pulse"],
+    "compatibleTopologies": ["controller-i2c-sensor-display"],
+    "sourceClaimIds": [
+      "max30102-pulse-visual-pin-map",
+      "i2c-protocol-sensor-display-contract",
+      "protocol-sensor-display-qualitative-contract"
+    ],
+    "capabilities": ["protocol-sensor", "i2c-protocol-sensor", "optical-pulse-sensor", "digital-sensor"],
+    "compatibleSimulationPrimitives": ["display_sensor_value", "current_flow_animation"],
+    "commonMistakes": [
+      "Swapping SDA and SCL.",
+      "Claiming medical diagnosis, blood oxygen accuracy, or health monitoring from the classroom simulation."
+    ],
+    "safeSubstitutes": ["sound-sensor", "potentiometer-10k"]
+  },
+  {
+    "id": "soil-moisture",
+    "kind": "input",
+    "label": "Soil moisture sensor module",
+    "aliases": [
+      "soil moisture sensor",
+      "moisture sensor",
+      "soil sensor",
+      "토양 습도 센서"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "vcc",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "gnd",
+          "-"
+        ]
+      },
+      {
+        "name": "AO",
+        "role": "analog-output",
+        "aliases": [
+          "analog out",
+          "analog signal",
+          "sensor signal",
+          "A0"
+        ]
+      },
+      {
+        "name": "DO",
+        "role": "digital-output",
+        "aliases": [
+          "digital out",
+          "threshold output"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3.3,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "analog-input",
+      "digital-threshold",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "analog-sensor-module-4pin",
+      "width": 0.72,
+      "depth": 0.5,
+      "height": 0.26
+    },
+    "simulationModel": {
+      "type": "analog-moisture-sensor",
+      "nominalCurrentMa": 5
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "analog-environment-sensor",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "soil-moisture"
+    ],
+    "compatibleTopologies": [
+      "controller-analog-sensor-i2c-display",
+      "controller-analog-sensor-threshold-output"
+    ],
+    "sourceClaimIds": [
+      "soil-moisture-visual-pin-map",
+      "analog-sensor-readout-educational-only",
+      "analog-sensor-simulation-contract"
+    ],
+    "capabilities": [
+      "analog-input",
+      "analog-sensor",
+      "moisture-sensor",
+      "threshold-input"
+    ],
+    "compatibleSimulationPrimitives": [
+      "display_sensor_value",
+      "analog_threshold",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Leaving VCC or GND disconnected while reading the analog output.",
+      "Wiring the digital threshold output when the supported simulation expects the analog output on A0.",
+      "Treating the qualitative classroom readout as a calibrated safety instrument."
+    ],
+    "safeSubstitutes": [
+      "photoresistor-ldr",
+      "potentiometer-10k"
+    ]
+  },
+  {
+    "id": "water-level-sensor",
+    "kind": "input",
+    "label": "Water level sensor module",
+    "aliases": [
+      "water level sensor",
+      "water sensor",
+      "liquid level sensor",
+      "수위 센서"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "vcc",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "gnd",
+          "-"
+        ]
+      },
+      {
+        "name": "S",
+        "role": "analog-output",
+        "aliases": [
+          "analog out",
+          "analog signal",
+          "sensor signal",
+          "A0"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3.3,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "analog-input",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "analog-sensor-module-3pin",
+      "width": 0.62,
+      "depth": 0.5,
+      "height": 0.26
+    },
+    "simulationModel": {
+      "type": "analog-water-level-sensor",
+      "nominalCurrentMa": 5
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "analog-environment-sensor",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "water-level-sensor"
+    ],
+    "compatibleTopologies": [
+      "controller-analog-sensor-i2c-display",
+      "controller-analog-sensor-threshold-output"
+    ],
+    "sourceClaimIds": [
+      "water-level-sensor-visual-pin-map",
+      "analog-sensor-readout-educational-only",
+      "analog-sensor-simulation-contract"
+    ],
+    "capabilities": [
+      "analog-input",
+      "analog-sensor",
+      "water-level-sensor"
+    ],
+    "compatibleSimulationPrimitives": [
+      "display_sensor_value",
+      "analog_threshold",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Leaving VCC or GND disconnected while reading the analog output.",
+      "Wiring the digital threshold output when the supported simulation expects the analog output on A0.",
+      "Treating the qualitative classroom readout as a calibrated safety instrument."
+    ],
+    "safeSubstitutes": [
+      "soil-moisture",
+      "potentiometer-10k"
+    ]
+  },
+  {
+    "id": "tmp36-temp",
+    "kind": "input",
+    "label": "TMP36 analog temperature sensor",
+    "aliases": [
+      "tmp36",
+      "analog temperature sensor",
+      "temperature sensor",
+      "온도 센서"
+    ],
+    "pins": [
+      {
+        "name": "VS",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "vcc",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "gnd",
+          "-"
+        ]
+      },
+      {
+        "name": "OUT",
+        "role": "analog-output",
+        "aliases": [
+          "analog out",
+          "analog signal",
+          "sensor signal",
+          "A0"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3.3,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 1,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "analog-input",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "analog-sensor-module-3pin",
+      "width": 0.62,
+      "depth": 0.5,
+      "height": 0.26
+    },
+    "simulationModel": {
+      "type": "analog-temperature-voltage-sensor",
+      "nominalCurrentMa": 0.05
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "analog-temperature-sensor",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "tmp36-temp"
+    ],
+    "compatibleTopologies": [
+      "controller-analog-sensor-i2c-display",
+      "controller-analog-sensor-threshold-output"
+    ],
+    "sourceClaimIds": [
+      "tmp36-temp-visual-pin-map",
+      "analog-sensor-readout-educational-only",
+      "analog-sensor-simulation-contract"
+    ],
+    "capabilities": [
+      "analog-input",
+      "analog-sensor",
+      "temperature-sensor"
+    ],
+    "compatibleSimulationPrimitives": [
+      "display_sensor_value",
+      "analog_threshold",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Leaving VCC or GND disconnected while reading the analog output.",
+      "Wiring the digital threshold output when the supported simulation expects the analog output on A0.",
+      "Treating the qualitative classroom readout as a calibrated safety instrument."
+    ],
+    "safeSubstitutes": [
+      "dht11",
+      "potentiometer-10k"
+    ]
+  },
+  {
+    "id": "acs712-current",
+    "kind": "input",
+    "label": "ACS712 current sensor module",
+    "aliases": [
+      "acs712",
+      "current sensor",
+      "전류 센서"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "vcc",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "gnd",
+          "-"
+        ]
+      },
+      {
+        "name": "OUT",
+        "role": "analog-output",
+        "aliases": [
+          "analog out",
+          "analog signal",
+          "sensor signal",
+          "A0"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3.3,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "analog-input",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "analog-sensor-module-3pin",
+      "width": 0.62,
+      "depth": 0.5,
+      "height": 0.26
+    },
+    "simulationModel": {
+      "type": "analog-current-sensor-readout",
+      "nominalCurrentMa": 10
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "analog-current-sensor",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "acs712-current"
+    ],
+    "compatibleTopologies": [
+      "controller-analog-sensor-i2c-display",
+      "controller-analog-sensor-threshold-output"
+    ],
+    "sourceClaimIds": [
+      "acs712-current-visual-pin-map",
+      "analog-sensor-readout-educational-only",
+      "analog-sensor-simulation-contract"
+    ],
+    "capabilities": [
+      "analog-input",
+      "analog-sensor",
+      "current-sensor",
+      "safety-limited-readout"
+    ],
+    "compatibleSimulationPrimitives": [
+      "display_sensor_value",
+      "analog_threshold",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Leaving VCC or GND disconnected while reading the analog output.",
+      "Wiring the digital threshold output when the supported simulation expects the analog output on A0.",
+      "Treating the qualitative classroom readout as a calibrated safety instrument."
+    ],
+    "safeSubstitutes": [
+      "potentiometer-10k"
+    ]
+  },
+  {
+    "id": "rain-sensor",
+    "kind": "input",
+    "label": "Rain sensor module",
+    "aliases": [
+      "rain sensor",
+      "raindrop sensor",
+      "rain module",
+      "비 센서"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "vcc",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "gnd",
+          "-"
+        ]
+      },
+      {
+        "name": "AO",
+        "role": "analog-output",
+        "aliases": [
+          "analog out",
+          "analog signal",
+          "sensor signal",
+          "A0"
+        ]
+      },
+      {
+        "name": "DO",
+        "role": "digital-output",
+        "aliases": [
+          "digital out",
+          "threshold output"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3.3,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "analog-input",
+      "digital-threshold",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "analog-sensor-module-4pin",
+      "width": 0.72,
+      "depth": 0.5,
+      "height": 0.26
+    },
+    "simulationModel": {
+      "type": "analog-rain-sensor",
+      "nominalCurrentMa": 5
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "analog-environment-sensor",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "rain-sensor"
+    ],
+    "compatibleTopologies": [
+      "controller-analog-sensor-i2c-display",
+      "controller-analog-sensor-threshold-output"
+    ],
+    "sourceClaimIds": [
+      "rain-sensor-visual-pin-map",
+      "analog-sensor-readout-educational-only",
+      "analog-sensor-simulation-contract"
+    ],
+    "capabilities": [
+      "analog-input",
+      "analog-sensor",
+      "rain-sensor",
+      "threshold-input"
+    ],
+    "compatibleSimulationPrimitives": [
+      "display_sensor_value",
+      "analog_threshold",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Leaving VCC or GND disconnected while reading the analog output.",
+      "Wiring the digital threshold output when the supported simulation expects the analog output on A0.",
+      "Treating the qualitative classroom readout as a calibrated safety instrument."
+    ],
+    "safeSubstitutes": [
+      "soil-moisture",
+      "photoresistor-ldr"
+    ]
+  },
+  {
+    "id": "flame-sensor",
+    "kind": "input",
+    "label": "Flame sensor module",
+    "aliases": [
+      "flame sensor",
+      "fire sensor",
+      "불꽃 센서"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "vcc",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "gnd",
+          "-"
+        ]
+      },
+      {
+        "name": "AO",
+        "role": "analog-output",
+        "aliases": [
+          "analog out",
+          "analog signal",
+          "sensor signal",
+          "A0"
+        ]
+      },
+      {
+        "name": "DO",
+        "role": "digital-output",
+        "aliases": [
+          "digital out",
+          "threshold output"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3.3,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "analog-input",
+      "digital-threshold",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "analog-sensor-module-4pin",
+      "width": 0.72,
+      "depth": 0.5,
+      "height": 0.26
+    },
+    "simulationModel": {
+      "type": "analog-flame-sensor",
+      "nominalCurrentMa": 5
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "analog-environment-sensor",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "flame-sensor"
+    ],
+    "compatibleTopologies": [
+      "controller-analog-sensor-i2c-display",
+      "controller-analog-sensor-threshold-output"
+    ],
+    "sourceClaimIds": [
+      "flame-sensor-visual-pin-map",
+      "analog-sensor-readout-educational-only",
+      "analog-sensor-simulation-contract"
+    ],
+    "capabilities": [
+      "analog-input",
+      "analog-sensor",
+      "flame-sensor",
+      "threshold-input",
+      "safety-limited-readout"
+    ],
+    "compatibleSimulationPrimitives": [
+      "display_sensor_value",
+      "analog_threshold",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Leaving VCC or GND disconnected while reading the analog output.",
+      "Wiring the digital threshold output when the supported simulation expects the analog output on A0.",
+      "Treating the qualitative classroom readout as a calibrated safety instrument."
+    ],
+    "safeSubstitutes": [
+      "photoresistor-ldr"
+    ]
+  },
+  {
+    "id": "mq2-gas",
+    "kind": "input",
+    "label": "MQ-2 gas sensor module",
+    "aliases": [
+      "mq2",
+      "gas sensor",
+      "smoke sensor",
+      "가스 센서",
+      "연기 센서"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "vcc",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "gnd",
+          "-"
+        ]
+      },
+      {
+        "name": "AO",
+        "role": "analog-output",
+        "aliases": [
+          "analog out",
+          "analog signal",
+          "sensor signal",
+          "A0"
+        ]
+      },
+      {
+        "name": "DO",
+        "role": "digital-output",
+        "aliases": [
+          "digital out",
+          "threshold output"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3.3,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 180,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "analog-input",
+      "digital-threshold",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "analog-sensor-module-4pin",
+      "width": 0.72,
+      "depth": 0.5,
+      "height": 0.26
+    },
+    "simulationModel": {
+      "type": "analog-gas-sensor",
+      "nominalCurrentMa": 150
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "analog-environment-sensor",
+    "riskLevel": "power-warning",
+    "visualPartIds": [
+      "mq2-gas"
+    ],
+    "compatibleTopologies": [
+      "controller-analog-sensor-i2c-display",
+      "controller-analog-sensor-threshold-output"
+    ],
+    "sourceClaimIds": [
+      "mq2-gas-visual-pin-map",
+      "analog-sensor-readout-educational-only",
+      "analog-sensor-simulation-contract"
+    ],
+    "capabilities": [
+      "analog-input",
+      "analog-sensor",
+      "gas-sensor",
+      "smoke-sensor",
+      "threshold-input",
+      "safety-limited-readout"
+    ],
+    "compatibleSimulationPrimitives": [
+      "display_sensor_value",
+      "analog_threshold",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Leaving VCC or GND disconnected while reading the analog output.",
+      "Wiring the digital threshold output when the supported simulation expects the analog output on A0.",
+      "Treating the qualitative classroom readout as a calibrated safety instrument."
+    ],
+    "safeSubstitutes": [
+      "photoresistor-ldr",
+      "potentiometer-10k"
+    ]
+  },
+  {
+    "id": "sound-sensor",
+    "kind": "input",
+    "label": "Sound sensor module",
+    "aliases": [
+      "sound sensor",
+      "microphone sensor",
+      "noise sensor",
+      "소리 센서"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "vcc",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "gnd",
+          "-"
+        ]
+      },
+      {
+        "name": "AO",
+        "role": "analog-output",
+        "aliases": [
+          "analog out",
+          "analog signal",
+          "sensor signal",
+          "A0"
+        ]
+      },
+      {
+        "name": "DO",
+        "role": "digital-output",
+        "aliases": [
+          "digital out",
+          "threshold output"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3.3,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "analog-input",
+      "digital-threshold",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "analog-sensor-module-4pin",
+      "width": 0.72,
+      "depth": 0.5,
+      "height": 0.26
+    },
+    "simulationModel": {
+      "type": "analog-sound-sensor",
+      "nominalCurrentMa": 5
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "analog-sound-sensor",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "sound-sensor"
+    ],
+    "compatibleTopologies": [
+      "controller-analog-sensor-i2c-display",
+      "controller-analog-sensor-threshold-output"
+    ],
+    "sourceClaimIds": [
+      "sound-sensor-visual-pin-map",
+      "analog-sensor-readout-educational-only",
+      "analog-sensor-simulation-contract"
+    ],
+    "capabilities": [
+      "analog-input",
+      "analog-sensor",
+      "sound-sensor",
+      "microphone-module",
+      "threshold-input"
+    ],
+    "compatibleSimulationPrimitives": [
+      "display_sensor_value",
+      "analog_threshold",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Leaving VCC or GND disconnected while reading the analog output.",
+      "Wiring the digital threshold output when the supported simulation expects the analog output on A0.",
+      "Treating the qualitative classroom readout as a calibrated safety instrument."
+    ],
+    "safeSubstitutes": [
+      "button-tactile",
+      "potentiometer-10k"
+    ]
+  },
+  {
+    "id": "fsr-pressure",
+    "kind": "input",
+    "label": "FSR force-sensitive resistor",
+    "aliases": [
+      "fsr",
+      "force sensitive resistor",
+      "force sensor",
+      "pressure sensor",
+      "압력 센서",
+      "힘 센서"
+    ],
+    "pins": [
+      {
+        "name": "A",
+        "role": "resistive-terminal",
+        "aliases": [
+          "terminal a",
+          "lead a"
+        ]
+      },
+      {
+        "name": "B",
+        "role": "resistive-terminal",
+        "aliases": [
+          "terminal b",
+          "lead b"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 1,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "analog-input",
+      "voltage-divider",
+      "passive-resistive"
+    ],
+    "requiredPassives": [
+      {
+        "partId": "resistor-10k",
+        "reason": "fixed reference resistor for the FSR voltage divider"
+      }
+    ],
+    "renderFootprint": {
+      "type": "resistive-sensor-2pin",
+      "width": 0.55,
+      "depth": 0.34,
+      "height": 0.12
+    },
+    "simulationModel": {
+      "type": "resistive-force-divider",
+      "nominalCurrentMa": 0.5
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "analog-resistive-sensor",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "fsr-pressure"
+    ],
+    "compatibleTopologies": [
+      "controller-resistive-sensor-divider-i2c-display",
+      "controller-resistive-sensor-divider-threshold-output"
+    ],
+    "sourceClaimIds": [
+      "fsr-pressure-visual-pin-map",
+      "resistive-sensor-divider-required",
+      "resistive-sensor-qualitative-contract",
+      "resistor-10k-reference-divider"
+    ],
+    "capabilities": [
+      "analog-input",
+      "analog-sensor",
+      "resistive-sensor",
+      "force-sensor",
+      "pressure-sensor",
+      "voltage-divider",
+      "threshold-input"
+    ],
+    "compatibleSimulationPrimitives": [
+      "display_sensor_value",
+      "analog_threshold",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Connecting the two FSR leads directly between 5V and GND without a fixed divider resistor.",
+      "Inventing VCC, GND, or AO pins on the two-pin sensor body.",
+      "Treating the qualitative force readout as a calibrated scale."
+    ],
+    "safeSubstitutes": [
+      "potentiometer-10k",
+      "photoresistor-ldr"
+    ]
+  },
+  {
+    "id": "thermistor-ntc",
+    "kind": "input",
+    "label": "NTC thermistor",
+    "aliases": [
+      "thermistor",
+      "ntc",
+      "ntc thermistor",
+      "temperature resistor",
+      "서미스터",
+      "NTC",
+      "온도 저항"
+    ],
+    "pins": [
+      {
+        "name": "A",
+        "role": "resistive-terminal",
+        "aliases": [
+          "terminal a",
+          "lead a"
+        ]
+      },
+      {
+        "name": "B",
+        "role": "resistive-terminal",
+        "aliases": [
+          "terminal b",
+          "lead b"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 1,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "analog-input",
+      "voltage-divider",
+      "passive-resistive"
+    ],
+    "requiredPassives": [
+      {
+        "partId": "resistor-10k",
+        "reason": "fixed reference resistor for the thermistor voltage divider"
+      }
+    ],
+    "renderFootprint": {
+      "type": "resistive-sensor-2pin",
+      "width": 0.55,
+      "depth": 0.34,
+      "height": 0.12
+    },
+    "simulationModel": {
+      "type": "resistive-temperature-divider",
+      "nominalCurrentMa": 0.5
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "analog-resistive-sensor",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "thermistor-ntc"
+    ],
+    "compatibleTopologies": [
+      "controller-resistive-sensor-divider-i2c-display",
+      "controller-resistive-sensor-divider-threshold-output"
+    ],
+    "sourceClaimIds": [
+      "thermistor-ntc-visual-pin-map",
+      "resistive-sensor-divider-required",
+      "resistive-sensor-qualitative-contract",
+      "resistor-10k-reference-divider"
+    ],
+    "capabilities": [
+      "analog-input",
+      "analog-sensor",
+      "resistive-sensor",
+      "temperature-sensor",
+      "voltage-divider",
+      "threshold-input"
+    ],
+    "compatibleSimulationPrimitives": [
+      "display_sensor_value",
+      "analog_threshold",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Connecting the two thermistor leads directly between 5V and GND without a fixed divider resistor.",
+      "Inventing VCC, GND, or AO pins on the two-pin sensor body.",
+      "Treating the qualitative temperature readout as a calibrated thermometer."
+    ],
+    "safeSubstitutes": [
+      "tmp36-temp",
+      "dht11",
+      "potentiometer-10k"
+    ]
+  },
+  {
+    "id": "hall-effect-sensor",
+    "kind": "input",
+    "label": "Hall effect sensor",
+    "aliases": [
+      "hall effect sensor",
+      "hall sensor",
+      "magnet sensor",
+      "magnetic field sensor",
+      "홀 센서",
+      "자기장 센서"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5V",
+          "power"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground"
+        ]
+      },
+      {
+        "name": "OUT",
+        "role": "digital-output",
+        "aliases": [
+          "signal",
+          "digital out"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 8,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "digital-sensor-module-out-3pin",
+      "width": 0.62,
+      "depth": 0.48,
+      "height": 0.26
+    },
+    "simulationModel": {
+      "type": "powered-digital-input-module",
+      "nominalCurrentMa": 8
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "sensor-digital",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "hall-effect-sensor"
+    ],
+    "compatibleTopologies": [
+      "controller-digital-input-display",
+      "controller-digital-input-output"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "mains-load-control"
+    ],
+    "sourceClaimIds": [
+      "hall-effect-sensor-visual-pin-map",
+      "powered-digital-input-module-contract"
+    ],
+    "capabilities": [
+      "digital-input-state-source",
+      "powered-digital-sensor",
+      "magnetic-sensor",
+      "digital-output-sensor"
+    ],
+    "compatibleSimulationPrimitives": [
+      "digital_input_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Missing VCC or GND on the Hall module.",
+      "Treating the digital OUT pin as a calibrated analog magnetic field measurement."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "ir-receiver",
+    "kind": "input",
+    "label": "IR receiver module",
+    "aliases": [
+      "ir receiver",
+      "infrared receiver",
+      "remote receiver",
+      "38khz ir receiver",
+      "적외선 수신기",
+      "리모컨 수신기"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5V",
+          "power"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground"
+        ]
+      },
+      {
+        "name": "OUT",
+        "role": "pulse-output",
+        "aliases": [
+          "signal",
+          "digital out",
+          "pulse"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 5,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "digital-pulse"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "digital-sensor-module-out-3pin",
+      "width": 0.62,
+      "depth": 0.48,
+      "height": 0.26
+    },
+    "simulationModel": {
+      "type": "pulse-digital-input-module",
+      "nominalCurrentMa": 5
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "sensor-digital",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "ir-receiver"
+    ],
+    "compatibleTopologies": [
+      "controller-digital-input-display",
+      "controller-pulse-digital-sensor-display"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "mains-load-control"
+    ],
+    "sourceClaimIds": [
+      "ir-receiver-visual-pin-map",
+      "pulse-digital-sensor-qualitative-contract"
+    ],
+    "capabilities": [
+      "digital-input-state-source",
+      "powered-digital-sensor",
+      "pulse-digital-sensor",
+      "digital-output-sensor"
+    ],
+    "compatibleSimulationPrimitives": [
+      "digital_input_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Displaying a decoded remote command without noting that this simulator only shows qualitative pulse activity.",
+      "Missing common ground between receiver and Arduino."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "line-tracker",
+    "kind": "input",
+    "label": "Line tracking sensor",
+    "aliases": [
+      "line tracker",
+      "line tracking sensor",
+      "line sensor",
+      "ir reflectance sensor",
+      "라인 트래커",
+      "라인 센서"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5V",
+          "power"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground"
+        ]
+      },
+      {
+        "name": "OUT",
+        "role": "digital-output",
+        "aliases": [
+          "signal",
+          "digital out"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 12,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "digital-sensor-module-out-3pin",
+      "width": 0.62,
+      "depth": 0.48,
+      "height": 0.26
+    },
+    "simulationModel": {
+      "type": "powered-digital-input-module",
+      "nominalCurrentMa": 12
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "sensor-digital",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "line-tracker"
+    ],
+    "compatibleTopologies": [
+      "controller-digital-input-display",
+      "controller-digital-input-output"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "mains-load-control"
+    ],
+    "sourceClaimIds": [
+      "line-tracker-visual-pin-map",
+      "powered-digital-input-module-contract"
+    ],
+    "capabilities": [
+      "digital-input-state-source",
+      "powered-digital-sensor",
+      "reflectance-sensor",
+      "digital-output-sensor"
+    ],
+    "compatibleSimulationPrimitives": [
+      "digital_input_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Treating the digital line state as a calibrated reflectance value.",
+      "Missing VCC/GND on the module."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "pir-hc-sr501",
+    "kind": "input",
+    "label": "PIR motion sensor HC-SR501",
+    "aliases": [
+      "pir",
+      "pir sensor",
+      "motion sensor",
+      "hc-sr501",
+      "human motion sensor",
+      "동작 감지",
+      "모션 센서",
+      "PIR 센서"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5V",
+          "power"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground"
+        ]
+      },
+      {
+        "name": "OUT",
+        "role": "digital-output",
+        "aliases": [
+          "signal",
+          "digital out"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 12,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "digital-sensor-module-out-3pin",
+      "width": 0.62,
+      "depth": 0.48,
+      "height": 0.26
+    },
+    "simulationModel": {
+      "type": "powered-digital-input-module",
+      "nominalCurrentMa": 12
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "sensor-digital",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "pir-hc-sr501"
+    ],
+    "compatibleTopologies": [
+      "controller-digital-input-display",
+      "controller-digital-input-output"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "mains-load-control"
+    ],
+    "sourceClaimIds": [
+      "pir-hc-sr501-visual-pin-map",
+      "powered-digital-input-module-contract"
+    ],
+    "capabilities": [
+      "digital-input-state-source",
+      "powered-digital-sensor",
+      "motion-sensor",
+      "digital-output-sensor"
+    ],
+    "compatibleSimulationPrimitives": [
+      "digital_input_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Expecting precise distance or identity detection from the PIR state.",
+      "Missing common ground between PIR and Arduino."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "sw420-vibration",
+    "kind": "input",
+    "label": "SW-420 vibration sensor",
+    "aliases": [
+      "sw420",
+      "sw-420",
+      "vibration sensor",
+      "shock sensor",
+      "진동 센서",
+      "충격 센서"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5V",
+          "power"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground"
+        ]
+      },
+      {
+        "name": "DO",
+        "role": "digital-output",
+        "aliases": [
+          "signal",
+          "digital out"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 8,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "digital-sensor-module-do-3pin",
+      "width": 0.62,
+      "depth": 0.48,
+      "height": 0.26
+    },
+    "simulationModel": {
+      "type": "powered-digital-input-module",
+      "nominalCurrentMa": 8
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "sensor-digital",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "sw420-vibration"
+    ],
+    "compatibleTopologies": [
+      "controller-digital-input-display",
+      "controller-digital-input-output"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "mains-load-control"
+    ],
+    "sourceClaimIds": [
+      "sw420-vibration-visual-pin-map",
+      "powered-digital-input-module-contract"
+    ],
+    "capabilities": [
+      "digital-input-state-source",
+      "powered-digital-sensor",
+      "vibration-sensor",
+      "digital-output-sensor"
+    ],
+    "compatibleSimulationPrimitives": [
+      "digital_input_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Treating the DO pin as a vibration magnitude value.",
+      "Missing the module ground reference."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "tilt-ball-sensor",
+    "kind": "input",
+    "label": "Tilt ball sensor module",
+    "aliases": [
+      "tilt sensor",
+      "tilt ball sensor",
+      "tilt switch",
+      "기울기 센서",
+      "틸트 센서"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5V",
+          "power"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground"
+        ]
+      },
+      {
+        "name": "DO",
+        "role": "digital-output",
+        "aliases": [
+          "signal",
+          "digital out"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 5,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "digital-sensor-module-do-3pin",
+      "width": 0.62,
+      "depth": 0.48,
+      "height": 0.26
+    },
+    "simulationModel": {
+      "type": "powered-digital-input-module",
+      "nominalCurrentMa": 5
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "sensor-digital",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "tilt-ball-sensor"
+    ],
+    "compatibleTopologies": [
+      "controller-digital-input-display",
+      "controller-digital-input-output"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "mains-load-control"
+    ],
+    "sourceClaimIds": [
+      "tilt-ball-sensor-visual-pin-map",
+      "powered-digital-input-module-contract"
+    ],
+    "capabilities": [
+      "digital-input-state-source",
+      "powered-digital-sensor",
+      "tilt-sensor",
+      "digital-output-sensor"
+    ],
+    "compatibleSimulationPrimitives": [
+      "digital_input_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Treating the output as a tilt angle instead of a simple digital state.",
+      "Missing the module power or ground pins."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "tcs3200-color",
+    "kind": "input",
+    "label": "TCS3200 color sensor",
+    "aliases": [
+      "tcs3200",
+      "color sensor",
+      "colour sensor",
+      "frequency color sensor",
+      "컬러 센서",
+      "색상 센서"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5V",
+          "power"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground"
+        ]
+      },
+      {
+        "name": "S0",
+        "role": "digital-control",
+        "aliases": [
+          "frequency scale control"
+        ]
+      },
+      {
+        "name": "S2",
+        "role": "digital-control",
+        "aliases": [
+          "filter select control"
+        ]
+      },
+      {
+        "name": "OUT",
+        "role": "pulse-output",
+        "aliases": [
+          "frequency output",
+          "pulse output",
+          "signal"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "digital-pulse"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "pulse-sensor-module-5pin",
+      "width": 0.76,
+      "depth": 0.48,
+      "height": 0.26
+    },
+    "simulationModel": {
+      "type": "pulse-digital-input-module",
+      "nominalCurrentMa": 20
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "sensor-digital",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "tcs3200-color"
+    ],
+    "compatibleTopologies": [
+      "controller-pulse-digital-sensor-display"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "mains-load-control"
+    ],
+    "sourceClaimIds": [
+      "tcs3200-color-visual-pin-map",
+      "pulse-digital-sensor-qualitative-contract"
+    ],
+    "capabilities": [
+      "digital-input-state-source",
+      "powered-digital-sensor",
+      "pulse-digital-sensor",
+      "color-sensor",
+      "digital-output-sensor"
+    ],
+    "compatibleSimulationPrimitives": [
+      "digital_input_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Claiming calibrated RGB color without calibration.",
+      "Leaving S0/S2 filter-control pins unconnected in the supported display topology."
+    ],
+    "safeSubstitutes": []
+  }
+]

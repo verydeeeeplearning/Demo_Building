@@ -1,0 +1,1 @@
+{"id":"v2-controller-board-pin-map-supported","message":"Show the Arduino Nano pin map and voltage domain.","expected":"render_and_run_valid_state_only_controller_board_context"}

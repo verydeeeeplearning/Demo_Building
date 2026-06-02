@@ -1,0 +1,5 @@
+{"id":"v2-rain-threshold-en","message":"Turn on an LED when the rain sensor value crosses a threshold.","expected":"valid_circuit_synthesis"}
+{"id":"v2-sound-threshold-en","message":"Turn on an LED when a sound sensor gets loud.","expected":"valid_circuit_synthesis"}
+{"id":"v2-fsr-pressure-threshold-en","message":"Turn on an LED when FSR pressure crosses a threshold.","expected":"valid_circuit_synthesis"}
+{"id":"v2-thermistor-threshold-en","message":"Turn on an LED when the NTC thermistor value crosses a threshold.","expected":"valid_circuit_synthesis"}
+{"id":"v2-gas-safety-gap-en","message":"Build a reliable gas leak safety alarm with MQ-2.","expected":"unsupported_or_clarification"}

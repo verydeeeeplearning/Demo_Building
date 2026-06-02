@@ -1,0 +1,995 @@
+[
+  {
+    "id": "controller-i2c-module",
+    "label": "Controller to I2C module",
+    "description": "A controller powers a low-voltage I2C module and connects SDA/SCL signal lines with a shared ground.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "nets": [
+      {
+        "id": "vcc",
+        "kind": "power"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      },
+      {
+        "id": "sda",
+        "kind": "signal"
+      },
+      {
+        "id": "scl",
+        "kind": "signal"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "i2c-module.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "i2c-module.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.i2c-data",
+        "toNet": "sda",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "i2c-module.i2c-data",
+        "toNet": "sda",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "controller.i2c-clock",
+        "toNet": "scl",
+        "signal": "i2c-clock"
+      },
+      {
+        "fromRole": "i2c-module.i2c-clock",
+        "toNet": "scl",
+        "signal": "i2c-clock"
+      }
+    ],
+    "validationRules": [
+      "common-ground",
+      "i2c-pin-role-match",
+      "power-rail-valid"
+    ],
+    "simulationPrimitiveHints": [
+      "display_static_text",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-i2c-character-display",
+    "label": "Controller to I2C text display",
+    "description": "A controller powers a low-voltage I2C OLED or LCD text display and connects SDA/SCL signal lines with a shared ground.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "nets": [
+      {
+        "id": "vcc",
+        "kind": "power"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      },
+      {
+        "id": "sda",
+        "kind": "signal"
+      },
+      {
+        "id": "scl",
+        "kind": "signal"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "i2c-module.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "i2c-module.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.i2c-data",
+        "toNet": "sda",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "i2c-module.i2c-data",
+        "toNet": "sda",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "controller.i2c-clock",
+        "toNet": "scl",
+        "signal": "i2c-clock"
+      },
+      {
+        "fromRole": "i2c-module.i2c-clock",
+        "toNet": "scl",
+        "signal": "i2c-clock"
+      }
+    ],
+    "validationRules": [
+      "common-ground",
+      "i2c-pin-role-match",
+      "power-rail-valid"
+    ],
+    "simulationPrimitiveHints": [
+      "display_static_text",
+      "display_sensor_value",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-distance-sensor-i2c-display",
+    "label": "Controller distance sensor readout on I2C display",
+    "description": "A controller powers an HC-SR04 distance sensor and an I2C display, sends a trigger pulse, reads the echo pulse, and displays the measured distance.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-output",
+      "digital-input",
+      "distance-sensor",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "nets": [
+      {
+        "id": "vcc",
+        "kind": "power"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      },
+      {
+        "id": "trigger",
+        "kind": "signal"
+      },
+      {
+        "id": "echo",
+        "kind": "signal"
+      },
+      {
+        "id": "sda",
+        "kind": "signal"
+      },
+      {
+        "id": "scl",
+        "kind": "signal"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "distance-sensor.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "i2c-module.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "distance-sensor.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "i2c-module.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "trigger",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "distance-sensor.digital-input",
+        "toNet": "trigger",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "distance-sensor.digital-output",
+        "toNet": "echo",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "controller.digital-input",
+        "toNet": "echo",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "controller.i2c-data",
+        "toNet": "sda",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "i2c-module.i2c-data",
+        "toNet": "sda",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "controller.i2c-clock",
+        "toNet": "scl",
+        "signal": "i2c-clock"
+      },
+      {
+        "fromRole": "i2c-module.i2c-clock",
+        "toNet": "scl",
+        "signal": "i2c-clock"
+      }
+    ],
+    "validationRules": [
+      "sensor-trigger-echo-pin-pair",
+      "i2c-pin-role-match",
+      "common-ground",
+      "power-rail-valid"
+    ],
+    "simulationPrimitiveHints": [
+      "display_sensor_value",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-single-wire-sensor-i2c-display",
+    "label": "Controller single-wire sensor readout on I2C display",
+    "description": "A controller powers a single-wire digital environmental sensor and an I2C display, reads the sensor data line, and displays the measured value.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-input",
+      "single-wire-data-sensor",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "nets": [
+      {
+        "id": "vcc",
+        "kind": "power"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      },
+      {
+        "id": "data",
+        "kind": "signal"
+      },
+      {
+        "id": "sda",
+        "kind": "signal"
+      },
+      {
+        "id": "scl",
+        "kind": "signal"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "single-wire-data-sensor.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "i2c-module.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "single-wire-data-sensor.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "i2c-module.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.digital-input",
+        "toNet": "data",
+        "signal": "single-wire-data"
+      },
+      {
+        "fromRole": "single-wire-data-sensor.data",
+        "toNet": "data",
+        "signal": "single-wire-data"
+      },
+      {
+        "fromRole": "controller.i2c-data",
+        "toNet": "sda",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "i2c-module.i2c-data",
+        "toNet": "sda",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "controller.i2c-clock",
+        "toNet": "scl",
+        "signal": "i2c-clock"
+      },
+      {
+        "fromRole": "i2c-module.i2c-clock",
+        "toNet": "scl",
+        "signal": "i2c-clock"
+      }
+    ],
+    "validationRules": [
+      "single-wire-data-pin",
+      "i2c-pin-role-match",
+      "common-ground",
+      "power-rail-valid"
+    ],
+    "simulationPrimitiveHints": [
+      "display_sensor_value",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-digital-output-series-load",
+    "label": "Controller digital output through series current limit",
+    "description": "A controller GPIO drives a DC load through a required current-limiting passive before returning to ground.",
+    "requiredRoles": [
+      "controller",
+      "digital-output",
+      "series-current-limit",
+      "dc-load",
+      "ground-return"
+    ],
+    "nets": [
+      {
+        "id": "controller-output-net",
+        "kind": "signal"
+      },
+      {
+        "id": "load-input-net",
+        "kind": "signal"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "controller-output-net",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "series-current-limit.input",
+        "toNet": "controller-output-net",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "series-current-limit.output",
+        "toNet": "load-input-net",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "dc-load.input",
+        "toNet": "load-input-net",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "dc-load.ground-return",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      }
+    ],
+    "validationRules": [
+      "series-current-limit",
+      "closed-current-path",
+      "led-polarity"
+    ],
+    "simulationPrimitiveHints": [
+      "digital_on_off",
+      "blink_timer",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-digital-input-switch-plus-output",
+    "label": "Controller switch input plus protected digital output",
+    "description": "A controller reads a switch input while driving a current-limited digital load with a shared ground.",
+    "requiredRoles": [
+      "controller",
+      "digital-input",
+      "switch-input",
+      "digital-output",
+      "series-current-limit",
+      "dc-load",
+      "ground-return"
+    ],
+    "nets": [
+      {
+        "id": "switch-signal",
+        "kind": "signal"
+      },
+      {
+        "id": "output-signal",
+        "kind": "signal"
+      },
+      {
+        "id": "load-input-net",
+        "kind": "signal"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.digital-input",
+        "toNet": "switch-signal",
+        "signal": "button"
+      },
+      {
+        "fromRole": "switch-input.signal",
+        "toNet": "switch-signal",
+        "signal": "button"
+      },
+      {
+        "fromRole": "switch-input.ground-reference",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "output-signal",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "series-current-limit.input",
+        "toNet": "output-signal",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "series-current-limit.output",
+        "toNet": "load-input-net",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "dc-load.input",
+        "toNet": "load-input-net",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "dc-load.ground-return",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      }
+    ],
+    "validationRules": [
+      "button-pullup-or-pulldown",
+      "series-current-limit",
+      "closed-current-path"
+    ],
+    "simulationPrimitiveHints": [
+      "digital_on_off",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-digital-input-switch-plus-multiple-outputs",
+    "label": "Controller switch input plus protected and direct digital outputs",
+    "description": "A controller reads one switch input while driving a protected LED load and a separate low-current output load with a shared ground.",
+    "requiredRoles": [
+      "controller",
+      "digital-input",
+      "switch-input",
+      "digital-output",
+      "series-current-limit",
+      "dc-load",
+      "direct-low-current-load",
+      "ground-return"
+    ],
+    "nets": [
+      {
+        "id": "switch-signal",
+        "kind": "signal"
+      },
+      {
+        "id": "protected-output-signal",
+        "kind": "signal"
+      },
+      {
+        "id": "protected-load-input-net",
+        "kind": "signal"
+      },
+      {
+        "id": "direct-output-signal",
+        "kind": "signal"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.digital-input",
+        "toNet": "switch-signal",
+        "signal": "button"
+      },
+      {
+        "fromRole": "switch-input.signal",
+        "toNet": "switch-signal",
+        "signal": "button"
+      },
+      {
+        "fromRole": "switch-input.ground-reference",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "protected-output-signal",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "series-current-limit.input",
+        "toNet": "protected-output-signal",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "series-current-limit.output",
+        "toNet": "protected-load-input-net",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "dc-load.input",
+        "toNet": "protected-load-input-net",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "dc-load.ground-return",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "direct-output-signal",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "direct-low-current-load.input",
+        "toNet": "direct-output-signal",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "direct-low-current-load.ground-return",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      }
+    ],
+    "validationRules": [
+      "button-pullup-or-pulldown",
+      "series-current-limit",
+      "closed-current-path",
+      "common-ground",
+      "current-limit-warning"
+    ],
+    "simulationPrimitiveHints": [
+      "digital_on_off",
+      "buzzer_pulse",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-direct-low-current-load",
+    "label": "Controller direct low-current output load",
+    "description": "A controller drives a low-current output module directly from a GPIO and closes the return path to ground.",
+    "requiredRoles": [
+      "controller",
+      "digital-output",
+      "direct-low-current-load",
+      "ground-return"
+    ],
+    "nets": [
+      {
+        "id": "output-signal",
+        "kind": "signal"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "output-signal",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "direct-low-current-load.input",
+        "toNet": "output-signal",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "direct-low-current-load.ground-return",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      }
+    ],
+    "validationRules": [
+      "common-ground",
+      "polarity-check",
+      "current-limit-warning"
+    ],
+    "simulationPrimitiveHints": [
+      "buzzer_pulse",
+      "digital_on_off",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-pwm-actuator",
+    "label": "Controller PWM actuator",
+    "description": "A controller provides supply, ground, and PWM signal activity to a beginner-safe actuator module.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "pwm-output",
+      "pwm-actuator"
+    ],
+    "nets": [
+      {
+        "id": "vcc",
+        "kind": "power"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      },
+      {
+        "id": "pwm-signal",
+        "kind": "signal"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "pwm-actuator.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "pwm-actuator.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.pwm-output",
+        "toNet": "pwm-signal",
+        "signal": "pwm"
+      },
+      {
+        "fromRole": "pwm-actuator.signal",
+        "toNet": "pwm-signal",
+        "signal": "pwm"
+      }
+    ],
+    "validationRules": [
+      "pwm-pin-required",
+      "common-ground",
+      "high-current-warning"
+    ],
+    "simulationPrimitiveHints": [
+      "servo_angle",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-analog-input-pwm-output",
+    "label": "Controller analog input maps to PWM LED output",
+    "description": "A controller reads a low-voltage analog divider on A0 while driving a current-limited LED from a PWM pin.",
+    "requiredRoles": [
+      "controller",
+      "analog-input",
+      "voltage-divider",
+      "pwm-output",
+      "series-current-limit",
+      "dc-load",
+      "ground-return"
+    ],
+    "nets": [
+      {
+        "id": "vcc",
+        "kind": "power"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      },
+      {
+        "id": "analog-signal",
+        "kind": "signal"
+      },
+      {
+        "id": "pwm-output",
+        "kind": "signal"
+      },
+      {
+        "id": "load-input-net",
+        "kind": "signal"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "voltage-divider.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "voltage-divider.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "voltage-divider.analog-output",
+        "toNet": "analog-signal",
+        "signal": "analog"
+      },
+      {
+        "fromRole": "controller.analog-input",
+        "toNet": "analog-signal",
+        "signal": "analog"
+      },
+      {
+        "fromRole": "controller.pwm-output",
+        "toNet": "pwm-output",
+        "signal": "pwm"
+      },
+      {
+        "fromRole": "series-current-limit.input",
+        "toNet": "pwm-output",
+        "signal": "pwm"
+      },
+      {
+        "fromRole": "series-current-limit.output",
+        "toNet": "load-input-net",
+        "signal": "pwm"
+      },
+      {
+        "fromRole": "dc-load.input",
+        "toNet": "load-input-net",
+        "signal": "pwm"
+      },
+      {
+        "fromRole": "dc-load.ground-return",
+        "toNet": "ground",
+        "signal": "ground"
+      }
+    ],
+    "validationRules": [
+      "voltage-divider-required",
+      "analog-input-pin-exists",
+      "pwm-output-required",
+      "series-current-limit",
+      "common-ground"
+    ],
+    "simulationPrimitiveHints": [
+      "analog_pwm_dimmer",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-analog-threshold-output",
+    "label": "Controller analog threshold controls protected LED output",
+    "description": "A controller reads a low-voltage analog sensor and switches a current-limited LED when the threshold condition is met.",
+    "requiredRoles": [
+      "controller",
+      "analog-input",
+      "voltage-divider",
+      "digital-output",
+      "series-current-limit",
+      "dc-load",
+      "ground-return"
+    ],
+    "nets": [
+      {
+        "id": "vcc",
+        "kind": "power"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      },
+      {
+        "id": "analog-signal",
+        "kind": "signal"
+      },
+      {
+        "id": "output-signal",
+        "kind": "signal"
+      },
+      {
+        "id": "load-input-net",
+        "kind": "signal"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "voltage-divider.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "voltage-divider.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "voltage-divider.analog-output",
+        "toNet": "analog-signal",
+        "signal": "analog"
+      },
+      {
+        "fromRole": "controller.analog-input",
+        "toNet": "analog-signal",
+        "signal": "analog"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "output-signal",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "series-current-limit.input",
+        "toNet": "output-signal",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "series-current-limit.output",
+        "toNet": "load-input-net",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "dc-load.input",
+        "toNet": "load-input-net",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "dc-load.ground-return",
+        "toNet": "ground",
+        "signal": "ground"
+      }
+    ],
+    "validationRules": [
+      "voltage-divider-required",
+      "analog-input-pin-exists",
+      "threshold-defined",
+      "series-current-limit",
+      "common-ground"
+    ],
+    "simulationPrimitiveHints": [
+      "analog_threshold",
+      "current_flow_animation"
+    ]
+  }
+]

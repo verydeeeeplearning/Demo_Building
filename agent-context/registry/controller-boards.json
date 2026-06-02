@@ -3,13 +3,323 @@
     "id": "arduino-uno",
     "name": "Arduino Uno",
     "logicVoltage": 5,
-    "supplyPins": ["5V"],
-    "groundPins": ["GND"],
-    "gpioPins": ["D2", "D3", "D8", "D9"],
-    "analogPins": ["A0", "A1", "A2", "A3", "A4/SDA", "A5/SCL"],
-    "pwmPins": ["D3", "D9"],
-    "i2cPins": { "sda": "A4/SDA", "scl": "A5/SCL" },
+    "supplyPins": [
+      "5V"
+    ],
+    "groundPins": [
+      "GND"
+    ],
+    "gpioPins": [
+      "D2",
+      "D3",
+      "D8",
+      "D9"
+    ],
+    "analogPins": [
+      "A0",
+      "A1",
+      "A2",
+      "A3",
+      "A4/SDA",
+      "A5/SCL"
+    ],
+    "pwmPins": [
+      "D3",
+      "D9"
+    ],
+    "i2cPins": {
+      "sda": "A4/SDA",
+      "scl": "A5/SCL"
+    },
+    "uartPins": {
+      "tx": "D1/TX",
+      "rx": "D0/RX"
+    },
     "recommendedMaxSourceMilliamp": 20,
     "boardCurrentNote": "USB-powered classroom examples should stay conservative."
+  },
+  {
+    "id": "arduino-nano",
+    "name": "Arduino Nano",
+    "logicVoltage": 5,
+    "supplyPins": [
+      "5V"
+    ],
+    "groundPins": [
+      "GND"
+    ],
+    "gpioPins": [
+      "D12"
+    ],
+    "analogPins": [
+      "A3"
+    ],
+    "pwmPins": [],
+    "i2cPins": {},
+    "uartPins": {
+      "tx": "TX",
+      "rx": "RX"
+    },
+    "recommendedMaxSourceMilliamp": 20,
+    "boardCurrentNote": "Treat as a 5V classroom controller context unless a board variant says otherwise."
+  },
+  {
+    "id": "arduino-mega2560",
+    "name": "Arduino Mega 2560",
+    "logicVoltage": 5,
+    "supplyPins": [
+      "5V"
+    ],
+    "groundPins": [
+      "GND"
+    ],
+    "gpioPins": [
+      "D2"
+    ],
+    "analogPins": [
+      "A0"
+    ],
+    "pwmPins": [
+      "D2"
+    ],
+    "i2cPins": {},
+    "uartPins": {
+      "tx": "TX0",
+      "rx": "RX0"
+    },
+    "recommendedMaxSourceMilliamp": 20,
+    "boardCurrentNote": "Treat as a 5V classroom controller context unless a board variant says otherwise."
+  },
+  {
+    "id": "arduino-leonardo",
+    "name": "Arduino Leonardo",
+    "logicVoltage": 5,
+    "supplyPins": [
+      "5V"
+    ],
+    "groundPins": [
+      "GND"
+    ],
+    "gpioPins": [
+      "D9"
+    ],
+    "analogPins": [
+      "A1"
+    ],
+    "pwmPins": [
+      "D9"
+    ],
+    "i2cPins": {
+      "sda": "SDA",
+      "scl": "SCL"
+    },
+    "uartPins": {},
+    "recommendedMaxSourceMilliamp": 20,
+    "boardCurrentNote": "Treat as a 5V classroom controller context unless a board variant says otherwise."
+  },
+  {
+    "id": "arduino-micro",
+    "name": "Arduino Micro",
+    "logicVoltage": 5,
+    "supplyPins": [
+      "5V"
+    ],
+    "groundPins": [
+      "GND"
+    ],
+    "gpioPins": [
+      "D5"
+    ],
+    "analogPins": [
+      "A0"
+    ],
+    "pwmPins": [
+      "D5"
+    ],
+    "i2cPins": {},
+    "uartPins": {
+      "tx": "TX",
+      "rx": "RX"
+    },
+    "recommendedMaxSourceMilliamp": 20,
+    "boardCurrentNote": "Treat as a 5V classroom controller context unless a board variant says otherwise."
+  },
+  {
+    "id": "arduino-pro-mini",
+    "name": "Arduino Pro Mini",
+    "logicVoltage": 5,
+    "supplyPins": [
+      "VCC"
+    ],
+    "groundPins": [
+      "GND"
+    ],
+    "gpioPins": [
+      "D3"
+    ],
+    "analogPins": [
+      "A0"
+    ],
+    "pwmPins": [
+      "D3"
+    ],
+    "i2cPins": {},
+    "uartPins": {
+      "tx": "TX",
+      "rx": "RX"
+    },
+    "recommendedMaxSourceMilliamp": 20,
+    "boardCurrentNote": "Treat as a 5V classroom controller context unless a board variant says otherwise."
+  },
+  {
+    "id": "attiny85-board",
+    "name": "ATtiny85 Digispark",
+    "logicVoltage": 5,
+    "supplyPins": [
+      "VCC"
+    ],
+    "groundPins": [
+      "GND"
+    ],
+    "gpioPins": [
+      "P0",
+      "P2"
+    ],
+    "analogPins": [],
+    "pwmPins": [],
+    "i2cPins": {
+      "sda": "P3",
+      "scl": "P4"
+    },
+    "uartPins": {},
+    "recommendedMaxSourceMilliamp": 20,
+    "boardCurrentNote": "Treat as a 5V classroom controller context unless a board variant says otherwise."
+  },
+  {
+    "id": "esp32-devkit",
+    "name": "ESP32 DevKit V1",
+    "logicVoltage": 3.3,
+    "supplyPins": [
+      "3V3"
+    ],
+    "groundPins": [
+      "GND"
+    ],
+    "gpioPins": [
+      "GPIO2"
+    ],
+    "analogPins": [
+      "GPIO34"
+    ],
+    "pwmPins": [],
+    "i2cPins": {},
+    "uartPins": {
+      "tx": "TX",
+      "rx": "RX"
+    },
+    "recommendedMaxSourceMilliamp": 12,
+    "boardCurrentNote": "Treat GPIO as 3.3V logic; do not assume 5V Uno-compatible levels."
+  },
+  {
+    "id": "esp8266-nodemcu",
+    "name": "NodeMCU ESP8266",
+    "logicVoltage": 3.3,
+    "supplyPins": [
+      "3V3"
+    ],
+    "groundPins": [
+      "GND"
+    ],
+    "gpioPins": [
+      "D1"
+    ],
+    "analogPins": [
+      "A0"
+    ],
+    "pwmPins": [],
+    "i2cPins": {},
+    "uartPins": {
+      "tx": "TX",
+      "rx": "RX"
+    },
+    "recommendedMaxSourceMilliamp": 12,
+    "boardCurrentNote": "Treat GPIO as 3.3V logic; do not assume 5V Uno-compatible levels."
+  },
+  {
+    "id": "raspberry-pi-pico",
+    "name": "Raspberry Pi Pico",
+    "logicVoltage": 3.3,
+    "supplyPins": [
+      "3V3"
+    ],
+    "groundPins": [
+      "GND"
+    ],
+    "gpioPins": [
+      "GP2"
+    ],
+    "analogPins": [
+      "GP26"
+    ],
+    "pwmPins": [],
+    "i2cPins": {},
+    "uartPins": {
+      "tx": "GP0",
+      "rx": "GP1"
+    },
+    "recommendedMaxSourceMilliamp": 12,
+    "boardCurrentNote": "Treat GPIO as 3.3V logic; do not assume 5V Uno-compatible levels."
+  },
+  {
+    "id": "stm32-bluepill",
+    "name": "STM32 Blue Pill",
+    "logicVoltage": 3.3,
+    "supplyPins": [
+      "3V3"
+    ],
+    "groundPins": [
+      "GND"
+    ],
+    "gpioPins": [],
+    "analogPins": [
+      "PA0"
+    ],
+    "pwmPins": [],
+    "i2cPins": {
+      "sda": "PB6"
+    },
+    "uartPins": {
+      "tx": "PA9",
+      "rx": "PA10"
+    },
+    "recommendedMaxSourceMilliamp": 12,
+    "boardCurrentNote": "Treat GPIO as 3.3V logic; do not assume 5V Uno-compatible levels."
+  },
+  {
+    "id": "teensy40",
+    "name": "Teensy 4.0",
+    "logicVoltage": 3.3,
+    "supplyPins": [
+      "3V3"
+    ],
+    "groundPins": [
+      "GND"
+    ],
+    "gpioPins": [
+      "D6"
+    ],
+    "analogPins": [
+      "A0"
+    ],
+    "pwmPins": [
+      "D6"
+    ],
+    "i2cPins": {},
+    "uartPins": {
+      "rx": "D0",
+      "tx": "D1"
+    },
+    "recommendedMaxSourceMilliamp": 12,
+    "boardCurrentNote": "Treat GPIO as 3.3V logic; do not assume 5V Uno-compatible levels."
   }
 ]

@@ -1,0 +1,1188 @@
+{
+  "version": "2026-06-01",
+  "routes": [
+    {
+      "routeId": "v2-ambiguous-minimal",
+      "priority": 10,
+      "policyOnly": true,
+      "when": {
+        "capabilityIds": [],
+        "supportLevels": [],
+        "modalities": [],
+        "ambiguity": true
+      },
+      "bundleIds": [],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:clarification",
+        "policy:truthfulness"
+      ],
+      "maxPromptChars": 6000,
+      "reason": "Ambiguous prompts need only safety, clarification, and truthfulness policy."
+    },
+    {
+      "routeId": "v2-addressable-led-display-output",
+      "priority": 24,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "addressable-led-display-output"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "addressable-led-display"
+        ]
+      },
+      "bundleIds": [
+        "addressable-led-display-output"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 13000,
+      "reason": "Addressable LED display requests need powered RGB module wiring, DIN signal validation, current warning, and qualitative pattern simulation evidence."
+    },
+    {
+      "routeId": "v2-bare-seven-segment-display-output",
+      "priority": 25,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "bare-seven-segment-display-output"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "bare-seven-segment-display"
+        ]
+      },
+      "bundleIds": [
+        "bare-seven-segment-display-output"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 13000,
+      "reason": "Bare single-digit 7-segment display requests need per-segment current-limit evidence, common ground validation, and qualitative segment-state simulation."
+    },
+    {
+      "routeId": "v2-led-array-display-output",
+      "priority": 24,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "led-array-display-output"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "led-array-display"
+        ]
+      },
+      "bundleIds": [
+        "led-array-display-output"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 14000,
+      "reason": "LED array display requests need module power, shared ground, data/clock/control signals, and qualitative number or pattern simulation evidence."
+    },
+    {
+      "routeId": "v2-low-voltage-power-rail",
+      "priority": 26,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "low-voltage-power-rail"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "power",
+          "power-rail"
+        ]
+      },
+      "bundleIds": [
+        "low-voltage-power-rail"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 13000,
+      "reason": "Low-voltage power rail requests need polarity, common-ground, regulator, render footprint, and qualitative rail-state evidence."
+    },
+    {
+      "routeId": "v2-passive-protection-context",
+      "priority": 27,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "passive-protection-context"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "passive-context"
+        ]
+      },
+      "bundleIds": [
+        "passive-protection-context"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 12000,
+      "reason": "Passive protection/filtering requests need pin, polarity, render footprint, and state-only simulation evidence without fake active current flow."
+    },
+    {
+      "routeId": "v2-timing-passive-context",
+      "priority": 27,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "timing-passive-context"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "timing-context"
+        ]
+      },
+      "bundleIds": [
+        "timing-passive-context"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 11000,
+      "reason": "Timing passive requests need crystal pin/footprint evidence and qualitative state-only context, not oscillator or waveform simulation."
+    },
+    {
+      "routeId": "v2-prototyping-surface-context",
+      "priority": 28,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "prototyping-surface-context"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "prototyping-context"
+        ]
+      },
+      "bundleIds": [
+        "prototyping-surface-context"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 11000,
+      "reason": "Prototyping surface requests need surface-specific render evidence and state-only context without implicit nets or current flow."
+    },
+    {
+      "routeId": "v2-connector-wiring-context",
+      "priority": 28,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "connector-wiring-context"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "connector-context"
+        ]
+      },
+      "bundleIds": [
+        "connector-wiring-context"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 11000,
+      "reason": "Connector requests need header/terminal render evidence and state-only connector context without inferred power or pass-through nets."
+    },
+    {
+      "routeId": "v2-spi-display-output",
+      "priority": 24,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "spi-display-output"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "spi-display"
+        ]
+      },
+      "bundleIds": [
+        "spi-display-output"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 14000,
+      "reason": "SPI display requests need module power, shared ground, data/clock/chip-select/control signals, and qualitative graphic/text display simulation evidence."
+    },
+    {
+      "routeId": "v2-joystick-display-readout",
+      "priority": 26,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "joystick-display-readout"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "joystick",
+          "display"
+        ]
+      },
+      "bundleIds": [
+        "joystick-display-readout"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 20000,
+      "reason": "Joystick readouts need VRX/VRY analog inputs, SW digital input, and OLED display evidence."
+    },
+    {
+      "routeId": "v2-matrix-input-display-readout",
+      "priority": 26,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "matrix-input-display-readout"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "matrix-input",
+          "display"
+        ]
+      },
+      "bundleIds": [
+        "matrix-input-display-readout"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 22000,
+      "reason": "Matrix keypad, DIP switch, and membrane keypad readouts need distinct scan/sense lines plus OLED display evidence."
+    },
+    {
+      "routeId": "v2-rotary-encoder-display-readout",
+      "priority": 26,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "rotary-encoder-display-readout"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "rotary-encoder",
+          "display"
+        ]
+      },
+      "bundleIds": [
+        "rotary-encoder-display-readout"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 20000,
+      "reason": "Rotary encoder readouts need CLK/DT/SW digital input evidence plus OLED display evidence."
+    },
+    {
+      "routeId": "v2-digital-input-threshold-output",
+      "priority": 27,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "digital-input-threshold-output"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "digital-input",
+          "light"
+        ]
+      },
+      "bundleIds": [
+        "digital-input-threshold-output"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 19000,
+      "reason": "Digital switch and sensor output requests need input signal validation plus a separate current-limited LED path."
+    },
+    {
+      "routeId": "v2-button-light-sound-output",
+      "priority": 28,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "button-controlled-light-output",
+          "sound-alert-output"
+        ],
+        "capabilityMatchMode": "all",
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "button",
+          "light",
+          "sound"
+        ]
+      },
+      "bundleIds": [
+        "button-controlled-light-output",
+        "sound-alert-output"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 15000,
+      "reason": "Button-triggered LED plus buzzer requests need both the switch/LED bundle and low-current buzzer bundle."
+    },
+    {
+      "routeId": "v2-button-controlled-light-output",
+      "priority": 29,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "button-controlled-light-output"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "button",
+          "light"
+        ]
+      },
+      "bundleIds": [
+        "button-controlled-light-output"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 12000,
+      "reason": "Button-controlled LED output needs switch input validation plus the current-limited LED load path."
+    },
+    {
+      "routeId": "v2-digital-input-display-readout",
+      "priority": 30,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "digital-input-display-readout"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "digital-input",
+          "display"
+        ]
+      },
+      "bundleIds": [
+        "digital-input-display-readout"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 17000,
+      "reason": "Digital switch and sensor state readouts need digital input validation plus OLED I2C display evidence."
+    },
+    {
+      "routeId": "v2-sound-alert-output",
+      "priority": 30,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "sound-alert-output"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "sound"
+        ]
+      },
+      "bundleIds": [
+        "sound-alert-output"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 11000,
+      "reason": "Buzzer and tone requests need low-current load validation plus sound-state simulation evidence."
+    },
+    {
+      "routeId": "v2-low-side-switched-load-output",
+      "priority": 30,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "low-side-switched-load-output"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "switched-load"
+        ]
+      },
+      "bundleIds": [
+        "low-side-switched-load-output"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 15000,
+      "reason": "Low-side motor-like loads need driver validation, common ground, high-current/flyback warnings, and separate load-current/control-signal simulation evidence."
+    },
+    {
+      "routeId": "v2-hbridge-motor-output",
+      "priority": 30,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "hbridge-motor-output"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "hbridge-motor"
+        ]
+      },
+      "bundleIds": [
+        "hbridge-motor-output"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 15000,
+      "reason": "H-bridge motor requests need driver validation, enable/direction controls, motor output pair wiring, common ground, current warnings, and qualitative direction simulation evidence."
+    },
+    {
+      "routeId": "v2-stepper-motor-output",
+      "priority": 31,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "stepper-motor-output"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "stepper-motion"
+        ]
+      },
+      "bundleIds": [
+        "stepper-motor-output"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 15000,
+      "reason": "Stepper requests need driver validation, phase/coil wiring, common ground, current warnings, and separate coil-current/control-signal simulation evidence."
+    },
+    {
+      "routeId": "v2-relay-low-voltage-output",
+      "priority": 31,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "relay-low-voltage-output"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "relay-output"
+        ]
+      },
+      "bundleIds": [
+        "relay-low-voltage-output"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 15000,
+      "reason": "Relay module requests need input-side control validation, low-voltage contact load validation, mains blocking, and separate contact-current/control-signal simulation evidence."
+    },
+    {
+      "routeId": "v2-analog-sensor-threshold-output",
+      "priority": 32,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "analog-sensor-threshold-output"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "analog-sensor",
+          "light",
+          "threshold"
+        ]
+      },
+      "bundleIds": [
+        "analog-sensor-threshold-output"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 18000,
+      "reason": "Analog sensor threshold output needs AO validation plus the current-limited LED load path."
+    },
+    {
+      "routeId": "v2-servo-motion-output",
+      "priority": 31,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "servo-motion-output"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "motion"
+        ]
+      },
+      "bundleIds": [
+        "servo-motion-output"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 12000,
+      "reason": "Servo motion requests need PWM signal validation, common ground, and angle-state simulation evidence."
+    },
+    {
+      "routeId": "v2-analog-sensor-display-readout",
+      "priority": 32,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "analog-sensor-display-readout"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "analog-sensor",
+          "display",
+          "sensor-value"
+        ]
+      },
+      "bundleIds": [
+        "analog-sensor-display-readout"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 18000,
+      "reason": "Powered analog sensor readouts need sensor AO validation, OLED I2C wiring, and qualitative sensor-value simulation evidence."
+    },
+    {
+      "routeId": "v2-dht11-temperature-humidity-display",
+      "priority": 33,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "dht11-temperature-humidity-display"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "temperature-humidity-sensor",
+          "display",
+          "temperature",
+          "humidity"
+        ]
+      },
+      "bundleIds": [
+        "dht11-temperature-humidity-display"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 14000,
+      "reason": "DHT11 temperature/humidity readout needs single-wire data validation, OLED I2C wiring, and sensor/display simulation evidence."
+    },
+    {
+      "routeId": "v2-dht22-temperature-humidity-display",
+      "priority": 33,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "dht22-temperature-humidity-display"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "temperature-humidity-sensor",
+          "display",
+          "temperature",
+          "humidity"
+        ]
+      },
+      "bundleIds": [
+        "dht22-temperature-humidity-display"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 14000,
+      "reason": "DHT22 temperature/humidity readout needs single-wire data validation, I2C display wiring, and qualitative readout simulation evidence."
+    },
+    {
+      "routeId": "v2-i2c-sensor-display-readout",
+      "priority": 33,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "i2c-sensor-display-readout"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "protocol-sensor",
+          "display",
+          "sensor-value"
+        ]
+      },
+      "bundleIds": [
+        "i2c-sensor-display-readout"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 15000,
+      "reason": "I2C protocol sensor readouts need exact SDA/SCL wiring, display bus evidence, and qualitative safety-bounded simulation."
+    },
+    {
+      "routeId": "v2-clocked-data-sensor-display-readout",
+      "priority": 33,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "clocked-data-sensor-display-readout"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "protocol-sensor",
+          "display",
+          "sensor-value"
+        ]
+      },
+      "bundleIds": [
+        "clocked-data-sensor-display-readout"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 14000,
+      "reason": "Clocked-data sensor readouts need DT/SCK wiring, display bus evidence, and qualitative non-certified simulation."
+    },
+    {
+      "routeId": "v2-spi-sensor-display-readout",
+      "priority": 33,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "spi-sensor-display-readout"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "protocol-sensor",
+          "display",
+          "sensor-value"
+        ]
+      },
+      "bundleIds": [
+        "spi-sensor-display-readout"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 14000,
+      "reason": "SPI sensor readouts need SCK/MOSI/MISO/CS wiring plus safety-bounded demo-only simulation evidence."
+    },
+    {
+      "routeId": "v2-uart-sensor-display-readout",
+      "priority": 33,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "uart-sensor-display-readout"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "protocol-sensor",
+          "display",
+          "sensor-value"
+        ]
+      },
+      "bundleIds": [
+        "uart-sensor-display-readout"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 14000,
+      "reason": "UART sensor readouts need TX-to-RX wiring, display bus evidence, and non-tracking classroom simulation evidence."
+    },
+    {
+      "routeId": "v2-distance-sensor-display",
+      "priority": 34,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "distance-sensor-display"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "distance-sensor",
+          "display",
+          "distance"
+        ]
+      },
+      "bundleIds": [
+        "distance-sensor-display"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 14000,
+      "reason": "HC-SR04 distance readout needs trigger/echo GPIO, OLED I2C wiring, and sensor/display simulation evidence."
+    },
+    {
+      "routeId": "v2-analog-led-dimmer",
+      "priority": 35,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "analog-led-dimmer"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "analog",
+          "potentiometer",
+          "light"
+        ]
+      },
+      "bundleIds": [
+        "analog-led-dimmer"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 13000,
+      "reason": "Analog LED dimming can be handled by the potentiometer divider plus PWM LED bundle."
+    },
+    {
+      "routeId": "v2-light-sensor-triggered-output",
+      "priority": 31,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "light-sensor-triggered-output"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "light-sensor",
+          "light"
+        ]
+      },
+      "bundleIds": [
+        "light-sensor-triggered-output"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 13000,
+      "reason": "Photoresistor threshold LED output needs analog sensing, threshold behavior, and the validated LED load path."
+    },
+    {
+      "routeId": "v2-digital-light-output",
+      "priority": 40,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "digital-light-output"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "light"
+        ]
+      },
+      "bundleIds": [
+        "digital-light-output"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness"
+      ],
+      "maxPromptChars": 9000,
+      "reason": "LED output can be handled by one bundle plus shared canonical refs."
+    },
+    {
+      "routeId": "v2-uart-communication-module-readout",
+      "priority": 42,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "uart-communication-module-readout"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "communication-module",
+          "wireless-communication",
+          "uart-module"
+        ]
+      },
+      "bundleIds": [
+        "uart-communication-module-readout"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 12000,
+      "reason": "UART communication modules need TX/RX crossing, local command-state scope, power warning, display evidence, and network overclaim blockers."
+    },
+    {
+      "routeId": "v2-spi-communication-module-readout",
+      "priority": 42,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "spi-communication-module-readout"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "communication-module",
+          "wireless-communication",
+          "wired-communication",
+          "spi-module"
+        ]
+      },
+      "bundleIds": [
+        "spi-communication-module-readout"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 12000,
+      "reason": "SPI communication modules need clock/data/select wiring, local bus-state scope, display evidence, and RF/CAN/USB overclaim blockers."
+    },
+    {
+      "routeId": "v2-rs485-communication-module-readout",
+      "priority": 42,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "rs485-communication-module-readout"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "communication-module",
+          "wired-communication",
+          "differential-bus"
+        ]
+      },
+      "bundleIds": [
+        "rs485-communication-module-readout"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 11000,
+      "reason": "RS-485 module requests need RO/DI/DE wiring, common ground, display evidence, and local differential-bus state boundaries."
+    },
+    {
+      "routeId": "v2-controller-board-substitution",
+      "priority": 45,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "controller-board-substitution"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "controller-board"
+        ]
+      },
+      "bundleIds": [
+        "controller-board-substitution"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 10000,
+      "reason": "Controller board context requests need board-specific pin-map, voltage-domain, render footprint, and state-only simulation evidence."
+    },
+    {
+      "routeId": "v2-logic-interface-context",
+      "priority": 44,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "logic-interface-context"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "logic-interface",
+          "external-adc-interface",
+          "shift-register-interface",
+          "i2c-interface",
+          "spi-interface",
+          "timer-interface",
+          "opamp-interface",
+          "level-shifter-interface",
+          "voltage-domain-context"
+        ]
+      },
+      "bundleIds": [
+        "logic-interface-context"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness",
+        "registry:part-capabilities",
+        "simulation:primitives",
+        "rendering:render-footprints"
+      ],
+      "maxPromptChars": 12000,
+      "reason": "Logic/interface IC requests need visible pin-map evidence, qualitative state boundaries, display evidence, and analog/timer/level-shifter overclaim blockers."
+    },
+    {
+      "routeId": "v2-display-text-output",
+      "priority": 50,
+      "policyOnly": false,
+      "when": {
+        "capabilityIds": [
+          "display-text-output"
+        ],
+        "supportLevels": [
+          "supported"
+        ],
+        "modalities": [
+          "display"
+        ]
+      },
+      "bundleIds": [
+        "display-text-output"
+      ],
+      "alwaysInclude": [
+        "policy:safety",
+        "policy:truthfulness"
+      ],
+      "maxPromptChars": 9000,
+      "reason": "OLED display output can be handled by one I2C display bundle."
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "sound-alert-output",
+  "capabilityId": "sound-alert-output",
+  "supportLevel": "supported",
+  "promptBudget": "summary",
+  "agentSummaryPath": "bundles/sound-alert-output/BUNDLE.md",
+  "requiredParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "piezo-buzzer"
+  ],
+  "allowedParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "piezo-buzzer",
+    "jumper-wire",
+    "active-buzzer"
+  ],
+  "requiredTopologies": [
+    "controller-direct-low-current-load"
+  ],
+  "validationRules": [
+    "polarity-check",
+    "current-limit-warning",
+    "common-ground"
+  ],
+  "simulationPrimitives": [
+    "buzzer_pulse",
+    "digital_on_off",
+    "current_flow_animation"
+  ],
+  "renderFootprints": [
+    "arduino",
+    "breadboard",
+    "buzzer",
+    "wire",
+    "active-buzzer"
+  ],
+  "canonicalRefs": {
+    "parts": [
+      "shared:parts:arduino-uno",
+      "shared:parts:breadboard-half",
+      "shared:parts:piezo-buzzer",
+      "shared:parts:active-buzzer"
+    ],
+    "footprints": [
+      "shared:footprint:arduino",
+      "shared:footprint:breadboard",
+      "shared:footprint:buzzer",
+      "shared:footprint:wire",
+      "shared:footprint:active-buzzer"
+    ],
+    "simulation": [
+      "shared:primitive:buzzer_pulse",
+      "shared:primitive:digital_on_off",
+      "shared:primitive:current_flow_animation"
+    ],
+    "topology": [
+      "shared:topology:controller-direct-low-current-load"
+    ],
+    "sources": [
+      "shared:source:arduino-uno-rev3-io-current-20ma",
+      "shared:source:breadboard-row-continuity-5-hole",
+      "shared:source:piezo-buzzer-arduino-tone-output",
+      "shared:source:active-buzzer-visual-pin-map",
+      "shared:source:active-buzzer-fixed-tone-qualitative-contract"
+    ]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": true,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": [
+    "missing-buzzer-polarity",
+    "missing-common-ground",
+    "unsupported-high-current-speaker",
+    "missing-render-footprint",
+    "missing-simulation-primitive",
+    "unsupported-part-requested",
+    "missing-active-buzzer-ground"
+  ]
+}

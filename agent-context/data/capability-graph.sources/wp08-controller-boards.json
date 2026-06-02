@@ -1,0 +1,132 @@
+[
+  {
+    "id": "controller-board-substitution",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "controller board",
+      "controller pin map",
+      "board pin map",
+      "voltage domain",
+      "logic voltage",
+      "arduino nano",
+      "arduino mega",
+      "arduino leonardo",
+      "arduino micro",
+      "pro mini",
+      "attiny85",
+      "digispark",
+      "esp32 devkit",
+      "esp8266 nodemcu",
+      "raspberry pi pico",
+      "stm32 blue pill",
+      "teensy 4.0",
+      "보드 핀맵",
+      "전압 도메인",
+      "아두이노 나노",
+      "ESP32",
+      "피코"
+    ],
+    "requiredEvidence": [
+      "pin map",
+      "pinout",
+      "voltage domain",
+      "logic voltage",
+      "controller board",
+      "arduino nano",
+      "esp32 devkit",
+      "esp8266 nodemcu",
+      "raspberry pi pico",
+      "stm32 blue pill",
+      "teensy 4.0",
+      "보드",
+      "핀맵",
+      "전압"
+    ],
+    "negativeEvidence": [
+      "wifi door lock",
+      "wi-fi door lock",
+      "door lock",
+      "cloud control",
+      "send to phone",
+      "phone unlock",
+      "bluetooth drone",
+      "autopilot",
+      "gps tracker",
+      "mains",
+      "220v",
+      "wall outlet",
+      "nano-sized",
+      "nano sized",
+      "pico timing",
+      "micro switch"
+    ],
+    "minimumScore": 0.45,
+    "studentPhrases": [
+      "show the Arduino Nano pin map and voltage domain",
+      "compare ESP32 DevKit pins with Arduino Uno pins",
+      "render a Raspberry Pi Pico board and label the 3.3V pins",
+      "Arduino Mega 2560 보드 핀맵 보여줘",
+      "ESP32 전압 도메인을 표시해줘"
+    ],
+    "inputModalities": [
+      "controller-board",
+      "pin-map-context",
+      "voltage-domain"
+    ],
+    "outputModalities": [
+      "controller-board",
+      "pin-map-context",
+      "voltage-domain"
+    ],
+    "requiredRoles": [
+      "controller-board",
+      "pin-map-context",
+      "voltage-domain",
+      "state-only-simulation"
+    ],
+    "requiredParts": [],
+    "optionalParts": [],
+    "protocols": [
+      "gpio",
+      "analog",
+      "pwm",
+      "i2c",
+      "uart",
+      "power",
+      "controller-context"
+    ],
+    "simulationPrimitives": [
+      "controller_board_context_state"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "arduino-nano-board",
+      "arduino-mega2560-board",
+      "arduino-leonardo-board",
+      "arduino-micro-board",
+      "arduino-pro-mini-board",
+      "attiny85-board",
+      "esp32-devkit-board",
+      "esp8266-nodemcu-board",
+      "raspberry-pi-pico-board",
+      "stm32-bluepill-board",
+      "teensy40-board"
+    ],
+    "validationRules": [
+      "controller-board-pin-map-substitution",
+      "controller-voltage-domain-policy",
+      "controller-board-context-only",
+      "no-mains-power"
+    ],
+    "commonMistakes": [
+      "Assuming every controller board uses the Arduino Uno physical header layout.",
+      "Driving 5V-only module logic from a 3.3V controller GPIO without a level-safe interface.",
+      "Treating Wi-Fi, Bluetooth, or cloud behavior as simulated just because ESP-class boards are visible."
+    ],
+    "safeAlternatives": [
+      "digital-light-output",
+      "display-text-output",
+      "dht11-temperature-humidity-display"
+    ]
+  }
+]

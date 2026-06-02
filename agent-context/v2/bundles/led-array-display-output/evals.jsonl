@@ -1,0 +1,3 @@
+{"id":"v2-tm1637-number-display","message":"Show 1234 on a TM1637 4 digit display.","expected":"valid_circuit_synthesis"}
+{"id":"v2-max7219-pattern-display","message":"Show a smile pattern on an 8x8 MAX7219 LED matrix.","expected":"valid_circuit_synthesis"}
+{"id":"v2-bare-7seg-counterexample","message":"Wire a bare one digit 7-segment LED without resistors.","expected":"clarification_or_support_gap"}

@@ -27,6 +27,10 @@ test('i18n defaults to Korean and falls back to English only for missing keys', 
   assert.equal(t('simulationControls.pause'), '일시정지');
   assert.equal(t('simulationControls.step', {}, 'en'), 'Step through');
   assert.equal(t('simulationControls.selectedPath', {}, 'en'), 'Selected flow');
+  assert.equal(t('solverGate.diagnosticTitle'), '3D 진단 시뮬레이션');
+  assert.equal(t('solverGate.diagnosticTitle', {}, 'en'), '3D diagnostic simulation');
+  assert.equal(t('solverGate.safeEquivalentTitle'), '안전한 대체 시뮬레이션');
+  assert.equal(t('solverGate.safeEquivalentTitle', {}, 'en'), 'Safe equivalent simulation');
   assert.equal(t('files.explorerKicker'), '프로젝트 문서');
   assert.equal(t('inspector.kicker'), '회로 설명');
   assert.equal(t('inspector.partsTitle'), '부품함');

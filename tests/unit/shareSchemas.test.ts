@@ -34,6 +34,69 @@ test('share snapshot schema rejects oversized public strings and invalid status'
   }, /Invalid option|status/i);
 });
 
+test('share snapshot schema rejects valid agent shares without runnable gate evidence', () => {
+  assert.throws(() => {
+    const snapshot = { ...createValidSnapshot(), buildRunnableReport: undefined };
+    ShareSnapshotSchema.parse(snapshot);
+  }, /buildRunnableReport/i);
+
+  assert.throws(() => {
+    ShareSnapshotSchema.parse({
+      ...createValidSnapshot(),
+      buildRunnableReport: {
+        ...validRunnableReport(),
+        status: 'blocked',
+        runnable: false,
+        reasons: ['simulation has no validated current or signal path'],
+        currentPathCount: 0,
+        expectedStateCount: 0
+      }
+    });
+  }, /runnable build report|buildRunnableReport/i);
+});
+
+test('share snapshot schema accepts diagnostic visible shares without runnable current-flow availability', () => {
+  const snapshot = ShareSnapshotSchema.parse({
+    ...createValidSnapshot(),
+    status: 'invalid',
+    validation: {
+      status: 'invalid',
+      warnings: ['render is diagnostic only'],
+      unsupportedItems: []
+    },
+    buildRunnableReport: {
+      ...validRunnableReport(),
+      status: 'blocked',
+      runnable: false,
+      reasons: ['render is diagnostic only'],
+      currentPathCount: 0,
+      expectedStateCount: 0
+    },
+    solverGateResult: {
+      mode: 'diagnostic',
+      visibleSimulation: true,
+      buildReady: false,
+      simulationActivity: 'diagnostic',
+      notVerified: ['current-flow simulation is not verified']
+    },
+    simulation: {
+      available: false,
+      runText: 'RALPHTON BUSAN',
+      explanation: '3D diagnostic scene is available, but current-flow simulation is blocked.',
+      currentPathCount: 0
+    },
+    renderPlan: {
+      title: 'OLED Name Display',
+      parts: [{ id: 'arduino-uno', type: 'arduino', label: 'Arduino Uno' }],
+      connections: []
+    }
+  });
+
+  assert.equal(snapshot.status, 'invalid');
+  assert.equal(snapshot.simulation.available, false);
+  assert.equal((snapshot.solverGateResult as { visibleSimulation?: boolean }).visibleSimulation, true);
+});
+
 test('share create and read response schemas fix the public API contract', () => {
   const snapshot = createValidSnapshot();
   const request = ShareCreateRequestSchema.parse({ snapshot });
@@ -88,6 +151,7 @@ function createValidSnapshot() {
       warnings: [],
       unsupportedItems: []
     },
+    buildRunnableReport: validRunnableReport(),
     simulation: {
       available: true,
       runText: 'RALPHTON BUSAN',
@@ -105,5 +169,20 @@ function createValidSnapshot() {
       sourceTypes: ['registry', 'simulation', 'rendering'],
       warnings: []
     }
+  };
+}
+
+function validRunnableReport() {
+  return {
+    status: 'runnable',
+    runnable: true,
+    reasons: [],
+    validationStatus: 'valid',
+    simulationStatus: 'valid',
+    renderWarningCount: 0,
+    renderBlockingWarningCount: 0,
+    renderPartCount: 2,
+    currentPathCount: 1,
+    expectedStateCount: 1
   };
 }

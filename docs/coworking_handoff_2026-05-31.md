@@ -2558,3 +2558,139 @@ Result:
 Note:
 
 - This keeps imported public shares aligned across all surfaces: share card, Files tab, PCB rendering, and Run/current-flow simulation now obey the same build-ready boundary.
+
+## 36. 2026-06-01 Agent Context v2 Information Architecture Memo
+
+Planned/implemented a bundle-first `agent-context/v2` structure for Deepagents.
+
+Key points:
+
+- v2 introduces capability bundles with `BUNDLE.md`, `manifest.json`, and `evals.jsonl`.
+- Deepagents retrieval should select bundle IDs first, then load compact summaries and canonical refs.
+- v2 keeps heavy shared data out of the prompt and inside deterministic tools.
+- v1 files remain as shared canonical data during migration.
+- Goal is to reduce context bloat while strengthening source-of-truth boundaries.
+
+## 37. 2026-06-01 Context Source Bundle Collection Memo
+
+Added a source-backed hardware context collection layer on top of the v2 context architecture.
+
+Key points:
+
+- `SourceClaim` records capture atomic official/vendor/educational source facts for canonical hardware values.
+- `HardwareSupportBundle` records group source claims with canonical artifacts by supported capability.
+- Capability promotion now requires `source-claims` in addition to registry, validation, render, simulation, eval, and browser evidence.
+- Runtime Deepagents still consume canonical context data; source claims are for audits, maintainers, and hardware promotion.
+- The initial supported starter set now has 10 source claims and 5 support bundles with no missing referenced claim IDs.
+- Planned/unsupported capabilities remain blocked, now with explicit missing source-bundle evidence.
+
+Verification:
+
+```powershell
+npm exec -- tsx --test tests/unit/sourceClaims.test.ts
+npm run audit:sources
+npm exec -- tsx --test tests/unit/contextLayer.test.ts
+npm exec -- tsx --test tests/unit/contextCoverage.test.ts
+npm run audit:capabilities
+npm run eval:generalization:report
+npm run check
+```
+
+Result:
+
+- Source claim tests: 5 passed.
+- `audit:sources`: 10 claims, 5 bundles, no missing bundle claim IDs.
+- Context layer tests: 12 passed.
+- Context coverage tests: 21 passed.
+- Capability audit: 5 supported capabilities ready, 6 planned/unsupported blocked.
+- Generalization report: 18 rows, observed failure classes matched expected classes.
+- Full `npm run check`: passed.
+  - JavaScript unit tests: 80 passed.
+  - TypeScript unit tests: 165 passed.
+  - Typecheck: passed.
+  - Production build: passed with the existing Vite large chunk warning.
+  - Playwright E2E: 52 passed, 8 skipped.
+
+## 38. 2026-06-01 Legacy Context Layer Preservation Memo
+
+Archived the existing root context layer for comparison before Deepagents workflow optimization.
+
+Change:
+
+- Added `agent-context/legacy/v1/` as a non-runtime preservation snapshot.
+- The snapshot excludes `agent-context/v2/`, but keeps the root v1 canonical data, routing, policies, schemas, evals, skills, and source provenance files.
+- Added `agent-context/legacy/README.md` and `agent-context/legacy/v1/README.md` to mark the snapshot as comparison-only.
+- Updated `agent-context/index.md` to state that `legacy/v1/` is not a runtime retrieval root.
+- Added a structure test that verifies the legacy snapshot exists and contains the expected v1 index data.
+
+Verification:
+
+```powershell
+npm exec -- tsx --test tests/unit/contextLayerStructure.test.ts
+```
+
+## 39. 2026-06-01 Deepagents Source Bundle Workflow Memo
+
+Rebuilt the Deepagents backend mechanism around source-backed support bundle evidence.
+
+Key points:
+
+- Added `SupportBundleEvidence` to the agent schema and `ContextPacket`.
+- `ContextPacket` now traces and prompts concise request-scoped support bundle evidence.
+- Supported synthesis now requires complete support bundle evidence; incomplete supported evidence removes `valid_circuit_synthesis` and is blocked by the existing context coverage gate.
+- Added `load_support_bundle_evidence`, bounded to current capability matches.
+- Passed support bundle evidence into Deepagents runtime tools and subagents.
+- Tightened coordinator/subagent prompts to check bundle evidence before build-ready wiring, render, or current-flow claims.
+- Kept v2 prompt budget intact by compacting support bundle evidence for bundle-routed prompts.
+
+Verification:
+
+```powershell
+npm exec -- tsx --test tests/unit/supportBundleEvidence.test.ts
+npm exec -- tsx --test tests/unit/contextPacket.test.ts tests/unit/contextCoverage.test.ts tests/unit/agentWorkflow.test.ts
+npm exec -- tsx --test tests/unit/contextSufficiencyEval.test.ts tests/unit/generalizationEval.test.ts
+npm run audit:context:v2
+npm run audit:sources
+npm run audit:capabilities
+npm run check
+```
+
+Result:
+
+- Support bundle evidence tests: 3 passed.
+- Context packet/coverage/agent workflow targeted tests: 96 passed.
+- Context sufficiency/generalization eval tests: 6 passed.
+- v2 audit: 3 migrated bundles, 2 supported v2 bundles, 1 planned v2 bundle.
+- Source audit: 10 claims, 5 support bundles, no missing bundle claim IDs.
+- Capability audit: 5 supported capabilities ready, 6 planned/unsupported blocked.
+- Full `npm run check`: passed.
+  - JavaScript unit tests: 80 passed.
+  - TypeScript unit tests: 173 passed.
+  - Typecheck: passed.
+  - Production build: passed with the existing Vite large chunk warning.
+  - Playwright E2E: 52 passed, 8 skipped.
+
+## 40. 2026-06-01 Legacy Runtime Decoupling and Browser Source Bundle Evidence Memo
+
+This slice disconnects the preserved legacy context snapshot from the active runtime surface and reflects the new source-bundle-backed context evidence in the product UI.
+
+Key points:
+
+- `agent-context/legacy/v1/` remains a comparison-only archive, and active context metadata plus v2 routes are tested to avoid `legacy/` or `v1` runtime source ids.
+- Files evidence now shows a student-facing source bundle row derived from `sources:support-bundle:*` context trace entries.
+- Context trace markdown now has a dedicated source bundle evidence section with capability id, status, and reason.
+- Browser QA protocol now explicitly requires source bundle evidence alongside context coverage.
+
+Verification:
+
+```powershell
+npm exec -- tsx --test tests/unit/contextQaArtifactBundle.test.ts tests/unit/contextLayerStructure.test.ts tests/unit/contextPacket.test.ts tests/unit/agentWorkflow.test.ts
+npm run test:e2e -- --grep "LED draft follow-up|browser verification protocol"
+npm run check
+```
+
+Browser evidence:
+
+- In-app browser E2E against `http://127.0.0.1:4173/` with the current-runtime scripted agent boundary showed `digital-light-output: ready` in Files evidence.
+- Opening `Context trace.md` showed `Source bundle evidence` and `digital-light-output`.
+- Screenshot: `test-results/source-bundle-evidence-browser.png`

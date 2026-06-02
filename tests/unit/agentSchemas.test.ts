@@ -8,7 +8,8 @@ import {
   CircuitSpecSchema,
   IntentSpecV2Schema,
   PartCapabilitySchema,
-  SimulationPlanSchema
+  SimulationPlanSchema,
+  SolverGateResultSchema
 } from '../../server/agent/schemas.ts';
 
 test('part capabilities require electrical limits, render footprint, and simulation model', () => {
@@ -140,6 +141,47 @@ test('simulation path schema accepts semantic current and signal kinds', () => {
   assert.deepEqual(plan.currentPaths.map((path) => path.kind), kinds);
 });
 
+test('solver gate result schema separates visible simulation from build-ready claims', () => {
+  const diagnostic = SolverGateResultSchema.parse({
+    visibleSimulation: true,
+    mode: 'diagnostic_simulation',
+    buildReady: false,
+    simulationActivity: 'diagnostic',
+    benchConfirmed: false,
+    repairLevel: 'none',
+    attempts: [{
+      attempt: 1,
+      stage: 'degrade',
+      action: 'Expose the scene diagnostically while keeping build-ready blocked.',
+      result: 'degraded',
+      warnings: ['build-ready claim is not verified']
+    }],
+    verifiedClaims: ['render plan exposes 3 visible part(s)'],
+    notVerified: ['build-ready claim is not verified'],
+    visualWarnings: [],
+    hardwareWarnings: [],
+    repairSummary: ['No deterministic layout repair was required.']
+  });
+
+  assert.equal(diagnostic.visibleSimulation, true);
+  assert.equal(diagnostic.buildReady, false);
+  assert.equal(diagnostic.benchConfirmed, false);
+
+  assert.throws(() => SolverGateResultSchema.parse({
+    ...diagnostic,
+    buildReady: false,
+    notVerified: []
+  }), /unverified/i);
+
+  assert.throws(() => SolverGateResultSchema.parse({
+    ...diagnostic,
+    buildReady: true,
+    visibleSimulation: false,
+    mode: 'verified_build_simulation',
+    notVerified: []
+  }), /visible simulation/i);
+});
+
 test('agent result schema fixes the server response contract', () => {
   const resultWithoutContextTrace = {
     sessionId: 'session-test',
@@ -180,7 +222,19 @@ test('agent result schema fixes the server response contract', () => {
     },
     validationReport: { status: 'valid', errors: [], warnings: [], validatedCurrentPathIds: ['led-forward-current'] },
     renderPlan: { title: 'LED blinker', runText: 'LED ON', parts: [], connections: [], floatingCards: [] },
-    simulationPlan: { status: 'valid', runText: 'LED ON', currentPaths: [], expectedStates: [], warnings: [] }
+    simulationPlan: { status: 'valid', runText: 'LED ON', currentPaths: [], expectedStates: [], warnings: [] },
+    buildRunnableReport: {
+      status: 'blocked',
+      runnable: false,
+      reasons: ['render plan has no build-ready parts'],
+      validationStatus: 'valid',
+      simulationStatus: 'valid',
+      renderWarningCount: 0,
+      renderBlockingWarningCount: 0,
+      renderPartCount: 0,
+      currentPathCount: 0,
+      expectedStateCount: 0
+    }
   };
 
   assert.throws(
@@ -238,15 +292,36 @@ test('agent message request accepts bounded conversation and current artifact co
       currentArtifact: {
         source: 'draft',
         title: 'LED blinker',
-        requirementMarkdown: '# LED blinker'
+        requirementMarkdown: '# LED blinker',
+        buildRunnableReport: {
+          status: 'runnable',
+          runnable: true,
+          reasons: [],
+          validationStatus: 'valid',
+          simulationStatus: 'valid',
+          renderWarningCount: 0,
+          renderBlockingWarningCount: 0,
+          renderPartCount: 3,
+          currentPathCount: 1,
+          expectedStateCount: 1
+        }
       },
       lastSupportedGoal: 'blink an LED',
+      pendingSupportedAlternative: {
+        id: 'safe-low-voltage-led',
+        goal: 'Arduino Uno LED with 220 ohm resistor',
+        source: 'context-support-gap',
+        partIds: ['arduino-uno', 'led-5mm', 'resistor-220'],
+        capabilityIds: ['digital-light-output']
+      },
       awaitingBuildConfirmation: true
     }
   });
 
   assert.equal(parsed.conversationContext?.recentTurns.length, 2);
   assert.equal(parsed.conversationContext?.currentArtifact?.source, 'draft');
+  assert.equal(parsed.conversationContext?.currentArtifact?.buildRunnableReport?.runnable, true);
+  assert.equal(parsed.conversationContext?.pendingSupportedAlternative?.id, 'safe-low-voltage-led');
   assert.equal(parsed.conversationContext?.awaitingBuildConfirmation, true);
 });
 

@@ -1,0 +1,110 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "digital-light-output",
+  "capabilityId": "digital-light-output",
+  "supportLevel": "supported",
+  "promptBudget": "summary",
+  "agentSummaryPath": "bundles/digital-light-output/BUNDLE.md",
+  "requiredParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "led-5mm",
+    "resistor-220"
+  ],
+  "allowedParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "led-5mm",
+    "resistor-220",
+    "jumper-wire",
+    "rgb-led-common-cathode",
+    "laser-diode-module"
+  ],
+  "requiredTopologies": [
+    "controller-digital-output-series-load",
+    "controller-rgb-led-current-limited-output",
+    "controller-powered-light-module-output"
+  ],
+  "validationRules": [
+    "series-current-limit",
+    "led-polarity",
+    "closed-current-path",
+    "rgb-led-channel-resistor",
+    "rgb-led-common-ground",
+    "powered-light-module-power-rail",
+    "powered-light-module-signal-pin",
+    "powered-light-module-safety-warning"
+  ],
+  "simulationPrimitives": [
+    "digital_on_off",
+    "blink_timer",
+    "current_flow_animation",
+    "rgb_led_color_mix",
+    "powered_light_module_state"
+  ],
+  "renderFootprints": [
+    "arduino",
+    "breadboard",
+    "led",
+    "resistor",
+    "wire",
+    "rgb-led-common-cathode",
+    "laser-diode-module"
+  ],
+  "canonicalRefs": {
+    "parts": [
+      "shared:parts:arduino-uno",
+      "shared:parts:breadboard-half",
+      "shared:parts:led-5mm",
+      "shared:parts:resistor-220",
+      "shared:parts:rgb-led-common-cathode",
+      "shared:parts:laser-diode-module"
+    ],
+    "footprints": [
+      "shared:footprint:arduino",
+      "shared:footprint:breadboard",
+      "shared:footprint:led",
+      "shared:footprint:resistor",
+      "shared:footprint:wire",
+      "shared:footprint:rgb-led-common-cathode",
+      "shared:footprint:laser-diode-module"
+    ],
+    "simulation": [
+      "shared:primitive:digital_on_off",
+      "shared:primitive:blink_timer",
+      "shared:primitive:current_flow_animation",
+      "shared:primitive:rgb_led_color_mix",
+      "shared:primitive:powered_light_module_state"
+    ],
+    "topology": [
+      "shared:topology:controller-digital-output-series-load",
+      "shared:topology:controller-rgb-led-current-limited-output",
+      "shared:topology:controller-powered-light-module-output"
+    ],
+    "sources": [
+      "shared:source:arduino-uno-rev3-io-current-20ma",
+      "shared:source:arduino-uno-rev3-d9-pwm-pin",
+      "shared:source:breadboard-row-continuity-5-hole",
+      "shared:source:led-5mm-requires-current-limit",
+      "shared:source:led-5mm-anode-cathode-polarity",
+      "shared:source:rgb-led-common-cathode-visual-pin-map",
+      "shared:source:rgb-led-current-limit-per-channel",
+      "shared:source:laser-diode-module-visual-pin-map",
+      "shared:source:laser-diode-module-qualitative-contract"
+    ]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": false,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": [
+    "missing-source-claims",
+    "missing-render-footprint",
+    "missing-simulation-primitive",
+    "unsupported-part-requested",
+    "missing-rgb-channel-resistor",
+    "missing-laser-module-signal"
+  ]
+}

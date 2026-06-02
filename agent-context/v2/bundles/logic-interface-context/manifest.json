@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "logic-interface-context",
+  "capabilityId": "logic-interface-context",
+  "supportLevel": "supported",
+  "promptBudget": "minimal",
+  "agentSummaryPath": "bundles/logic-interface-context/BUNDLE.md",
+  "requiredParts": ["arduino-uno", "breadboard-half", "oled-i2c-096"],
+  "allowedParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "oled-i2c-096",
+    "oled-13-i2c",
+    "lcd-16x2",
+    "lcd-20x4",
+    "jumper-wire",
+    "74hc595-shift",
+    "pcf8574-expander",
+    "ads1115-adc",
+    "mcp3008-adc",
+    "ne555-timer",
+    "lm358-opamp",
+    "i2c-level-shifter"
+  ],
+  "requiredTopologies": [
+    "controller-logic-interface-context",
+    "controller-i2c-interface-context",
+    "controller-spi-interface-context",
+    "controller-analog-timing-interface-context",
+    "level-shifted-i2c-bus"
+  ],
+  "validationRules": [
+    "logic-interface-power-ground",
+    "logic-interface-signal-required",
+    "logic-interface-i2c-pins",
+    "logic-interface-spi-pins",
+    "level-shifter-voltage-domains",
+    "i2c-pin-role-match",
+    "common-ground",
+    "precision-analog-overclaim-blocked",
+    "timer-frequency-overclaim-blocked",
+    "level-shift-overclaim-blocked"
+  ],
+  "simulationPrimitives": ["display_sensor_value", "display_static_text", "current_flow_animation"],
+  "renderFootprints": [
+    "arduino",
+    "breadboard",
+    "dip-logic-74hc595",
+    "i2c-expander-pcf8574",
+    "ads1115-adc-module",
+    "mcp3008-adc-ic",
+    "dip-timer-ne555",
+    "dip-opamp-lm358",
+    "i2c-level-shifter-module",
+    "oled",
+    "wire",
+    "oled-large",
+    "lcd-character-16x2",
+    "lcd-character-20x4"
+  ],
+  "canonicalRefs": {
+    "parts": [
+      "shared:parts:arduino-uno",
+      "shared:parts:breadboard-half",
+      "shared:parts:oled-i2c-096",
+      "shared:parts:74hc595-shift",
+      "shared:parts:pcf8574-expander",
+      "shared:parts:ads1115-adc",
+      "shared:parts:mcp3008-adc",
+      "shared:parts:ne555-timer",
+      "shared:parts:lm358-opamp",
+      "shared:parts:i2c-level-shifter"
+    ],
+    "footprints": [
+      "shared:footprint:arduino",
+      "shared:footprint:breadboard",
+      "shared:footprint:dip-logic-74hc595",
+      "shared:footprint:i2c-expander-pcf8574",
+      "shared:footprint:ads1115-adc-module",
+      "shared:footprint:mcp3008-adc-ic",
+      "shared:footprint:dip-timer-ne555",
+      "shared:footprint:dip-opamp-lm358",
+      "shared:footprint:i2c-level-shifter-module",
+      "shared:footprint:oled",
+      "shared:footprint:wire",
+      "shared:footprint:oled-large",
+      "shared:footprint:lcd-character-16x2",
+      "shared:footprint:lcd-character-20x4"
+    ],
+    "simulation": [
+      "shared:primitive:display_sensor_value",
+      "shared:primitive:display_static_text",
+      "shared:primitive:current_flow_animation"
+    ],
+    "topology": [
+      "shared:topology:controller-logic-interface-context",
+      "shared:topology:controller-i2c-interface-context",
+      "shared:topology:controller-spi-interface-context",
+      "shared:topology:controller-analog-timing-interface-context",
+      "shared:topology:level-shifted-i2c-bus"
+    ],
+    "sources": [
+      "shared:source:arduino-uno-rev3-io-current-20ma",
+      "shared:source:arduino-uno-rev3-i2c-a4-a5",
+      "shared:source:breadboard-row-continuity-5-hole",
+      "shared:source:ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "shared:source:74hc595-shift-visual-pin-map",
+      "shared:source:pcf8574-expander-visual-pin-map",
+      "shared:source:ads1115-adc-visual-pin-map",
+      "shared:source:mcp3008-adc-visual-pin-map",
+      "shared:source:ne555-timer-visual-pin-map",
+      "shared:source:lm358-opamp-visual-pin-map",
+      "shared:source:i2c-level-shifter-visual-pin-map",
+      "shared:source:logic-interface-qualitative-state-contract",
+      "shared:source:precision-analog-overclaim-block-contract",
+      "shared:source:timer-frequency-overclaim-block-contract",
+      "shared:source:level-shift-voltage-domain-contract",
+      "shared:source:i2c-text-display-qualitative-contract"
+    ]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": true,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": [
+    "missing-interface-power-ground",
+    "missing-required-bus-or-signal-pins",
+    "missing-i2c-display-bus-for-readout",
+    "calibrated-precision-analog-overclaim",
+    "exact-timer-frequency-overclaim",
+    "level-shifter-power-regulator-overclaim",
+    "hidden-output-load-or-channel-overclaim"
+  ]
+}

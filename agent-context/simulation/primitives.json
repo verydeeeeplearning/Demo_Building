@@ -1,16 +1,35 @@
 [
   {
     "id": "digital_on_off",
-    "inputs": ["digital"],
-    "outputs": ["digital"],
+    "inputs": [
+      "digital"
+    ],
+    "outputs": [
+      "digital"
+    ],
     "requiresElectricalAnalysis": true,
     "explanationTemplate": "The output switches between HIGH and LOW.",
-    "requiredNetRoles": ["power", "ground", "digital-signal"],
-    "requiredComponentCapabilities": ["controller-source", "digital-output-load"],
-    "validationRules": ["common-ground", "closed-current-path", "output-pin-exists"],
+    "requiredNetRoles": [
+      "power",
+      "ground",
+      "digital-signal"
+    ],
+    "requiredComponentCapabilities": [
+      "controller-source",
+      "digital-output-load"
+    ],
+    "validationRules": [
+      "common-ground",
+      "closed-current-path",
+      "output-pin-exists"
+    ],
     "currentPathRecipe": {
       "type": "closed-dc-load-path",
-      "requiredNetRoles": ["power", "load", "ground"],
+      "requiredNetRoles": [
+        "power",
+        "load",
+        "ground"
+      ],
       "description": "Show current only after the validator proves a closed path from the supply, through the load, and back to ground.",
       "pathTemplate": {
         "id": "led-forward-current",
@@ -18,35 +37,79 @@
         "label": "LED forward current",
         "sourceEndpoint": "controller-signal",
         "returnEndpoint": "controller-ground",
-        "through": ["required-passives", "target"],
+        "through": [
+          "required-passives",
+          "target"
+        ],
         "fallbackControllerPin": "D9",
-        "animation": { "color": "#ff4d3d", "speed": 0.82 }
+        "animation": {
+          "color": "#ff4d3d",
+          "speed": 0.82
+        }
       }
     },
     "expectedStateRecipe": {
       "type": "digital-state",
-      "states": ["LOW", "HIGH"],
+      "states": [
+        "LOW",
+        "HIGH"
+      ],
       "description": "Map controller LOW/HIGH output to the visible off/on state of the connected load."
     },
     "uiControls": [
-      { "id": "digital_state", "type": "toggle", "label": "Output HIGH", "affects": ["digital-signal", "load-state"] }
+      {
+        "id": "digital_state",
+        "type": "toggle",
+        "label": "Output HIGH",
+        "affects": [
+          "digital-signal",
+          "load-state"
+        ]
+      }
     ],
-    "animationCues": ["off state has no load animation", "on state animates along validated current path"],
-    "renderOverlays": ["pin-state-badge", "current-flow-dots"],
-    "limitations": ["Does not solve switching transients or semiconductor curves."]
+    "animationCues": [
+      "off state has no load animation",
+      "on state animates along validated current path"
+    ],
+    "renderOverlays": [
+      "pin-state-badge",
+      "current-flow-dots"
+    ],
+    "limitations": [
+      "Does not solve switching transients or semiconductor curves."
+    ]
   },
   {
     "id": "blink_timer",
-    "inputs": ["time"],
-    "outputs": ["digital"],
+    "inputs": [
+      "time"
+    ],
+    "outputs": [
+      "digital"
+    ],
     "requiresElectricalAnalysis": true,
     "explanationTemplate": "The Arduino turns the output on and off repeatedly.",
-    "requiredNetRoles": ["power", "ground", "digital-signal"],
-    "requiredComponentCapabilities": ["controller-source", "digital-output-load"],
-    "validationRules": ["common-ground", "closed-current-path", "timed-output-pin-exists"],
+    "requiredNetRoles": [
+      "power",
+      "ground",
+      "digital-signal"
+    ],
+    "requiredComponentCapabilities": [
+      "controller-source",
+      "digital-output-load"
+    ],
+    "validationRules": [
+      "common-ground",
+      "closed-current-path",
+      "timed-output-pin-exists"
+    ],
     "currentPathRecipe": {
       "type": "timed-dc-load-path",
-      "requiredNetRoles": ["power", "load", "ground"],
+      "requiredNetRoles": [
+        "power",
+        "load",
+        "ground"
+      ],
       "description": "Alternate the validated current path between active and inactive animation phases.",
       "pathTemplate": {
         "id": "timed-load-current",
@@ -54,35 +117,203 @@
         "label": "Timed load current",
         "sourceEndpoint": "controller-signal",
         "returnEndpoint": "controller-ground",
-        "through": ["required-passives", "target"],
+        "through": [
+          "required-passives",
+          "target"
+        ],
         "fallbackControllerPin": "D9",
-        "animation": { "color": "#ff4d3d", "speed": 0.72 }
+        "animation": {
+          "color": "#ff4d3d",
+          "speed": 0.72
+        }
       }
     },
     "expectedStateRecipe": {
       "type": "timer-state",
-      "states": ["off", "on"],
+      "states": [
+        "off",
+        "on"
+      ],
       "description": "Use a repeated timer to explain blink periods without claiming real firmware timing precision."
     },
     "uiControls": [
-      { "id": "blink_speed", "type": "slider", "label": "Blink speed", "affects": ["timer-period", "animation-speed"] }
+      {
+        "id": "blink_speed",
+        "type": "slider",
+        "label": "Blink speed",
+        "affects": [
+          "timer-period",
+          "animation-speed"
+        ]
+      }
     ],
-    "animationCues": ["pulse current dots only during the on phase", "fade the load body during the off phase"],
-    "renderOverlays": ["timer-badge", "current-flow-dots"],
-    "limitations": ["Timer is educational and not calibrated to an actual Arduino sketch loop."]
+    "animationCues": [
+      "pulse current dots only during the on phase",
+      "fade the load body during the off phase"
+    ],
+    "renderOverlays": [
+      "timer-badge",
+      "current-flow-dots"
+    ],
+    "limitations": [
+      "Timer is educational and not calibrated to an actual Arduino sketch loop."
+    ]
+  },
+  {
+    "id": "analog_pwm_dimmer",
+    "inputs": [
+      "analog"
+    ],
+    "outputs": [
+      "pwm",
+      "light"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The analog knob value maps to PWM duty cycle, changing LED brightness in the educational simulation.",
+    "requiredNetRoles": [
+      "power",
+      "ground",
+      "analog-signal",
+      "pwm-output",
+      "output-load"
+    ],
+    "requiredComponentCapabilities": [
+      "controller-source",
+      "analog-input"
+    ],
+    "validationRules": [
+      "voltage-divider-required",
+      "analog-input-pin-exists",
+      "pwm-output-required",
+      "series-current-limit",
+      "common-ground"
+    ],
+    "currentPathRecipe": {
+      "type": "analog-divider-plus-pwm-output-path",
+      "requiredNetRoles": [
+        "power",
+        "analog-signal",
+        "ground",
+        "output-load"
+      ],
+      "description": "Show the potentiometer sensing divider separately from the PWM-controlled LED load current.",
+      "pathTemplates": [
+        {
+          "id": "analog-pwm-sensing-divider",
+          "kind": "sensing-divider",
+          "label": "Potentiometer sensing divider",
+          "sourceEndpoint": "controller-power",
+          "returnEndpoint": "controller-ground",
+          "through": [
+            "target"
+          ],
+          "animation": {
+            "color": "#f2a65a",
+            "speed": 0.45
+          }
+        },
+        {
+          "id": "analog-pwm-signal",
+          "kind": "signal-activity",
+          "label": "Potentiometer analog signal",
+          "sourceEndpoint": "controller-signal",
+          "returnEndpoint": "target-signal",
+          "through": [
+            "target"
+          ],
+          "expectedCurrentMa": 0,
+          "animation": {
+            "color": "#2f7df6",
+            "speed": 0.35
+          }
+        },
+        {
+          "id": "analog-pwm-output-current",
+          "kind": "load-current",
+          "label": "PWM LED output current",
+          "sourceEndpoint": "controller-signal",
+          "returnEndpoint": "controller-ground",
+          "through": [
+            "required-passives",
+            "target"
+          ],
+          "fallbackControllerPin": "D9",
+          "animation": {
+            "color": "#f97316",
+            "speed": 0.58
+          }
+        }
+      ]
+    },
+    "expectedStateRecipe": {
+      "type": "analog-pwm-state",
+      "states": [
+        "dim",
+        "medium",
+        "bright"
+      ],
+      "description": "Map the simulated knob value to an educational PWM brightness state."
+    },
+    "uiControls": [
+      {
+        "id": "knob_value",
+        "type": "slider",
+        "label": "Knob value",
+        "affects": [
+          "analog-signal",
+          "pwm-duty",
+          "led-brightness"
+        ]
+      }
+    ],
+    "animationCues": [
+      "show a muted analog signal path",
+      "change LED glow intensity with knob value",
+      "animate PWM-controlled load current"
+    ],
+    "renderOverlays": [
+      "knob-value-badge",
+      "pwm-duty-badge",
+      "current-flow-dots"
+    ],
+    "limitations": [
+      "Models classroom PWM brightness qualitatively; it does not simulate analog transients or LED luminous intensity calibration."
+    ]
   },
   {
     "id": "analog_threshold",
-    "inputs": ["analog"],
-    "outputs": ["digital", "sound", "display"],
+    "inputs": [
+      "analog"
+    ],
+    "outputs": [
+      "digital",
+      "sound",
+      "display"
+    ],
     "requiresElectricalAnalysis": true,
     "explanationTemplate": "When the sensor value crosses the threshold, the output changes.",
-    "requiredNetRoles": ["power", "ground", "analog-signal", "output-signal"],
-    "requiredComponentCapabilities": ["controller-source"],
-    "validationRules": ["voltage-divider-required", "analog-input-pin-exists", "common-ground"],
+    "requiredNetRoles": [
+      "power",
+      "ground",
+      "analog-signal",
+      "output-signal"
+    ],
+    "requiredComponentCapabilities": [
+      "controller-source"
+    ],
+    "validationRules": [
+      "voltage-divider-required",
+      "analog-input-pin-exists",
+      "common-ground"
+    ],
     "currentPathRecipe": {
       "type": "analog-divider-plus-output-path",
-      "requiredNetRoles": ["power", "analog-signal", "ground", "output-load"],
+      "requiredNetRoles": [
+        "power",
+        "analog-signal",
+        "ground",
+        "output-load"
+      ],
       "description": "Show the low-current sensing path separately from any validated output load current path.",
       "pathTemplates": [
         {
@@ -91,9 +322,14 @@
           "label": "Analog sensing divider",
           "sourceEndpoint": "controller-power",
           "returnEndpoint": "target-signal",
-          "through": ["target"],
+          "through": [
+            "target"
+          ],
           "expectedCurrentMa": 0,
-          "animation": { "color": "#f2a65a", "speed": 0.45 }
+          "animation": {
+            "color": "#f2a65a",
+            "speed": 0.45
+          }
         },
         {
           "id": "analog-threshold-output-current",
@@ -101,36 +337,82 @@
           "label": "Threshold output current",
           "sourceEndpoint": "controller-signal",
           "returnEndpoint": "controller-ground",
-          "through": ["required-passives", "target"],
+          "through": [
+            "required-passives",
+            "target"
+          ],
           "fallbackControllerPin": "D9",
-          "animation": { "color": "#f97316", "speed": 0.58 }
+          "animation": {
+            "color": "#f97316",
+            "speed": 0.58
+          }
         }
       ]
     },
     "expectedStateRecipe": {
       "type": "threshold-state",
-      "states": ["below-threshold", "above-threshold"],
+      "states": [
+        "below-threshold",
+        "above-threshold"
+      ],
       "description": "Convert the simulated analog input value into a discrete educational state."
     },
     "uiControls": [
-      { "id": "analog_value", "type": "slider", "label": "Analog value", "affects": ["analog-signal", "threshold-state"] }
+      {
+        "id": "analog_value",
+        "type": "slider",
+        "label": "Analog value",
+        "affects": [
+          "analog-signal",
+          "threshold-state"
+        ]
+      }
     ],
-    "animationCues": ["show sensing path with a muted color", "highlight output path only when threshold is crossed"],
-    "renderOverlays": ["analog-value-badge", "threshold-marker", "current-flow-dots"],
-    "limitations": ["Does not model ADC noise, impedance, or continuous brightness curves unless a more specific primitive is added."]
+    "animationCues": [
+      "show sensing path with a muted color",
+      "highlight output path only when threshold is crossed"
+    ],
+    "renderOverlays": [
+      "analog-value-badge",
+      "threshold-marker",
+      "current-flow-dots"
+    ],
+    "limitations": [
+      "Does not model ADC noise, impedance, or continuous brightness curves unless a more specific primitive is added."
+    ]
   },
   {
     "id": "display_static_text",
     "inputs": [],
-    "outputs": ["text"],
+    "outputs": [
+      "text"
+    ],
     "requiresElectricalAnalysis": true,
     "explanationTemplate": "The display shows a fixed message.",
-    "requiredNetRoles": ["power", "ground", "i2c-data", "i2c-clock"],
-    "requiredComponentCapabilities": ["i2c-controller", "i2c-peripheral", "low-current-output"],
-    "validationRules": ["common-ground", "i2c-pin-role-match", "power-rail-valid"],
+    "requiredNetRoles": [
+      "power",
+      "ground",
+      "i2c-data",
+      "i2c-clock"
+    ],
+    "requiredComponentCapabilities": [
+      "i2c-controller",
+      "i2c-peripheral",
+      "low-current-output"
+    ],
+    "validationRules": [
+      "common-ground",
+      "i2c-pin-role-match",
+      "power-rail-valid"
+    ],
     "currentPathRecipe": {
       "type": "module-supply-plus-bus-signals",
-      "requiredNetRoles": ["power", "ground", "i2c-data", "i2c-clock"],
+      "requiredNetRoles": [
+        "power",
+        "ground",
+        "i2c-data",
+        "i2c-clock"
+      ],
       "description": "Animate OLED supply current only on the validated power and ground loop; show SDA/SCL as signal activity, not load current.",
       "pathTemplate": {
         "id": "oled-module-current",
@@ -138,34 +420,81 @@
         "label": "{partLabel} module current",
         "sourceEndpoint": "controller-power",
         "returnEndpoint": "controller-ground",
-        "through": ["target"],
-        "animation": { "color": "#ff4d3d", "speed": 0.66 }
+        "through": [
+          "target"
+        ],
+        "animation": {
+          "color": "#ff4d3d",
+          "speed": 0.66
+        }
       }
     },
     "expectedStateRecipe": {
       "type": "display-text-state",
-      "states": ["text-visible"],
+      "states": [
+        "text-visible"
+      ],
       "description": "Render a static text state on the display once power, ground, SDA, and SCL are valid."
     },
     "uiControls": [
-      { "id": "display_text", "type": "text", "label": "Display text", "affects": ["display-state"] }
+      {
+        "id": "display_text",
+        "type": "text",
+        "label": "Display text",
+        "affects": [
+          "display-state"
+        ]
+      }
     ],
-    "animationCues": ["animate supply current separately from I2C signal pulses", "pulse SDA and SCL with distinct signal colors"],
-    "renderOverlays": ["display-text-overlay", "i2c-signal-pulses", "current-flow-dots"],
-    "limitations": ["Does not emulate SSD1306 commands or I2C timing; it explains steady educational behavior."]
+    "animationCues": [
+      "animate supply current separately from I2C signal pulses",
+      "pulse SDA and SCL with distinct signal colors"
+    ],
+    "renderOverlays": [
+      "display-text-overlay",
+      "i2c-signal-pulses",
+      "current-flow-dots"
+    ],
+    "limitations": [
+      "Does not emulate SSD1306 commands or I2C timing; it explains steady educational behavior."
+    ]
   },
   {
     "id": "display_sensor_value",
-    "inputs": ["analog", "digital"],
-    "outputs": ["text"],
+    "inputs": [
+      "analog",
+      "digital"
+    ],
+    "outputs": [
+      "text"
+    ],
     "requiresElectricalAnalysis": true,
     "explanationTemplate": "The display shows a sensor reading.",
-    "requiredNetRoles": ["power", "ground", "sensor-signal", "i2c-data", "i2c-clock"],
-    "requiredComponentCapabilities": ["i2c-controller", "i2c-peripheral"],
-    "validationRules": ["common-ground", "sensor-pin-role-match", "i2c-pin-role-match"],
+    "requiredNetRoles": [
+      "power",
+      "ground",
+      "sensor-signal",
+      "i2c-data",
+      "i2c-clock"
+    ],
+    "requiredComponentCapabilities": [
+      "i2c-controller",
+      "i2c-peripheral"
+    ],
+    "validationRules": [
+      "common-ground",
+      "sensor-pin-role-match",
+      "i2c-pin-role-match"
+    ],
     "currentPathRecipe": {
       "type": "sensor-and-display-supply-paths",
-      "requiredNetRoles": ["power", "ground", "sensor-signal", "i2c-data", "i2c-clock"],
+      "requiredNetRoles": [
+        "power",
+        "ground",
+        "sensor-signal",
+        "i2c-data",
+        "i2c-clock"
+      ],
       "description": "Show sensor and display supply paths separately; signal lines carry state changes, not load current.",
       "pathTemplates": [
         {
@@ -174,8 +503,13 @@
           "label": "Sensor/display supply current",
           "sourceEndpoint": "controller-power",
           "returnEndpoint": "controller-ground",
-          "through": ["target"],
-          "animation": { "color": "#5ce1e6", "speed": 0.5 }
+          "through": [
+            "target"
+          ],
+          "animation": {
+            "color": "#5ce1e6",
+            "speed": 0.5
+          }
         },
         {
           "id": "sensor-signal-activity",
@@ -183,10 +517,15 @@
           "label": "Sensor signal activity",
           "sourceEndpoint": "controller-signal",
           "returnEndpoint": "target-signal",
-          "through": ["target"],
+          "through": [
+            "target"
+          ],
           "fallbackControllerPin": "D7",
           "expectedCurrentMa": 0,
-          "animation": { "color": "#9bd67d", "speed": 0.58 }
+          "animation": {
+            "color": "#9bd67d",
+            "speed": 0.58
+          }
         },
         {
           "id": "display-bus-activity",
@@ -194,37 +533,82 @@
           "label": "Display bus activity",
           "sourceEndpoint": "controller-signal",
           "returnEndpoint": "target-signal",
-          "through": ["target"],
+          "through": [
+            "target"
+          ],
           "fallbackControllerPin": "A4/SDA",
           "expectedCurrentMa": 0,
-          "animation": { "color": "#84a9ff", "speed": 0.54 }
+          "animation": {
+            "color": "#84a9ff",
+            "speed": 0.54
+          }
         }
       ]
     },
     "expectedStateRecipe": {
       "type": "sensor-readout-state",
-      "states": ["reading-updates", "display-updates"],
+      "states": [
+        "reading-updates",
+        "display-updates"
+      ],
       "description": "Map simulated sensor input to formatted display text."
     },
     "uiControls": [
-      { "id": "sensor_value", "type": "slider", "label": "Sensor value", "affects": ["sensor-signal", "display-state"] }
+      {
+        "id": "sensor_value",
+        "type": "slider",
+        "label": "Sensor value",
+        "affects": [
+          "sensor-signal",
+          "display-state"
+        ]
+      }
     ],
-    "animationCues": ["pulse sensor signal before display update", "animate display supply current after validation"],
-    "renderOverlays": ["sensor-value-badge", "display-text-overlay", "current-flow-dots"],
-    "limitations": ["Only supports educational readout behavior for sensors represented in the context layer."]
+    "animationCues": [
+      "pulse sensor signal before display update",
+      "animate display supply current after validation"
+    ],
+    "renderOverlays": [
+      "sensor-value-badge",
+      "display-text-overlay",
+      "current-flow-dots"
+    ],
+    "limitations": [
+      "Only supports educational readout behavior for sensors represented in the context layer."
+    ]
   },
   {
     "id": "buzzer_pulse",
-    "inputs": ["digital", "time"],
-    "outputs": ["sound"],
+    "inputs": [
+      "digital",
+      "time"
+    ],
+    "outputs": [
+      "sound"
+    ],
     "requiresElectricalAnalysis": true,
     "explanationTemplate": "The buzzer pulses when the condition is true.",
-    "requiredNetRoles": ["power", "ground", "digital-signal"],
-    "requiredComponentCapabilities": ["sound-output", "digital-output-load"],
-    "validationRules": ["common-ground", "polarity-check", "current-limit-warning"],
+    "requiredNetRoles": [
+      "power",
+      "ground",
+      "digital-signal"
+    ],
+    "requiredComponentCapabilities": [
+      "sound-output",
+      "digital-output-load"
+    ],
+    "validationRules": [
+      "common-ground",
+      "polarity-check",
+      "current-limit-warning"
+    ],
     "currentPathRecipe": {
       "type": "pulsed-sound-load-path",
-      "requiredNetRoles": ["digital-signal", "load", "ground"],
+      "requiredNetRoles": [
+        "digital-signal",
+        "load",
+        "ground"
+      ],
       "description": "Animate the buzzer path only during the simulated pulse window.",
       "pathTemplate": {
         "id": "buzzer-current",
@@ -232,35 +616,78 @@
         "label": "Buzzer current",
         "sourceEndpoint": "controller-signal",
         "returnEndpoint": "controller-ground",
-        "through": ["target"],
+        "through": [
+          "target"
+        ],
         "fallbackControllerPin": "D8",
-        "animation": { "color": "#f97316", "speed": 0.73 }
+        "animation": {
+          "color": "#f97316",
+          "speed": 0.73
+        }
       }
     },
     "expectedStateRecipe": {
       "type": "sound-state",
-      "states": ["silent", "beep"],
+      "states": [
+        "silent",
+        "beep"
+      ],
       "description": "Represent sound as a visual pulse and label rather than generated audio."
     },
     "uiControls": [
-      { "id": "beep_enabled", "type": "toggle", "label": "Beep", "affects": ["sound-state", "current-path"] }
+      {
+        "id": "beep_enabled",
+        "type": "toggle",
+        "label": "Beep",
+        "affects": [
+          "sound-state",
+          "current-path"
+        ]
+      }
     ],
-    "animationCues": ["pulse the buzzer body", "show short current bursts through the buzzer load"],
-    "renderOverlays": ["sound-wave-rings", "current-flow-dots"],
-    "limitations": ["Does not synthesize actual frequency response or loudness."]
+    "animationCues": [
+      "pulse the buzzer body",
+      "show short current bursts through the buzzer load"
+    ],
+    "renderOverlays": [
+      "sound-wave-rings",
+      "current-flow-dots"
+    ],
+    "limitations": [
+      "Does not synthesize actual frequency response or loudness."
+    ]
   },
   {
     "id": "servo_angle",
-    "inputs": ["pwm"],
-    "outputs": ["motion"],
+    "inputs": [
+      "pwm"
+    ],
+    "outputs": [
+      "motion"
+    ],
     "requiresElectricalAnalysis": true,
     "explanationTemplate": "The servo moves to an educational angle.",
-    "requiredNetRoles": ["power", "ground", "pwm-signal"],
-    "requiredComponentCapabilities": ["pwm-controlled-actuator", "high-current-warning"],
-    "validationRules": ["common-ground", "pwm-pin-required", "high-current-warning"],
+    "requiredNetRoles": [
+      "power",
+      "ground",
+      "pwm-signal"
+    ],
+    "requiredComponentCapabilities": [
+      "pwm-controlled-actuator",
+      "high-current-warning"
+    ],
+    "validationRules": [
+      "common-ground",
+      "pwm-pin-required",
+      "high-current-warning"
+    ],
     "currentPathRecipe": {
       "type": "actuator-supply-plus-control-signal",
-      "requiredNetRoles": ["power", "ground", "pwm-signal"],
+      "requiredNetRoles": [
+        "power",
+        "ground",
+        "pwm-signal"
+      ],
       "description": "Show servo supply current separately from the PWM control signal.",
       "pathTemplates": [
         {
@@ -269,8 +696,13 @@
           "label": "Servo supply current",
           "sourceEndpoint": "controller-power",
           "returnEndpoint": "controller-ground",
-          "through": ["target"],
-          "animation": { "color": "#f97316", "speed": 0.46 }
+          "through": [
+            "target"
+          ],
+          "animation": {
+            "color": "#f97316",
+            "speed": 0.46
+          }
         },
         {
           "id": "servo-pwm-signal",
@@ -278,34 +710,68 @@
           "label": "Servo PWM signal activity",
           "sourceEndpoint": "controller-signal",
           "returnEndpoint": "target-signal",
-          "through": ["target"],
+          "through": [
+            "target"
+          ],
           "fallbackControllerPin": "D9",
           "expectedCurrentMa": 0,
-          "animation": { "color": "#f6c44c", "speed": 0.68 }
+          "animation": {
+            "color": "#f6c44c",
+            "speed": 0.68
+          }
         }
       ]
     },
     "expectedStateRecipe": {
       "type": "angle-state",
-      "states": ["0deg", "90deg", "180deg"],
+      "states": [
+        "0deg",
+        "90deg",
+        "180deg"
+      ],
       "description": "Map PWM setting to a visible servo arm angle for teaching."
     },
     "uiControls": [
-      { "id": "servo_angle", "type": "slider", "label": "Servo angle", "affects": ["pwm-signal", "motion-state"] }
+      {
+        "id": "servo_angle",
+        "type": "slider",
+        "label": "Servo angle",
+        "affects": [
+          "pwm-signal",
+          "motion-state"
+        ]
+      }
     ],
-    "animationCues": ["rotate servo horn", "show muted PWM pulses on signal wire", "warn when current exceeds classroom source assumptions"],
-    "renderOverlays": ["servo-angle-arc", "pwm-signal-pulses", "current-warning-badge"],
-    "limitations": ["Does not model stall current, torque, inertia, or external power supply behavior."]
+    "animationCues": [
+      "rotate servo horn",
+      "show muted PWM pulses on signal wire",
+      "warn when current exceeds classroom source assumptions"
+    ],
+    "renderOverlays": [
+      "servo-angle-arc",
+      "pwm-signal-pulses",
+      "current-warning-badge"
+    ],
+    "limitations": [
+      "Does not model stall current, torque, inertia, or external power supply behavior."
+    ]
   },
   {
     "id": "fault_visualization",
-    "inputs": ["validation_issue"],
-    "outputs": ["warning"],
+    "inputs": [
+      "validation_issue"
+    ],
+    "outputs": [
+      "warning"
+    ],
     "requiresElectricalAnalysis": false,
     "explanationTemplate": "The simulator shows why the circuit is not safe to run.",
     "requiredNetRoles": [],
     "requiredComponentCapabilities": [],
-    "validationRules": ["validation-issue-required", "block-current-animation"],
+    "validationRules": [
+      "validation-issue-required",
+      "block-current-animation"
+    ],
     "currentPathRecipe": {
       "type": "none",
       "requiredNetRoles": [],
@@ -313,40 +779,2023 @@
     },
     "expectedStateRecipe": {
       "type": "fault-state",
-      "states": ["blocked", "needs-repair"],
+      "states": [
+        "blocked",
+        "needs-repair"
+      ],
       "description": "Represent invalid or unsupported circuits as blocked simulation states."
     },
     "uiControls": [
-      { "id": "show_fault", "type": "toggle", "label": "Show fault", "affects": ["warning-overlay"] }
+      {
+        "id": "show_fault",
+        "type": "toggle",
+        "label": "Show fault",
+        "affects": [
+          "warning-overlay"
+        ]
+      }
     ],
-    "animationCues": ["highlight unsafe endpoints", "disable current-flow dots"],
-    "renderOverlays": ["fault-badge", "blocked-run-overlay"],
-    "limitations": ["Explains validation failures; it is not a repair solver by itself."]
+    "animationCues": [
+      "highlight unsafe endpoints",
+      "disable current-flow dots"
+    ],
+    "renderOverlays": [
+      "fault-badge",
+      "blocked-run-overlay"
+    ],
+    "limitations": [
+      "Explains validation failures; it is not a repair solver by itself."
+    ]
   },
   {
     "id": "current_flow_animation",
-    "inputs": ["validated_current_path"],
-    "outputs": ["animation"],
+    "inputs": [
+      "validated_current_path"
+    ],
+    "outputs": [
+      "animation"
+    ],
     "requiresElectricalAnalysis": true,
     "explanationTemplate": "Animated dots follow only validated closed current paths.",
-    "requiredNetRoles": ["validated-current-path"],
-    "requiredComponentCapabilities": ["electrical-connection"],
-    "validationRules": ["validated-current-path-required", "block-on-invalid-netlist"],
+    "requiredNetRoles": [
+      "validated-current-path"
+    ],
+    "requiredComponentCapabilities": [
+      "electrical-connection"
+    ],
+    "validationRules": [
+      "validated-current-path-required",
+      "block-on-invalid-netlist"
+    ],
     "currentPathRecipe": {
       "type": "validated-path-overlay",
-      "requiredNetRoles": ["validated-current-path"],
+      "requiredNetRoles": [
+        "validated-current-path"
+      ],
       "description": "Use only current path ids returned by deterministic validation and current estimation tools."
     },
     "expectedStateRecipe": {
       "type": "animation-state",
-      "states": ["idle", "flowing", "blocked"],
+      "states": [
+        "idle",
+        "flowing",
+        "blocked"
+      ],
       "description": "Animate only when the associated simulation plan is valid."
     },
     "uiControls": [
-      { "id": "current_flow_enabled", "type": "toggle", "label": "Current flow", "affects": ["current-overlay"] }
+      {
+        "id": "current_flow_enabled",
+        "type": "toggle",
+        "label": "Current flow",
+        "affects": [
+          "current-overlay"
+        ]
+      }
     ],
-    "animationCues": ["dots follow wire endpoint order", "invalid paths remain disabled"],
-    "renderOverlays": ["current-flow-dots", "path-direction-arrows"],
-    "limitations": ["Shows direction and relative presence of current, not a SPICE-grade transient or field solution."]
+    "animationCues": [
+      "dots follow wire endpoint order",
+      "invalid paths remain disabled"
+    ],
+    "renderOverlays": [
+      "current-flow-dots",
+      "path-direction-arrows"
+    ],
+    "limitations": [
+      "Shows direction and relative presence of current, not a SPICE-grade transient or field solution."
+    ]
+  },
+  {
+    "id": "digital_input_state",
+    "inputs": [
+      "digital"
+    ],
+    "outputs": [
+      "digital",
+      "text"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The Arduino reads a HIGH/LOW input state from a switch or digital sensor.",
+    "requiredNetRoles": [
+      "power",
+      "ground",
+      "digital-signal"
+    ],
+    "requiredComponentCapabilities": [
+      "digital-input-state-source"
+    ],
+    "validationRules": [
+      "digital-input-pin-exists",
+      "digital-input-reference-defined",
+      "common-ground",
+      "qualitative-sensor-readout-only"
+    ],
+    "currentPathRecipe": {
+      "type": "digital-input-supply-plus-signal",
+      "requiredNetRoles": [
+        "power",
+        "ground",
+        "digital-signal"
+      ],
+      "description": "Show powered sensor supply current when present, and always show digital signal activity separately from output load current.",
+      "pathTemplates": [
+        {
+          "id": "digital-input-signal",
+          "kind": "signal-activity",
+          "label": "{partLabel} digital input signal",
+          "sourceEndpoint": "controller-signal",
+          "returnEndpoint": "target-signal",
+          "through": [
+            "target"
+          ],
+          "fallbackControllerPin": "D2",
+          "expectedCurrentMa": 0,
+          "animation": {
+            "color": "#9bd67d",
+            "speed": 0.58
+          }
+        }
+      ]
+    },
+    "expectedStateRecipe": {
+      "type": "digital-input-state",
+      "states": [
+        "inactive",
+        "active"
+      ],
+      "description": "Map the input pin to an educational inactive/active state without claiming calibrated sensing."
+    },
+    "uiControls": [
+      {
+        "id": "digital_input_state",
+        "type": "toggle",
+        "label": "Input active",
+        "affects": [
+          "digital-signal",
+          "display-state",
+          "output-state"
+        ]
+      }
+    ],
+    "animationCues": [
+      "pulse the digital input wire when the input changes",
+      "keep input signal activity separate from LED/output current"
+    ],
+    "renderOverlays": [
+      "digital-state-badge",
+      "signal-pulse",
+      "current-flow-dots"
+    ],
+    "limitations": [
+      "Models only qualitative HIGH/LOW or pulse activity; it does not decode protocols, debounce contacts, or calibrate sensor values."
+    ]
+  },
+  {
+    "id": "matrix_input_state",
+    "inputs": [
+      "digital"
+    ],
+    "outputs": [
+      "text"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The Arduino scans multiple switch or row/column input lines and shows the qualitative key state.",
+    "requiredNetRoles": [
+      "digital-signal",
+      "i2c-data",
+      "i2c-clock"
+    ],
+    "requiredComponentCapabilities": [
+      "matrix-input-source"
+    ],
+    "validationRules": [
+      "matrix-input-lines-distinct",
+      "matrix-input-reference-defined",
+      "i2c-pin-role-match",
+      "qualitative-sensor-readout-only"
+    ],
+    "currentPathRecipe": {
+      "type": "matrix-input-scan-plus-display",
+      "requiredNetRoles": [
+        "digital-signal",
+        "i2c-data",
+        "i2c-clock"
+      ],
+      "description": "Show row scan and key sense activity separately from display I2C activity.",
+      "pathTemplates": [
+        {
+          "id": "matrix-input-signal",
+          "kind": "signal-activity",
+          "label": "Matrix input key or switch signal",
+          "sourceEndpoint": "controller-signal",
+          "returnEndpoint": "target-signal",
+          "through": [
+            "target"
+          ],
+          "animation": {
+            "color": "#9bd67d",
+            "speed": 0.54
+          }
+        },
+        {
+          "id": "matrix-input-display-bus-activity",
+          "kind": "bus-activity",
+          "label": "OLED matrix input state update",
+          "sourceEndpoint": "controller-signal",
+          "returnEndpoint": "target-signal",
+          "through": [
+            "target"
+          ],
+          "animation": {
+            "color": "#84a9ff",
+            "speed": 0.54
+          }
+        }
+      ]
+    },
+    "expectedStateRecipe": {
+      "type": "matrix-input-state",
+      "states": [
+        "no key",
+        "key pressed",
+        "switch pattern set"
+      ],
+      "description": "Map the simulated input pattern to a qualitative display state."
+    },
+    "uiControls": [
+      {
+        "id": "matrix_key_state",
+        "type": "select",
+        "label": "Pressed key",
+        "affects": [
+          "matrix-signal",
+          "display-state"
+        ]
+      }
+    ],
+    "animationCues": [
+      "pulse row scan lines",
+      "pulse the active column or switch input line",
+      "update OLED text after the input event"
+    ],
+    "renderOverlays": [
+      "key-state-badge",
+      "signal-pulse",
+      "display-text-overlay"
+    ],
+    "limitations": [
+      "Models qualitative key/switch state only; it does not simulate contact bounce or full keyboard firmware."
+    ]
+  },
+  {
+    "id": "joystick_position_state",
+    "inputs": [
+      "analog",
+      "digital"
+    ],
+    "outputs": [
+      "text"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The Arduino reads joystick X/Y analog axes and a push switch, then shows qualitative position on the display.",
+    "requiredNetRoles": [
+      "power",
+      "ground",
+      "analog-signal",
+      "digital-signal",
+      "i2c-data",
+      "i2c-clock"
+    ],
+    "requiredComponentCapabilities": [
+      "joystick-input-source"
+    ],
+    "validationRules": [
+      "joystick-axis-pins-defined",
+      "digital-input-pin-exists",
+      "power-rail-valid",
+      "common-ground",
+      "i2c-pin-role-match"
+    ],
+    "currentPathRecipe": {
+      "type": "joystick-dual-axis-plus-display",
+      "requiredNetRoles": [
+        "power",
+        "ground",
+        "analog-signal",
+        "digital-signal",
+        "i2c-data",
+        "i2c-clock"
+      ],
+      "description": "Show joystick supply current, X/Y analog signals, switch state, and display bus activity separately.",
+      "pathTemplates": [
+        {
+          "id": "joystick-supply-current",
+          "kind": "supply-current",
+          "label": "Joystick module supply current",
+          "sourceEndpoint": "controller-power",
+          "returnEndpoint": "controller-ground",
+          "through": [
+            "target"
+          ],
+          "animation": {
+            "color": "#5ce1e6",
+            "speed": 0.48
+          }
+        },
+        {
+          "id": "joystick-axis-signal",
+          "kind": "signal-activity",
+          "label": "Joystick analog axis signal",
+          "sourceEndpoint": "controller-signal",
+          "returnEndpoint": "target-signal",
+          "through": [
+            "target"
+          ],
+          "animation": {
+            "color": "#2f7df6",
+            "speed": 0.36
+          }
+        },
+        {
+          "id": "joystick-display-bus-activity",
+          "kind": "bus-activity",
+          "label": "OLED joystick position update",
+          "sourceEndpoint": "controller-signal",
+          "returnEndpoint": "target-signal",
+          "through": [
+            "target"
+          ],
+          "animation": {
+            "color": "#84a9ff",
+            "speed": 0.54
+          }
+        }
+      ]
+    },
+    "expectedStateRecipe": {
+      "type": "joystick-position-state",
+      "states": [
+        "center",
+        "up",
+        "down",
+        "left",
+        "right",
+        "pressed"
+      ],
+      "description": "Map simulated X/Y slider positions and switch state to qualitative OLED text."
+    },
+    "uiControls": [
+      {
+        "id": "joystick_x",
+        "type": "slider",
+        "label": "Joystick X",
+        "affects": [
+          "x-axis",
+          "display-state"
+        ]
+      },
+      {
+        "id": "joystick_y",
+        "type": "slider",
+        "label": "Joystick Y",
+        "affects": [
+          "y-axis",
+          "display-state"
+        ]
+      },
+      {
+        "id": "joystick_sw",
+        "type": "toggle",
+        "label": "Pressed",
+        "affects": [
+          "digital-signal",
+          "display-state"
+        ]
+      }
+    ],
+    "animationCues": [
+      "show X/Y analog signal activity",
+      "pulse SW when pressed",
+      "update OLED position text"
+    ],
+    "renderOverlays": [
+      "joystick-position-badge",
+      "analog-signal",
+      "display-text-overlay"
+    ],
+    "limitations": [
+      "Models qualitative joystick position only; it is not calibrated physical force or gamepad HID behavior."
+    ]
+  },
+  {
+    "id": "rotary_encoder_state",
+    "inputs": [
+      "digital"
+    ],
+    "outputs": [
+      "text"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The Arduino reads CLK/DT quadrature changes and the push switch, then shows qualitative rotation state.",
+    "requiredNetRoles": [
+      "power",
+      "ground",
+      "digital-signal",
+      "i2c-data",
+      "i2c-clock"
+    ],
+    "requiredComponentCapabilities": [
+      "rotary-encoder-source"
+    ],
+    "validationRules": [
+      "encoder-quadrature-pins-defined",
+      "digital-input-pin-exists",
+      "power-rail-valid",
+      "common-ground",
+      "i2c-pin-role-match"
+    ],
+    "currentPathRecipe": {
+      "type": "rotary-encoder-plus-display",
+      "requiredNetRoles": [
+        "power",
+        "ground",
+        "digital-signal",
+        "i2c-data",
+        "i2c-clock"
+      ],
+      "description": "Show encoder supply current, CLK/DT/SW signal activity, and display bus activity separately.",
+      "pathTemplates": [
+        {
+          "id": "rotary-encoder-supply-current",
+          "kind": "supply-current",
+          "label": "Rotary encoder module supply current",
+          "sourceEndpoint": "controller-power",
+          "returnEndpoint": "controller-ground",
+          "through": [
+            "target"
+          ],
+          "animation": {
+            "color": "#5ce1e6",
+            "speed": 0.48
+          }
+        },
+        {
+          "id": "rotary-encoder-signal",
+          "kind": "signal-activity",
+          "label": "Rotary encoder quadrature or switch signal",
+          "sourceEndpoint": "controller-signal",
+          "returnEndpoint": "target-signal",
+          "through": [
+            "target"
+          ],
+          "animation": {
+            "color": "#9bd67d",
+            "speed": 0.56
+          }
+        },
+        {
+          "id": "rotary-encoder-display-bus-activity",
+          "kind": "bus-activity",
+          "label": "OLED rotary encoder state update",
+          "sourceEndpoint": "controller-signal",
+          "returnEndpoint": "target-signal",
+          "through": [
+            "target"
+          ],
+          "animation": {
+            "color": "#84a9ff",
+            "speed": 0.54
+          }
+        }
+      ]
+    },
+    "expectedStateRecipe": {
+      "type": "rotary-encoder-state",
+      "states": [
+        "idle",
+        "clockwise step",
+        "counterclockwise step",
+        "pressed"
+      ],
+      "description": "Map simulated quadrature changes to qualitative direction/count display text."
+    },
+    "uiControls": [
+      {
+        "id": "encoder_step",
+        "type": "select",
+        "label": "Encoder step",
+        "affects": [
+          "clk-dt-signals",
+          "display-state"
+        ]
+      },
+      {
+        "id": "encoder_sw",
+        "type": "toggle",
+        "label": "Pressed",
+        "affects": [
+          "digital-signal",
+          "display-state"
+        ]
+      }
+    ],
+    "animationCues": [
+      "alternate CLK and DT signal pulses",
+      "pulse SW when pressed",
+      "update OLED count/direction text"
+    ],
+    "renderOverlays": [
+      "encoder-state-badge",
+      "signal-pulse",
+      "display-text-overlay"
+    ],
+    "limitations": [
+      "Models qualitative quadrature state only; it does not simulate contact bounce or precise timing."
+    ]
+  },
+  {
+    "id": "bare_seven_segment_display_state",
+    "inputs": [
+      "digital"
+    ],
+    "outputs": [
+      "numeric-display"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The bare 7-segment display lights only the validated current-limited segments.",
+    "requiredNetRoles": [
+      "digital-signal",
+      "series-current-limit",
+      "ground"
+    ],
+    "requiredComponentCapabilities": [
+      "bare-seven-segment-display"
+    ],
+    "validationRules": [
+      "common-ground",
+      "bare-seven-segment-common-ground",
+      "bare-seven-segment-segment-resistor",
+      "series-current-limit"
+    ],
+    "currentPathRecipe": {
+      "type": "per-segment-current-limited-paths",
+      "requiredNetRoles": [
+        "digital-signal",
+        "series-current-limit",
+        "ground"
+      ],
+      "description": "Show one current path per driven segment, each from an Arduino output through its own resistor and segment LED to common ground.",
+      "pathTemplate": {
+        "id": "bare-seven-segment-current",
+        "kind": "load-current",
+        "label": "{partLabel} segment current",
+        "sourceEndpoint": "controller-signal",
+        "returnEndpoint": "controller-ground",
+        "through": [
+          "required-passives",
+          "target"
+        ],
+        "fallbackControllerPin": "D4",
+        "animation": {
+          "color": "#ff4d3d",
+          "speed": 0.58
+        }
+      }
+    },
+    "expectedStateRecipe": {
+      "type": "bare-seven-segment-state",
+      "states": [
+        "selected segments lit",
+        "decimal point lit",
+        "off"
+      ],
+      "description": "Render a qualitative digit from the segment pins that passed per-segment resistor validation."
+    },
+    "uiControls": [
+      {
+        "id": "digit_segments",
+        "type": "select",
+        "label": "Lit segments",
+        "affects": [
+          "segment-state"
+        ]
+      }
+    ],
+    "animationCues": [
+      "animate each validated segment current path independently",
+      "do not animate a segment pin that lacks its own resistor"
+    ],
+    "renderOverlays": [
+      "seven-segment-state-overlay",
+      "current-flow-dots"
+    ],
+    "limitations": [
+      "Uses the app's simplified visual pin set and qualitative segment state; it does not model every commercial 10-pin 7-segment package."
+    ]
+  },
+  {
+    "id": "led_array_display_state",
+    "inputs": [
+      "digital"
+    ],
+    "outputs": [
+      "display-pattern"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The LED array display shows a qualitative number or pixel pattern.",
+    "requiredNetRoles": [
+      "power",
+      "ground",
+      "digital-signal"
+    ],
+    "requiredComponentCapabilities": [
+      "led-array-display"
+    ],
+    "validationRules": [
+      "common-ground",
+      "power-rail-valid",
+      "led-array-display-data-pin",
+      "qualitative-sensor-readout-only"
+    ],
+    "currentPathRecipe": {
+      "type": "led-array-display-supply-plus-signals",
+      "requiredNetRoles": [
+        "power",
+        "ground",
+        "digital-signal"
+      ],
+      "description": "Show LED display module supply current separately from data, clock, and chip-select signal activity.",
+      "pathTemplates": [
+        {
+          "id": "led-array-display-supply-current",
+          "kind": "supply-current",
+          "label": "{partLabel} display supply current",
+          "sourceEndpoint": "controller-power",
+          "returnEndpoint": "controller-ground",
+          "through": [
+            "target"
+          ],
+          "expectedCurrentMa": 60,
+          "animation": {
+            "color": "#ff4d3d",
+            "speed": 0.5
+          }
+        },
+        {
+          "id": "led-array-display-data-signal",
+          "kind": "signal-activity",
+          "label": "{partLabel} data signal",
+          "sourceEndpoint": "controller-signal",
+          "returnEndpoint": "target-signal",
+          "through": [
+            "target"
+          ],
+          "fallbackControllerPin": "D4",
+          "expectedCurrentMa": 0,
+          "animation": {
+            "color": "#2f7df6",
+            "speed": 0.56
+          }
+        }
+      ]
+    },
+    "expectedStateRecipe": {
+      "type": "led-array-display-state",
+      "states": [
+        "number visible",
+        "pattern visible",
+        "idle"
+      ],
+      "description": "Render a qualitative digit or dot pattern after power, ground, and control lines are valid."
+    },
+    "uiControls": [
+      {
+        "id": "display_pattern",
+        "type": "select",
+        "label": "Display pattern",
+        "affects": [
+          "display-state"
+        ]
+      }
+    ],
+    "animationCues": [
+      "animate supply current on the display power loop",
+      "pulse data and clock/control lines as signal activity"
+    ],
+    "renderOverlays": [
+      "led-array-display-overlay",
+      "signal-pulse",
+      "current-flow-dots"
+    ],
+    "limitations": [
+      "Models qualitative display state only; it does not emulate TM1637 or MAX7219 command timing."
+    ]
+  },
+  {
+    "id": "addressable_led_pattern",
+    "inputs": [
+      "single-wire-data"
+    ],
+    "outputs": [
+      "rgb-pattern"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The addressable LED ring shows a qualitative RGB pattern.",
+    "requiredNetRoles": [
+      "power",
+      "ground",
+      "single-wire-data"
+    ],
+    "requiredComponentCapabilities": [
+      "addressable-led-display"
+    ],
+    "validationRules": [
+      "common-ground",
+      "power-rail-valid",
+      "addressable-led-data-pin",
+      "addressable-led-power-warning"
+    ],
+    "currentPathRecipe": {
+      "type": "addressable-led-supply-plus-data",
+      "requiredNetRoles": [
+        "power",
+        "ground",
+        "single-wire-data"
+      ],
+      "description": "Show addressable LED supply current separately from the one-wire data stream; warn that real full-brightness current may need external power.",
+      "pathTemplates": [
+        {
+          "id": "addressable-led-supply-current",
+          "kind": "supply-current",
+          "label": "{partLabel} ring supply current",
+          "sourceEndpoint": "controller-power",
+          "returnEndpoint": "controller-ground",
+          "through": [
+            "target"
+          ],
+          "expectedCurrentMa": 180,
+          "animation": {
+            "color": "#ff7759",
+            "speed": 0.48
+          }
+        },
+        {
+          "id": "addressable-led-data-signal",
+          "kind": "signal-activity",
+          "label": "{partLabel} DIN data signal",
+          "sourceEndpoint": "controller-signal",
+          "returnEndpoint": "target-signal",
+          "through": [
+            "target"
+          ],
+          "fallbackControllerPin": "D6",
+          "expectedCurrentMa": 0,
+          "animation": {
+            "color": "#9bd67d",
+            "speed": 0.6
+          }
+        }
+      ]
+    },
+    "expectedStateRecipe": {
+      "type": "addressable-led-pattern-state",
+      "states": [
+        "rainbow pattern",
+        "single color",
+        "chase animation",
+        "idle"
+      ],
+      "description": "Render a qualitative RGB pattern after power, ground, and DIN are valid."
+    },
+    "uiControls": [
+      {
+        "id": "rgb_pattern",
+        "type": "select",
+        "label": "RGB pattern",
+        "affects": [
+          "display-state"
+        ]
+      }
+    ],
+    "animationCues": [
+      "animate supply current on the ring power loop",
+      "pulse DIN as single-wire data activity"
+    ],
+    "renderOverlays": [
+      "addressable-led-pattern-overlay",
+      "single-wire-data-pulse",
+      "current-flow-dots"
+    ],
+    "limitations": [
+      "Models qualitative color/pattern state only; it does not emulate WS2812B timing or full current draw."
+    ]
+  },
+  {
+    "id": "spi_display_state",
+    "inputs": [
+      "spi-data",
+      "spi-clock",
+      "chip-select"
+    ],
+    "outputs": [
+      "display-graphic"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The SPI display shows qualitative text, image, or graphic state once power, ground, and SPI-style control lines are valid.",
+    "requiredNetRoles": [
+      "power",
+      "ground",
+      "spi-data",
+      "spi-clock",
+      "chip-select"
+    ],
+    "requiredComponentCapabilities": [
+      "spi-display"
+    ],
+    "validationRules": [
+      "common-ground",
+      "power-rail-valid",
+      "spi-display-data-pin",
+      "spi-display-clock-pin",
+      "spi-display-select-pin",
+      "qualitative-sensor-readout-only"
+    ],
+    "currentPathRecipe": {
+      "type": "spi-display-supply-plus-signals",
+      "requiredNetRoles": [
+        "power",
+        "ground",
+        "spi-data",
+        "spi-clock",
+        "chip-select"
+      ],
+      "description": "Show SPI display module supply current separately from data, clock, chip-select, and optional command/reset signal activity.",
+      "pathTemplates": [
+        {
+          "id": "spi-display-supply-current",
+          "kind": "supply-current",
+          "label": "{partLabel} display supply current",
+          "sourceEndpoint": "controller-power",
+          "returnEndpoint": "controller-ground",
+          "through": [
+            "target"
+          ],
+          "expectedCurrentMa": 25,
+          "animation": {
+            "color": "#ff4d3d",
+            "speed": 0.47
+          }
+        },
+        {
+          "id": "spi-display-data-signal",
+          "kind": "signal-activity",
+          "label": "{partLabel} data signal",
+          "sourceEndpoint": "controller-signal",
+          "returnEndpoint": "target-signal",
+          "through": [
+            "target"
+          ],
+          "fallbackControllerPin": "D11",
+          "expectedCurrentMa": 0,
+          "animation": {
+            "color": "#2f7df6",
+            "speed": 0.58
+          }
+        },
+        {
+          "id": "spi-display-clock-signal",
+          "kind": "signal-activity",
+          "label": "{partLabel} clock signal",
+          "sourceEndpoint": "controller-signal",
+          "returnEndpoint": "target-signal",
+          "through": [
+            "target"
+          ],
+          "fallbackControllerPin": "D13",
+          "expectedCurrentMa": 0,
+          "animation": {
+            "color": "#f6c44c",
+            "speed": 0.58
+          }
+        },
+        {
+          "id": "spi-display-select-signal",
+          "kind": "signal-activity",
+          "label": "{partLabel} chip-select signal",
+          "sourceEndpoint": "controller-signal",
+          "returnEndpoint": "target-signal",
+          "through": [
+            "target"
+          ],
+          "fallbackControllerPin": "D10",
+          "expectedCurrentMa": 0,
+          "animation": {
+            "color": "#7c3aed",
+            "speed": 0.52
+          }
+        }
+      ]
+    },
+    "expectedStateRecipe": {
+      "type": "spi-display-state",
+      "states": [
+        "text visible",
+        "graphic visible",
+        "retained image",
+        "idle"
+      ],
+      "description": "Render a qualitative display state after power, ground, and SPI-style control lines are valid."
+    },
+    "uiControls": [
+      {
+        "id": "spi_display_content",
+        "type": "select",
+        "label": "Display content",
+        "affects": [
+          "display-state"
+        ]
+      }
+    ],
+    "animationCues": [
+      "animate supply current on the display power loop",
+      "pulse SPI data, clock, and chip-select lines as signal activity"
+    ],
+    "renderOverlays": [
+      "spi-display-state-overlay",
+      "signal-pulse",
+      "current-flow-dots"
+    ],
+    "limitations": [
+      "Models qualitative display state only; it does not emulate device command timing, frame buffers, color calibration, or e-paper waveforms."
+    ]
+  },
+  {
+    "id": "rgb_led_color_mix",
+    "inputs": [
+      "digital",
+      "pwm"
+    ],
+    "outputs": [
+      "rgb-light"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The RGB LED mixes color by lighting validated current-limited red, green, and blue channels.",
+    "requiredNetRoles": [
+      "digital-signal",
+      "series-current-limit",
+      "ground"
+    ],
+    "requiredComponentCapabilities": [
+      "multi-channel-light-output",
+      "requires-current-limiting"
+    ],
+    "validationRules": [
+      "common-ground",
+      "rgb-led-common-ground",
+      "rgb-led-channel-resistor",
+      "series-current-limit"
+    ],
+    "currentPathRecipe": {
+      "type": "per-channel-current-limited-rgb-paths",
+      "requiredNetRoles": [
+        "digital-signal",
+        "series-current-limit",
+        "ground"
+      ],
+      "description": "Show one current path per driven RGB channel after each channel has its own series resistor and the common cathode returns to ground.",
+      "pathTemplate": {
+        "id": "rgb-led-channel-current",
+        "kind": "load-current",
+        "label": "{partLabel} channel current",
+        "sourceEndpoint": "controller-signal",
+        "returnEndpoint": "controller-ground",
+        "through": [
+          "required-passives",
+          "target"
+        ],
+        "fallbackControllerPin": "D9",
+        "animation": {
+          "color": "#ff4d3d",
+          "speed": 0.58
+        }
+      }
+    },
+    "expectedStateRecipe": {
+      "type": "rgb-led-color-state",
+      "states": [
+        "red",
+        "green",
+        "blue",
+        "mixed color",
+        "off"
+      ],
+      "description": "Render a qualitative color mix based on the driven channels rather than calibrated LED spectra."
+    },
+    "uiControls": [
+      {
+        "id": "rgb_channels",
+        "type": "segmented-control",
+        "label": "RGB channels",
+        "affects": [
+          "channel-state",
+          "load-current"
+        ]
+      }
+    ],
+    "animationCues": [
+      "animate only channels with validated resistor paths",
+      "blend the LED glow qualitatively from active channel colors"
+    ],
+    "renderOverlays": [
+      "rgb-led-glow",
+      "current-flow-dots"
+    ],
+    "limitations": [
+      "Does not model exact wavelength, brightness matching, or PWM color calibration."
+    ]
+  },
+  {
+    "id": "powered_light_module_state",
+    "inputs": [
+      "digital"
+    ],
+    "outputs": [
+      "light"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The powered light module turns on when supply, ground, and the control signal are valid.",
+    "requiredNetRoles": [
+      "power",
+      "ground",
+      "digital-signal"
+    ],
+    "requiredComponentCapabilities": [
+      "powered-light-output"
+    ],
+    "validationRules": [
+      "common-ground",
+      "power-rail-valid",
+      "powered-light-module-power-rail",
+      "powered-light-module-signal-pin",
+      "powered-light-module-safety-warning"
+    ],
+    "currentPathRecipe": {
+      "type": "powered-light-module-supply-plus-control",
+      "requiredNetRoles": [
+        "power",
+        "ground",
+        "digital-signal"
+      ],
+      "description": "Show module supply current separately from the low-current digital control signal.",
+      "pathTemplates": [
+        {
+          "id": "powered-light-module-supply-current",
+          "kind": "supply-current",
+          "label": "{partLabel} supply current",
+          "sourceEndpoint": "controller-power",
+          "returnEndpoint": "controller-ground",
+          "through": [
+            "target"
+          ],
+          "animation": {
+            "color": "#ff4d3d",
+            "speed": 0.46
+          }
+        },
+        {
+          "id": "powered-light-module-control-signal",
+          "kind": "signal-activity",
+          "label": "{partLabel} control signal",
+          "sourceEndpoint": "controller-signal",
+          "returnEndpoint": "target-signal",
+          "through": [
+            "target"
+          ],
+          "fallbackControllerPin": "D7",
+          "expectedCurrentMa": 0,
+          "animation": {
+            "color": "#2f7df6",
+            "speed": 0.56
+          }
+        }
+      ]
+    },
+    "expectedStateRecipe": {
+      "type": "powered-light-module-state",
+      "states": [
+        "off",
+        "on"
+      ],
+      "description": "Represent module output as qualitative visible light with a safety caution where appropriate."
+    },
+    "uiControls": [
+      {
+        "id": "module_enabled",
+        "type": "toggle",
+        "label": "Module on",
+        "affects": [
+          "module-state",
+          "signal-activity"
+        ]
+      }
+    ],
+    "animationCues": [
+      "animate supply current on the power loop",
+      "pulse the control signal separately from load current"
+    ],
+    "renderOverlays": [
+      "light-module-state-overlay",
+      "signal-pulse",
+      "current-flow-dots"
+    ],
+    "limitations": [
+      "Does not model optical power, driver circuitry, or eye-safety classification."
+    ]
+  },
+  {
+    "id": "stepper_motor_state",
+    "inputs": [
+      "digital",
+      "step-dir",
+      "four-phase-stepper"
+    ],
+    "outputs": [
+      "motion",
+      "stepper-motion"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The stepper advances in qualitative steps only after a validated driver path is present.",
+    "requiredNetRoles": [
+      "power",
+      "ground",
+      "stepper-control",
+      "stepper-phase-drive"
+    ],
+    "requiredComponentCapabilities": [
+      "stepper-motor",
+      "stepper-driver",
+      "high-current-warning"
+    ],
+    "validationRules": [
+      "stepper-driver-required",
+      "stepper-phase-lines-required",
+      "common-ground",
+      "high-current-warning"
+    ],
+    "currentPathRecipe": {
+      "type": "stepper-driver-current-plus-control",
+      "requiredNetRoles": [
+        "power",
+        "ground",
+        "stepper-control",
+        "stepper-phase-drive"
+      ],
+      "description": "Show qualitative coil current through the driver separately from the low-current controller step or phase signals.",
+      "pathTemplates": [
+        {
+          "id": "stepper-coil-current",
+          "kind": "load-current",
+          "label": "Stepper coil current through driver",
+          "sourceEndpoint": "controller-power",
+          "returnEndpoint": "controller-ground",
+          "through": [
+            "target"
+          ],
+          "animation": {
+            "color": "#ff7759",
+            "speed": 0.36
+          }
+        },
+        {
+          "id": "stepper-control-signals",
+          "kind": "signal-activity",
+          "label": "Stepper driver control signal activity",
+          "sourceEndpoint": "controller-signal",
+          "returnEndpoint": "target-signal",
+          "through": [
+            "target"
+          ],
+          "fallbackControllerPin": "D8",
+          "expectedCurrentMa": 0,
+          "animation": {
+            "color": "#8bd450",
+            "speed": 0.68
+          }
+        }
+      ]
+    },
+    "expectedStateRecipe": {
+      "type": "stepper-position-state",
+      "states": [
+        "idle",
+        "single-step",
+        "rotate-clockwise",
+        "rotate-counterclockwise"
+      ],
+      "description": "Represent stepper position and direction qualitatively, not as calibrated torque, acceleration, or microstep physics."
+    },
+    "uiControls": [
+      {
+        "id": "stepper_direction",
+        "type": "segmented",
+        "label": "Direction",
+        "affects": [
+          "stepper-position",
+          "control-signal"
+        ]
+      },
+      {
+        "id": "stepper_steps",
+        "type": "stepper",
+        "label": "Steps",
+        "affects": [
+          "stepper-position"
+        ]
+      }
+    ],
+    "animationCues": [
+      "pulse driver control signals before each qualitative step",
+      "animate coil current through the driver and motor",
+      "show a current-limit warning badge for real stepper builds"
+    ],
+    "renderOverlays": [
+      "stepper-position-overlay",
+      "stepper-control-pulse",
+      "current-flow-dots",
+      "current-limit-warning-badge"
+    ],
+    "limitations": [
+      "Does not model real torque, speed, acceleration, microstepping, heat, or current-limit settings.",
+      "Real stepper builds need a suitable driver, supply, common ground, and current-limit setup outside this educational simulation."
+    ]
+  },
+  {
+    "id": "low_side_switched_load_state",
+    "inputs": [
+      "digital",
+      "pwm"
+    ],
+    "outputs": [
+      "motion",
+      "switched-load"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The motor-like load turns on through a validated low-side driver path.",
+    "requiredNetRoles": [
+      "power",
+      "ground",
+      "digital-signal",
+      "switched-return"
+    ],
+    "requiredComponentCapabilities": [
+      "low-side-switched-load",
+      "high-current-warning"
+    ],
+    "validationRules": [
+      "motor-driver-required",
+      "common-ground",
+      "high-current-warning",
+      "flyback-warning"
+    ],
+    "currentPathRecipe": {
+      "type": "low-side-switched-load-supply-plus-control",
+      "requiredNetRoles": [
+        "power",
+        "ground",
+        "digital-signal",
+        "switched-return"
+      ],
+      "description": "Show the load current path through the driver separately from the low-current controller signal.",
+      "pathTemplates": [
+        {
+          "id": "low-side-load-supply-current",
+          "kind": "load-current",
+          "label": "Low-side switched load current",
+          "sourceEndpoint": "controller-power",
+          "returnEndpoint": "controller-ground",
+          "through": [
+            "target"
+          ],
+          "animation": {
+            "color": "#ff7759",
+            "speed": 0.42
+          }
+        },
+        {
+          "id": "low-side-load-control-signal",
+          "kind": "signal-activity",
+          "label": "Low-side control signal activity",
+          "sourceEndpoint": "controller-signal",
+          "returnEndpoint": "target-signal",
+          "through": [
+            "target"
+          ],
+          "fallbackControllerPin": "D9",
+          "expectedCurrentMa": 0,
+          "animation": {
+            "color": "#f6c44c",
+            "speed": 0.62
+          }
+        }
+      ]
+    },
+    "expectedStateRecipe": {
+      "type": "switched-load-state",
+      "states": [
+        "off",
+        "on",
+        "pwm-modulated"
+      ],
+      "description": "Represent motor, fan, pump, solenoid, or haptic module output as qualitative on/off or PWM-controlled state."
+    },
+    "uiControls": [
+      {
+        "id": "load_enabled",
+        "type": "toggle",
+        "label": "Load on",
+        "affects": [
+          "load-current",
+          "state-overlay"
+        ]
+      }
+    ],
+    "animationCues": [
+      "animate load current through the driver path",
+      "pulse the control signal separately from load current",
+      "show a protection warning badge for real inductive loads"
+    ],
+    "renderOverlays": [
+      "switched-load-state-overlay",
+      "control-signal-pulse",
+      "current-flow-dots",
+      "flyback-warning-badge"
+    ],
+    "limitations": [
+      "Does not model stall current, torque, airflow, water flow, coil temperature, PWM frequency response, or external power supply design.",
+      "Real inductive loads require power, current, thermal, and flyback/protection design outside this educational simulation."
+    ]
+  },
+  {
+    "id": "hbridge_motor_state",
+    "inputs": [
+      "digital",
+      "pwm",
+      "h-bridge"
+    ],
+    "outputs": [
+      "motion",
+      "motor-output"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The DC motor changes qualitative direction only after a validated H-bridge driver path is present.",
+    "requiredNetRoles": [
+      "power",
+      "ground",
+      "hbridge-control",
+      "motor-drive"
+    ],
+    "requiredComponentCapabilities": [
+      "hbridge-driver",
+      "motor-output",
+      "high-current-warning"
+    ],
+    "validationRules": [
+      "hbridge-driver-required",
+      "hbridge-control-required",
+      "common-ground",
+      "high-current-warning"
+    ],
+    "currentPathRecipe": {
+      "type": "hbridge-motor-current-plus-control",
+      "requiredNetRoles": [
+        "power",
+        "ground",
+        "hbridge-control",
+        "motor-drive"
+      ],
+      "description": "Show qualitative motor current through the H-bridge separately from the low-current controller enable and direction signals.",
+      "pathTemplates": [
+        {
+          "id": "hbridge-motor-current",
+          "kind": "load-current",
+          "label": "H-bridge motor current",
+          "sourceEndpoint": "controller-power",
+          "returnEndpoint": "controller-ground",
+          "through": [
+            "target"
+          ],
+          "animation": {
+            "color": "#ff7759",
+            "speed": 0.4
+          }
+        },
+        {
+          "id": "hbridge-control-signals",
+          "kind": "signal-activity",
+          "label": "H-bridge enable and direction signals",
+          "sourceEndpoint": "controller-signal",
+          "returnEndpoint": "target-signal",
+          "through": [
+            "target"
+          ],
+          "fallbackControllerPin": "D9",
+          "expectedCurrentMa": 0,
+          "animation": {
+            "color": "#2f7df6",
+            "speed": 0.62
+          }
+        }
+      ]
+    },
+    "expectedStateRecipe": {
+      "type": "hbridge-motor-direction-state",
+      "states": [
+        "off",
+        "forward",
+        "reverse",
+        "brake"
+      ],
+      "description": "Represent motor direction qualitatively without claiming calibrated speed, torque, current, or thermal behavior."
+    },
+    "uiControls": [
+      {
+        "id": "motor_direction",
+        "type": "segmented",
+        "label": "Direction",
+        "affects": [
+          "motor-direction",
+          "control-signal"
+        ]
+      },
+      {
+        "id": "motor_enable",
+        "type": "toggle",
+        "label": "Enable",
+        "affects": [
+          "motor-current",
+          "control-signal"
+        ]
+      }
+    ],
+    "animationCues": [
+      "pulse enable and direction lines separately from motor current",
+      "animate motor current through the H-bridge and motor only when enabled",
+      "show a current/thermal warning badge for real motor-driver builds"
+    ],
+    "renderOverlays": [
+      "motor-direction-overlay",
+      "hbridge-control-pulse",
+      "current-flow-dots",
+      "high-current-warning-badge"
+    ],
+    "limitations": [
+      "Does not model stall current, back EMF, speed, torque, braking physics, heat, or driver voltage drop.",
+      "Real H-bridge motor builds need supply, current, thermal, flyback/driver, and common-ground design outside this educational simulation."
+    ]
+  },
+  {
+    "id": "relay_switch_state",
+    "inputs": [
+      "digital",
+      "relay-contact"
+    ],
+    "outputs": [
+      "switched-load",
+      "relay-output"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The relay contact changes state only for a validated low-voltage classroom load path.",
+    "requiredNetRoles": [
+      "power",
+      "ground",
+      "relay-control",
+      "contact-load"
+    ],
+    "requiredComponentCapabilities": [
+      "relay-module",
+      "low-voltage-contact-load",
+      "mains-blocked"
+    ],
+    "validationRules": [
+      "relay-control-required",
+      "relay-load-contact-required",
+      "relay-low-voltage-load-only",
+      "common-ground",
+      "high-current-warning"
+    ],
+    "currentPathRecipe": {
+      "type": "relay-contact-current-plus-control",
+      "requiredNetRoles": [
+        "power",
+        "ground",
+        "relay-control",
+        "contact-load"
+      ],
+      "description": "Show the relay input control signal separately from the low-voltage contact-side load current.",
+      "pathTemplates": [
+        {
+          "id": "relay-coil-control-signal",
+          "kind": "signal-activity",
+          "label": "Relay module control signal",
+          "sourceEndpoint": "controller-signal",
+          "returnEndpoint": "target-signal",
+          "through": [
+            "target"
+          ],
+          "fallbackControllerPin": "D7",
+          "expectedCurrentMa": 0,
+          "animation": {
+            "color": "#2f7df6",
+            "speed": 0.58
+          }
+        },
+        {
+          "id": "relay-contact-load-current",
+          "kind": "load-current",
+          "label": "Relay low-voltage contact load current",
+          "sourceEndpoint": "controller-power",
+          "returnEndpoint": "controller-ground",
+          "through": [
+            "target"
+          ],
+          "animation": {
+            "color": "#ff7759",
+            "speed": 0.38
+          }
+        }
+      ]
+    },
+    "expectedStateRecipe": {
+      "type": "relay-contact-state",
+      "states": [
+        "coil-off",
+        "coil-on",
+        "normally-open-closed"
+      ],
+      "description": "Represent relay contact state qualitatively and only for safe low-voltage classroom loads."
+    },
+    "uiControls": [
+      {
+        "id": "relay_enabled",
+        "type": "toggle",
+        "label": "Relay on",
+        "affects": [
+          "relay-contact",
+          "load-current"
+        ]
+      }
+    ],
+    "animationCues": [
+      "pulse the relay input line when the coil is energized",
+      "animate contact-side current only in the low-voltage load loop",
+      "show a mains-blocked warning badge for real relay projects"
+    ],
+    "renderOverlays": [
+      "relay-contact-overlay",
+      "relay-control-pulse",
+      "current-flow-dots",
+      "mains-blocked-warning-badge"
+    ],
+    "limitations": [
+      "Does not model relay coil transients, contact bounce, isolation spacing, contact rating, or mains wiring.",
+      "Mains, outlet, or wall-power relay loads are blocked; only low-voltage classroom substitutions are eligible for simulation."
+    ]
+  },
+  {
+    "id": "low_voltage_power_rail_state",
+    "inputs": [
+      "declared-low-voltage-source"
+    ],
+    "outputs": [
+      "power-rail-state"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The declared low-voltage source energizes the breadboard positive and ground rails in a qualitative rail-state simulation.",
+    "requiredNetRoles": [
+      "power",
+      "ground",
+      "power-rail",
+      "ground-rail"
+    ],
+    "requiredComponentCapabilities": [
+      "power-rail-source"
+    ],
+    "validationRules": [
+      "low-voltage-source-polarity",
+      "power-rail-positive-required",
+      "ground-rail-return-required",
+      "no-mains-power"
+    ],
+    "currentPathRecipe": {
+      "type": "state-only-power-rail",
+      "requiredNetRoles": [
+        "power",
+        "ground"
+      ],
+      "description": "No load current is animated for an unloaded rail; the simulation reports validated rail polarity and ground reference as state evidence."
+    },
+    "expectedStateRecipe": {
+      "type": "power-rail-state",
+      "states": [
+        "rail-off",
+        "rail-energized"
+      ],
+      "description": "Show the positive rail and ground reference as qualitatively energized after polarity validation."
+    },
+    "uiControls": [
+      {
+        "id": "rail_enabled",
+        "type": "toggle",
+        "label": "Rail enabled",
+        "affects": [
+          "power-rail-state"
+        ]
+      }
+    ],
+    "animationCues": [
+      "show a rail-state badge instead of load-current dots when no load is present",
+      "highlight positive and ground rails after polarity validation"
+    ],
+    "renderOverlays": [
+      "rail-state-badge",
+      "polarity-label"
+    ],
+    "limitations": [
+      "Does not calculate battery capacity, adapter current limit, voltage sag, heating, or protection behavior.",
+      "Mains, outlet, and wall-power wiring are blocked before simulation."
+    ]
+  },
+  {
+    "id": "regulated_5v_rail_state",
+    "inputs": [
+      "external-low-voltage-source"
+    ],
+    "outputs": [
+      "regulated-5v-rail-state"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The 7805 regulator is represented as a qualitative 5V rail after IN, GND, and OUT wiring are validated.",
+    "requiredNetRoles": [
+      "power-input",
+      "ground",
+      "regulated-power-output",
+      "power-rail",
+      "ground-rail"
+    ],
+    "requiredComponentCapabilities": [
+      "voltage-regulator"
+    ],
+    "validationRules": [
+      "regulator-input-required",
+      "regulated-output-to-rail-required",
+      "common-ground",
+      "regulator-qualitative-only",
+      "no-mains-power"
+    ],
+    "currentPathRecipe": {
+      "type": "state-only-regulated-rail",
+      "requiredNetRoles": [
+        "power-input",
+        "regulated-power-output",
+        "ground"
+      ],
+      "description": "No load current is animated for an unloaded regulator rail; the simulation reports validated 5V output state evidence."
+    },
+    "expectedStateRecipe": {
+      "type": "regulated-rail-state",
+      "states": [
+        "unregulated-input-present",
+        "regulated-5v-output-present"
+      ],
+      "description": "Show the 7805 output as a qualitative regulated 5V rail after input, output, and common ground validation."
+    },
+    "uiControls": [
+      {
+        "id": "regulator_enabled",
+        "type": "toggle",
+        "label": "Regulator enabled",
+        "affects": [
+          "regulated-5v-rail-state"
+        ]
+      }
+    ],
+    "animationCues": [
+      "show input and output rail badges without pretending thermal or dropout analysis",
+      "highlight OUT as the regulated rail only after common ground is validated"
+    ],
+    "renderOverlays": [
+      "regulated-5v-badge",
+      "common-ground-badge"
+    ],
+    "limitations": [
+      "Does not model dropout voltage, decoupling capacitor requirements, thermal limits, or real load current capacity.",
+      "Only declared low-voltage inputs are eligible; mains or wall-power wiring is blocked."
+    ]
+  },
+  {
+    "id": "passive_protection_context_state",
+    "inputs": [
+      "passive-context"
+    ],
+    "outputs": [
+      "passive-state"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The passive component is represented as low-voltage context with pin and polarity evidence; passive-only circuits do not animate active current flow.",
+    "requiredNetRoles": [
+      "passive-context-part",
+      "low-voltage-only"
+    ],
+    "requiredComponentCapabilities": [
+      "passive-context-part"
+    ],
+    "validationRules": [
+      "passive-context-low-voltage-only",
+      "passive-only-state-simulation",
+      "polarized-passive-orientation",
+      "no-mains-power"
+    ],
+    "currentPathRecipe": {
+      "type": "state-only-passive-context",
+      "requiredNetRoles": [
+        "passive-context"
+      ],
+      "description": "Do not synthesize load current for passive-only protection/filtering context; show only validated part state, pins, and polarity."
+    },
+    "expectedStateRecipe": {
+      "type": "passive-context-state",
+      "states": [
+        "passive-context-shown",
+        "polarity-orientation-visible"
+      ],
+      "description": "Show the passive part role and, where applicable, its polarity orientation without claiming real protection performance."
+    },
+    "uiControls": [
+      {
+        "id": "passive_context_visible",
+        "type": "toggle",
+        "label": "Context visible",
+        "affects": [
+          "passive-context-state"
+        ]
+      }
+    ],
+    "animationCues": [
+      "show a passive role badge rather than current-flow dots",
+      "highlight polarized pins for electrolytic capacitors and diodes"
+    ],
+    "renderOverlays": [
+      "passive-context-badge",
+      "polarity-label"
+    ],
+    "limitations": [
+      "Does not calculate capacitance, inductance, diode drop, fuse trip current, clamp voltage, surge energy, or thermal behavior.",
+      "Mains, wall-power, and MOV/varistor protection circuits are blocked for student breadboard simulation."
+    ]
+  },
+  {
+    "id": "timing_passive_context_state",
+    "inputs": [
+      "timing-passive"
+    ],
+    "outputs": [
+      "timing-reference-state"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The timing passive is represented as a qualitative reference component; oscillator startup, frequency tolerance, and clock timing are not simulated.",
+    "requiredNetRoles": [
+      "timing-passive-context",
+      "clock-terminal-pair"
+    ],
+    "requiredComponentCapabilities": [
+      "timing-passive-context"
+    ],
+    "validationRules": [
+      "timing-passive-context-only",
+      "passive-only-state-simulation",
+      "no-mains-power"
+    ],
+    "currentPathRecipe": {
+      "type": "state-only-timing-passive-context",
+      "requiredNetRoles": [
+        "clock-terminal-pair"
+      ],
+      "description": "Do not synthesize oscillator current or calibrated clock waveforms; show the reference component and terminal roles only."
+    },
+    "expectedStateRecipe": {
+      "type": "timing-reference-state",
+      "states": [
+        "timing-reference-visible",
+        "clock-terminals-labeled"
+      ],
+      "description": "Show the crystal/timing passive as a qualitative clock reference with labeled terminals."
+    },
+    "uiControls": [
+      {
+        "id": "timing_context_visible",
+        "type": "toggle",
+        "label": "Reference visible",
+        "affects": [
+          "timing-reference-state"
+        ]
+      }
+    ],
+    "animationCues": [
+      "show a timing-reference badge instead of clock waveform animation",
+      "highlight X1 and X2 terminal labels"
+    ],
+    "renderOverlays": [
+      "timing-reference-badge",
+      "clock-terminal-label"
+    ],
+    "limitations": [
+      "Does not model oscillator startup, load capacitor sizing, exact 16 MHz accuracy, phase noise, or firmware timing.",
+      "Use only as low-voltage educational context."
+    ]
+  },
+  {
+    "id": "prototyping_surface_context_state",
+    "inputs": [
+      "prototyping-surface"
+    ],
+    "outputs": [
+      "surface-context-state"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The prototyping surface is represented as placement/build context; it does not energize rails or create electrical nets by itself.",
+    "requiredNetRoles": [
+      "prototyping-surface",
+      "placement-surface"
+    ],
+    "requiredComponentCapabilities": [
+      "prototyping-surface"
+    ],
+    "validationRules": [
+      "prototyping-surface-context-only",
+      "surface-does-not-create-nets",
+      "no-mains-power"
+    ],
+    "currentPathRecipe": {
+      "type": "state-only-prototyping-surface-context",
+      "requiredNetRoles": [
+        "surface-context"
+      ],
+      "description": "Do not synthesize current flow or net continuity for a surface-only artifact; show the surface role and placement context only."
+    },
+    "expectedStateRecipe": {
+      "type": "surface-context-state",
+      "states": [
+        "surface-visible",
+        "nets-not-inferred"
+      ],
+      "description": "Show the selected surface and state that electrical nets still require explicit wiring, solder bridges, or traces."
+    },
+    "uiControls": [
+      {
+        "id": "surface_context_visible",
+        "type": "toggle",
+        "label": "Surface visible",
+        "affects": [
+          "surface-context-state"
+        ]
+      }
+    ],
+    "animationCues": [
+      "show a surface-context badge instead of current-flow dots",
+      "avoid row-continuity or rail animation unless a specific breadboard continuity model is selected"
+    ],
+    "renderOverlays": [
+      "surface-context-badge",
+      "no-implicit-nets-label"
+    ],
+    "limitations": [
+      "Does not infer perfboard solder bridges, PCB copper traces, or full/mini breadboard rail bridging.",
+      "Mains, wall-power, and high-risk fabrication processes are blocked for student simulation."
+    ]
+  },
+  {
+    "id": "connector_wiring_context_state",
+    "inputs": [
+      "connector-wiring"
+    ],
+    "outputs": [
+      "connector-context-state"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The connector is represented as low-voltage wiring context with pin anchors; it does not create a voltage source or implicit short.",
+    "requiredNetRoles": [
+      "connector-wiring",
+      "low-voltage-only"
+    ],
+    "requiredComponentCapabilities": [
+      "connector-wiring"
+    ],
+    "validationRules": [
+      "connector-context-low-voltage-only",
+      "connector-does-not-create-source",
+      "no-mains-power"
+    ],
+    "currentPathRecipe": {
+      "type": "state-only-connector-context",
+      "requiredNetRoles": [
+        "connector-terminal-context"
+      ],
+      "description": "Do not synthesize current flow, source voltage, or pass-through nets for connector-only context."
+    },
+    "expectedStateRecipe": {
+      "type": "connector-context-state",
+      "states": [
+        "connector-visible",
+        "pins-not-implicitly-short"
+      ],
+      "description": "Show the connector pins and state that any pass-through or net assignment must be explicit."
+    },
+    "uiControls": [
+      {
+        "id": "connector_context_visible",
+        "type": "toggle",
+        "label": "Connector visible",
+        "affects": [
+          "connector-context-state"
+        ]
+      }
+    ],
+    "animationCues": [
+      "show connector pin labels instead of current-flow dots",
+      "highlight low-voltage-only terminal warning for screw terminals"
+    ],
+    "renderOverlays": [
+      "connector-context-badge",
+      "pin-label"
+    ],
+    "limitations": [
+      "Does not infer hidden internal shorts, mating orientation, cable pinouts, or source polarity.",
+      "Terminal blocks are low-voltage context only and must not be used for mains or wall outlet wiring in this simulator."
+    ]
+  },
+  {
+    "id": "controller_board_context_state",
+    "inputs": [
+      "controller-board"
+    ],
+    "outputs": [
+      "controller-board-context-state"
+    ],
+    "requiresElectricalAnalysis": true,
+    "explanationTemplate": "The controller board is represented as board-specific pin-map and voltage-domain context; circuit current flow is not synthesized until the selected circuit bundle explicitly supports that board.",
+    "requiredNetRoles": [
+      "controller-board",
+      "pin-map-context",
+      "voltage-domain"
+    ],
+    "requiredComponentCapabilities": [
+      "controller-board-substitution"
+    ],
+    "validationRules": [
+      "controller-board-pin-map-substitution",
+      "controller-voltage-domain-policy",
+      "controller-board-context-only",
+      "no-mains-power"
+    ],
+    "currentPathRecipe": {
+      "type": "state-only-controller-board-context",
+      "requiredNetRoles": [
+        "controller-board-context",
+        "controller-voltage-domain-context"
+      ],
+      "description": "Do not synthesize current flow or Uno-compatible wiring for controller-board context; show representative pins and voltage-domain labels only."
+    },
+    "expectedStateRecipe": {
+      "type": "controller-board-context-state",
+      "states": [
+        "controller-board-visible",
+        "pin-map-labeled",
+        "voltage-domain-labeled"
+      ],
+      "description": "Show the selected controller board, its representative visual pins, and its 5V or 3.3V logic-domain label."
+    },
+    "uiControls": [
+      {
+        "id": "controller_board_context_visible",
+        "type": "toggle",
+        "label": "Board context visible",
+        "affects": [
+          "controller-board-context-state"
+        ]
+      }
+    ],
+    "animationCues": [
+      "show controller pin labels instead of current-flow dots",
+      "highlight 3.3V or 5V domain badge near the board label"
+    ],
+    "renderOverlays": [
+      "controller-board-context-badge",
+      "pin-map-label",
+      "voltage-domain-label"
+    ],
+    "limitations": [
+      "Does not emulate firmware, USB, Wi-Fi, Bluetooth, cloud behavior, or board-specific peripheral timing.",
+      "Does not validate a non-Uno board as a drop-in replacement for an existing circuit unless that circuit bundle explicitly includes the board."
+    ]
   }
 ]

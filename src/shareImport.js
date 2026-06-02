@@ -1,12 +1,14 @@
 export function projectFromShareSnapshot(snapshot, locale = 'ko') {
   const renderPlan = snapshot.renderPlan || {};
   const buildReadyShare = isBuildReadyShare(snapshot);
+  const diagnosticVisibleShare = isVisibleDiagnosticShare(snapshot);
+  const renderableShare = buildReadyShare || diagnosticVisibleShare;
   const simulationAvailable = buildReadyShare;
   const runText = simulationAvailable
     ? snapshot.simulation?.runText || renderPlan.runText || ''
     : '';
   const validationStatus = snapshot.validation?.status === 'valid'
-    ? 'valid'
+    ? buildReadyShare ? 'valid' : 'invalid'
     : snapshot.validation?.status === 'warning' ? 'valid_with_warnings' : 'invalid';
 
   return {
@@ -14,10 +16,13 @@ export function projectFromShareSnapshot(snapshot, locale = 'ko') {
       title: snapshot.title || snapshot.circuit?.name || 'Shared H-eduware circuit',
       source: 'imported',
       runText,
-      parts: buildReadyShare ? shareParts(snapshot) : [],
-      connections: buildReadyShare ? shareConnections(snapshot) : [],
-      floatingCards: buildReadyShare && Array.isArray(renderPlan.floatingCards) ? renderPlan.floatingCards : [],
+      parts: renderableShare ? shareParts(snapshot) : [],
+      connections: renderableShare ? shareConnections(snapshot) : [],
+      floatingCards: renderableShare && Array.isArray(renderPlan.floatingCards) ? renderPlan.floatingCards : [],
+      layout: renderableShare ? renderPlan.layout : undefined,
       renderWarnings: buildReadyShare ? [] : invalidShareRenderWarnings(snapshot, locale),
+      buildRunnableReport: snapshot.buildRunnableReport,
+      solverGateResult: snapshot.solverGateResult,
       validationReport: {
         status: validationStatus,
         errors: validationStatus === 'invalid' ? snapshot.validation?.warnings || [] : [],
@@ -192,13 +197,30 @@ ${snapshot.simulation?.explanation || 'No simulation summary is available.'}
 function isBuildReadyShare(snapshot) {
   return snapshot.status === 'valid'
     && snapshot.validation?.status === 'valid'
-    && snapshot.simulation?.available === true;
+    && snapshot.simulation?.available === true
+    && runnableGateAllowsShare(snapshot.buildRunnableReport, snapshot.source);
+}
+
+function isVisibleDiagnosticShare(snapshot) {
+  return snapshot.solverGateResult?.visibleSimulation === true
+    && snapshot.solverGateResult?.buildReady !== true
+    && Array.isArray(snapshot.renderPlan?.parts)
+    && snapshot.renderPlan.parts.length > 0;
+}
+
+function runnableGateAllowsShare(report, source = 'agent') {
+  if (report) {
+    return report.runnable === true;
+  }
+  return source === 'demo';
 }
 
 function invalidShareRenderWarnings(snapshot, locale = 'ko') {
+  const diagnosticVisible = isVisibleDiagnosticShare(snapshot);
   const warnings = [
     ...(snapshot.validation?.warnings || []),
-    ...(snapshot.validation?.unsupportedItems || [])
+    ...(snapshot.validation?.unsupportedItems || []),
+    ...(snapshot.buildRunnableReport?.runnable === false ? snapshot.buildRunnableReport.reasons || [] : [])
   ];
   const detail = warnings.length > 0 ? ` ${warnings.join(' ')}` : '';
 
@@ -206,14 +228,18 @@ function invalidShareRenderWarnings(snapshot, locale = 'ko') {
     return [{
       code: 'SHARED_SNAPSHOT_NOT_BUILD_READY',
       componentId: 'shared-snapshot',
-      message: `This shared snapshot is not validated as a build-ready PCB circuit, so parts, wiring, and current-flow simulation are hidden until it is reviewed.${detail}`
+      message: diagnosticVisible
+        ? `This shared snapshot is not validated as build-ready. The 3D scene is shown for diagnosis only; Run and current-flow simulation stay disabled until it is reviewed.${detail}`
+        : `This shared snapshot is not validated as a build-ready PCB circuit, so parts, wiring, and current-flow simulation are hidden until it is reviewed.${detail}`
     }];
   }
 
   return [{
     code: 'SHARED_SNAPSHOT_NOT_BUILD_READY',
     componentId: 'shared-snapshot',
-    message: `이 공유 회로는 조립 가능한 PCB 회로로 검증되지 않아, 검토가 끝날 때까지 부품, 배선, 전류 흐름 시뮬레이션을 표시하지 않습니다.${detail}`
+    message: diagnosticVisible
+      ? `이 공유 회로는 아직 조립 가능 상태로 검증되지 않았습니다. 3D 장면은 진단용으로만 표시하며, 실행과 전류 흐름 시뮬레이션은 검토가 끝날 때까지 비활성화됩니다.${detail}`
+      : `이 공유 회로는 조립 가능한 PCB 회로로 검증되지 않아, 검토가 끝날 때까지 부품, 배선, 전류 흐름 시뮬레이션을 표시하지 않습니다.${detail}`
   }];
 }
 
@@ -222,6 +248,7 @@ function blockedShareRequirementMarkdown(snapshot, locale = 'ko') {
   const warnings = [
     ...(snapshot.validation?.warnings || []),
     ...(snapshot.validation?.unsupportedItems || []),
+    ...(snapshot.buildRunnableReport?.runnable === false ? snapshot.buildRunnableReport.reasons || [] : []),
     ...(snapshot.simulation?.available === false ? ['Shared snapshot does not include a runnable current-flow simulation.'] : [])
   ];
   const warningLines = warnings.length > 0
@@ -231,7 +258,7 @@ function blockedShareRequirementMarkdown(snapshot, locale = 'ko') {
   if (locale === 'en') {
     return `# ${title}
 
-This shared circuit is not validated as a build-ready H-eduware circuit. It is imported as a non-running draft that needs review before assembly, rendering, or current-flow simulation.
+This shared circuit is not validated as a build-ready H-eduware circuit. It is imported as a non-running draft that needs review before assembly or current-flow simulation.
 
 ## Review Notes
 
@@ -241,7 +268,7 @@ ${warningLines}
 
   return `# ${title}
 
-이 공유 회로는 아직 조립 가능한 H-eduware 회로로 검증되지 않았습니다. 배선, 렌더링, 전류 흐름 시뮬레이션 전에 검토가 필요한 비실행 초안으로 가져왔습니다.
+이 공유 회로는 아직 조립 가능한 H-eduware 회로로 검증되지 않았습니다. 조립이나 전류 흐름 시뮬레이션 전에 검토가 필요한 비실행 초안으로 가져왔습니다.
 
 ## 검토 필요 사항
 

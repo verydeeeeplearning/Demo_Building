@@ -1,0 +1,307 @@
+[
+  {
+    "id": "low-voltage-power-rail",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "breadboard power supply",
+      "breadboard psu",
+      "power the rails",
+      "5v rail",
+      "power rail",
+      "9v battery",
+      "aa battery holder",
+      "barrel jack",
+      "screw terminal",
+      "lipo battery",
+      "7805 regulator",
+      "regulated 5v"
+    ],
+    "requiredEvidence": [
+      "power",
+      "rail",
+      "supply",
+      "battery",
+      "regulator",
+      "5v"
+    ],
+    "negativeEvidence": [
+      "220v",
+      "mains",
+      "wall outlet",
+      "ac motor",
+      "heater"
+    ],
+    "minimumScore": 0.55,
+    "studentPhrases": [
+      "breadboard power supply module",
+      "power the breadboard rails",
+      "use a 9V battery clip",
+      "use a 4xAA battery holder",
+      "use a DC barrel jack",
+      "use a 2 pin screw terminal for power",
+      "use a 1S LiPo battery as a low-voltage rail source",
+      "make a 7805 regulated 5V rail",
+      "브레드보드 전원 모듈",
+      "전원 레일",
+      "9V 배터리",
+      "AA 배터리 홀더",
+      "LiPo 배터리",
+      "7805 레귤레이터"
+    ],
+    "inputModalities": [],
+    "outputModalities": [
+      "power",
+      "power-rail",
+      "regulated-5v"
+    ],
+    "requiredRoles": [
+      "power-source",
+      "ground-return",
+      "power-rail",
+      "ground-rail"
+    ],
+    "requiredParts": [
+      "breadboard-half",
+      "breadboard-psu"
+    ],
+    "optionalParts": [
+      "9v-battery-clip",
+      "aa-battery-holder",
+      "lipo-battery-1s",
+      "barrel-jack",
+      "screw-terminal-2pin",
+      "7805-regulator",
+      "jumper-wire"
+    ],
+    "protocols": [
+      "power",
+      "regulated-power"
+    ],
+    "simulationPrimitives": [
+      "low_voltage_power_rail_state",
+      "regulated_5v_rail_state"
+    ],
+    "renderFootprints": [
+      "breadboard",
+      "breadboard-psu",
+      "battery-9v-clip",
+      "aa-battery-holder",
+      "lipo-battery-1s",
+      "barrel-jack",
+      "screw-terminal-2pin",
+      "7805-regulator",
+      "wire"
+    ],
+    "validationRules": [
+      "low-voltage-source-polarity",
+      "power-rail-positive-required",
+      "ground-rail-return-required",
+      "regulated-output-to-rail-required",
+      "no-mains-power"
+    ],
+    "commonMistakes": [
+      "Assuming every external connector is automatically a regulated 5V source.",
+      "Connecting a positive output to the ground rail.",
+      "Omitting the shared ground reference."
+    ],
+    "safeAlternatives": [
+      "digital-light-output",
+      "button-controlled-light-output"
+    ]
+  },
+  {
+    "id": "passive-protection-context",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "ceramic capacitor",
+      "electrolytic capacitor",
+      "rectifier diode",
+      "schottky diode",
+      "zener diode",
+      "polyfuse",
+      "resettable fuse",
+      "inductor",
+      "protection diode",
+      "decoupling capacitor",
+      "세라믹 콘덴서",
+      "전해 콘덴서",
+      "다이오드",
+      "제너 다이오드",
+      "쇼트키 다이오드",
+      "폴리퓨즈",
+      "인덕터"
+    ],
+    "requiredEvidence": [
+      "capacitor",
+      "diode",
+      "fuse",
+      "inductor",
+      "protection",
+      "decoupling",
+      "filter",
+      "다이오드",
+      "콘덴서",
+      "퓨즈",
+      "인덕터"
+    ],
+    "negativeEvidence": [
+      "220v",
+      "mains",
+      "wall outlet",
+      "ac line",
+      "varistor",
+      "mov"
+    ],
+    "minimumScore": 0.45,
+    "studentPhrases": [
+      "show a ceramic capacitor on the breadboard",
+      "add a diode protection component",
+      "use a zener diode as a clamp context",
+      "place a polyfuse in a low-voltage circuit",
+      "세라믹 콘덴서 보여줘",
+      "다이오드 보호 회로",
+      "폴리퓨즈를 넣어줘"
+    ],
+    "inputModalities": [
+      "passive-protection"
+    ],
+    "outputModalities": [
+      "passive-context",
+      "protection-passive"
+    ],
+    "requiredRoles": [
+      "passive-context-part",
+      "low-voltage-only",
+      "state-only-simulation"
+    ],
+    "requiredParts": [
+      "breadboard-half"
+    ],
+    "optionalParts": [
+      "ceramic-cap",
+      "electrolytic-cap",
+      "diode-1n4007",
+      "schottky-diode",
+      "zener-diode",
+      "polyfuse",
+      "inductor-axial",
+      "jumper-wire"
+    ],
+    "protocols": [
+      "passive",
+      "protection",
+      "filtering"
+    ],
+    "simulationPrimitives": [
+      "passive_protection_context_state"
+    ],
+    "renderFootprints": [
+      "breadboard",
+      "ceramic-capacitor",
+      "electrolytic-capacitor",
+      "rectifier-diode",
+      "schottky-diode",
+      "zener-diode",
+      "polyfuse",
+      "axial-inductor",
+      "wire"
+    ],
+    "validationRules": [
+      "passive-context-low-voltage-only",
+      "passive-only-state-simulation",
+      "polarized-passive-orientation",
+      "no-mains-power"
+    ],
+    "commonMistakes": [
+      "Requesting active current-flow animation from a passive-only context.",
+      "Using a qualitative passive context as a real protection design calculation.",
+      "Ignoring polarity on electrolytic capacitors or diodes."
+    ],
+    "safeAlternatives": [
+      "low-voltage-power-rail",
+      "digital-light-output"
+    ]
+  },
+  {
+    "id": "timing-passive-context",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "16mhz crystal",
+      "16 mhz crystal",
+      "quartz crystal",
+      "clock crystal",
+      "crystal oscillator",
+      "timing reference",
+      "크리스탈",
+      "16MHz 크리스탈",
+      "클럭 크리스탈"
+    ],
+    "requiredEvidence": [
+      "crystal",
+      "clock",
+      "timing",
+      "oscillator",
+      "크리스탈",
+      "클럭"
+    ],
+    "negativeEvidence": [
+      "real time clock",
+      "rtc",
+      "wifi",
+      "bluetooth"
+    ],
+    "minimumScore": 0.45,
+    "studentPhrases": [
+      "show a 16 MHz crystal clock reference",
+      "add a quartz crystal to the breadboard",
+      "16MHz 크리스탈을 보여줘",
+      "클럭 기준 부품을 배치해줘"
+    ],
+    "inputModalities": [
+      "timing-passive"
+    ],
+    "outputModalities": [
+      "timing-context",
+      "passive-context"
+    ],
+    "requiredRoles": [
+      "timing-passive-context",
+      "clock-terminal-pair",
+      "state-only-simulation"
+    ],
+    "requiredParts": [
+      "breadboard-half"
+    ],
+    "optionalParts": [
+      "crystal-16mhz",
+      "ceramic-cap",
+      "jumper-wire"
+    ],
+    "protocols": [
+      "passive",
+      "clock",
+      "timing"
+    ],
+    "simulationPrimitives": [
+      "timing_passive_context_state"
+    ],
+    "renderFootprints": [
+      "breadboard",
+      "crystal-16mhz",
+      "ceramic-capacitor",
+      "wire"
+    ],
+    "validationRules": [
+      "timing-passive-context-only",
+      "passive-only-state-simulation",
+      "no-mains-power"
+    ],
+    "commonMistakes": [
+      "Treating the context-only crystal as a real oscillator simulation.",
+      "Claiming exact frequency, startup, or load capacitor behavior."
+    ],
+    "safeAlternatives": [
+      "low-voltage-power-rail"
+    ]
+  }
+]

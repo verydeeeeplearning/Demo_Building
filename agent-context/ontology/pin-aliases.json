@@ -1,9 +1,479 @@
 {
-  "SDA": ["A4/SDA", "data line", "i2c data", "A4", "데이터", "데이터선", "I2C 데이터"],
-  "SCL": ["A5/SCL", "clock line", "i2c clock", "A5", "클럭", "클럭선", "I2C 클럭"],
-  "GND": ["ground", "-", "0V", "negative", "접지", "그라운드", "마이너스"],
-  "VCC": ["5V", "3V3", "+", "power", "VIN", "전원", "플러스", "양극"],
-  "D9": ["pin 9", "PWM", "servo signal", "9번 핀", "서보 신호", "PWM 핀"],
-  "D8": ["pin 8", "digital output", "8번 핀", "디지털 출력"],
-  "D2": ["pin 2", "button input", "2번 핀", "버튼 입력", "디지털 입력"]
+  "SDA": [
+    "A4/SDA",
+    "data line",
+    "i2c data",
+    "A4",
+    "데이터",
+    "데이터선",
+    "I2C 데이터",
+    "MOSI",
+    "SPI data"
+  ],
+  "SCL": [
+    "A5/SCL",
+    "clock line",
+    "i2c clock",
+    "A5",
+    "클럭",
+    "클럭선",
+    "I2C 클럭"
+  ],
+  "GND": [
+    "ground",
+    "-",
+    "0V",
+    "negative",
+    "접지",
+    "그라운드",
+    "마이너스"
+  ],
+  "VCC": [
+    "5V",
+    "3V3",
+    "+",
+    "power",
+    "VIN",
+    "전원",
+    "플러스",
+    "양극"
+  ],
+  "A0": [
+    "analog input",
+    "analog 0",
+    "sensor input",
+    "potentiometer input",
+    "light sensor input",
+    "아날로그 입력",
+    "센서 입력"
+  ],
+  "AO": [
+    "analog out",
+    "analog output",
+    "sensor output",
+    "analog signal",
+    "아날로그 출력",
+    "센서 출력"
+  ],
+  "OUT": [
+    "wiper",
+    "middle pin",
+    "signal",
+    "analog output",
+    "가운데 핀",
+    "신호"
+  ],
+  "A": [
+    "segment A",
+    "top segment",
+    "7 segment A",
+    "세그먼트 A"
+  ],
+  "B": [
+    "segment B",
+    "upper right segment",
+    "7 segment B",
+    "세그먼트 B"
+  ],
+  "DP": [
+    "decimal point",
+    "dot",
+    "decimal segment",
+    "소수점"
+  ],
+  "TRIG": [
+    "trigger",
+    "trig",
+    "start pulse",
+    "trigger input",
+    "초음파 트리거",
+    "트리거"
+  ],
+  "ECHO": [
+    "echo",
+    "echo output",
+    "pulse output",
+    "distance pulse",
+    "초음파 에코",
+    "에코"
+  ],
+  "DAT": [
+    "DATA",
+    "data",
+    "single bus",
+    "single-wire data",
+    "DHT11 data",
+    "sensor data",
+    "데이터",
+    "온습도 데이터",
+    "센서 데이터"
+  ],
+  "D9": [
+    "pin 9",
+    "PWM",
+    "servo signal",
+    "9번 핀",
+    "서보 신호",
+    "PWM 핀"
+  ],
+  "D8": [
+    "pin 8",
+    "digital output",
+    "8번 핀",
+    "디지털 출력"
+  ],
+  "D3": [
+    "pin 3",
+    "trigger output",
+    "digital output",
+    "3번 핀",
+    "트리거 출력"
+  ],
+  "D2": [
+    "pin 2",
+    "button input",
+    "DHT11 data input",
+    "2번 핀",
+    "버튼 입력",
+    "온습도 데이터 입력",
+    "디지털 입력"
+  ],
+  "COM": [
+    "common",
+    "middle pin",
+    "switch common",
+    "공통 핀",
+    "shared common",
+    "keypad common"
+  ],
+  "NO": [
+    "normally open",
+    "open contact",
+    "NO contact"
+  ],
+  "NC": [
+    "normally closed",
+    "closed contact",
+    "NC contact"
+  ],
+  "SIG": [
+    "signal",
+    "digital output",
+    "touch output",
+    "신호"
+  ],
+  "DO": [
+    "digital output",
+    "digital out",
+    "sensor digital output",
+    "디지털 출력"
+  ],
+  "S0": [
+    "frequency scale control",
+    "control S0"
+  ],
+  "S2": [
+    "filter select control",
+    "control S2"
+  ],
+  "VRX": [
+    "x axis",
+    "x analog",
+    "x position",
+    "joystick x",
+    "X축"
+  ],
+  "VRY": [
+    "y axis",
+    "y analog",
+    "y position",
+    "joystick y",
+    "Y축"
+  ],
+  "SW": [
+    "switch",
+    "press",
+    "push switch",
+    "button",
+    "누름"
+  ],
+  "CLK": [
+    "clock",
+    "phase a",
+    "encoder clock",
+    "A phase",
+    "SPI clock",
+    "SCK"
+  ],
+  "DT": [
+    "data",
+    "phase b",
+    "encoder data",
+    "B phase"
+  ],
+  "R1": [
+    "row 1",
+    "matrix row 1"
+  ],
+  "R2": [
+    "row 2",
+    "matrix row 2"
+  ],
+  "R3": [
+    "row 3",
+    "matrix row 3"
+  ],
+  "R4": [
+    "row 4",
+    "matrix row 4"
+  ],
+  "C1": [
+    "column 1",
+    "matrix column 1"
+  ],
+  "C2": [
+    "column 2",
+    "matrix column 2"
+  ],
+  "C3": [
+    "column 3",
+    "matrix column 3"
+  ],
+  "C4": [
+    "column 4",
+    "matrix column 4"
+  ],
+  "K1": [
+    "key 1",
+    "button 1"
+  ],
+  "K2": [
+    "key 2",
+    "button 2"
+  ],
+  "K3": [
+    "key 3",
+    "button 3"
+  ],
+  "K4": [
+    "key 4",
+    "button 4"
+  ],
+  "S1A": [
+    "s1a",
+    "s1 a",
+    "dip switch terminal"
+  ],
+  "S1B": [
+    "s1b",
+    "s1 b",
+    "dip switch terminal"
+  ],
+  "S2A": [
+    "s2a",
+    "s2 a",
+    "dip switch terminal"
+  ],
+  "S2B": [
+    "s2b",
+    "s2 b",
+    "dip switch terminal"
+  ],
+  "S3A": [
+    "s3a",
+    "s3 a",
+    "dip switch terminal"
+  ],
+  "S3B": [
+    "s3b",
+    "s3 b",
+    "dip switch terminal"
+  ],
+  "S4A": [
+    "s4a",
+    "s4 a",
+    "dip switch terminal"
+  ],
+  "S4B": [
+    "s4b",
+    "s4 b",
+    "dip switch terminal"
+  ],
+  "D4": [
+    "pin 4",
+    "4번 핀",
+    "digital input",
+    "digital output"
+  ],
+  "D5": [
+    "pin 5",
+    "5번 핀",
+    "digital input",
+    "digital output"
+  ],
+  "D6": [
+    "pin 6",
+    "6번 핀",
+    "digital input",
+    "digital output"
+  ],
+  "D7": [
+    "pin 7",
+    "7번 핀",
+    "digital input",
+    "digital output"
+  ],
+  "DIN": [
+    "data in",
+    "MOSI",
+    "single-wire data",
+    "ws2812 data",
+    "데이터 입력"
+  ],
+  "DIO": [
+    "data I/O",
+    "TM1637 data",
+    "two-wire data",
+    "데이터 입출력"
+  ],
+  "CS": [
+    "chip select",
+    "load",
+    "enable",
+    "select",
+    "칩 선택",
+    "CE",
+    "chip enable"
+  ],
+  "5V": [
+    "VCC",
+    "VIN",
+    "power",
+    "+",
+    "5 volt",
+    "5볼트"
+  ],
+  "3V3": [
+    "3.3V",
+    "3v3",
+    "3.3 volt",
+    "RC522 power",
+    "3.3볼트"
+  ],
+  "VIN": [
+    "VCC",
+    "power input",
+    "module power",
+    "전원 입력"
+  ],
+  "SCK": [
+    "SCLK",
+    "SPI clock",
+    "clock",
+    "클럭",
+    "SPI 클럭"
+  ],
+  "MOSI": [
+    "SDI",
+    "SPI data out",
+    "master out",
+    "data in",
+    "SPI 데이터 출력"
+  ],
+  "MISO": [
+    "SDO",
+    "SPI data in",
+    "master in",
+    "data out",
+    "SPI 데이터 입력"
+  ],
+  "SDI": [
+    "MOSI",
+    "SPI data",
+    "data in",
+    "serial data in",
+    "데이터 입력"
+  ],
+  "CE": [
+    "chip enable",
+    "chip select",
+    "CS",
+    "enable",
+    "칩 활성"
+  ],
+  "DC": [
+    "data command",
+    "command select",
+    "RS",
+    "D/C",
+    "명령 선택"
+  ],
+  "RS": [
+    "register select",
+    "data command",
+    "DC",
+    "command select"
+  ],
+  "RST": [
+    "reset",
+    "display reset",
+    "리셋"
+  ],
+  "INT": [
+    "interrupt",
+    "interrupt output",
+    "sensor interrupt",
+    "인터럽트"
+  ],
+  "TX": [
+    "transmit",
+    "serial tx",
+    "uart tx",
+    "NMEA output",
+    "송신"
+  ],
+  "RX": [
+    "receive",
+    "serial rx",
+    "uart rx",
+    "수신"
+  ],
+  "D0/RX": [
+    "D0",
+    "RX",
+    "pin 0",
+    "Arduino RX",
+    "UART RX"
+  ],
+  "D1/TX": [
+    "D1",
+    "TX",
+    "pin 1",
+    "Arduino TX",
+    "UART TX"
+  ],
+  "D10": [
+    "pin 10",
+    "10번 핀",
+    "chip select",
+    "SPI CS"
+  ],
+  "D11": [
+    "pin 11",
+    "11번 핀",
+    "MOSI",
+    "SPI data"
+  ],
+  "D12": [
+    "pin 12",
+    "12번 핀",
+    "MISO",
+    "SPI data in"
+  ],
+  "D13": [
+    "pin 13",
+    "13번 핀",
+    "SCK",
+    "SPI clock"
+  ]
 }

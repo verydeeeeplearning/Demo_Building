@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://h-eduware.local/schemas/context-v2/bundle-manifest.schema.json",
+  "title": "ContextBundleManifestV2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "bundleId",
+    "capabilityId",
+    "supportLevel",
+    "promptBudget",
+    "agentSummaryPath",
+    "canonicalRefs",
+    "promptInclusions"
+  ],
+  "properties": {
+    "schemaVersion": { "type": "string" },
+    "bundleId": { "type": "string" },
+    "capabilityId": { "type": "string" },
+    "supportLevel": {
+      "type": "string",
+      "enum": ["supported", "partial", "planned", "unsupported"]
+    },
+    "promptBudget": {
+      "type": "string",
+      "enum": ["minimal", "summary", "data-only", "full"]
+    },
+    "agentSummaryPath": { "type": "string" },
+    "requiredParts": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "allowedParts": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "requiredTopologies": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "validationRules": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "simulationPrimitives": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "renderFootprints": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "canonicalRefs": {
+      "type": "object",
+      "required": ["parts", "footprints", "simulation", "topology", "sources"],
+      "properties": {
+        "parts": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "footprints": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "simulation": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "topology": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "sources": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "promptInclusions": {
+      "type": "object",
+      "required": [
+        "includePins",
+        "includeElectricalLimits",
+        "includeFootprintAnchors",
+        "includeSourceQuotes"
+      ],
+      "properties": {
+        "includePins": { "type": "boolean" },
+        "includeElectricalLimits": { "type": "boolean" },
+        "includeFootprintAnchors": { "type": "boolean" },
+        "includeSourceQuotes": { "type": "boolean" }
+      }
+    },
+    "blockingConditions": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

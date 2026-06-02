@@ -60,5 +60,8 @@ async function fetchShareJson(path, { method, body, timeoutMs, fetchImpl }) {
 }
 
 function agentApiBase() {
-  return globalThis.localStorage?.getItem('hEduwareAgentApiBase') || DEFAULT_AGENT_API_BASE;
+  const storage = globalThis.localStorage;
+  return typeof storage?.getItem === 'function'
+    ? storage.getItem('hEduwareAgentApiBase') || DEFAULT_AGENT_API_BASE
+    : DEFAULT_AGENT_API_BASE;
 }

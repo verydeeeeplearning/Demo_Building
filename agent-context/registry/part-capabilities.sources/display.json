@@ -1,0 +1,1310 @@
+[
+  {
+    "id": "oled-i2c-096",
+    "kind": "output",
+    "label": "0.96 inch I2C OLED",
+    "aliases": [
+      "oled",
+      "screen",
+      "display",
+      "little screen",
+      "tiny screen",
+      "text display"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "vin"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground"
+        ]
+      },
+      {
+        "name": "SDA",
+        "role": "i2c-data",
+        "aliases": [
+          "data"
+        ]
+      },
+      {
+        "name": "SCL",
+        "role": "i2c-clock",
+        "aliases": [
+          "clock"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3.3,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 25,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "i2c",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "oled",
+      "width": 1.45,
+      "depth": 0.95,
+      "height": 0.14
+    },
+    "simulationModel": {
+      "type": "i2c-display-load",
+      "nominalCurrentMa": 18
+    },
+    "supportLevel": "supported",
+    "capabilities": [
+      "display-text",
+      "i2c-peripheral",
+      "low-current-output"
+    ],
+    "compatibleSimulationPrimitives": [
+      "display_static_text",
+      "display_sensor_value",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Swapping SDA and SCL.",
+      "Missing VCC or GND.",
+      "Using a non-I2C display wiring pattern."
+    ],
+    "safeSubstitutes": [
+      "lcd-i2c-display-planned"
+    ],
+    "supportTier": "simulation-ready",
+    "family": "display-i2c",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "oled-096-i2c"
+    ],
+    "compatibleTopologies": [
+      "controller-i2c-character-display",
+      "controller-i2c-module"
+    ],
+    "sourceClaimIds": [
+      "ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "i2c-text-display-qualitative-contract"
+    ]
+  },
+  {
+    "id": "lcd-20x4",
+    "kind": "output",
+    "label": "20x4 I2C LCD character display",
+    "aliases": [
+      "lcd 20x4",
+      "20x4 lcd",
+      "large character lcd",
+      "i2c lcd",
+      "large lcd",
+      "큰 LCD"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "vin",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "-"
+        ]
+      },
+      {
+        "name": "SDA",
+        "role": "i2c-data",
+        "aliases": [
+          "data",
+          "serial data"
+        ]
+      },
+      {
+        "name": "SCL",
+        "role": "i2c-clock",
+        "aliases": [
+          "clock",
+          "serial clock"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 4.5,
+        "max": 5.5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 45,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "i2c",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "lcd-character-20x4",
+      "width": 2.55,
+      "depth": 1.05,
+      "height": 0.16
+    },
+    "simulationModel": {
+      "type": "i2c-display-load",
+      "nominalCurrentMa": 30
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "display-i2c",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "lcd-20x4"
+    ],
+    "compatibleTopologies": [
+      "controller-i2c-character-display",
+      "controller-i2c-module"
+    ],
+    "sourceClaimIds": [
+      "lcd-20x4-i2c-visual-pin-map",
+      "i2c-text-display-qualitative-contract"
+    ],
+    "capabilities": [
+      "display-text",
+      "character-display",
+      "i2c-peripheral",
+      "low-current-output"
+    ],
+    "compatibleSimulationPrimitives": [
+      "display_static_text",
+      "display_sensor_value",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Swapping SDA and SCL.",
+      "Forgetting the shared ground.",
+      "Trying to use the qualitative character display model as a pixel graphics display."
+    ],
+    "safeSubstitutes": [
+      "lcd-16x2",
+      "oled-i2c-096"
+    ]
+  },
+  {
+    "id": "lcd-16x2",
+    "kind": "output",
+    "label": "16x2 I2C LCD character display",
+    "aliases": [
+      "lcd",
+      "16x2 lcd",
+      "character lcd",
+      "lcd display",
+      "i2c lcd",
+      "문자 lcd",
+      "LCD"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "vin",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "-"
+        ]
+      },
+      {
+        "name": "SDA",
+        "role": "i2c-data",
+        "aliases": [
+          "data",
+          "serial data"
+        ]
+      },
+      {
+        "name": "SCL",
+        "role": "i2c-clock",
+        "aliases": [
+          "clock",
+          "serial clock"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 4.5,
+        "max": 5.5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 40,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "i2c",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "lcd-character-16x2",
+      "width": 1.9,
+      "depth": 0.86,
+      "height": 0.16
+    },
+    "simulationModel": {
+      "type": "i2c-display-load",
+      "nominalCurrentMa": 25
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "display-i2c",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "lcd-16x2"
+    ],
+    "compatibleTopologies": [
+      "controller-i2c-character-display",
+      "controller-i2c-module"
+    ],
+    "sourceClaimIds": [
+      "lcd-16x2-i2c-visual-pin-map",
+      "i2c-text-display-qualitative-contract"
+    ],
+    "capabilities": [
+      "display-text",
+      "character-display",
+      "i2c-peripheral",
+      "low-current-output"
+    ],
+    "compatibleSimulationPrimitives": [
+      "display_static_text",
+      "display_sensor_value",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Swapping SDA and SCL.",
+      "Forgetting the shared ground.",
+      "Expecting graphics on a character-only LCD model."
+    ],
+    "safeSubstitutes": [
+      "oled-i2c-096",
+      "lcd-20x4"
+    ]
+  },
+  {
+    "id": "oled-13-i2c",
+    "kind": "output",
+    "label": "1.3 inch I2C OLED",
+    "aliases": [
+      "1.3 oled",
+      "large oled",
+      "oled 1.3",
+      "oled display",
+      "screen",
+      "display",
+      "text display",
+      "큰 OLED"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "vin",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "-"
+        ]
+      },
+      {
+        "name": "SDA",
+        "role": "i2c-data",
+        "aliases": [
+          "data",
+          "serial data"
+        ]
+      },
+      {
+        "name": "SCL",
+        "role": "i2c-clock",
+        "aliases": [
+          "clock",
+          "serial clock"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3.3,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 30,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "i2c",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "oled-large",
+      "width": 1.65,
+      "depth": 1.08,
+      "height": 0.14
+    },
+    "simulationModel": {
+      "type": "i2c-display-load",
+      "nominalCurrentMa": 22
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "display-i2c",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "oled-13-i2c"
+    ],
+    "compatibleTopologies": [
+      "controller-i2c-character-display",
+      "controller-i2c-module"
+    ],
+    "sourceClaimIds": [
+      "oled-13-i2c-visual-pin-map",
+      "i2c-text-display-qualitative-contract"
+    ],
+    "capabilities": [
+      "display-text",
+      "i2c-peripheral",
+      "low-current-output"
+    ],
+    "compatibleSimulationPrimitives": [
+      "display_static_text",
+      "display_sensor_value",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Swapping SDA and SCL.",
+      "Missing VCC or GND.",
+      "Treating the display as SPI instead of I2C."
+    ],
+    "safeSubstitutes": [
+      "oled-i2c-096",
+      "lcd-16x2"
+    ]
+  },
+  {
+    "id": "7seg-1digit",
+    "kind": "output",
+    "label": "Single-digit bare 7-segment LED display",
+    "aliases": [
+      "7 segment 1 digit",
+      "1 digit 7 segment",
+      "single digit 7 segment",
+      "bare 7 segment",
+      "one digit display",
+      "세븐세그먼트 1자리"
+    ],
+    "pins": [
+      {
+        "name": "A",
+        "role": "segment-anode",
+        "aliases": [
+          "segment a",
+          "top segment"
+        ]
+      },
+      {
+        "name": "B",
+        "role": "segment-anode",
+        "aliases": [
+          "segment b",
+          "upper right segment"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "common cathode",
+          "ground",
+          "common"
+        ]
+      },
+      {
+        "name": "DP",
+        "role": "segment-anode",
+        "aliases": [
+          "decimal point",
+          "dot"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 1.8,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": true
+    },
+    "protocols": [
+      "gpio",
+      "power"
+    ],
+    "requiredPassives": [
+      {
+        "partId": "resistor-220",
+        "role": "one-current-limiter-per-driven-segment",
+        "reason": "Each lit segment is a direct LED load and must have its own current-limiting resistor."
+      }
+    ],
+    "renderFootprint": {
+      "type": "seven-segment-1digit",
+      "width": 0.5,
+      "depth": 0.09,
+      "height": 0.7
+    },
+    "simulationModel": {
+      "type": "bare-seven-segment-display-load",
+      "nominalCurrentMa": 12
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "display-led-array",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "7seg-1digit"
+    ],
+    "compatibleTopologies": [
+      "controller-bare-seven-segment-display"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "resistor-220",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "direct-segment-drive-without-resistor",
+      "tm1637-module-wiring"
+    ],
+    "sourceClaimIds": [
+      "seven-segment-1digit-visual-pin-map",
+      "bare-seven-segment-current-limit-contract"
+    ],
+    "capabilities": [
+      "bare-seven-segment-display",
+      "numeric-display",
+      "current-limited-segment-display",
+      "low-current-output"
+    ],
+    "compatibleSimulationPrimitives": [
+      "bare_seven_segment_display_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Driving a segment pin directly from Arduino without a current-limiting resistor.",
+      "Treating the bare display like a TM1637 module with VCC, GND, CLK, and DIO.",
+      "Forgetting the common ground pin."
+    ],
+    "safeSubstitutes": [
+      "7seg-4digit-tm1637",
+      "oled-i2c-096"
+    ]
+  },
+  {
+    "id": "7seg-4digit-tm1637",
+    "kind": "output",
+    "label": "4-Digit TM1637 7-segment display",
+    "aliases": [
+      "tm1637",
+      "4 digit 7 segment",
+      "4-digit display",
+      "7 segment display",
+      "numeric display",
+      "세븐세그먼트",
+      "4자리 표시기"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "vin",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "-"
+        ]
+      },
+      {
+        "name": "CLK",
+        "role": "clock",
+        "aliases": [
+          "clock",
+          "tm1637 clock"
+        ]
+      },
+      {
+        "name": "DIO",
+        "role": "data",
+        "aliases": [
+          "data",
+          "tm1637 data"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3.3,
+        "max": 5.5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 80,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "tm1637-two-wire",
+      "gpio",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "tm1637-4digit-display",
+      "width": 1.4,
+      "depth": 0.55,
+      "height": 0.09
+    },
+    "simulationModel": {
+      "type": "led-array-display-load",
+      "nominalCurrentMa": 60
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "display-led-array",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "7seg-4digit-tm1637"
+    ],
+    "compatibleTopologies": [
+      "controller-led-array-display"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "bare-led-segment-drive-without-resistors"
+    ],
+    "sourceClaimIds": [
+      "tm1637-4digit-visual-pin-map",
+      "led-array-display-qualitative-contract"
+    ],
+    "capabilities": [
+      "led-array-display",
+      "numeric-display",
+      "clocked-data-display",
+      "low-current-output"
+    ],
+    "compatibleSimulationPrimitives": [
+      "led_array_display_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Forgetting VCC or GND.",
+      "Swapping CLK and DIO.",
+      "Treating the TM1637 module like a bare 7-segment LED that needs per-segment resistors."
+    ],
+    "safeSubstitutes": [
+      "8x8-matrix-max7219",
+      "oled-i2c-096"
+    ]
+  },
+  {
+    "id": "8x8-matrix-max7219",
+    "kind": "output",
+    "label": "MAX7219 8x8 LED matrix display",
+    "aliases": [
+      "max7219",
+      "8x8 led matrix",
+      "led matrix",
+      "dot matrix display",
+      "matrix display",
+      "LED 매트릭스",
+      "도트 매트릭스"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "vin",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "-"
+        ]
+      },
+      {
+        "name": "CLK",
+        "role": "clock",
+        "aliases": [
+          "clock",
+          "spi clock"
+        ]
+      },
+      {
+        "name": "CS",
+        "role": "chip-select",
+        "aliases": [
+          "chip select",
+          "load",
+          "enable"
+        ]
+      },
+      {
+        "name": "DIN",
+        "role": "data",
+        "aliases": [
+          "data in",
+          "mosi",
+          "spi data"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 4,
+        "max": 5.5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 160,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "spi-like",
+      "gpio",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "max7219-8x8-matrix",
+      "width": 0.9,
+      "depth": 0.9,
+      "height": 0.1
+    },
+    "simulationModel": {
+      "type": "led-array-display-load",
+      "nominalCurrentMa": 100
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "display-led-array",
+    "riskLevel": "power-warning",
+    "visualPartIds": [
+      "8x8-matrix-max7219"
+    ],
+    "compatibleTopologies": [
+      "controller-led-array-display"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "direct-led-matrix-without-driver"
+    ],
+    "sourceClaimIds": [
+      "max7219-matrix-visual-pin-map",
+      "led-array-display-qualitative-contract"
+    ],
+    "capabilities": [
+      "led-array-display",
+      "matrix-display",
+      "spi-like-peripheral",
+      "low-current-output"
+    ],
+    "compatibleSimulationPrimitives": [
+      "led_array_display_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Swapping DIN, CLK, and CS.",
+      "Omitting common ground.",
+      "Expecting pixel-accurate MAX7219 timing instead of qualitative pattern simulation."
+    ],
+    "safeSubstitutes": [
+      "7seg-4digit-tm1637",
+      "oled-i2c-096"
+    ]
+  },
+  {
+    "id": "neopixel-ring-12",
+    "kind": "output",
+    "label": "NeoPixel Ring 12 LED",
+    "aliases": [
+      "neopixel ring",
+      "ws2812 ring",
+      "rgb led ring",
+      "addressable led ring",
+      "12 led ring",
+      "네오픽셀 링",
+      "주소지정 LED 링"
+    ],
+    "pins": [
+      {
+        "name": "5V",
+        "role": "power",
+        "aliases": [
+          "vcc",
+          "vin",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "-"
+        ]
+      },
+      {
+        "name": "DIN",
+        "role": "single-wire-data",
+        "aliases": [
+          "data in",
+          "signal",
+          "ws2812 data"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 4,
+        "max": 5.5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 720,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "addressable-led",
+      "single-wire-data",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "neopixel-ring-12",
+      "width": 1,
+      "depth": 1,
+      "height": 0.08
+    },
+    "simulationModel": {
+      "type": "addressable-led-display-load",
+      "nominalCurrentMa": 180
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "display-led-array",
+    "riskLevel": "power-warning",
+    "visualPartIds": [
+      "neopixel-ring-12"
+    ],
+    "compatibleTopologies": [
+      "controller-addressable-led-display"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "arduino-io-pin-powers-full-brightness-ring"
+    ],
+    "sourceClaimIds": [
+      "neopixel-ring-12-visual-pin-map",
+      "addressable-led-display-qualitative-contract"
+    ],
+    "capabilities": [
+      "addressable-led-display",
+      "rgb-light-output",
+      "single-wire-data-display",
+      "power-warning-output"
+    ],
+    "compatibleSimulationPrimitives": [
+      "addressable_led_pattern",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Powering all LEDs at full brightness from an Arduino I/O pin.",
+      "Forgetting common ground.",
+      "Connecting the Arduino signal to the output side instead of DIN."
+    ],
+    "safeSubstitutes": [
+      "led-5mm",
+      "7seg-4digit-tm1637"
+    ]
+  },
+  {
+    "id": "tft-18",
+    "kind": "output",
+    "label": "TFT LCD 1.8 inch SPI display",
+    "aliases": [
+      "tft 1.8",
+      "1.8 tft",
+      "spi tft",
+      "tft lcd",
+      "color tft display",
+      "128x160 display",
+      "컬러 TFT",
+      "SPI TFT"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "5v",
+          "vin",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "-"
+        ]
+      },
+      {
+        "name": "SCK",
+        "role": "clock",
+        "aliases": [
+          "sclk",
+          "spi clock",
+          "clock"
+        ]
+      },
+      {
+        "name": "SDA",
+        "role": "data",
+        "aliases": [
+          "mosi",
+          "spi data",
+          "data"
+        ]
+      },
+      {
+        "name": "CS",
+        "role": "chip-select",
+        "aliases": [
+          "chip select",
+          "select",
+          "enable"
+        ]
+      },
+      {
+        "name": "RS",
+        "role": "data-command",
+        "aliases": [
+          "dc",
+          "data command",
+          "register select",
+          "command select"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3.3,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 50,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "spi",
+      "gpio",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "tft-18-spi-display",
+      "width": 1.1,
+      "depth": 0.85,
+      "height": 0.1
+    },
+    "simulationModel": {
+      "type": "spi-display-load",
+      "nominalCurrentMa": 40
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "display-spi",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "tft-18"
+    ],
+    "compatibleTopologies": [
+      "controller-spi-display"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "i2c-display-bus",
+      "bare-led-display-drive"
+    ],
+    "sourceClaimIds": [
+      "tft-18-visual-pin-map",
+      "spi-display-qualitative-contract"
+    ],
+    "capabilities": [
+      "spi-display",
+      "spi-display",
+      "color-display",
+      "graphic-display",
+      "low-current-output"
+    ],
+    "compatibleSimulationPrimitives": [
+      "spi_display_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Swapping SCK and SDA/MOSI.",
+      "Leaving CS or RS/DC unconnected.",
+      "Expecting pixel-perfect 128x160 graphics emulation instead of qualitative display state."
+    ],
+    "safeSubstitutes": [
+      "nokia-5110",
+      "oled-i2c-096"
+    ]
+  },
+  {
+    "id": "nokia-5110",
+    "kind": "output",
+    "label": "Nokia 5110 LCD SPI display",
+    "aliases": [
+      "nokia 5110",
+      "pcd8544",
+      "84x48 lcd",
+      "nokia lcd",
+      "spi monochrome lcd",
+      "노키아 5110"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "3v3",
+          "5v",
+          "vin",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "-"
+        ]
+      },
+      {
+        "name": "CLK",
+        "role": "clock",
+        "aliases": [
+          "sck",
+          "spi clock",
+          "clock"
+        ]
+      },
+      {
+        "name": "DIN",
+        "role": "data",
+        "aliases": [
+          "mosi",
+          "spi data",
+          "data in"
+        ]
+      },
+      {
+        "name": "CE",
+        "role": "chip-select",
+        "aliases": [
+          "chip enable",
+          "chip select",
+          "cs",
+          "enable"
+        ]
+      },
+      {
+        "name": "DC",
+        "role": "data-command",
+        "aliases": [
+          "data command",
+          "command select",
+          "rs"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3.3,
+        "max": 5,
+        "nominal": 3.3
+      },
+      "maxCurrentMa": 25,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "spi",
+      "gpio",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "nokia-5110-display",
+      "width": 1.1,
+      "depth": 0.7,
+      "height": 0.08
+    },
+    "simulationModel": {
+      "type": "spi-display-load",
+      "nominalCurrentMa": 20
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "display-spi",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "nokia-5110"
+    ],
+    "compatibleTopologies": [
+      "controller-spi-display"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "i2c-display-bus",
+      "bare-led-display-drive"
+    ],
+    "sourceClaimIds": [
+      "nokia-5110-visual-pin-map",
+      "spi-display-qualitative-contract"
+    ],
+    "capabilities": [
+      "spi-display",
+      "spi-display",
+      "monochrome-display",
+      "graphic-display",
+      "low-current-output"
+    ],
+    "compatibleSimulationPrimitives": [
+      "spi_display_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Swapping DIN and CLK.",
+      "Forgetting CE/CS or DC.",
+      "Assuming exact PCD8544 command timing is simulated."
+    ],
+    "safeSubstitutes": [
+      "tft-18",
+      "oled-i2c-096"
+    ]
+  },
+  {
+    "id": "epaper-213",
+    "kind": "output",
+    "label": "E-Paper 2.13 inch SPI display",
+    "aliases": [
+      "e-paper 2.13",
+      "epaper 2.13",
+      "e ink display",
+      "e-ink display",
+      "spi epaper",
+      "전자종이",
+      "e-paper"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "3v3",
+          "5v",
+          "vin",
+          "+"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "-"
+        ]
+      },
+      {
+        "name": "SCK",
+        "role": "clock",
+        "aliases": [
+          "sclk",
+          "spi clock",
+          "clock"
+        ]
+      },
+      {
+        "name": "SDI",
+        "role": "data",
+        "aliases": [
+          "mosi",
+          "spi data",
+          "data in"
+        ]
+      },
+      {
+        "name": "CS",
+        "role": "chip-select",
+        "aliases": [
+          "chip select",
+          "select",
+          "enable"
+        ]
+      },
+      {
+        "name": "RST",
+        "role": "reset",
+        "aliases": [
+          "reset",
+          "rst",
+          "display reset"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 3.3,
+        "max": 5,
+        "nominal": 3.3
+      },
+      "maxCurrentMa": 40,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "spi",
+      "gpio",
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "epaper-213-display",
+      "width": 1.4,
+      "depth": 0.85,
+      "height": 0.08
+    },
+    "simulationModel": {
+      "type": "spi-display-load",
+      "nominalCurrentMa": 25
+    },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "display-spi",
+    "riskLevel": "low-voltage",
+    "visualPartIds": [
+      "epaper-213"
+    ],
+    "compatibleTopologies": [
+      "controller-spi-display"
+    ],
+    "requiredExternalParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "jumper-wire"
+    ],
+    "forbiddenTopologies": [
+      "i2c-display-bus",
+      "bare-led-display-drive"
+    ],
+    "sourceClaimIds": [
+      "epaper-213-visual-pin-map",
+      "spi-display-qualitative-contract"
+    ],
+    "capabilities": [
+      "spi-display",
+      "spi-display",
+      "epaper-display",
+      "graphic-display",
+      "low-current-output"
+    ],
+    "compatibleSimulationPrimitives": [
+      "spi_display_state",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Forgetting reset or chip-select wiring.",
+      "Treating e-paper as a fast-refresh animation display.",
+      "Expecting waveform-level e-ink update simulation."
+    ],
+    "safeSubstitutes": [
+      "nokia-5110",
+      "oled-i2c-096"
+    ]
+  }
+]

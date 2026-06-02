@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "matrix-input-display-readout",
+  "capabilityId": "matrix-input-display-readout",
+  "supportLevel": "supported",
+  "promptBudget": "minimal",
+  "agentSummaryPath": "bundles/matrix-input-display-readout/BUNDLE.md",
+  "requiredParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "oled-i2c-096"
+  ],
+  "allowedParts": [
+    "arduino-uno",
+    "breadboard-half",
+    "oled-i2c-096",
+    "jumper-wire",
+    "dip-switch-4",
+    "keypad-4x4",
+    "membrane-keypad-1x4",
+    "oled-13-i2c",
+    "lcd-16x2",
+    "lcd-20x4"
+  ],
+  "requiredTopologies": [
+    "controller-matrix-input-display"
+  ],
+  "validationRules": [
+    "matrix-input-lines-distinct",
+    "matrix-input-reference-defined",
+    "i2c-pin-role-match",
+    "common-ground",
+    "qualitative-sensor-readout-only"
+  ],
+  "simulationPrimitives": [
+    "matrix_input_state",
+    "display_static_text",
+    "current_flow_animation"
+  ],
+  "renderFootprints": [
+    "arduino",
+    "breadboard",
+    "oled",
+    "wire",
+    "dip-switch-8pin",
+    "matrix-keypad-8pin",
+    "keypad-strip-5pin",
+    "oled-large",
+    "lcd-character-16x2",
+    "lcd-character-20x4"
+  ],
+  "canonicalRefs": {
+    "parts": [
+      "shared:parts:arduino-uno",
+      "shared:parts:breadboard-half",
+      "shared:parts:oled-i2c-096",
+      "shared:parts:dip-switch-4",
+      "shared:parts:keypad-4x4",
+      "shared:parts:membrane-keypad-1x4",
+      "shared:parts:oled-13-i2c",
+      "shared:parts:lcd-16x2",
+      "shared:parts:lcd-20x4"
+    ],
+    "footprints": [
+      "shared:footprint:arduino",
+      "shared:footprint:breadboard",
+      "shared:footprint:oled",
+      "shared:footprint:wire",
+      "shared:footprint:dip-switch-8pin",
+      "shared:footprint:matrix-keypad-8pin",
+      "shared:footprint:keypad-strip-5pin",
+      "shared:footprint:oled-large",
+      "shared:footprint:lcd-character-16x2",
+      "shared:footprint:lcd-character-20x4"
+    ],
+    "simulation": [
+      "shared:primitive:matrix_input_state",
+      "shared:primitive:display_static_text",
+      "shared:primitive:current_flow_animation"
+    ],
+    "topology": [
+      "shared:topology:controller-matrix-input-display"
+    ],
+    "sources": [
+      "shared:source:arduino-uno-rev3-io-current-20ma",
+      "shared:source:arduino-uno-rev3-i2c-a4-a5",
+      "shared:source:ssd1306-i2c-oled-vcc-gnd-sda-scl",
+      "shared:source:breadboard-row-continuity-5-hole",
+      "shared:source:dip-switch-4-pin-map",
+      "shared:source:keypad-4x4-matrix-pin-map",
+      "shared:source:membrane-keypad-1x4-pin-map",
+      "shared:source:matrix-input-row-column-contract",
+      "shared:source:multi-switch-input-reference-contract",
+      "shared:source:matrix-input-qualitative-contract",
+      "shared:source:oled-13-i2c-visual-pin-map",
+      "shared:source:lcd-16x2-i2c-visual-pin-map",
+      "shared:source:lcd-20x4-i2c-visual-pin-map",
+      "shared:source:i2c-text-display-qualitative-contract"
+    ]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": true,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": [
+    "missing-source-claims",
+    "missing-matrix-input-lines",
+    "duplicate-controller-input-pins",
+    "floating-passive-multi-switch-input",
+    "missing-oled-display",
+    "missing-render-footprint",
+    "missing-simulation-primitive",
+    "unsupported-part-requested"
+  ]
+}

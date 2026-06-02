@@ -1,0 +1,1 @@
+{"id":"v2-timing-passive-context-supported","message":"Show a 16 MHz crystal clock reference on the breadboard.","expected":"render_and_run_valid_state_only_timing_context"}

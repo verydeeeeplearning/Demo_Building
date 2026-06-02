@@ -1,0 +1,2 @@
+{"id":"v2-bmp280-display-en","message":"Show BMP280 pressure on the OLED display.","expected":"valid_circuit_synthesis"}
+{"id":"v2-mpu6050-display-en","message":"Show MPU6050 tilt state on the OLED display.","expected":"valid_circuit_synthesis"}

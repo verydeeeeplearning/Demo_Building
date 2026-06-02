@@ -1,0 +1,121 @@
+[
+  {
+    "id": "controller-uart-communication-module",
+    "label": "Controller UART communication module status display",
+    "description": "A controller powers a UART communication module, crosses TX/RX, and shows qualitative command/status activity on an I2C display.",
+    "requiredRoles": ["controller", "power-source", "ground-return", "serial-rx", "serial-tx", "communication-module", "i2c-data", "i2c-clock", "i2c-module"],
+    "nets": [
+      { "id": "vcc", "kind": "power" },
+      { "id": "ground", "kind": "ground" },
+      { "id": "module-tx", "kind": "signal" },
+      { "id": "module-rx", "kind": "signal" },
+      { "id": "sda", "kind": "signal" },
+      { "id": "scl", "kind": "signal" }
+    ],
+    "connections": [
+      { "fromRole": "controller.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "communication-module.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "i2c-module.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "controller.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "communication-module.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "i2c-module.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "communication-module.serial-tx", "toNet": "module-tx", "signal": "uart" },
+      { "fromRole": "controller.serial-rx", "toNet": "module-tx", "signal": "uart" },
+      { "fromRole": "controller.serial-tx", "toNet": "module-rx", "signal": "uart" },
+      { "fromRole": "communication-module.serial-rx", "toNet": "module-rx", "signal": "uart" },
+      { "fromRole": "controller.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "i2c-module.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "controller.i2c-clock", "toNet": "scl", "signal": "i2c-clock" },
+      { "fromRole": "i2c-module.i2c-clock", "toNet": "scl", "signal": "i2c-clock" }
+    ],
+    "validationRules": ["uart-communication-module-pins", "i2c-pin-role-match", "common-ground", "power-rail-valid", "wireless-command-state-only", "network-cloud-overclaim-blocked"],
+    "simulationPrimitiveHints": ["display_sensor_value", "display_static_text", "current_flow_animation"]
+  },
+  {
+    "id": "controller-spi-communication-module",
+    "label": "Controller SPI communication module status display",
+    "description": "A controller powers an SPI communication module, connects clock/data/select pins, and shows qualitative bus/status activity on an I2C display.",
+    "requiredRoles": ["controller", "power-source", "ground-return", "spi-clock", "spi-mosi", "spi-miso", "spi-select", "communication-module", "i2c-data", "i2c-clock", "i2c-module"],
+    "nets": [
+      { "id": "vcc", "kind": "power" },
+      { "id": "ground", "kind": "ground" },
+      { "id": "sck", "kind": "signal" },
+      { "id": "mosi", "kind": "signal" },
+      { "id": "miso", "kind": "signal" },
+      { "id": "cs", "kind": "signal" },
+      { "id": "sda", "kind": "signal" },
+      { "id": "scl", "kind": "signal" }
+    ],
+    "connections": [
+      { "fromRole": "controller.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "communication-module.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "controller.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "communication-module.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "controller.digital-output", "toNet": "sck", "signal": "spi" },
+      { "fromRole": "communication-module.spi-clock", "toNet": "sck", "signal": "spi" },
+      { "fromRole": "controller.digital-output", "toNet": "mosi", "signal": "spi" },
+      { "fromRole": "communication-module.spi-mosi", "toNet": "mosi", "signal": "spi" },
+      { "fromRole": "communication-module.spi-miso", "toNet": "miso", "signal": "spi" },
+      { "fromRole": "controller.digital-input", "toNet": "miso", "signal": "spi" },
+      { "fromRole": "controller.digital-output", "toNet": "cs", "signal": "spi" },
+      { "fromRole": "communication-module.spi-select", "toNet": "cs", "signal": "spi" },
+      { "fromRole": "controller.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "i2c-module.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "controller.i2c-clock", "toNet": "scl", "signal": "i2c-clock" },
+      { "fromRole": "i2c-module.i2c-clock", "toNet": "scl", "signal": "i2c-clock" }
+    ],
+    "validationRules": ["spi-communication-module-pins", "i2c-pin-role-match", "common-ground", "power-rail-valid", "network-cloud-overclaim-blocked", "radio-power-warning"],
+    "simulationPrimitiveHints": ["display_sensor_value", "display_static_text", "current_flow_animation"]
+  },
+  {
+    "id": "controller-differential-bus-module",
+    "label": "Controller RS-485 transceiver status display",
+    "description": "A controller powers an RS-485 transceiver module, crosses RO/DI UART direction pins, drives the enable pin, and shows qualitative bus activity.",
+    "requiredRoles": ["controller", "power-source", "ground-return", "serial-rx", "serial-tx", "enable", "communication-module", "i2c-data", "i2c-clock", "i2c-module"],
+    "nets": [
+      { "id": "vcc", "kind": "power" },
+      { "id": "ground", "kind": "ground" },
+      { "id": "receiver-output", "kind": "signal" },
+      { "id": "driver-input", "kind": "signal" },
+      { "id": "driver-enable", "kind": "signal" },
+      { "id": "sda", "kind": "signal" },
+      { "id": "scl", "kind": "signal" }
+    ],
+    "connections": [
+      { "fromRole": "controller.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "communication-module.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "controller.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "communication-module.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "communication-module.serial-tx", "toNet": "receiver-output", "signal": "uart" },
+      { "fromRole": "controller.serial-rx", "toNet": "receiver-output", "signal": "uart" },
+      { "fromRole": "controller.serial-tx", "toNet": "driver-input", "signal": "uart" },
+      { "fromRole": "communication-module.serial-rx", "toNet": "driver-input", "signal": "uart" },
+      { "fromRole": "controller.digital-output", "toNet": "driver-enable", "signal": "gpio" },
+      { "fromRole": "communication-module.enable", "toNet": "driver-enable", "signal": "gpio" },
+      { "fromRole": "controller.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "i2c-module.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "controller.i2c-clock", "toNet": "scl", "signal": "i2c-clock" },
+      { "fromRole": "i2c-module.i2c-clock", "toNet": "scl", "signal": "i2c-clock" }
+    ],
+    "validationRules": ["differential-bus-module-pins", "i2c-pin-role-match", "common-ground", "power-rail-valid"],
+    "simulationPrimitiveHints": ["display_sensor_value", "display_static_text", "current_flow_animation"]
+  },
+  {
+    "id": "wireless-module-command-state",
+    "label": "Wireless command-state simulation boundary",
+    "description": "Wireless modules expose local UART/SPI command-state and status simulation only; internet, cloud, phone pairing, SMS/calls, RF range, tracking, and security effects are outside scope.",
+    "requiredRoles": ["communication-module", "power-source", "ground-return"],
+    "nets": [
+      { "id": "module-power", "kind": "power" },
+      { "id": "module-ground", "kind": "ground" },
+      { "id": "command-state", "kind": "signal" }
+    ],
+    "connections": [
+      { "fromRole": "communication-module.power", "toNet": "module-power", "signal": "power" },
+      { "fromRole": "communication-module.ground", "toNet": "module-ground", "signal": "ground" },
+      { "fromRole": "communication-module.serial-tx", "toNet": "command-state", "signal": "uart" }
+    ],
+    "validationRules": ["wireless-command-state-only", "network-cloud-overclaim-blocked", "radio-power-warning"],
+    "simulationPrimitiveHints": ["display_sensor_value"]
+  }
+]

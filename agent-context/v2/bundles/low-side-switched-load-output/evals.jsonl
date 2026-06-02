@@ -1,0 +1,3 @@
+{"id":"v2-dc-motor-mosfet-supported","message":"Use Arduino and an IRF520 MOSFET module to run a small DC motor safely.","expected":"supported_low_side_switched_load"}
+{"id":"v2-2n2222-motor-supported","message":"2N2222 transistor and base resistor로 작은 DC 모터를 켜고 끄는 회로를 만들어줘","expected":"supported_low_side_switched_load"}
+{"id":"v2-direct-motor-gpio-invalid","message":"DC 모터를 Arduino D9 핀에 바로 연결해서 돌려줘","expected":"validation_block_direct_motor_gpio"}

@@ -87,6 +87,29 @@ test('render warnings markdown explains breadboard grid misalignment in readable
   assert.match(markdown, /BREADBOARD_PIN_GRID_MISALIGNMENT/);
 });
 
+test('render warnings markdown explains render QA issues in readable Korean', () => {
+  const markdown = renderWarningsMarkdown([
+    {
+      code: 'PART_COLLISION',
+      componentId: 'led-1',
+      message: 'LED overlaps resistor in the render footprint layout.'
+    },
+    {
+      code: 'CAMERA_CLIPPING',
+      message: 'The fitted camera distance is too short for the scene radius.'
+    },
+    {
+      code: 'LABEL_OVERLAP',
+      componentId: 'led-1',
+      message: 'D1 label overlaps R1 label.'
+    }
+  ], 'ko');
+
+  assert.match(markdown, /부품 외형이 서로 겹쳐/);
+  assert.match(markdown, /카메라 구도가 장면 전체를 충분히 담지 못해/);
+  assert.match(markdown, /라벨이 다른 라벨이나 부품과 겹쳐/);
+});
+
 test('render warnings markdown explains hidden breadboard node conflicts in readable Korean', () => {
   const markdown = renderWarningsMarkdown([
     {

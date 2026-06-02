@@ -12,9 +12,11 @@ export function createShareSnapshot(project, options = {}) {
   const circuit = project?.circuit || {};
   const validationReport = circuit.validationReport || null;
   const simulationPlan = circuit.simulationPlan || null;
+  const runnableReport = circuit.buildRunnableReport || null;
+  const solverGateResult = circuit.solverGateResult || null;
   const requirementMarkdown = firstMarkdown(project) || '';
   const source = options.source || inferSource(circuit);
-  const status = shareStatus(validationReport, simulationPlan, source);
+  const status = shareStatus(validationReport, simulationPlan, source, runnableReport);
   const validationStatus = validationStatusForShare(status);
   const title = boundedText(circuit.title || circuit.circuitSpec?.title || options.title || 'H-eduware circuit', 80);
   const summary = boundedText(
@@ -23,7 +25,14 @@ export function createShareSnapshot(project, options = {}) {
   );
   const currentPaths = Array.isArray(simulationPlan?.currentPaths) ? simulationPlan.currentPaths : [];
   const expectedStates = Array.isArray(simulationPlan?.expectedStates) ? simulationPlan.expectedStates : [];
-  const simulationAvailable = status === 'valid' && simulationPlan?.status === 'valid';
+  const publicRenderPlan = renderPlanFromCircuit(circuit);
+  const simulationAvailable = status === 'valid'
+    && simulationPlan?.status === 'valid'
+    && runnableGateAllowsShare(runnableReport, source, validationReport);
+  const diagnosticVisible = !simulationAvailable
+    && solverGateResult?.visibleSimulation === true
+    && Array.isArray(publicRenderPlan?.parts)
+    && publicRenderPlan.parts.length > 0;
   const snapshot = {
     schemaVersion: 1,
     createdAt: options.createdAt || new Date().toISOString(),
@@ -44,18 +53,22 @@ export function createShareSnapshot(project, options = {}) {
     },
     validation: {
       status: validationStatus,
-      warnings: validationWarnings(validationReport, simulationPlan),
+      warnings: validationWarnings(validationReport, simulationPlan, runnableReport),
       unsupportedItems: unsupportedItems(circuit, validationReport)
     },
+    buildRunnableReport: runnableReport ? sanitizeBuildRunnableReport(runnableReport) : undefined,
+    solverGateResult: solverGateResult ? sanitizeShareValue(solverGateResult) : undefined,
     simulation: {
       available: simulationAvailable,
       runText: simulationPlan?.runText || circuit.runText || undefined,
       explanation: simulationAvailable
         ? simulationExplanation(currentPaths, expectedStates)
+        : diagnosticVisible
+          ? '3D diagnostic scene is available, but current-flow simulation is not verified for this shared snapshot.'
         : 'Current-flow simulation is not available for this shared snapshot.',
       currentPathCount: simulationAvailable ? Math.min(currentPaths.length, 60) : 0
     },
-    renderPlan: options.includeRenderPlan === false ? undefined : sanitizeShareValue(renderPlanFromCircuit(circuit)),
+    renderPlan: options.includeRenderPlan === false ? undefined : sanitizeShareValue(publicRenderPlan),
     contextEvidence: contextEvidence(circuit)
   };
 
@@ -69,9 +82,13 @@ export function createShareMarkdown(snapshot, locale = 'ko') {
     .slice(0, 12)
     .map((component) => `- ${redactShareText(component.name)} (${redactShareText(component.type)})`)
     .join('\n') || '- No public parts listed.';
-  const validation = snapshot.validation?.status || snapshot.status || 'draft';
-  const simulation = snapshot.simulation?.available
+  const runnable = snapshotShareRunnable(snapshot);
+  const diagnosticVisible = snapshotDiagnosticVisible(snapshot);
+  const validation = runnable ? snapshot.validation?.status || snapshot.status || 'draft' : 'invalid';
+  const simulation = runnable && snapshot.simulation?.available
     ? redactShareText(snapshot.simulation.explanation)
+    : diagnosticVisible
+      ? '3D diagnostic scene is available, but Run and current-flow simulation need review.'
     : 'Simulation is not marked as available for this shared snapshot.';
   const heading = normalizedLocale === 'en'
     ? `# Circuit I designed: ${title}`
@@ -116,9 +133,12 @@ function firstMarkdown(project) {
     || '';
 }
 
-function shareStatus(validationReport, simulationPlan, source) {
+function shareStatus(validationReport, simulationPlan, source, runnableReport) {
   if (!validationReport) {
     return source === 'demo' ? 'valid' : 'draft';
+  }
+  if (!runnableGateAllowsShare(runnableReport, source, validationReport)) {
+    return 'invalid';
   }
   if (validationReport.status === 'valid' && (!simulationPlan || simulationPlan.status === 'valid')) {
     return 'valid';
@@ -127,6 +147,46 @@ function shareStatus(validationReport, simulationPlan, source) {
     return 'warning';
   }
   return 'invalid';
+}
+
+function runnableGateAllowsShare(runnableReport, source, validationReport) {
+  if (runnableReport) {
+    return runnableReport.runnable === true;
+  }
+  return source === 'demo' && !validationReport;
+}
+
+function snapshotShareRunnable(snapshot) {
+  if (snapshot?.buildRunnableReport) {
+    return snapshot.buildRunnableReport.runnable === true;
+  }
+  return snapshot?.source === 'demo';
+}
+
+function snapshotDiagnosticVisible(snapshot) {
+  return snapshot?.solverGateResult?.visibleSimulation === true
+    && snapshot?.solverGateResult?.buildReady !== true
+    && Array.isArray(snapshot?.renderPlan?.parts)
+    && snapshot.renderPlan.parts.length > 0;
+}
+
+function sanitizeBuildRunnableReport(report) {
+  return {
+    status: report.status === 'runnable' ? 'runnable' : 'blocked',
+    runnable: report.runnable === true,
+    reasons: Array.isArray(report.reasons) ? report.reasons.slice(0, 20).map((reason) => boundedText(reason, 500, '')) : [],
+    validationStatus: boundedText(report.validationStatus || 'invalid', 40, 'invalid'),
+    simulationStatus: boundedText(report.simulationStatus || 'invalid', 40, 'invalid'),
+    renderWarningCount: safeCount(report.renderWarningCount),
+    renderBlockingWarningCount: safeCount(report.renderBlockingWarningCount),
+    renderPartCount: safeCount(report.renderPartCount),
+    currentPathCount: safeCount(report.currentPathCount),
+    expectedStateCount: safeCount(report.expectedStateCount)
+  };
+}
+
+function safeCount(value) {
+  return Number.isInteger(value) && value >= 0 ? Math.min(value, 10000) : 0;
 }
 
 function validationStatusForShare(status) {
@@ -172,11 +232,12 @@ function endpointKey(endpoint = {}) {
   return `${partId}:${endpoint.pin || 'pin'}`;
 }
 
-function validationWarnings(validationReport, simulationPlan) {
+function validationWarnings(validationReport, simulationPlan, runnableReport) {
   return [
     ...(validationReport?.errors || []),
     ...(validationReport?.warnings || []),
-    ...(simulationPlan?.warnings || [])
+    ...(simulationPlan?.warnings || []),
+    ...(runnableReport?.runnable === false ? runnableReport.reasons || [] : [])
   ].slice(0, 30).map((warning) => boundedText(warning, 500, ''));
 }
 
@@ -210,6 +271,7 @@ function renderPlanFromCircuit(circuit) {
     parts: circuit.parts || [],
     connections: circuit.connections || [],
     floatingCards: circuit.floatingCards || [],
+    layout: circuit.layout,
     warnings: circuit.renderWarnings || []
   };
 }

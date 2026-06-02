@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "prototyping-surface-context",
+  "capabilityId": "prototyping-surface-context",
+  "supportLevel": "supported",
+  "promptBudget": "minimal",
+  "agentSummaryPath": "bundles/prototyping-surface-context/BUNDLE.md",
+  "requiredParts": ["breadboard-half"],
+  "allowedParts": ["breadboard-half", "breadboard-full", "breadboard-mini", "perfboard-5x7", "pcb-blank-single", "proto-shield-uno", "jumper-wire"],
+  "requiredTopologies": ["prototyping-surface-context-only"],
+  "validationRules": ["prototyping-surface-context-only", "surface-does-not-create-nets", "no-mains-power"],
+  "simulationPrimitives": ["prototyping_surface_context_state"],
+  "renderFootprints": ["breadboard", "breadboard-full", "breadboard-mini", "perfboard-5x7", "pcb-blank-single", "proto-shield-uno", "wire"],
+  "canonicalRefs": {
+    "parts": ["shared:parts:breadboard-half", "shared:parts:breadboard-full", "shared:parts:breadboard-mini", "shared:parts:perfboard-5x7", "shared:parts:pcb-blank-single", "shared:parts:proto-shield-uno"],
+    "footprints": ["shared:footprint:breadboard", "shared:footprint:breadboard-full", "shared:footprint:breadboard-mini", "shared:footprint:perfboard-5x7", "shared:footprint:pcb-blank-single", "shared:footprint:proto-shield-uno", "shared:footprint:wire"],
+    "simulation": ["shared:primitive:prototyping_surface_context_state"],
+    "topology": ["shared:topology:prototyping-surface-context-only"],
+    "sources": ["shared:source:breadboard-full-visual-pin-map", "shared:source:breadboard-mini-visual-pin-map", "shared:source:perfboard-5x7-visual-pin-map", "shared:source:pcb-blank-single-visual-pin-map", "shared:source:proto-shield-uno-visual-pin-map", "shared:source:prototyping-surface-context-contract"]
+  },
+  "promptInclusions": {
+    "includePins": false,
+    "includeElectricalLimits": false,
+    "includeFootprintAnchors": false,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": ["mains-or-wall-power", "implicit-perfboard-or-pcb-continuity-claim", "missing-render-footprint", "missing-simulation-primitive", "unsupported-part-requested"]
+}

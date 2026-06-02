@@ -72,6 +72,18 @@ function createValidSnapshot() {
       warnings: [],
       unsupportedItems: []
     },
+    buildRunnableReport: {
+      status: 'runnable',
+      runnable: true,
+      reasons: [],
+      validationStatus: 'valid',
+      simulationStatus: 'valid',
+      renderWarningCount: 0,
+      renderBlockingWarningCount: 0,
+      renderPartCount: 2,
+      currentPathCount: 1,
+      expectedStateCount: 1
+    },
     simulation: {
       available: true,
       runText: 'RALPHTON BUSAN',

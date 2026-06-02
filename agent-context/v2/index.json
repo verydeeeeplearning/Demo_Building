@@ -1,0 +1,366 @@
+{
+  "version": "2026-06-01",
+  "root": "agent-context/v2",
+  "bundles": [
+    {
+      "bundleId": "digital-light-output",
+      "capabilityId": "digital-light-output",
+      "manifestPath": "bundles/digital-light-output/manifest.json",
+      "summaryPath": "bundles/digital-light-output/BUNDLE.md",
+      "evalPath": "bundles/digital-light-output/evals.jsonl",
+      "level": "L2",
+      "budget": "summary"
+    },
+    {
+      "bundleId": "display-text-output",
+      "capabilityId": "display-text-output",
+      "manifestPath": "bundles/display-text-output/manifest.json",
+      "summaryPath": "bundles/display-text-output/BUNDLE.md",
+      "evalPath": "bundles/display-text-output/evals.jsonl",
+      "level": "L2",
+      "budget": "summary"
+    },
+    {
+      "bundleId": "button-controlled-light-output",
+      "capabilityId": "button-controlled-light-output",
+      "manifestPath": "bundles/button-controlled-light-output/manifest.json",
+      "summaryPath": "bundles/button-controlled-light-output/BUNDLE.md",
+      "evalPath": "bundles/button-controlled-light-output/evals.jsonl",
+      "level": "L2",
+      "budget": "summary"
+    },
+    {
+      "bundleId": "sound-alert-output",
+      "capabilityId": "sound-alert-output",
+      "manifestPath": "bundles/sound-alert-output/manifest.json",
+      "summaryPath": "bundles/sound-alert-output/BUNDLE.md",
+      "evalPath": "bundles/sound-alert-output/evals.jsonl",
+      "level": "L2",
+      "budget": "summary"
+    },
+    {
+      "bundleId": "servo-motion-output",
+      "capabilityId": "servo-motion-output",
+      "manifestPath": "bundles/servo-motion-output/manifest.json",
+      "summaryPath": "bundles/servo-motion-output/BUNDLE.md",
+      "evalPath": "bundles/servo-motion-output/evals.jsonl",
+      "level": "L2",
+      "budget": "summary"
+    },
+    {
+      "bundleId": "low-side-switched-load-output",
+      "capabilityId": "low-side-switched-load-output",
+      "manifestPath": "bundles/low-side-switched-load-output/manifest.json",
+      "summaryPath": "bundles/low-side-switched-load-output/BUNDLE.md",
+      "evalPath": "bundles/low-side-switched-load-output/evals.jsonl",
+      "level": "L2",
+      "budget": "summary"
+    },
+    {
+      "bundleId": "stepper-motor-output",
+      "capabilityId": "stepper-motor-output",
+      "manifestPath": "bundles/stepper-motor-output/manifest.json",
+      "summaryPath": "bundles/stepper-motor-output/BUNDLE.md",
+      "evalPath": "bundles/stepper-motor-output/evals.jsonl",
+      "level": "L2",
+      "budget": "summary"
+    },
+    {
+      "bundleId": "hbridge-motor-output",
+      "capabilityId": "hbridge-motor-output",
+      "manifestPath": "bundles/hbridge-motor-output/manifest.json",
+      "summaryPath": "bundles/hbridge-motor-output/BUNDLE.md",
+      "evalPath": "bundles/hbridge-motor-output/evals.jsonl",
+      "level": "L2",
+      "budget": "summary"
+    },
+    {
+      "bundleId": "relay-low-voltage-output",
+      "capabilityId": "relay-low-voltage-output",
+      "manifestPath": "bundles/relay-low-voltage-output/manifest.json",
+      "summaryPath": "bundles/relay-low-voltage-output/BUNDLE.md",
+      "evalPath": "bundles/relay-low-voltage-output/evals.jsonl",
+      "level": "L2",
+      "budget": "summary"
+    },
+    {
+      "bundleId": "low-voltage-power-rail",
+      "capabilityId": "low-voltage-power-rail",
+      "manifestPath": "bundles/low-voltage-power-rail/manifest.json",
+      "summaryPath": "bundles/low-voltage-power-rail/BUNDLE.md",
+      "evalPath": "bundles/low-voltage-power-rail/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "passive-protection-context",
+      "capabilityId": "passive-protection-context",
+      "manifestPath": "bundles/passive-protection-context/manifest.json",
+      "summaryPath": "bundles/passive-protection-context/BUNDLE.md",
+      "evalPath": "bundles/passive-protection-context/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "timing-passive-context",
+      "capabilityId": "timing-passive-context",
+      "manifestPath": "bundles/timing-passive-context/manifest.json",
+      "summaryPath": "bundles/timing-passive-context/BUNDLE.md",
+      "evalPath": "bundles/timing-passive-context/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "prototyping-surface-context",
+      "capabilityId": "prototyping-surface-context",
+      "manifestPath": "bundles/prototyping-surface-context/manifest.json",
+      "summaryPath": "bundles/prototyping-surface-context/BUNDLE.md",
+      "evalPath": "bundles/prototyping-surface-context/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "connector-wiring-context",
+      "capabilityId": "connector-wiring-context",
+      "manifestPath": "bundles/connector-wiring-context/manifest.json",
+      "summaryPath": "bundles/connector-wiring-context/BUNDLE.md",
+      "evalPath": "bundles/connector-wiring-context/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "analog-led-dimmer",
+      "capabilityId": "analog-led-dimmer",
+      "manifestPath": "bundles/analog-led-dimmer/manifest.json",
+      "summaryPath": "bundles/analog-led-dimmer/BUNDLE.md",
+      "evalPath": "bundles/analog-led-dimmer/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "light-sensor-triggered-output",
+      "capabilityId": "light-sensor-triggered-output",
+      "manifestPath": "bundles/light-sensor-triggered-output/manifest.json",
+      "summaryPath": "bundles/light-sensor-triggered-output/BUNDLE.md",
+      "evalPath": "bundles/light-sensor-triggered-output/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "distance-sensor-display",
+      "capabilityId": "distance-sensor-display",
+      "manifestPath": "bundles/distance-sensor-display/manifest.json",
+      "summaryPath": "bundles/distance-sensor-display/BUNDLE.md",
+      "evalPath": "bundles/distance-sensor-display/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "dht11-temperature-humidity-display",
+      "capabilityId": "dht11-temperature-humidity-display",
+      "manifestPath": "bundles/dht11-temperature-humidity-display/manifest.json",
+      "summaryPath": "bundles/dht11-temperature-humidity-display/BUNDLE.md",
+      "evalPath": "bundles/dht11-temperature-humidity-display/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "dht22-temperature-humidity-display",
+      "capabilityId": "dht22-temperature-humidity-display",
+      "manifestPath": "bundles/dht22-temperature-humidity-display/manifest.json",
+      "summaryPath": "bundles/dht22-temperature-humidity-display/BUNDLE.md",
+      "evalPath": "bundles/dht22-temperature-humidity-display/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "i2c-sensor-display-readout",
+      "capabilityId": "i2c-sensor-display-readout",
+      "manifestPath": "bundles/i2c-sensor-display-readout/manifest.json",
+      "summaryPath": "bundles/i2c-sensor-display-readout/BUNDLE.md",
+      "evalPath": "bundles/i2c-sensor-display-readout/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "clocked-data-sensor-display-readout",
+      "capabilityId": "clocked-data-sensor-display-readout",
+      "manifestPath": "bundles/clocked-data-sensor-display-readout/manifest.json",
+      "summaryPath": "bundles/clocked-data-sensor-display-readout/BUNDLE.md",
+      "evalPath": "bundles/clocked-data-sensor-display-readout/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "spi-sensor-display-readout",
+      "capabilityId": "spi-sensor-display-readout",
+      "manifestPath": "bundles/spi-sensor-display-readout/manifest.json",
+      "summaryPath": "bundles/spi-sensor-display-readout/BUNDLE.md",
+      "evalPath": "bundles/spi-sensor-display-readout/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "uart-sensor-display-readout",
+      "capabilityId": "uart-sensor-display-readout",
+      "manifestPath": "bundles/uart-sensor-display-readout/manifest.json",
+      "summaryPath": "bundles/uart-sensor-display-readout/BUNDLE.md",
+      "evalPath": "bundles/uart-sensor-display-readout/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "uart-communication-module-readout",
+      "capabilityId": "uart-communication-module-readout",
+      "manifestPath": "bundles/uart-communication-module-readout/manifest.json",
+      "summaryPath": "bundles/uart-communication-module-readout/BUNDLE.md",
+      "evalPath": "bundles/uart-communication-module-readout/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "spi-communication-module-readout",
+      "capabilityId": "spi-communication-module-readout",
+      "manifestPath": "bundles/spi-communication-module-readout/manifest.json",
+      "summaryPath": "bundles/spi-communication-module-readout/BUNDLE.md",
+      "evalPath": "bundles/spi-communication-module-readout/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "rs485-communication-module-readout",
+      "capabilityId": "rs485-communication-module-readout",
+      "manifestPath": "bundles/rs485-communication-module-readout/manifest.json",
+      "summaryPath": "bundles/rs485-communication-module-readout/BUNDLE.md",
+      "evalPath": "bundles/rs485-communication-module-readout/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "analog-sensor-display-readout",
+      "capabilityId": "analog-sensor-display-readout",
+      "manifestPath": "bundles/analog-sensor-display-readout/manifest.json",
+      "summaryPath": "bundles/analog-sensor-display-readout/BUNDLE.md",
+      "evalPath": "bundles/analog-sensor-display-readout/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "analog-sensor-threshold-output",
+      "capabilityId": "analog-sensor-threshold-output",
+      "manifestPath": "bundles/analog-sensor-threshold-output/manifest.json",
+      "summaryPath": "bundles/analog-sensor-threshold-output/BUNDLE.md",
+      "evalPath": "bundles/analog-sensor-threshold-output/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "digital-input-display-readout",
+      "capabilityId": "digital-input-display-readout",
+      "manifestPath": "bundles/digital-input-display-readout/manifest.json",
+      "summaryPath": "bundles/digital-input-display-readout/BUNDLE.md",
+      "evalPath": "bundles/digital-input-display-readout/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "digital-input-threshold-output",
+      "capabilityId": "digital-input-threshold-output",
+      "manifestPath": "bundles/digital-input-threshold-output/manifest.json",
+      "summaryPath": "bundles/digital-input-threshold-output/BUNDLE.md",
+      "evalPath": "bundles/digital-input-threshold-output/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "matrix-input-display-readout",
+      "capabilityId": "matrix-input-display-readout",
+      "manifestPath": "bundles/matrix-input-display-readout/manifest.json",
+      "summaryPath": "bundles/matrix-input-display-readout/BUNDLE.md",
+      "evalPath": "bundles/matrix-input-display-readout/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "joystick-display-readout",
+      "capabilityId": "joystick-display-readout",
+      "manifestPath": "bundles/joystick-display-readout/manifest.json",
+      "summaryPath": "bundles/joystick-display-readout/BUNDLE.md",
+      "evalPath": "bundles/joystick-display-readout/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "rotary-encoder-display-readout",
+      "capabilityId": "rotary-encoder-display-readout",
+      "manifestPath": "bundles/rotary-encoder-display-readout/manifest.json",
+      "summaryPath": "bundles/rotary-encoder-display-readout/BUNDLE.md",
+      "evalPath": "bundles/rotary-encoder-display-readout/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "bare-seven-segment-display-output",
+      "capabilityId": "bare-seven-segment-display-output",
+      "manifestPath": "bundles/bare-seven-segment-display-output/manifest.json",
+      "summaryPath": "bundles/bare-seven-segment-display-output/BUNDLE.md",
+      "evalPath": "bundles/bare-seven-segment-display-output/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "led-array-display-output",
+      "capabilityId": "led-array-display-output",
+      "manifestPath": "bundles/led-array-display-output/manifest.json",
+      "summaryPath": "bundles/led-array-display-output/BUNDLE.md",
+      "evalPath": "bundles/led-array-display-output/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "addressable-led-display-output",
+      "capabilityId": "addressable-led-display-output",
+      "manifestPath": "bundles/addressable-led-display-output/manifest.json",
+      "summaryPath": "bundles/addressable-led-display-output/BUNDLE.md",
+      "evalPath": "bundles/addressable-led-display-output/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "spi-display-output",
+      "capabilityId": "spi-display-output",
+      "manifestPath": "bundles/spi-display-output/manifest.json",
+      "summaryPath": "bundles/spi-display-output/BUNDLE.md",
+      "evalPath": "bundles/spi-display-output/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "logic-interface-context",
+      "capabilityId": "logic-interface-context",
+      "manifestPath": "bundles/logic-interface-context/manifest.json",
+      "summaryPath": "bundles/logic-interface-context/BUNDLE.md",
+      "evalPath": "bundles/logic-interface-context/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    },
+    {
+      "bundleId": "controller-board-substitution",
+      "capabilityId": "controller-board-substitution",
+      "manifestPath": "bundles/controller-board-substitution/manifest.json",
+      "summaryPath": "bundles/controller-board-substitution/BUNDLE.md",
+      "evalPath": "bundles/controller-board-substitution/evals.jsonl",
+      "level": "L2",
+      "budget": "minimal"
+    }
+  ],
+  "shared": {
+    "parts": "../registry/part-capabilities.json",
+    "capabilityGraph": "../data/capability-graph.json",
+    "footprints": "../data/render-footprints.json",
+    "simulationPrimitives": "../simulation/primitives.json",
+    "topologyTemplates": "../electrical/topology-templates.json",
+    "pinAliases": "../ontology/pin-aliases.json",
+    "breadboardGrid": "../rendering/breadboard-grid.json"
+  }
+}

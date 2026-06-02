@@ -1,0 +1,3 @@
+{"id":"v2-ads1115-interface-display-en","message":"Show ADS1115 qualitative ADC channel state on the OLED display.","expected":"valid_circuit_synthesis"}
+{"id":"v2-shift-register-interface-display-ko","message":"74HC595 시프트 레지스터 상태를 OLED에 표시해줘","expected":"valid_circuit_synthesis"}
+{"id":"v2-precision-adc-overclaim-en","message":"Build a calibrated precision voltmeter with ADS1115 and certify the exact voltage.","expected":"unsupported_response"}

@@ -9,6 +9,72 @@
       "reason": "The visual Uno R3 represents the canonical Arduino Uno controller used by supported beginner circuits."
     },
     {
+      "visualPartId": "arduino-nano",
+      "agentPartId": "arduino-nano",
+      "status": "agent-ready",
+      "reason": "Arduino Nano maps to the WP-08 controller-board context model for visual pin-map and voltage-domain simulation."
+    },
+    {
+      "visualPartId": "arduino-mega2560",
+      "agentPartId": "arduino-mega2560",
+      "status": "agent-ready",
+      "reason": "Arduino Mega 2560 maps to the WP-08 controller-board context model for visual pin-map and voltage-domain simulation."
+    },
+    {
+      "visualPartId": "arduino-leonardo",
+      "agentPartId": "arduino-leonardo",
+      "status": "agent-ready",
+      "reason": "Arduino Leonardo maps to the WP-08 controller-board context model for visual pin-map and voltage-domain simulation."
+    },
+    {
+      "visualPartId": "arduino-micro",
+      "agentPartId": "arduino-micro",
+      "status": "agent-ready",
+      "reason": "Arduino Micro maps to the WP-08 controller-board context model for visual pin-map and voltage-domain simulation."
+    },
+    {
+      "visualPartId": "arduino-pro-mini",
+      "agentPartId": "arduino-pro-mini",
+      "status": "agent-ready",
+      "reason": "Arduino Pro Mini maps to the WP-08 controller-board context model for visual pin-map and voltage-domain simulation."
+    },
+    {
+      "visualPartId": "attiny85-board",
+      "agentPartId": "attiny85-board",
+      "status": "agent-ready",
+      "reason": "ATtiny85 Digispark maps to the WP-08 controller-board context model for visual pin-map and voltage-domain simulation."
+    },
+    {
+      "visualPartId": "esp32-devkit",
+      "agentPartId": "esp32-devkit",
+      "status": "agent-ready",
+      "reason": "ESP32 DevKit V1 maps to the WP-08 controller-board context model for visual pin-map and voltage-domain simulation."
+    },
+    {
+      "visualPartId": "esp8266-nodemcu",
+      "agentPartId": "esp8266-nodemcu",
+      "status": "agent-ready",
+      "reason": "NodeMCU ESP8266 maps to the WP-08 controller-board context model for visual pin-map and voltage-domain simulation."
+    },
+    {
+      "visualPartId": "raspberry-pi-pico",
+      "agentPartId": "raspberry-pi-pico",
+      "status": "agent-ready",
+      "reason": "Raspberry Pi Pico maps to the WP-08 controller-board context model for visual pin-map and voltage-domain simulation."
+    },
+    {
+      "visualPartId": "stm32-bluepill",
+      "agentPartId": "stm32-bluepill",
+      "status": "agent-ready",
+      "reason": "STM32 Blue Pill maps to the WP-08 controller-board context model for visual pin-map and voltage-domain simulation."
+    },
+    {
+      "visualPartId": "teensy40",
+      "agentPartId": "teensy40",
+      "status": "agent-ready",
+      "reason": "Teensy 4.0 maps to the WP-08 controller-board context model for visual pin-map and voltage-domain simulation."
+    },
+    {
       "visualPartId": "breadboard-half",
       "agentPartId": "breadboard-half",
       "status": "agent-ready",
@@ -19,6 +85,24 @@
       "agentPartId": "oled-i2c-096",
       "status": "agent-ready",
       "reason": "The visual 0.96 inch I2C OLED matches the canonical four-pin OLED display module."
+    },
+    {
+      "visualPartId": "lcd-20x4",
+      "agentPartId": "lcd-20x4",
+      "status": "agent-ready",
+      "reason": "The visual 20x4 LCD maps to the canonical four-pin I2C character display model."
+    },
+    {
+      "visualPartId": "lcd-16x2",
+      "agentPartId": "lcd-16x2",
+      "status": "agent-ready",
+      "reason": "The visual 16x2 LCD maps to the canonical four-pin I2C character display model."
+    },
+    {
+      "visualPartId": "oled-13-i2c",
+      "agentPartId": "oled-13-i2c",
+      "status": "agent-ready",
+      "reason": "The visual 1.3 inch I2C OLED maps to the canonical four-pin I2C text display model."
     },
     {
       "visualPartId": "led-5mm-red",
@@ -63,10 +147,646 @@
       "reason": "The visual SG90 servo maps to the canonical micro servo educational model."
     },
     {
+      "visualPartId": "mg996r-servo",
+      "agentPartId": "mg996r-servo",
+      "status": "agent-ready",
+      "reason": "The visual MG996R servo maps to the canonical high-torque PWM servo model with external-power warning."
+    },
+    {
+      "visualPartId": "potentiometer",
+      "agentPartId": "potentiometer-10k",
+      "status": "agent-ready",
+      "reason": "The visual 10K potentiometer maps to the canonical analog voltage-divider input model."
+    },
+    {
+      "visualPartId": "trimmer-pot",
+      "agentPartId": "trimmer-pot",
+      "status": "agent-ready",
+      "reason": "The visual trimmer potentiometer maps to the canonical low-voltage adjustable divider input model."
+    },
+    {
+      "visualPartId": "ldr-module",
+      "agentPartId": "photoresistor-ldr",
+      "status": "agent-ready",
+      "reason": "The visual LDR module maps to the canonical low-voltage analog light-sensor module model."
+    },
+    {
+      "visualPartId": "ultrasonic-hcsr04",
+      "agentPartId": "ultrasonic-hc-sr04",
+      "status": "agent-ready",
+      "reason": "The visual HC-SR04 module maps to the canonical timed-pulse ultrasonic distance sensor model."
+    },
+    {
+      "visualPartId": "dht11",
+      "agentPartId": "dht11",
+      "status": "agent-ready",
+      "reason": "The visual DHT11 module maps to the canonical single-wire temperature and humidity sensor readout model."
+    },
+    {
+      "visualPartId": "dht22",
+      "agentPartId": "dht22",
+      "status": "agent-ready",
+      "reason": "The visual DHT22 module maps to the canonical single-wire temperature and humidity sensor readout model."
+    },
+    {
+      "visualPartId": "bmp280",
+      "agentPartId": "bmp280",
+      "status": "agent-ready",
+      "reason": "The visual BMP280 module maps to the canonical I2C protocol sensor display readout model."
+    },
+    {
+      "visualPartId": "mpu6050",
+      "agentPartId": "mpu6050",
+      "status": "agent-ready",
+      "reason": "The visual MPU-6050 module maps to the canonical I2C motion sensor display readout model."
+    },
+    {
+      "visualPartId": "hmc5883l",
+      "agentPartId": "hmc5883l",
+      "status": "agent-ready",
+      "reason": "The visual HMC5883L module maps to the canonical I2C compass sensor display readout model."
+    },
+    {
+      "visualPartId": "hx711-loadcell",
+      "agentPartId": "hx711-loadcell",
+      "status": "agent-ready",
+      "reason": "The visual HX711 load-cell amplifier maps to the canonical clocked-data sensor display readout model."
+    },
+    {
+      "visualPartId": "gps-neo6m",
+      "agentPartId": "gps-neo6m",
+      "status": "agent-ready",
+      "reason": "The visual NEO-6M GPS module maps to the canonical UART protocol sensor display readout model with tracking/navigation restrictions."
+    },
+    {
+      "visualPartId": "rc522-rfid",
+      "agentPartId": "rc522-rfid",
+      "status": "agent-ready",
+      "reason": "The visual RC522 RFID module maps to the canonical SPI protocol sensor display readout model with security/payment restrictions."
+    },
+    {
+      "visualPartId": "max30102-pulse",
+      "agentPartId": "max30102-pulse",
+      "status": "agent-ready",
+      "reason": "The visual MAX30102 module maps to the canonical I2C protocol sensor display readout model with non-medical restrictions."
+    },
+    {
+      "visualPartId": "esp01-wifi",
+      "agentPartId": "esp01-wifi",
+      "status": "agent-ready",
+      "reason": "The visual ESP-01 WiFi module maps to the canonical UART communication command-state model with network overclaim restrictions."
+    },
+    {
+      "visualPartId": "hc05-bluetooth",
+      "agentPartId": "hc05-bluetooth",
+      "status": "agent-ready",
+      "reason": "The visual HC-05 Bluetooth module maps to the canonical UART communication command-state model."
+    },
+    {
+      "visualPartId": "sim800l-gsm",
+      "agentPartId": "sim800l-gsm",
+      "status": "agent-ready",
+      "reason": "The visual SIM800L GSM module maps to the canonical UART communication command-state model with high-current power warnings."
+    },
+    {
+      "visualPartId": "lora-ra02",
+      "agentPartId": "lora-ra02",
+      "status": "agent-ready",
+      "reason": "The visual LoRa Ra-02 module maps to the canonical SPI communication command-state model with RF overclaim restrictions."
+    },
+    {
+      "visualPartId": "nrf24l01-radio",
+      "agentPartId": "nrf24l01-radio",
+      "status": "agent-ready",
+      "reason": "The visual NRF24L01 radio module maps to the canonical SPI communication command-state model with RF overclaim restrictions."
+    },
+    {
+      "visualPartId": "mcp2515-can",
+      "agentPartId": "mcp2515-can",
+      "status": "agent-ready",
+      "reason": "The visual MCP2515 CAN module maps to the canonical SPI communication module model."
+    },
+    {
+      "visualPartId": "rs485-module",
+      "agentPartId": "rs485-module",
+      "status": "agent-ready",
+      "reason": "The visual RS-485 transceiver module maps to the canonical differential bus communication model."
+    },
+    {
+      "visualPartId": "usb-host-shield",
+      "agentPartId": "usb-host-shield",
+      "status": "agent-ready",
+      "reason": "The visual USB Host Shield Mini maps to the canonical SPI communication command-state model with USB enumeration overclaim restrictions."
+    },
+    {
       "visualPartId": "dupont-jumper-wires",
       "agentPartId": "jumper-wire",
       "status": "agent-ready",
       "reason": "The visual Dupont jumper set maps to the canonical jumper wire connection model."
+    },
+    {
+      "visualPartId": "soil-moisture",
+      "agentPartId": "soil-moisture",
+      "status": "agent-ready",
+      "reason": "The visual Soil moisture sensor module maps to the canonical low-voltage analog sensor module model for educational readout and threshold simulations."
+    },
+    {
+      "visualPartId": "water-level-sensor",
+      "agentPartId": "water-level-sensor",
+      "status": "agent-ready",
+      "reason": "The visual Water level sensor module maps to the canonical low-voltage analog sensor module model for educational readout and threshold simulations."
+    },
+    {
+      "visualPartId": "tmp36-temp",
+      "agentPartId": "tmp36-temp",
+      "status": "agent-ready",
+      "reason": "The visual TMP36 analog temperature sensor maps to the canonical low-voltage analog sensor module model for educational readout and threshold simulations."
+    },
+    {
+      "visualPartId": "acs712-current",
+      "agentPartId": "acs712-current",
+      "status": "agent-ready",
+      "reason": "The visual ACS712 current sensor module maps to the canonical low-voltage analog sensor module model for educational readout and threshold simulations."
+    },
+    {
+      "visualPartId": "rain-sensor",
+      "agentPartId": "rain-sensor",
+      "status": "agent-ready",
+      "reason": "The visual Rain sensor module maps to the canonical low-voltage analog sensor module model for educational readout and threshold simulations."
+    },
+    {
+      "visualPartId": "flame-sensor",
+      "agentPartId": "flame-sensor",
+      "status": "agent-ready",
+      "reason": "The visual Flame sensor module maps to the canonical low-voltage analog sensor module model for educational readout and threshold simulations."
+    },
+    {
+      "visualPartId": "mq2-gas",
+      "agentPartId": "mq2-gas",
+      "status": "agent-ready",
+      "reason": "The visual MQ-2 gas sensor module maps to the canonical low-voltage analog sensor module model for educational readout and threshold simulations."
+    },
+    {
+      "visualPartId": "sound-sensor",
+      "agentPartId": "sound-sensor",
+      "status": "agent-ready",
+      "reason": "The visual Sound sensor module maps to the canonical low-voltage analog sensor module model for educational readout and threshold simulations."
+    },
+    {
+      "visualPartId": "fsr-pressure",
+      "agentPartId": "fsr-pressure",
+      "status": "agent-ready",
+      "reason": "The visual FSR pressure sensor maps to the canonical two-pin resistive sensor model when paired with a fixed divider resistor."
+    },
+    {
+      "visualPartId": "thermistor-ntc",
+      "agentPartId": "thermistor-ntc",
+      "status": "agent-ready",
+      "reason": "The visual NTC thermistor maps to the canonical two-pin resistive sensor model when paired with a fixed divider resistor."
+    },
+    {
+      "visualPartId": "limit-switch",
+      "agentPartId": "limit-switch",
+      "status": "agent-ready",
+      "reason": "The visual Limit switch maps to the canonical low-voltage digital input model for deterministic state simulation."
+    },
+    {
+      "visualPartId": "reed-switch",
+      "agentPartId": "reed-switch",
+      "status": "agent-ready",
+      "reason": "The visual Reed switch maps to the canonical low-voltage digital input model for deterministic state simulation."
+    },
+    {
+      "visualPartId": "slide-switch",
+      "agentPartId": "slide-switch",
+      "status": "agent-ready",
+      "reason": "The visual Slide switch maps to the canonical low-voltage digital input model for deterministic state simulation."
+    },
+    {
+      "visualPartId": "toggle-switch",
+      "agentPartId": "toggle-switch",
+      "status": "agent-ready",
+      "reason": "The visual Toggle switch maps to the canonical low-voltage digital input model for deterministic state simulation."
+    },
+    {
+      "visualPartId": "ttp223-touch",
+      "agentPartId": "ttp223-touch",
+      "status": "agent-ready",
+      "reason": "The visual TTP223 capacitive touch sensor maps to the canonical low-voltage digital input model for deterministic state simulation."
+    },
+    {
+      "visualPartId": "hall-effect-sensor",
+      "agentPartId": "hall-effect-sensor",
+      "status": "agent-ready",
+      "reason": "The visual Hall effect sensor maps to the canonical low-voltage digital input model for deterministic state simulation."
+    },
+    {
+      "visualPartId": "ir-receiver",
+      "agentPartId": "ir-receiver",
+      "status": "agent-ready",
+      "reason": "The visual IR receiver module maps to the canonical low-voltage digital input model for deterministic state simulation."
+    },
+    {
+      "visualPartId": "line-tracker",
+      "agentPartId": "line-tracker",
+      "status": "agent-ready",
+      "reason": "The visual Line tracking sensor maps to the canonical low-voltage digital input model for deterministic state simulation."
+    },
+    {
+      "visualPartId": "pir-hc-sr501",
+      "agentPartId": "pir-hc-sr501",
+      "status": "agent-ready",
+      "reason": "The visual PIR motion sensor HC-SR501 maps to the canonical low-voltage digital input model for deterministic state simulation."
+    },
+    {
+      "visualPartId": "sw420-vibration",
+      "agentPartId": "sw420-vibration",
+      "status": "agent-ready",
+      "reason": "The visual SW-420 vibration sensor maps to the canonical low-voltage digital input model for deterministic state simulation."
+    },
+    {
+      "visualPartId": "tilt-ball-sensor",
+      "agentPartId": "tilt-ball-sensor",
+      "status": "agent-ready",
+      "reason": "The visual Tilt ball sensor module maps to the canonical low-voltage digital input model for deterministic state simulation."
+    },
+    {
+      "visualPartId": "tcs3200-color",
+      "agentPartId": "tcs3200-color",
+      "status": "agent-ready",
+      "reason": "The visual TCS3200 color sensor maps to the canonical low-voltage digital input model for deterministic state simulation."
+    },
+    {
+      "visualPartId": "dip-switch-4",
+      "agentPartId": "dip-switch-4",
+      "status": "agent-ready",
+      "reason": "The visual 4-way DIP switch maps to the canonical low-voltage matrix-or-multi-input model for deterministic qualitative input simulation."
+    },
+    {
+      "visualPartId": "keypad-4x4",
+      "agentPartId": "keypad-4x4",
+      "status": "agent-ready",
+      "reason": "The visual 4x4 matrix keypad maps to the canonical low-voltage matrix-or-multi-input model for deterministic qualitative input simulation."
+    },
+    {
+      "visualPartId": "membrane-keypad-1x4",
+      "agentPartId": "membrane-keypad-1x4",
+      "status": "agent-ready",
+      "reason": "The visual 1x4 membrane keypad maps to the canonical low-voltage matrix-or-multi-input model for deterministic qualitative input simulation."
+    },
+    {
+      "visualPartId": "joystick-module",
+      "agentPartId": "joystick-module",
+      "status": "agent-ready",
+      "reason": "The visual Analog joystick module maps to the canonical low-voltage human-input-analog model for deterministic qualitative input simulation."
+    },
+    {
+      "visualPartId": "rotary-encoder",
+      "agentPartId": "rotary-encoder",
+      "status": "agent-ready",
+      "reason": "The visual Rotary encoder module maps to the canonical low-voltage human-input-analog model for deterministic qualitative input simulation."
+    },
+    {
+      "visualPartId": "7seg-1digit",
+      "agentPartId": "7seg-1digit",
+      "status": "agent-ready",
+      "reason": "The visual 1-digit 7-segment display maps to the canonical bare current-limited segment display model."
+    },
+    {
+      "visualPartId": "7seg-4digit-tm1637",
+      "agentPartId": "7seg-4digit-tm1637",
+      "status": "agent-ready",
+      "reason": "The visual TM1637 4-digit display maps to the canonical powered LED-array display module model."
+    },
+    {
+      "visualPartId": "8x8-matrix-max7219",
+      "agentPartId": "8x8-matrix-max7219",
+      "status": "agent-ready",
+      "reason": "The visual MAX7219 8x8 LED matrix maps to the canonical powered LED-array display module model."
+    },
+    {
+      "visualPartId": "neopixel-ring-12",
+      "agentPartId": "neopixel-ring-12",
+      "status": "agent-ready",
+      "reason": "The visual NeoPixel ring maps to the canonical powered addressable LED display model with a current warning."
+    },
+    {
+      "visualPartId": "tft-18",
+      "agentPartId": "tft-18",
+      "reason": "The visual TFT LCD 1.8 inch SPI display maps to the canonical low-voltage SPI display module model.",
+      "status": "agent-ready"
+    },
+    {
+      "visualPartId": "nokia-5110",
+      "agentPartId": "nokia-5110",
+      "reason": "The visual Nokia 5110 LCD SPI display maps to the canonical low-voltage SPI display module model.",
+      "status": "agent-ready"
+    },
+    {
+      "visualPartId": "epaper-213",
+      "agentPartId": "epaper-213",
+      "reason": "The visual E-Paper 2.13 inch SPI display maps to the canonical low-voltage SPI display module model.",
+      "status": "agent-ready"
+    },
+    {
+      "visualPartId": "active-buzzer",
+      "agentPartId": "active-buzzer",
+      "status": "agent-ready",
+      "reason": "The visual active buzzer maps to the canonical fixed-tone low-current buzzer output model."
+    },
+    {
+      "visualPartId": "rgb-led-common-cathode",
+      "agentPartId": "rgb-led-common-cathode",
+      "status": "agent-ready",
+      "reason": "The visual common-cathode RGB LED maps to the canonical three-channel current-limited RGB light output model."
+    },
+    {
+      "visualPartId": "laser-diode-module",
+      "agentPartId": "laser-diode-module",
+      "status": "agent-ready",
+      "reason": "The visual laser diode module maps to the canonical powered low-voltage light module model with a safety warning."
+    },
+    {
+      "visualPartId": "ws2812b-strip",
+      "agentPartId": "ws2812b-strip",
+      "status": "agent-ready",
+      "reason": "The visual WS2812B strip maps to the canonical powered addressable LED display model with a current warning."
+    },
+    {
+      "visualPartId": "2n2222-npn",
+      "agentPartId": "2n2222-npn",
+      "status": "agent-ready",
+      "reason": "The visual 2N2222 transistor maps to the canonical discrete low-side switch model with base-resistor and inductive-load warnings."
+    },
+    {
+      "visualPartId": "irf520-mosfet",
+      "agentPartId": "irf520-mosfet",
+      "status": "agent-ready",
+      "reason": "The visual IRF520 MOSFET module maps to the canonical low-side driver module for low-voltage switched loads."
+    },
+    {
+      "visualPartId": "dc-motor-130",
+      "agentPartId": "dc-motor-130",
+      "status": "agent-ready",
+      "reason": "The visual DC Motor 130 maps to the canonical low-side switched inductive load model."
+    },
+    {
+      "visualPartId": "dc-fan-5v",
+      "agentPartId": "dc-fan-5v",
+      "status": "agent-ready",
+      "reason": "The visual 5V DC fan maps to the canonical low-side switched fan load model."
+    },
+    {
+      "visualPartId": "mini-water-pump",
+      "agentPartId": "mini-water-pump",
+      "status": "agent-ready",
+      "reason": "The visual mini water pump maps to the canonical qualitative low-side switched pump load model."
+    },
+    {
+      "visualPartId": "solenoid-valve",
+      "agentPartId": "solenoid-valve",
+      "status": "agent-ready",
+      "reason": "The visual solenoid valve maps to the canonical qualitative low-side switched inductive load model."
+    },
+    {
+      "visualPartId": "vibration-motor",
+      "agentPartId": "vibration-motor",
+      "status": "agent-ready",
+      "reason": "The visual vibration motor module maps to the canonical low-voltage logic-controlled haptic load model."
+    },
+    {
+      "visualPartId": "stepper-28byj48",
+      "agentPartId": "stepper-28byj48",
+      "status": "agent-ready",
+      "reason": "The visual 28BYJ-48 stepper maps to the canonical ULN2003-driven qualitative stepper model."
+    },
+    {
+      "visualPartId": "nema17-stepper",
+      "agentPartId": "nema17-stepper",
+      "status": "agent-ready",
+      "reason": "The visual NEMA 17 stepper maps to the canonical STEP/DIR driver qualitative stepper model."
+    },
+    {
+      "visualPartId": "uln2003-driver",
+      "agentPartId": "uln2003-driver",
+      "status": "agent-ready",
+      "reason": "The visual ULN2003 module maps to the canonical unipolar stepper driver model."
+    },
+    {
+      "visualPartId": "a4988-stepper",
+      "agentPartId": "a4988-stepper",
+      "status": "agent-ready",
+      "reason": "The visual A4988 module maps to the canonical STEP/DIR bipolar stepper driver model."
+    },
+    {
+      "visualPartId": "drv8825-stepper",
+      "agentPartId": "drv8825-stepper",
+      "status": "agent-ready",
+      "reason": "The visual DRV8825 module maps to the canonical STEP/DIR bipolar stepper driver model."
+    },
+    {
+      "visualPartId": "l293d-driver",
+      "agentPartId": "l293d-driver",
+      "status": "agent-ready",
+      "reason": "The visual L293D motor driver IC maps to the canonical H-bridge DC motor driver model."
+    },
+    {
+      "visualPartId": "l298n-driver",
+      "agentPartId": "l298n-driver",
+      "status": "agent-ready",
+      "reason": "The visual L298N motor driver maps to the canonical H-bridge DC motor driver module model."
+    },
+    {
+      "visualPartId": "relay-1ch",
+      "agentPartId": "relay-1ch",
+      "status": "agent-ready",
+      "reason": "The visual 1-channel relay maps to the canonical low-voltage relay contact simulation model with mains loads blocked."
+    },
+    {
+      "visualPartId": "relay-4ch",
+      "agentPartId": "relay-4ch",
+      "status": "agent-ready",
+      "reason": "The visual 4-channel relay maps to the canonical low-voltage relay contact simulation model with mains loads blocked."
+    },
+    {
+      "visualPartId": "breadboard-psu",
+      "agentPartId": "breadboard-psu",
+      "status": "agent-ready",
+      "reason": "The visual breadboard power supply maps to the canonical qualitative low-voltage rail source model."
+    },
+    {
+      "visualPartId": "9v-battery-clip",
+      "agentPartId": "9v-battery-clip",
+      "status": "agent-ready",
+      "reason": "The visual 9V battery clip maps to the canonical declared low-voltage external source model with power-warning."
+    },
+    {
+      "visualPartId": "aa-battery-holder",
+      "agentPartId": "aa-battery-holder",
+      "status": "agent-ready",
+      "reason": "The visual 4xAA battery holder maps to the canonical qualitative low-voltage battery rail source model."
+    },
+    {
+      "visualPartId": "barrel-jack",
+      "agentPartId": "barrel-jack",
+      "status": "agent-ready",
+      "reason": "The visual barrel jack maps to the canonical declared low-voltage power connector model with mains blocked."
+    },
+    {
+      "visualPartId": "screw-terminal-2pin",
+      "agentPartId": "screw-terminal-2pin",
+      "status": "agent-ready",
+      "reason": "The visual 2-pin screw terminal maps to the canonical low-voltage positive/ground connector model."
+    },
+    {
+      "visualPartId": "7805-regulator",
+      "agentPartId": "7805-regulator",
+      "status": "agent-ready",
+      "reason": "The visual 7805 regulator maps to the canonical qualitative regulated 5V rail topology."
+    },
+    {
+      "visualPartId": "lipo-battery-1s",
+      "agentPartId": "lipo-battery-1s",
+      "status": "agent-ready",
+      "reason": "The visual 1S LiPo battery maps to the canonical low-voltage power-warning rail source model."
+    },
+    {
+      "visualPartId": "ceramic-cap",
+      "agentPartId": "ceramic-cap",
+      "status": "agent-ready",
+      "reason": "The visual ceramic capacitor maps to the canonical state-only low-voltage passive context model."
+    },
+    {
+      "visualPartId": "electrolytic-cap",
+      "agentPartId": "electrolytic-cap",
+      "status": "agent-ready",
+      "reason": "The visual electrolytic capacitor maps to the canonical polarized passive context model."
+    },
+    {
+      "visualPartId": "diode-1n4007",
+      "agentPartId": "diode-1n4007",
+      "status": "agent-ready",
+      "reason": "The visual 1N4007 diode maps to the canonical state-only diode protection context model."
+    },
+    {
+      "visualPartId": "schottky-diode",
+      "agentPartId": "schottky-diode",
+      "status": "agent-ready",
+      "reason": "The visual Schottky diode maps to the canonical state-only polarized protection context model."
+    },
+    {
+      "visualPartId": "zener-diode",
+      "agentPartId": "zener-diode",
+      "status": "agent-ready",
+      "reason": "The visual Zener diode maps to the canonical state-only clamp context model."
+    },
+    {
+      "visualPartId": "polyfuse",
+      "agentPartId": "polyfuse",
+      "status": "agent-ready",
+      "reason": "The visual polyfuse maps to the canonical state-only fuse protection context model."
+    },
+    {
+      "visualPartId": "inductor-axial",
+      "agentPartId": "inductor-axial",
+      "status": "agent-ready",
+      "reason": "The visual axial inductor maps to the canonical state-only filter/passive context model."
+    },
+    {
+      "visualPartId": "crystal-16mhz",
+      "agentPartId": "crystal-16mhz",
+      "status": "agent-ready",
+      "reason": "The visual 16 MHz crystal maps to the canonical state-only timing passive context model."
+    },
+    {
+      "visualPartId": "breadboard-full",
+      "agentPartId": "breadboard-full",
+      "status": "agent-ready",
+      "reason": "The visual full-size breadboard maps to the canonical state-only prototyping surface context model."
+    },
+    {
+      "visualPartId": "breadboard-mini",
+      "agentPartId": "breadboard-mini",
+      "status": "agent-ready",
+      "reason": "The visual mini breadboard maps to the canonical compact prototyping surface context model."
+    },
+    {
+      "visualPartId": "perfboard-5x7",
+      "agentPartId": "perfboard-5x7",
+      "status": "agent-ready",
+      "reason": "The visual perfboard maps to the canonical state-only soldered prototyping surface context model without implicit breadboard continuity."
+    },
+    {
+      "visualPartId": "pcb-blank-single",
+      "agentPartId": "pcb-blank-single",
+      "status": "agent-ready",
+      "reason": "The visual blank PCB maps to the canonical state-only PCB layout context model without inferred traces."
+    },
+    {
+      "visualPartId": "proto-shield-uno",
+      "agentPartId": "proto-shield-uno",
+      "status": "agent-ready",
+      "reason": "The visual Uno prototype shield maps to the canonical state-only prototyping shield context model, not a standalone controller."
+    },
+    {
+      "visualPartId": "header-male-40pin",
+      "agentPartId": "header-male-40pin",
+      "status": "agent-ready",
+      "reason": "The visual male header maps to the canonical state-only connector context model without implicit pass-through nets."
+    },
+    {
+      "visualPartId": "header-female-40pin",
+      "agentPartId": "header-female-40pin",
+      "status": "agent-ready",
+      "reason": "The visual female header maps to the canonical state-only connector context model without implicit pass-through nets."
+    },
+    {
+      "visualPartId": "screw-terminal-4pin",
+      "agentPartId": "screw-terminal-4pin",
+      "status": "agent-ready",
+      "reason": "The visual 4-pin screw terminal maps to the canonical low-voltage connector context model and is not treated as a power source."
+    },
+    {
+      "visualPartId": "74hc595-shift",
+      "agentPartId": "74hc595-shift",
+      "status": "agent-ready",
+      "reason": "The visual 74HC595 shift register maps to the canonical qualitative logic-interface state model without inferring hidden parallel output loads."
+    },
+    {
+      "visualPartId": "pcf8574-expander",
+      "agentPartId": "pcf8574-expander",
+      "status": "agent-ready",
+      "reason": "The visual PCF8574 I2C expander maps to the canonical qualitative I2C interface state model without inferring unshown expanded GPIO loads."
+    },
+    {
+      "visualPartId": "ads1115-adc",
+      "agentPartId": "ads1115-adc",
+      "status": "agent-ready",
+      "reason": "The visual ADS1115 ADC module maps to the canonical qualitative external ADC interface model, not calibrated precision measurement."
+    },
+    {
+      "visualPartId": "mcp3008-adc",
+      "agentPartId": "mcp3008-adc",
+      "status": "agent-ready",
+      "reason": "The visual MCP3008 SPI ADC maps to the canonical qualitative SPI ADC state model without inferring hidden channel pins."
+    },
+    {
+      "visualPartId": "ne555-timer",
+      "agentPartId": "ne555-timer",
+      "status": "agent-ready",
+      "reason": "The visual NE555 timer maps to the canonical qualitative timing-interface state model without exact RC frequency simulation."
+    },
+    {
+      "visualPartId": "lm358-opamp",
+      "agentPartId": "lm358-opamp",
+      "status": "agent-ready",
+      "reason": "The visual LM358 op-amp maps to the canonical qualitative analog-interface state model without precision op-amp design claims."
+    },
+    {
+      "visualPartId": "i2c-level-shifter",
+      "agentPartId": "i2c-level-shifter",
+      "status": "agent-ready",
+      "reason": "The visual I2C level shifter maps to the canonical qualitative voltage-domain interface model for the exposed high/low signal pair."
     }
   ]
 }

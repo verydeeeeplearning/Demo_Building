@@ -1,0 +1,281 @@
+[
+  {
+    "id": "analog-sensor-display-readout",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "analog sensor display",
+      "sensor value on oled",
+      "show sensor value",
+      "soil moisture display",
+      "water level display",
+      "tmp36 display",
+      "mq2 display",
+      "sound sensor display",
+      "fsr pressure display",
+      "force sensitive resistor display",
+      "thermistor display",
+      "ntc thermistor display",
+      "resistive sensor display"
+    ],
+    "requiredEvidence": [
+      "analog sensor",
+      "soil moisture",
+      "water level",
+      "tmp36",
+      "rain sensor",
+      "sound sensor",
+      "flame sensor",
+      "mq2",
+      "acs712",
+      "fsr",
+      "force sensitive resistor",
+      "pressure sensor",
+      "thermistor",
+      "ntc",
+      "resistive sensor"
+    ],
+    "negativeEvidence": [
+      "dht11",
+      "dht22",
+      "bmp280",
+      "ultrasonic",
+      "distance sensor",
+      "distance display",
+      "temperature humidity",
+      "current flow on screen",
+      "calibrated safety alarm",
+      "mains current"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "show sensor value",
+      "sensor value on oled",
+      "soil moisture on oled",
+      "water level on oled",
+      "tmp36 on oled",
+      "센서값 표시",
+      "센서 값을 OLED에 표시",
+      "show FSR pressure on OLED",
+      "show thermistor value on OLED",
+      "압력 센서 값을 OLED에 표시",
+      "서미스터 값을 OLED에 표시"
+    ],
+    "inputModalities": [
+      "analog-sensor",
+      "analog"
+    ],
+    "outputModalities": [
+      "display",
+      "sensor-value"
+    ],
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "analog-input",
+      "analog-sensor",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "oled-i2c-096"
+    ],
+    "optionalParts": [
+      "soil-moisture",
+      "water-level-sensor",
+      "tmp36-temp",
+      "acs712-current",
+      "rain-sensor",
+      "flame-sensor",
+      "mq2-gas",
+      "sound-sensor",
+      "jumper-wire",
+      "fsr-pressure",
+      "thermistor-ntc",
+      "resistor-10k"
+    ],
+    "protocols": [
+      "analog-input",
+      "i2c",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "display_sensor_value",
+      "display_static_text",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "analog-sensor-module-4pin",
+      "analog-sensor-module-3pin",
+      "oled",
+      "wire",
+      "resistive-sensor-2pin",
+      "resistor"
+    ],
+    "validationRules": [
+      "analog-input-pin-exists",
+      "i2c-pin-role-match",
+      "common-ground",
+      "power-rail-valid",
+      "resistive-sensor-divider-required",
+      "qualitative-sensor-readout-only"
+    ],
+    "commonMistakes": [
+      "Using DO instead of AO for the analog readout",
+      "Missing sensor VCC/GND",
+      "Expecting calibrated safety-grade readings",
+      "Inventing VCC/GND/AO pins on a two-pin FSR or thermistor",
+      "Omitting the fixed divider resistor for a resistive sensor"
+    ],
+    "safeAlternatives": [
+      "dht11-temperature-humidity-display",
+      "distance-sensor-display",
+      "display-text-output"
+    ]
+  },
+  {
+    "id": "analog-sensor-threshold-output",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "analog sensor threshold led",
+      "sensor turns on led",
+      "rain sensor led",
+      "sound sensor led",
+      "soil moisture led",
+      "when sensor value",
+      "fsr pressure threshold led",
+      "thermistor threshold led",
+      "force sensitive resistor turns on led",
+      "resistive sensor threshold led"
+    ],
+    "requiredEvidence": [
+      "analog sensor",
+      "rain sensor",
+      "sound sensor",
+      "soil moisture",
+      "water level",
+      "tmp36",
+      "flame sensor",
+      "mq2",
+      "acs712",
+      "fsr",
+      "force sensitive resistor",
+      "pressure sensor",
+      "thermistor",
+      "ntc",
+      "resistive sensor"
+    ],
+    "negativeEvidence": [
+      "photoresistor",
+      "light sensor",
+      "dht11",
+      "ultrasonic",
+      "distance sensor",
+      "display only",
+      "safety alarm",
+      "home protection",
+      "mains current",
+      "oled",
+      "display",
+      "screen",
+      "show sensor value",
+      "sensor value on oled",
+      "readout"
+    ],
+    "minimumScore": 0.72,
+    "studentPhrases": [
+      "when sensor value crosses threshold turn on led",
+      "rain sensor turns on led",
+      "sound sensor turns on led",
+      "센서값 기준 LED",
+      "센서 임계값으로 LED",
+      "when FSR pressure changes turn on LED",
+      "when thermistor value crosses threshold turn on LED",
+      "압력 센서 기준 LED",
+      "서미스터 기준 LED"
+    ],
+    "inputModalities": [
+      "analog-sensor",
+      "analog"
+    ],
+    "outputModalities": [
+      "light",
+      "threshold"
+    ],
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "analog-input",
+      "analog-sensor",
+      "digital-output",
+      "series-current-limit",
+      "dc-load"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "led-5mm",
+      "resistor-220"
+    ],
+    "optionalParts": [
+      "soil-moisture",
+      "water-level-sensor",
+      "tmp36-temp",
+      "acs712-current",
+      "rain-sensor",
+      "flame-sensor",
+      "mq2-gas",
+      "sound-sensor",
+      "jumper-wire",
+      "fsr-pressure",
+      "thermistor-ntc",
+      "resistor-10k"
+    ],
+    "protocols": [
+      "analog-input",
+      "gpio",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "analog_threshold",
+      "digital_on_off",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "analog-sensor-module-4pin",
+      "analog-sensor-module-3pin",
+      "led",
+      "resistor",
+      "wire",
+      "resistive-sensor-2pin"
+    ],
+    "validationRules": [
+      "analog-input-pin-exists",
+      "threshold-defined",
+      "series-current-limit",
+      "common-ground",
+      "power-rail-valid",
+      "resistive-sensor-divider-required",
+      "qualitative-sensor-readout-only"
+    ],
+    "commonMistakes": [
+      "Skipping the LED resistor",
+      "Wiring AO to a digital output pin",
+      "Treating an educational threshold as a safety alarm",
+      "Inventing VCC/GND/AO pins on a two-pin FSR or thermistor",
+      "Omitting the fixed divider resistor for a resistive sensor"
+    ],
+    "safeAlternatives": [
+      "light-sensor-triggered-output",
+      "button-controlled-light-output"
+    ]
+  }
+]

@@ -1,0 +1,168 @@
+[
+  {
+    "id": "controller-rgb-led-current-limited-output",
+    "label": "Controller to common-cathode RGB LED",
+    "description": "A controller drives one or more RGB LED color anodes through separate current-limiting resistors while the common cathode returns to ground.",
+    "requiredRoles": [
+      "controller",
+      "digital-output",
+      "series-current-limit",
+      "multi-channel-light-output",
+      "ground-return"
+    ],
+    "nets": [
+      {
+        "id": "red-channel-drive",
+        "kind": "signal"
+      },
+      {
+        "id": "green-channel-drive",
+        "kind": "signal"
+      },
+      {
+        "id": "blue-channel-drive",
+        "kind": "signal"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "red-channel-drive",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "series-current-limit.input",
+        "toNet": "red-channel-drive",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "multi-channel-light-output.channel-anode",
+        "toNet": "red-channel-drive",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "green-channel-drive",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "series-current-limit.input",
+        "toNet": "green-channel-drive",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "multi-channel-light-output.channel-anode",
+        "toNet": "green-channel-drive",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "blue-channel-drive",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "series-current-limit.input",
+        "toNet": "blue-channel-drive",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "multi-channel-light-output.channel-anode",
+        "toNet": "blue-channel-drive",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "multi-channel-light-output.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      }
+    ],
+    "validationRules": [
+      "common-ground",
+      "rgb-led-common-ground",
+      "rgb-led-channel-resistor",
+      "series-current-limit"
+    ],
+    "simulationPrimitiveHints": [
+      "rgb_led_color_mix",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-powered-light-module-output",
+    "label": "Controller to powered light module",
+    "description": "A controller powers a low-voltage light module, shares ground, and uses a digital signal pin for on/off state.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-output",
+      "powered-light-output"
+    ],
+    "nets": [
+      {
+        "id": "vcc",
+        "kind": "power"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      },
+      {
+        "id": "signal",
+        "kind": "signal"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "powered-light-output.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "powered-light-output.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "signal",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "powered-light-output.digital-input",
+        "toNet": "signal",
+        "signal": "gpio"
+      }
+    ],
+    "validationRules": [
+      "common-ground",
+      "power-rail-valid",
+      "powered-light-module-power-rail",
+      "powered-light-module-signal-pin",
+      "powered-light-module-safety-warning"
+    ],
+    "simulationPrimitiveHints": [
+      "powered_light_module_state",
+      "current_flow_animation"
+    ]
+  }
+]

@@ -20,6 +20,7 @@ type PromptEvalRow = {
   expectedCapabilityIds: string[];
   forbiddenCapabilityIds: string[];
   expectedCandidatePartIds: string[];
+  forbiddenCandidatePartIds?: string[];
   expectedInputModalities?: string[];
   expectedOutputModalities?: string[];
   expectedSupportGapPatterns: string[];
@@ -116,6 +117,10 @@ test('generalization eval rows execute through context routing with expected fai
       assert.ok(candidatePartIds.includes(partId), `${row.id} missing candidate part ${partId}`);
     }
 
+    for (const partId of row.forbiddenCandidatePartIds ?? []) {
+      assert.equal(candidatePartIds.includes(partId), false, `${row.id} overmatched candidate part ${partId}`);
+    }
+
     for (const modality of row.expectedInputModalities ?? []) {
       assert.ok(packet.intentHints.inputModalities.includes(modality), `${row.id} missing input modality ${modality}`);
     }
@@ -156,8 +161,11 @@ test('generalization eval rows execute through context routing with expected fai
       assert.equal(packet.contextCoverage.status, 'insufficient', `${row.id} should not pass coverage`);
     }
     if (row.expectedFailureClass === 'ambiguous-request') {
-      assert.equal(packet.contextRoute.routeId, 'ambiguous-minimal', `${row.id} should use minimal clarification route`);
+      assert.equal(packet.contextRoute.routeId, row.expectedContextRouteId, `${row.id} should use minimal clarification route`);
       assert.ok(packet.intentHints.ambiguity.length > 0, `${row.id} should be ambiguous`);
+    }
+    if (row.expectedAmbiguity !== undefined) {
+      assert.equal(packet.intentHints.ambiguity.length > 0, row.expectedAmbiguity, `${row.id} ambiguity flag mismatch`);
     }
     if (row.expectedFailureClass === 'unsafe-request' || row.expectedFailureClass === 'unsupported-request') {
       assert.equal(packet.contextRoute.routeId, 'unsupported-safety', `${row.id} should use unsupported safety route`);
@@ -187,31 +195,35 @@ test('generalization eval report attaches capability promotion blockers for cont
 
   assert.equal(report.totalRows, rows.length);
   assert.equal(report.generatedAt, '2026-06-01T00:00:00.000Z');
-  assert.ok(report.byExpectedFailureClass['context-gap'] > 0);
-  assert.ok(report.byObservedFailureClass['context-gap'] > 0);
+  assert.equal(report.byExpectedFailureClass['context-gap'], 0);
+  assert.equal(report.byObservedFailureClass['context-gap'], 0);
   assert.ok(
-    report.capabilityPromotionGaps.gapsByArtifact.some((gap) => gap.artifact === 'part-capability'),
+    report.capabilityPromotionGaps.gapsByArtifact.some((gap) => gap.artifact === 'source-claims'),
     'report should include capability promotion gap buckets'
   );
 
-  const potentiometerRow = report.rows.find((row) => row.id === 'potentiometer-planned');
-  assert.ok(potentiometerRow, 'potentiometer-planned row should exist');
-  assert.equal(potentiometerRow.expectedContextRouteId, 'planned-capability-gap');
-  assert.equal(potentiometerRow.expectedCoverageStatus, 'insufficient');
-  assert.equal(potentiometerRow.expectedSynthesisEligibility, 'ineligible');
+  const potentiometerRow = report.rows.find((row) => row.id === 'potentiometer-supported');
+  assert.ok(potentiometerRow, 'potentiometer-supported row should exist');
+  assert.equal(potentiometerRow.expectedContextRouteId, 'v2-analog-led-dimmer');
+  assert.equal(potentiometerRow.expectedCoverageStatus, 'sufficient');
+  assert.equal(potentiometerRow.expectedSynthesisEligibility, 'eligible');
   assert.equal(potentiometerRow.expectedContextRouteId, potentiometerRow.contextRouteId);
   assert.equal(potentiometerRow.expectedCoverageStatus, potentiometerRow.contextCoverage.status);
   assert.equal(potentiometerRow.expectedSynthesisEligibility, potentiometerRow.contextCoverage.synthesisEligibility.status);
-  assert.equal(potentiometerRow.contextCoverage.status, 'insufficient');
+  assert.equal(potentiometerRow.contextCoverage.status, 'sufficient');
   assert.ok(potentiometerRow.matchedCapabilityIds.includes('analog-led-dimmer'));
-  assert.ok(
-    potentiometerRow.promotionBlockers.some((blocker) =>
-      blocker.capabilityId === 'analog-led-dimmer'
-      && blocker.missing.includes('part-capability')
-      && blocker.missing.includes('render-footprint')
-    ),
-    'planned potentiometer row should explain why it cannot be promoted to supported synthesis'
-  );
+  assert.equal(potentiometerRow.promotionBlockers.some((blocker) => blocker.capabilityId === 'analog-led-dimmer'), false);
+
+  const dht11Row = report.rows.find((row) => row.id === 'dht11-display-supported');
+  assert.ok(dht11Row, 'dht11-display-supported row should exist');
+  assert.equal(dht11Row.expectedContextRouteId, 'v2-dht11-temperature-humidity-display');
+  assert.equal(dht11Row.expectedCoverageStatus, 'sufficient');
+  assert.equal(dht11Row.expectedSynthesisEligibility, 'eligible');
+  assert.equal(dht11Row.expectedContextRouteId, dht11Row.contextRouteId);
+  assert.equal(dht11Row.contextCoverage.status, 'sufficient');
+  assert.equal(dht11Row.contextCoverage.synthesisEligibility.status, 'eligible');
+  assert.ok(dht11Row.matchedCapabilityIds.includes('dht11-temperature-humidity-display'));
+  assert.deepEqual(dht11Row.promotionBlockers, []);
 });
 
 test('button LED buzzer eval row is promoted to valid render and run synthesis', async () => {

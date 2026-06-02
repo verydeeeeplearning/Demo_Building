@@ -119,8 +119,68 @@ function describeWholeCircuit(circuit, locale) {
 
 function circuitBehaviorProfile(circuit, parts, locale) {
   const circuitText = `${circuit.title} ${circuit.runText} ${parts.map((part) => `${part.type} ${part.label}`).join(' ')}`.toLowerCase();
+  const hasAnalogDimmer = /potentiometer|가변저항|knob|dimmer|brightness|pwm/.test(circuitText);
+  const hasLightSensor = /photoresistor|ldr|light sensor|조도|dark|어두/.test(circuitText);
+  const hasDistanceSensor = /ultrasonic|hc-sr04|distance sensor|거리 센서|초음파|distance:|cm/.test(circuitText);
+  const hasTemperatureHumiditySensor = /dht11|temperature humidity|temperature and humidity|온습도|온도.*습도|humidity.*temperature/.test(circuitText);
   const hasLed = /(^|[^a-z])led([^a-z]|$)|light|blink|깜빡|엘이디/.test(circuitText);
   const hasDisplay = /oled|display|screen|화면|디스플레이/.test(circuitText);
+
+  if (hasAnalogDimmer) {
+    return locale === 'ko'
+      ? {
+          detail: '실행하면 가변저항의 아날로그 값이 Arduino A0로 들어가고, Arduino가 PWM 출력 비율을 바꿔 LED 밝기를 조절합니다.',
+          why: '가변저항 전원/GND/OUT, A0 입력, PWM 출력, 직렬 저항, LED GND return이 모두 맞아야 밝기 조절 경로를 안전하게 검증할 수 있습니다.',
+          missing: '가변저항 신호선이나 PWM-저항-LED-GND 경로 중 하나라도 빠지면 밝기 조절을 검증하거나 전류 흐름을 보여 줄 수 없습니다.'
+        }
+      : {
+          detail: 'When Run is pressed, the potentiometer analog value reaches Arduino A0 and the Arduino changes the PWM duty cycle to adjust LED brightness.',
+          why: 'The potentiometer power/GND/OUT pins, A0 input, PWM output, series resistor, and LED GND return must all match to validate safe brightness control.',
+          missing: 'If the analog signal or PWM-resistor-LED-GND path is missing, the app cannot validate brightness control or show the current flow.'
+        };
+  }
+
+  if (hasLightSensor) {
+    return locale === 'ko'
+      ? {
+          detail: '실행하면 조도 센서의 아날로그 값이 Arduino A0로 들어가고, 어두움 기준을 넘으면 LED 출력 경로가 켜집니다.',
+          why: '센서 전원/GND/AO, A0 입력, 임계값 동작, 직렬 저항, LED GND return이 모두 맞아야 안전한 센서 기반 출력이 됩니다.',
+          missing: '센서 신호선이나 LED 전류 경로가 빠지면 어두울 때 켜지는 동작과 전류 흐름을 검증할 수 없습니다.'
+        }
+      : {
+          detail: 'When Run is pressed, the light sensor analog value reaches Arduino A0; when it crosses the dark threshold, the LED output path turns on.',
+          why: 'Sensor power/GND/AO, A0 input, threshold behavior, the series resistor, and LED GND return must all match for a safe sensor-triggered output.',
+          missing: 'If the sensor signal or LED current path is missing, the dark-triggered behavior and current flow cannot be validated.'
+        };
+  }
+
+  if (hasDistanceSensor) {
+    return locale === 'ko'
+      ? {
+          detail: '실행하면 Arduino가 HC-SR04의 TRIG 핀에 짧은 펄스를 보내고, ECHO 펄스를 D2에서 읽어 거리값을 계산한 뒤 OLED에 표시합니다.',
+          why: '센서 5V/GND, TRIG 출력, ECHO 입력, OLED 전원/GND/SDA/SCL이 모두 맞아야 거리 읽기와 표시 업데이트를 신뢰할 수 있습니다.',
+          missing: 'TRIG, ECHO, 공통 GND, 또는 OLED I2C 연결 중 하나라도 빠지면 거리값을 읽거나 화면에 표시하는 시뮬레이션을 검증할 수 없습니다.'
+        }
+      : {
+          detail: 'When Run is pressed, Arduino sends a short pulse to the HC-SR04 TRIG pin, reads the ECHO pulse on D2, calculates a distance value, and shows it on the OLED.',
+          why: 'Sensor 5V/GND, trigger output, echo input, and OLED VCC/GND/SDA/SCL must all match before the distance readout can be trusted.',
+          missing: 'If TRIG, ECHO, common GND, or the OLED I2C wiring is missing, the app cannot validate the distance reading or display update.'
+        };
+  }
+
+  if (hasTemperatureHumiditySensor) {
+    return locale === 'ko'
+      ? {
+          detail: '실행하면 Arduino가 DHT11의 DAT 단일 데이터선을 읽고, 온도와 습도 값을 OLED에 업데이트합니다.',
+          why: 'DHT11 5V/GND/DAT, 공통 GND, OLED 전원/GND/SDA/SCL이 모두 맞아야 센서 읽기와 화면 표시를 신뢰할 수 있습니다.',
+          missing: 'DAT, 공통 GND, 또는 OLED I2C 연결 중 하나라도 빠지면 온습도 값을 읽거나 화면에 표시하는 시뮬레이션을 검증할 수 없습니다.'
+        }
+      : {
+          detail: 'When Run is pressed, Arduino reads the DHT11 DAT single-wire data line and updates temperature and humidity on the OLED.',
+          why: 'DHT11 5V/GND/DAT, common ground, and OLED VCC/GND/SDA/SCL must all match before the readout can be trusted.',
+          missing: 'If DAT, common ground, or the OLED I2C wiring is missing, the app cannot validate the temperature/humidity readout or display update.'
+        };
+  }
 
   if (hasLed && !hasDisplay) {
     return locale === 'ko'
@@ -292,6 +352,7 @@ function profilePartForTutorTarget(target, locale) {
   const isLed = /\bled\b|led-/.test(text);
   const isArduino = /arduino|uno/.test(text);
   const isBreadboard = /breadboard/.test(text);
+  const isDht11 = /dht11|temperature humidity|온습도/.test(text);
   const isOled = /oled|display|screen/.test(text);
 
   if (locale === 'ko') {
@@ -325,6 +386,14 @@ function profilePartForTutorTarget(target, locale) {
         detail: '브레드보드는 LED, 저항, 점퍼 와이어를 눈으로 확인하며 배치할 수 있게 해 줍니다.',
         why: '초보자가 연결을 바꿔 보며 회로 구조를 이해하기에 적합합니다.',
         missing: '브레드보드가 없어도 일부 부품은 직접 연결할 수 있지만, 실습 배치와 시각화의 기준점이 약해집니다.'
+      };
+    }
+    if (isDht11) {
+      return {
+        summary: '온도와 습도를 디지털 데이터선으로 전달하는 센서입니다.',
+        detail: 'DHT11은 VCC와 GND로 전원을 받고 DAT 한 가닥으로 Arduino D2 같은 디지털 핀에 온습도 데이터를 보냅니다.',
+        why: '학생이 주변 환경 값을 화면에서 확인할 수 있게 해 주는 입력 장치입니다. DAT와 공통 GND가 맞아야 OLED 표시도 믿을 수 있습니다.',
+        missing: 'DHT11이 빠지거나 DAT가 연결되지 않으면 표시할 온도/습도 값이 없어 온습도 시뮬레이션이 성립하지 않습니다.'
       };
     }
     if (isOled) {
@@ -365,6 +434,13 @@ function profilePartForTutorTarget(target, locale) {
       missing: 'If the breadboard is missing, the lesson loses its clear wiring layout.'
     };
   }
+  if (isDht11) {
+    return {
+      summary: 'A digital sensor that provides temperature and humidity readings.',
+      why: 'It turns the environment into a data signal the Arduino can show on the OLED.',
+      missing: 'If the DHT11 or its DAT wire is missing, there is no validated temperature/humidity value to display.'
+    };
+  }
   if (isOled) {
     return {
       summary: 'The display module that shows text or graphics.',
@@ -394,7 +470,7 @@ function buildKoreanAnswer(target, flags) {
   if (flags.wantsRun) {
     return flags.running
       ? `현재 실행 상태에서는 ${target.label}이 실제 시뮬레이션 결과와 연결되어 있습니다. ${target.summary}`
-      : `아직 실행 전이라면 ${target.label}의 역할을 먼저 확인하고, 실행을 누른 뒤 전류 애니메이션과 동작 결과를 같이 비교해 보세요.`;
+      : `아직 실행 전이라면 ${target.label}의 역할을 먼저 확인하고, 실행을 누른 뒤 전류 애니메이션과 동작 결과를 같이 비교해 보세요. ${target.detail}`;
   }
   return `${target.label}에 대해 설명하면, ${target.summary} ${target.why}`;
 }
@@ -417,7 +493,7 @@ function buildEnglishAnswer(target, flags) {
   if (flags.wantsRun) {
     return flags.running
       ? `${target.label} is tied to the current simulation state. ${target.summary}`
-      : `Before pressing Run, inspect ${target.label}; after Run, compare the current animation with the simulation output.`;
+      : `Before pressing Run, inspect ${target.label}; after Run, compare the current animation with the simulation output. ${target.detail}`;
   }
   return `${target.label}: ${target.summary} ${target.why}`;
 }

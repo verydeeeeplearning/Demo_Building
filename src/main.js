@@ -18,7 +18,7 @@ import { askCircuitTutor } from './circuitTutorClient.js';
 import { agentErrorMessage as formatAgentErrorMessage } from './agentErrorMessages.js';
 import { groundAgentResultArtifacts } from './agentArtifactGrounding.js';
 import { classifyStudentTurn } from './conversationRouting.js';
-import { renderWarningsMarkdown, renderWarningTitle } from './renderWarnings.js';
+import { renderWarningMessage, renderWarningsMarkdown, renderWarningTitle } from './renderWarnings.js';
 import {
   createInterview,
   startInterview,
@@ -70,7 +70,7 @@ let buildController = null;
 let thinkingTimer = 0;
 
 function createLocalizedProject(locale) {
-  const circuit = createDemoCircuit(locale);
+  const circuit = { ...createDemoCircuit(locale), source: 'demo' };
   return {
     circuit,
     files: [
@@ -102,7 +102,7 @@ function projectDisplayTitle() {
 }
 
 function activeDraftOrProjectCircuit() {
-  if (state.agentResult && canBuildAgentResult(state.agentResult)) {
+  if (state.agentResult && canShowAgentScene(state.agentResult)) {
     return createProjectFromAgentResult(state.agentResult).circuit;
   }
   return state.projectLoaded ? activeCircuit() : null;
@@ -181,7 +181,7 @@ function render() {
     return;
   }
 
-  const circuit = activeCircuit();
+  const circuit = activeDraftOrProjectCircuit() || activeCircuit();
 
   app.innerHTML = `
     <div class="announcement">${t('topbar.announcement', {}, state.locale)}</div>
@@ -202,7 +202,7 @@ function render() {
         <button class="secondary-action" type="button" data-action="open-library" data-testid="open-library">${t('topbar.actions.library', {}, state.locale)}</button>
         <button class="secondary-action demo-action" type="button" data-action="load-demo">${t('topbar.actions.demo', {}, state.locale)}</button>
         <button class="secondary-action" type="button" data-action="share" data-testid="share-project" ${state.projectLoaded ? '' : 'disabled'}>${t('topbar.actions.share', {}, state.locale)}</button>
-        <button class="primary-action" type="button" data-action="run" ${state.projectLoaded ? '' : 'disabled'}>${t('topbar.actions.run', {}, state.locale)}</button>
+        <button class="primary-action" type="button" data-action="run" ${canRunLoadedProject() ? '' : 'disabled'}>${t('topbar.actions.run', {}, state.locale)}</button>
       </div>
     </div>
     <main class="workbench ${state.activeTab === 'PCB' ? 'is-pcb' : 'is-files'} ${state.projectLoaded ? 'has-project' : 'is-new'}">
@@ -216,7 +216,7 @@ function render() {
 
   bindEvents();
 
-  if (state.projectLoaded && state.activeTab === 'PCB') {
+  if (state.activeTab === 'PCB' && circuit && (state.projectLoaded || canShowAgentScene(state.agentResult))) {
     const host = app.querySelector('[data-stage-host]');
     stageController = createStageScene(host, circuit, {
       running: state.running,
@@ -237,7 +237,7 @@ function renderLanguageToggle() {
 }
 
 function renderCenterStage() {
-  if (!state.projectLoaded) {
+  if (!state.projectLoaded && !(state.activeTab === 'PCB' && canShowAgentScene(state.agentResult))) {
     return renderNewProjectLanding();
   }
 
@@ -487,12 +487,14 @@ function renderContextEvidencePanel() {
     return '';
   }
 
+  const contextTrace = circuit.contextTrace || [];
   const sourceTypes = [...new Set((circuit.contextTrace || []).map((entry) => entry.sourceType))]
     .filter(Boolean)
     .slice(0, 6);
   const warnings = coverage.warnings || [];
   const synthesisEligibility = formatSynthesisEligibility(coverage);
   const responseCoverage = formatCoveragePurposes(coverage);
+  const sourceBundleEvidence = formatSourceBundleEvidence(contextTrace, state.locale);
 
   return `
     <section class="context-evidence-panel" data-testid="context-evidence-panel">
@@ -516,6 +518,10 @@ function renderContextEvidencePanel() {
         <div>
           <dt>${t('evidence.contextSources', {}, state.locale)}</dt>
           <dd>${escapeHtml(sourceTypes.join(', ') || t('evidence.notAvailable', {}, state.locale))}</dd>
+        </div>
+        <div>
+          <dt>${t('evidence.sourceBundle', {}, state.locale)}</dt>
+          <dd data-testid="source-bundle-evidence">${escapeHtml(sourceBundleEvidence)}</dd>
         </div>
         <div>
           <dt>${t('evidence.warnings', {}, state.locale)}</dt>
@@ -546,8 +552,33 @@ function formatCoveragePurposes(coverage, locale = state.locale) {
     .join(', ');
 }
 
+function formatSourceBundleEvidence(contextTrace, locale = state.locale) {
+  const bundles = (contextTrace || [])
+    .filter((entry) => entry.sourceId?.startsWith('sources:support-bundle:'))
+    .map((entry) => {
+      const capabilityId = entry.sourceId.replace('sources:support-bundle:', '');
+      const status = entry.summary || (/complete/i.test(entry.reason || '') ? 'complete' : 'unknown');
+      return {
+        capabilityId,
+        status
+      };
+    });
+
+  if (!bundles.length) {
+    return t('evidence.notAvailable', {}, locale);
+  }
+
+  return bundles.map((bundle) => {
+    const label = bundle.status === 'complete'
+      ? t('evidence.bundleReady', {}, locale)
+      : t('evidence.bundleGap', {}, locale);
+    return `${bundle.capabilityId}: ${label}`;
+  }).join(', ');
+}
+
 function renderPcbTab() {
-  const circuit = activeCircuit();
+  const circuit = activeDraftOrProjectCircuit() || activeCircuit();
+  const canRun = canRunLoadedProject();
   const selectedTarget = currentInspectorTarget();
   const selectedFlowLabel = state.inspector.selectedRawTarget
     ? selectedTarget.label
@@ -560,11 +591,12 @@ function renderPcbTab() {
         <strong data-hover-title></strong>
         <p data-hover-summary></p>
       </div>
+      ${renderSolverGateStatus(circuit)}
       ${renderPcbWarnings(circuit.renderWarnings || [])}
       <div class="stage-toolbar" aria-label="${t('pcb.toolbarAria', {}, state.locale)}">
         <button type="button" data-action="reset-view">${t('pcb.reset', {}, state.locale)}</button>
-        <button type="button" data-action="toggle-simulation" data-testid="simulation-toggle">${state.simulationPlaying ? t('simulationControls.pause', {}, state.locale) : t('simulationControls.play', {}, state.locale)}</button>
-        <button type="button" data-action="step-simulation" data-testid="simulation-step">${t('simulationControls.step', {}, state.locale)}</button>
+        <button type="button" data-action="toggle-simulation" data-testid="simulation-toggle" ${canRun ? '' : 'disabled'}>${state.simulationPlaying ? t('simulationControls.pause', {}, state.locale) : t('simulationControls.play', {}, state.locale)}</button>
+        <button type="button" data-action="step-simulation" data-testid="simulation-step" ${canRun ? '' : 'disabled'}>${t('simulationControls.step', {}, state.locale)}</button>
         <span class="selected-target-chip" data-testid="selected-target-chip">
           ${t('simulationControls.selectedPath', {}, state.locale)}: <strong>${escapeHtml(selectedFlowLabel)}</strong>
         </span>
@@ -573,6 +605,101 @@ function renderPcbTab() {
       </div>
     </div>
   `;
+}
+
+function renderSolverGateStatus(circuit) {
+  const gate = circuit?.solverGateResult;
+  if (!gate) {
+    return '';
+  }
+  const safeEquivalent = gate.mode === 'safe_equivalent_simulation';
+  const placeholder = gate.mode === 'placeholder_part_simulation';
+  if (gate.buildReady === true && !safeEquivalent && !placeholder) {
+    return '';
+  }
+  const titleKey = safeEquivalent
+    ? 'solverGate.safeEquivalentTitle'
+    : placeholder ? 'solverGate.placeholderTitle' : 'solverGate.diagnosticTitle';
+  const bodyKey = safeEquivalent
+    ? 'solverGate.safeEquivalentBody'
+    : placeholder ? 'solverGate.placeholderBody' : 'solverGate.diagnosticBody';
+
+  const activityLabel = studentFacingSolverGateActivity(gate, state.locale);
+  const reasons = (gate.notVerified || circuit.buildRunnableReport?.reasons || [])
+    .slice(0, 2)
+    .map((reason) => `<p><span>${escapeHtml(activityLabel)}</span> ${escapeHtml(studentFacingSolverGateReason(reason, state.locale))}</p>`)
+    .join('');
+
+  return `
+    <section class="render-warning-panel solver-gate-panel" data-testid="solver-gate-status">
+      <strong>${escapeHtml(t(titleKey, {}, state.locale))}</strong>
+      <p><span>${escapeHtml(activityLabel)}</span> ${escapeHtml(t(bodyKey, {}, state.locale))}</p>
+      ${reasons}
+    </section>
+  `;
+}
+
+function studentFacingSolverGateActivity(gate, locale) {
+  if (gate.mode === 'safe_equivalent_simulation') {
+    return locale === 'ko' ? '안전 대체' : 'Safe equivalent';
+  }
+  if (gate.mode === 'placeholder_part_simulation') {
+    return locale === 'ko' ? '3D 대체 표시' : '3D placeholder';
+  }
+  return locale === 'ko' ? '3D 검토' : '3D review';
+}
+
+function studentFacingSolverGateReason(reason, locale) {
+  const raw = String(reason || '').trim();
+  if (!raw) {
+    return locale === 'ko'
+      ? '추가 확인이 끝날 때까지 실행을 막아 둡니다.'
+      : 'Run stays off until the remaining checks are complete.';
+  }
+
+  if (/unsafe|mains|high[- ]?voltage|220V|outlet/i.test(raw)) {
+    return locale === 'ko'
+      ? '원래 위험한 요청은 만들지 않고 안전한 저전압 대안만 보여줍니다.'
+      : 'The original unsafe request is not built; only the safe low-voltage alternative is shown.';
+  }
+  if (/current[- ]?flow|current or signal path|validated current|signal path/i.test(raw)) {
+    return locale === 'ko'
+      ? '전류 흐름 애니메이션은 확인된 경로가 준비될 때까지 꺼져 있습니다.'
+      : 'Current-flow animation stays off until a checked path is available.';
+  }
+  if (/simulation status is unsupported|simulation[-_ ]?primitive/i.test(raw)) {
+    return locale === 'ko'
+      ? '이 동작은 실행 전에 더 확인된 시뮬레이션 자료가 필요합니다.'
+      : 'This behavior needs more checked simulation evidence before Run can turn on.';
+  }
+  if (/validation status is unsupported|context[-_ ]?support[-_ ]?gap|canonical context|valid synthesis|support bundle|part[-_ ]?capability|verified support data|missing .*data|unsupported/i.test(raw)) {
+    return locale === 'ko'
+      ? '이 부품 조합은 회로로 확정하기 전에 검증 자료가 더 필요합니다.'
+      : 'This part combination needs more verified reference data before it can become a circuit.';
+  }
+  if (/build[- ]?ready|runnable|build-ready claim/i.test(raw)) {
+    return locale === 'ko'
+      ? '조립 가능 상태로 표시하려면 추가 검토가 필요합니다.'
+      : 'Build-ready status needs one more review before it can be shown.';
+  }
+  if (/diagnostic render|render is diagnostic only/i.test(raw)) {
+    return locale === 'ko'
+      ? '이 3D 장면은 검토용으로만 표시됩니다.'
+      : 'This 3D scene is shown for review only.';
+  }
+  if (/bench test/i.test(raw)) {
+    return locale === 'ko'
+      ? '실물 테스트는 아직 하지 않았습니다.'
+      : 'A physical bench test has not been performed yet.';
+  }
+
+  if (/validator|validation|constraint|context|deepagents|coordinator|subagent|tool call|trace|artifact/i.test(raw)) {
+    return locale === 'ko'
+      ? '회로로 확정하기 전에 추가 확인이 필요합니다.'
+      : 'More checks are needed before this can become a final circuit.';
+  }
+
+  return raw;
 }
 
 function renderPcbWarnings(warnings) {
@@ -584,14 +711,30 @@ function renderPcbWarnings(warnings) {
     <section class="render-warning-panel" data-testid="render-warning-panel">
       <strong>${escapeHtml(renderWarningTitle(state.locale))}</strong>
       ${warnings.map((warning) => `
-        <p><span>${escapeHtml(warning.code)}</span> ${escapeHtml(warning.componentId || '')}: ${escapeHtml(warning.message)}</p>
+        <p><span>${escapeHtml(studentFacingRenderWarningLabel(warning, state.locale))}</span> ${escapeHtml(warning.componentId || '')}: ${escapeHtml(renderWarningMessage(warning, state.locale))}</p>
       `).join('')}
     </section>
   `;
 }
 
+function studentFacingRenderWarningLabel(warning, locale) {
+  if (warning.code === 'DIAGNOSTIC_RENDER_ONLY') {
+    return locale === 'ko' ? '3D 검토' : '3D review';
+  }
+  if (warning.code === 'SHARED_SNAPSHOT_NOT_BUILD_READY') {
+    return locale === 'ko' ? '공유 회로 검토' : 'Shared circuit review';
+  }
+  if (/PLACE|BREADBOARD/i.test(warning.code || '')) {
+    return locale === 'ko' ? '배치 확인' : 'Placement check';
+  }
+  if (/CONNECTION|WIRE|NODE|RAIL|CONTINUITY/i.test(warning.code || '')) {
+    return locale === 'ko' ? '배선 확인' : 'Wiring check';
+  }
+  return locale === 'ko' ? '화면 확인' : 'View check';
+}
+
 function renderRightRail() {
-  if (state.activeTab === 'PCB' && state.projectLoaded) {
+  if (state.activeTab === 'PCB' && (state.projectLoaded || canShowAgentScene(state.agentResult))) {
     return `
       <aside class="right-rail simulation-rail" data-testid="circuit-inspector">
         ${renderHardwarePanel()}
@@ -636,7 +779,7 @@ function renderFileExplorer() {
 }
 
 function renderHardwarePanel() {
-  const circuit = activeCircuit();
+  const circuit = activeDraftOrProjectCircuit() || activeCircuit();
   const target = currentInspectorTarget();
   const selected = state.inspector.selectedRawTarget;
 
@@ -884,12 +1027,15 @@ function bindEvents() {
   const form = app.querySelector('[data-action="send-idea"]');
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    const input = new FormData(form).get('idea')?.toString().trim();
-    if (!input) {
+    submitIdeaForm(form);
+  });
+  form.querySelector('#idea-input')?.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' || event.shiftKey || event.isComposing) {
       return;
     }
 
-    submitAgentMessage(input);
+    event.preventDefault();
+    form.requestSubmit();
   });
 
   app.querySelectorAll('[data-action="answer"]').forEach((button) => {
@@ -900,7 +1046,7 @@ function bindEvents() {
   app.querySelector('[data-action="share"]')?.addEventListener('click', openShareModal);
 
   app.querySelector('[data-action="run"]').addEventListener('click', () => {
-    if (!state.projectLoaded) {
+    if (!canRunLoadedProject()) {
       return;
     }
 
@@ -914,7 +1060,7 @@ function bindEvents() {
   });
 
   app.querySelector('[data-action="toggle-simulation"]')?.addEventListener('click', () => {
-    if (!state.projectLoaded) {
+    if (!canRunLoadedProject()) {
       return;
     }
 
@@ -925,12 +1071,24 @@ function bindEvents() {
   });
 
   app.querySelector('[data-action="step-simulation"]')?.addEventListener('click', () => {
+    if (!canRunLoadedProject()) {
+      return;
+    }
     stepCurrentFlow();
   });
 
   app.querySelector('[data-action="confirm"]')?.addEventListener('click', () => {
     confirmCurrentAgentResult();
   });
+}
+
+function submitIdeaForm(form) {
+  const input = new FormData(form).get('idea')?.toString().trim();
+  if (!input) {
+    return;
+  }
+
+  submitAgentMessage(input);
 }
 
 function bindShareViewEvents() {
@@ -1043,19 +1201,24 @@ async function submitAgentMessage(message) {
   }
 
   const turnRoute = classifyStudentTurn(message, {
-    hasBuildableDraft: Boolean(state.awaitingConfirmation && canBuildAgentResult(state.agentResult)),
-    hasCurrentArtifact: Boolean(state.agentResult || state.projectLoaded)
+    hasBuildableDraft: Boolean(state.awaitingConfirmation && canShowAgentScene(state.agentResult)),
+    hasCurrentArtifact: Boolean(state.projectLoaded || canShowAgentScene(state.agentResult))
   });
 
   if (turnRoute.route === 'confirm-current-draft') {
+    const buildReady = canBuildAgentResult(state.agentResult);
     state.interview = {
       ...state.interview,
       status: 'ready',
       messages: nextAgentThreadMessages(message).concat({
         role: 'assistant',
-        text: state.locale === 'ko'
-          ? '좋아요. 방금 검증한 회로 초안으로 구성해 볼게요.'
-          : 'Okay. I will build the validated circuit draft.'
+        text: buildReady
+          ? state.locale === 'ko'
+            ? '좋아요. 방금 검증한 회로 초안으로 구성해 볼게요.'
+            : 'Okay. I will build the validated circuit draft.'
+          : state.locale === 'ko'
+            ? '좋아요. 먼저 3D 진단 시뮬레이션으로 보여드릴게요. 조립 가능 여부와 전류 흐름은 검증된 것만 표시하겠습니다.'
+            : 'Okay. I will show the 3D diagnostic simulation first. Build-ready and current-flow claims will stay restricted to verified evidence.'
       })
     };
     confirmCurrentAgentResult();
@@ -1067,9 +1230,7 @@ async function submitAgentMessage(message) {
     return;
   }
 
-  const conversationContext = turnRoute.route === 'revise-current-draft'
-    ? buildConversationContext()
-    : undefined;
+  const conversationContext = buildConversationContext();
 
   state.interview = {
     ...createInterview(state.locale),
@@ -1103,16 +1264,17 @@ async function submitAgentMessage(message) {
     const groundedResult = groundAgentResultArtifacts(result);
     state.agentSessionId = groundedResult.sessionId;
     state.agentResult = groundedResult;
+    const canShowScene = canShowAgentScene(groundedResult);
     state.interview = {
       ...state.interview,
-      status: canBuildAgentResult(groundedResult) ? 'ready' : 'interviewing',
+      status: canShowScene ? 'ready' : 'interviewing',
       decisions: agentEventsToDecisions(groundedResult.agentEvents || []),
       messages: state.interview.messages.concat(
         (groundedResult.assistantMessages?.length ? groundedResult.assistantMessages : [fallbackAgentMessage(groundedResult)])
           .map((text) => ({ role: 'assistant', text }))
       )
     };
-    state.awaitingConfirmation = canBuildAgentResult(groundedResult);
+    state.awaitingConfirmation = canShowScene;
   } catch (error) {
     const messageText = formatAgentErrorMessage(error, state.locale, { studentMessage: message });
     state.interview = {
@@ -1179,13 +1341,56 @@ function nextAgentThreadMessages(message) {
 }
 
 function canBuildAgentResult(result) {
-  return result?.validationReport?.status === 'valid'
-    && result?.simulationPlan?.status === 'valid'
-    && (result?.renderPlan?.parts?.length || 0) > 0;
+  if (result?.solverGateResult) {
+    return result.solverGateResult.buildReady === true && result.buildRunnableReport?.runnable === true;
+  }
+  return result?.buildRunnableReport?.runnable === true;
+}
+
+function canShowAgentScene(result) {
+  if (result?.solverGateResult?.visibleSimulation === true) {
+    return true;
+  }
+  return Array.isArray(result?.renderPlan?.parts) && result.renderPlan.parts.length > 0;
+}
+
+function canShowLoadedProjectScene() {
+  if (!state.projectLoaded) {
+    return false;
+  }
+  const circuit = activeCircuit();
+  if (circuit?.solverGateResult?.visibleSimulation === true) {
+    return true;
+  }
+  return Array.isArray(circuit?.parts) && circuit.parts.length > 0;
+}
+
+function canRunLoadedProject() {
+  if (!state.projectLoaded) {
+    return false;
+  }
+  const circuit = activeCircuit();
+  if (circuit?.solverGateResult) {
+    return circuit.solverGateResult.buildReady === true && circuit?.buildRunnableReport?.runnable === true;
+  }
+  if (circuit?.buildRunnableReport) {
+    return circuit.buildRunnableReport.runnable === true;
+  }
+  if (circuit?.validationReport || circuit?.simulationPlan) {
+    return circuit?.validationReport?.status === 'valid'
+      && circuit?.simulationPlan?.status === 'valid'
+      && (
+        (circuit.simulationPlan.currentPaths || []).length > 0
+        || (circuit.simulationPlan.expectedStates || []).length > 0
+      );
+  }
+  return circuit?.source === 'demo';
 }
 
 function confirmCurrentAgentResult() {
-  if (state.agentResult && canBuildAgentResult(state.agentResult)) {
+  const buildReady = canBuildAgentResult(state.agentResult);
+  const visibleScene = canShowAgentScene(state.agentResult);
+  if (state.agentResult && visibleScene) {
     state.project = createProjectFromAgentResult(state.agentResult);
     state.selectedFileId = state.project.files[0]?.id || 'deepagent-requirements';
   } else {
@@ -1195,6 +1400,24 @@ function confirmCurrentAgentResult() {
   }
   state.awaitingConfirmation = false;
   cancelThinking();
+  if (buildReady) {
+    render();
+    startBuildSequence();
+    return;
+  }
+
+  if (state.agentResult && visibleScene) {
+    state.projectLoaded = true;
+    state.built = false;
+    state.running = false;
+    state.simulationPlaying = false;
+    state.activeTab = 'PCB';
+    resetInspectorState();
+    render();
+    focusPcbStageOnNarrowScreens();
+    return;
+  }
+
   render();
   startBuildSequence();
 }
@@ -1253,7 +1476,7 @@ function studentFacingEventSummary(summary, locale) {
     return locale === 'ko' ? '확인했습니다.' : 'Checked.';
   }
 
-  if (/context[-_ ]?support[-_ ]?gap|canonical context|valid synthesis|planned capability|part[-_ ]?capability|render[-_ ]?footprint|simulation[-_ ]?primitive|context coverage|support gap/i.test(raw)) {
+  if (/context[-_ ]?support[-_ ]?gap|canonical context|valid synthesis|planned capability|part[-_ ]?capability|render[-_ ]?footprint|simulation[-_ ]?primitive|context coverage|support gap|support bundle|verified support data/i.test(raw)) {
     return locale === 'ko'
       ? '아직 검증 자료가 부족해 회로를 만들기 전에 지원 범위를 확인했습니다.'
       : 'Checked that this request needs more verified context before circuit synthesis.';
@@ -1306,8 +1529,11 @@ function createProjectFromAgentResult(result) {
     parts: result.renderPlan.parts,
     connections: result.renderPlan.connections,
     floatingCards: result.renderPlan.floatingCards || [],
+    layout: result.renderPlan.layout,
     validationReport: result.validationReport,
     simulationPlan: result.simulationPlan,
+    buildRunnableReport: result.buildRunnableReport,
+    solverGateResult: result.solverGateResult,
     renderWarnings,
     circuitSpec: result.circuitSpec,
     contextTrace: result.contextTrace || [],
@@ -1346,18 +1572,27 @@ function createProjectFromAgentResult(result) {
 }
 
 function activeArtifactCircuit() {
-  if (state.agentResult && canBuildAgentResult(state.agentResult)) {
+  if (state.agentResult && canShowAgentScene(state.agentResult)) {
     return createProjectFromAgentResult(state.agentResult).circuit;
   }
-  return activeCircuit();
+  return state.projectLoaded ? activeCircuit() : null;
 }
 
 function buildConversationContext() {
+  const visibleAgentResult = canShowAgentScene(state.agentResult) ? state.agentResult : null;
+  const buildableAgentResult = visibleAgentResult && canBuildAgentResult(visibleAgentResult) ? visibleAgentResult : null;
+  const pendingSupportedAlternative = visibleAgentResult
+    ? undefined
+    : firstSupportedAlternativeFromResult(state.agentResult);
   const currentArtifact = state.projectLoaded
     ? artifactSnapshotFromProject(state.project, 'built-project')
-    : state.agentResult
-      ? artifactSnapshotFromAgentResult(state.agentResult, 'draft')
+    : visibleAgentResult
+      ? artifactSnapshotFromAgentResult(visibleAgentResult, buildableAgentResult ? 'draft' : 'diagnostic-draft')
       : undefined;
+  const lastSupportedGoal = visibleAgentResult?.circuitSpec?.intent?.primaryGoal
+    || state.project?.circuit?.circuitSpec?.intent?.primaryGoal
+    || pendingSupportedAlternative?.goal
+    || undefined;
 
   return {
     recentTurns: state.interview.messages.slice(-12).map((message) => ({
@@ -1365,12 +1600,18 @@ function buildConversationContext() {
       text: message.text
     })),
     currentArtifact,
-    lastSupportedGoal: state.agentResult?.circuitSpec?.intent?.primaryGoal
-      || state.project?.circuit?.circuitSpec?.intent?.primaryGoal
-      || state.interview.idea
-      || undefined,
-    awaitingBuildConfirmation: Boolean(state.awaitingConfirmation && state.agentResult)
+    lastSupportedGoal,
+    pendingSupportedAlternative,
+    awaitingBuildConfirmation: Boolean(state.awaitingConfirmation && buildableAgentResult)
   };
+}
+
+function firstSupportedAlternativeFromResult(result) {
+  const alternative = result?.supportedAlternatives?.[0];
+  if (!alternative?.goal) {
+    return undefined;
+  }
+  return alternative;
 }
 
 function artifactSnapshotFromAgentResult(result, source) {
@@ -1380,6 +1621,8 @@ function artifactSnapshotFromAgentResult(result, source) {
     requirementMarkdown: result.requirementMarkdown,
     circuitSpec: result.circuitSpec,
     validationReport: result.validationReport,
+    buildRunnableReport: result.buildRunnableReport,
+    solverGateResult: result.solverGateResult,
     renderPlan: result.renderPlan,
     simulationPlan: result.simulationPlan
   };
@@ -1400,12 +1643,15 @@ function artifactSnapshotFromProject(project, source) {
     requirementMarkdown: requirementFile?.markdown,
     circuitSpec: circuit.circuitSpec,
     validationReport: circuit.validationReport,
+    buildRunnableReport: circuit.buildRunnableReport,
+    solverGateResult: circuit.solverGateResult,
     renderPlan: circuit.circuitSpec && circuit.simulationPlan ? {
       title: circuit.title || 'Current circuit',
       runText: circuit.runText || circuit.simulationPlan.runText || 'READY',
       parts: circuit.parts,
       connections: circuit.connections || [],
       floatingCards: circuit.floatingCards || [],
+      layout: circuit.layout,
       warnings: circuit.renderWarnings || []
     } : undefined,
     simulationPlan: circuit.simulationPlan
@@ -1418,10 +1664,19 @@ function contextTraceToMarkdown(contextTrace, locale, contextCoverage) {
     ? '회로를 만들기 전에 서버가 확인한 참고 자료입니다.'
     : 'Context evidence forced into the Deepagents workflow before circuit synthesis.';
   const missingSourcesLabel = locale === 'ko' ? '부족한 자료 유형' : 'Missing source types';
+  const sourceBundleTitle = locale === 'ko' ? '검증 자료' : 'Verified support data';
   const coverageFallback = locale === 'ko' ? '- 참고 자료 확인 결과가 없습니다.' : '- No context coverage report was returned.';
   const sourcesFallback = locale === 'ko' ? '- 참고 자료 기록이 없습니다.' : '- No context trace was returned.';
   const reasonLabel = locale === 'ko' ? '이유' : 'Reason';
   const fieldsLabel = locale === 'ko' ? '사용한 항목' : 'Used fields';
+  const sourceBundleRows = contextTrace
+    .filter((entry) => entry.sourceId?.startsWith('sources:support-bundle:'))
+    .map((entry) => [
+      `- **${entry.sourceId.replace('sources:support-bundle:', '')}**`,
+      `  - ${locale === 'ko' ? '상태' : 'Status'}: ${entry.summary || 'unknown'}`,
+      `  - ${reasonLabel}: ${entry.reason}`
+    ].join('\n'))
+    .join('\n') || (locale === 'ko' ? '- 검증 자료가 없습니다.' : '- No verified support data was returned.');
   const coverageRows = contextCoverage
     ? [
       `- ${t('evidence.status', {}, locale)}: ${contextCoverage.status}`,
@@ -1449,6 +1704,10 @@ ${intro}
 
 ${coverageRows}
 
+## ${sourceBundleTitle}
+
+${sourceBundleRows}
+
 ## ${locale === 'ko' ? '자료' : 'Sources'}
 
 ${rows}
@@ -1469,12 +1728,12 @@ function inspectTargetFromElement(element) {
 
 function currentInspectorTarget() {
   const rawTarget = state.inspector.selectedRawTarget || state.inspector.hoveredRawTarget;
-  return describeCircuitTarget(activeCircuit(), rawTarget, state.locale);
+  return describeCircuitTarget(activeDraftOrProjectCircuit() || activeCircuit(), rawTarget, state.locale);
 }
 
 function updateHoveredCircuitTarget(rawTarget) {
   state.inspector.hoveredRawTarget = rawTarget;
-  const target = describeCircuitTarget(activeCircuit(), rawTarget, state.locale);
+  const target = describeCircuitTarget(activeDraftOrProjectCircuit() || activeCircuit(), rawTarget, state.locale);
   paintHoverTarget(target, Boolean(rawTarget));
 }
 
@@ -1739,9 +1998,11 @@ function importSharedSnapshot() {
   state.project = projectFromShareSnapshot(snapshot, state.locale);
   state.projectLoaded = true;
   state.awaitingConfirmation = false;
-  state.built = true;
+  const runnable = canRunLoadedProject();
+  const visibleScene = canShowLoadedProjectScene();
+  state.built = runnable;
   state.running = false;
-  state.activeTab = 'PCB';
+  state.activeTab = runnable || visibleScene ? 'PCB' : 'Files';
   state.selectedFileId = 'shared-requirements';
   state.interview = createInterview(state.locale);
   state.shareView = null;

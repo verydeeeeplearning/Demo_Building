@@ -61,6 +61,9 @@ export const en = {
   evidence: {
     contextCoverage: 'Context coverage',
     contextSources: 'Grounding sources',
+    sourceBundle: 'Verified support data',
+    bundleReady: 'ready',
+    bundleGap: 'support gap',
     synthesisEligibility: 'Circuit synthesis',
     responseCoverage: 'Response coverage',
     purpose: {
@@ -96,6 +99,14 @@ export const en = {
     step: 'Step through',
     selectedPath: 'Selected flow',
     noneSelected: 'None selected'
+  },
+  solverGate: {
+    diagnosticTitle: '3D diagnostic simulation',
+    diagnosticBody: 'The scene is visible, while build-ready and current-flow claims remain unverified.',
+    safeEquivalentTitle: 'Safe equivalent simulation',
+    safeEquivalentBody: 'The original unsafe request is not built; only the verified low-voltage equivalent is shown.',
+    placeholderTitle: 'Placeholder part simulation',
+    placeholderBody: 'Some hardware is shown with generalized geometry, so exact physical dimensions remain limited.'
   },
   parts: {
     railKicker: 'Part library',
@@ -236,6 +247,8 @@ export const en = {
     draftBody: 'This circuit is a draft or needs more verification.',
     simulation: 'How it works',
     simulationAvailable: 'Simulation available',
+    diagnosticAvailable: '3D diagnostic available',
+    diagnosticBody: 'A 3D diagnostic scene is available, but Run and current-flow simulation need review.',
     simulationUnavailable: 'No simulation',
     parts: 'Parts',
     context: 'Evidence',

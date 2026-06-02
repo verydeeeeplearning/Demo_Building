@@ -24,6 +24,7 @@ test('share snapshot projects a validated app project into a curated public arti
   assert.equal(snapshot.circuit.connections[0].from, 'arduino-uno:5V');
   assert.equal(snapshot.simulation.available, true);
   assert.equal(snapshot.simulation.currentPathCount, 1);
+  assert.deepEqual(snapshot.renderPlan.layout.endpoints['oled-display:VCC'], { x: 1.1, y: 0.72, z: -0.45 });
   assert.deepEqual(snapshot.contextEvidence.sourceTypes, ['registry', 'simulation']);
 });
 
@@ -63,6 +64,7 @@ test('invalid or unsupported projects are never labelled as valid working circui
     expectedStates: [],
     warnings: ['No current animation for unsupported requests.']
   };
+  project.circuit.buildRunnableReport = blockedRunnableReport('validation status is unsupported');
   project.circuit.circuitSpec.unsupportedItems = ['220V mains power'];
 
   const snapshot = createShareSnapshot(project, {
@@ -76,6 +78,57 @@ test('invalid or unsupported projects are never labelled as valid working circui
   assert.equal(snapshot.simulation.available, false);
   assert.equal(snapshot.simulation.currentPathCount, 0);
   assert.deepEqual(snapshot.validation.unsupportedItems, ['220V mains power']);
+});
+
+test('share snapshot preserves runnable gate blocks even when validation and simulation are valid', () => {
+  const project = createValidProject();
+  project.circuit.buildRunnableReport = blockedRunnableReport('simulation has no validated current or signal path');
+
+  const snapshot = createShareSnapshot(project, {
+    locale: 'en',
+    source: 'agent',
+    createdAt: '2026-06-01T00:00:00.000Z'
+  });
+
+  assert.equal(snapshot.status, 'invalid');
+  assert.equal(snapshot.validation.status, 'invalid');
+  assert.equal(snapshot.simulation.available, false);
+  assert.equal(snapshot.simulation.currentPathCount, 0);
+  assert.equal(snapshot.buildRunnableReport.runnable, false);
+  assert.match(snapshot.validation.warnings.join('\n'), /no validated current or signal path/i);
+});
+
+test('share snapshot can preserve a diagnostic 3D scene without current-flow availability', () => {
+  const project = createValidProject();
+  project.circuit.buildRunnableReport = blockedRunnableReport('render is diagnostic only');
+  project.circuit.solverGateResult = {
+    mode: 'diagnostic',
+    visibleSimulation: true,
+    buildReady: false,
+    simulationActivity: 'diagnostic',
+    notVerified: ['current-flow simulation is not verified']
+  };
+
+  const snapshot = createShareSnapshot(project, {
+    locale: 'en',
+    source: 'agent',
+    createdAt: '2026-06-01T00:00:00.000Z'
+  });
+
+  assert.equal(snapshot.status, 'invalid');
+  assert.equal(snapshot.validation.status, 'invalid');
+  assert.equal(snapshot.simulation.available, false);
+  assert.equal(snapshot.simulation.currentPathCount, 0);
+  assert.match(snapshot.simulation.explanation, /3D diagnostic scene/i);
+  assert.equal(snapshot.buildRunnableReport.runnable, false);
+  assert.equal(snapshot.solverGateResult.visibleSimulation, true);
+  assert.equal(snapshot.solverGateResult.buildReady, false);
+  assert.equal(snapshot.renderPlan.parts.length, 2);
+  assert.deepEqual(snapshot.renderPlan.layout.endpoints['oled-display:VCC'], { x: 1.1, y: 0.72, z: -0.45 });
+
+  const markdown = createShareMarkdown(snapshot, 'en');
+  assert.match(markdown, /3D diagnostic scene is available/i);
+  assert.doesNotMatch(markdown, /Current flows/i);
 });
 
 test('share markdown reads as a student portfolio summary without leaking secrets', () => {
@@ -94,6 +147,20 @@ test('share markdown reads as a student portfolio summary without leaking secret
   assert.match(markdown, /Validation: valid/);
   assert.match(markdown, /Created with H-eduware/);
   assert.doesNotMatch(markdown, /sk-proj-/);
+});
+
+test('share markdown does not trust valid-looking agent snapshots without runnable evidence', () => {
+  const snapshot = createShareSnapshot(createValidProject(), {
+    locale: 'en',
+    source: 'agent',
+    createdAt: '2026-06-01T00:00:00.000Z'
+  });
+  delete snapshot.buildRunnableReport;
+  const markdown = createShareMarkdown(snapshot, 'en');
+
+  assert.match(markdown, /Validation: invalid/);
+  assert.match(markdown, /Simulation is not marked as available/i);
+  assert.doesNotMatch(markdown, /Current flows/i);
 });
 
 test('redactShareText removes known secret and local environment markers', () => {
@@ -120,6 +187,12 @@ function createValidProject() {
           education: { label: '5V POWER' }
         }
       ],
+      layout: {
+        endpoints: {
+          'arduino-uno:5V': { x: -1.12, y: 0.68, z: -0.64 },
+          'oled-display:VCC': { x: 1.1, y: 0.72, z: -0.45 }
+        }
+      },
       validationReport: {
         status: 'valid',
         errors: [],
@@ -135,6 +208,7 @@ function createValidProject() {
         expectedStates: [{ componentId: 'oled-display', state: 'shows text' }],
         warnings: []
       },
+      buildRunnableReport: validRunnableReport(),
       circuitSpec: {
         id: 'oled-name-display',
         title: 'OLED Name Display',
@@ -162,5 +236,35 @@ function createValidProject() {
         markdown: '# OLED Name Display\n\nArduino Uno shows a short name.'
       }
     ]
+  };
+}
+
+function validRunnableReport() {
+  return {
+    status: 'runnable',
+    runnable: true,
+    reasons: [],
+    validationStatus: 'valid',
+    simulationStatus: 'valid',
+    renderWarningCount: 0,
+    renderBlockingWarningCount: 0,
+    renderPartCount: 2,
+    currentPathCount: 1,
+    expectedStateCount: 1
+  };
+}
+
+function blockedRunnableReport(reason) {
+  return {
+    status: 'blocked',
+    runnable: false,
+    reasons: [reason],
+    validationStatus: 'valid',
+    simulationStatus: 'valid',
+    renderWarningCount: 0,
+    renderBlockingWarningCount: 0,
+    renderPartCount: 2,
+    currentPathCount: 0,
+    expectedStateCount: 0
   };
 }

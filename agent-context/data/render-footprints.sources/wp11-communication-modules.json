@@ -1,0 +1,197 @@
+{
+  "esp01-wifi-module": {
+    "type": "esp01-wifi-module",
+    "width": 0.65,
+    "depth": 0.45,
+    "height": 0.12,
+    "visualStyle": { "shape": "wireless-module", "color": "#1a5276", "material": "pcb-antenna" },
+    "pinAnchors": {
+      "VCC": { "x": -0.28, "y": 0.1, "z": -0.2, "role": "power", "label": "VCC" },
+      "GND": { "x": -0.14, "y": 0.1, "z": -0.2, "role": "ground", "label": "GND" },
+      "TX": { "x": 0, "y": 0.1, "z": -0.2, "role": "serial-tx", "label": "TX" },
+      "RX": { "x": 0.14, "y": 0.1, "z": -0.2, "role": "serial-rx", "label": "RX" },
+      "RST": { "x": 0.28, "y": 0.1, "z": -0.2, "role": "reset", "label": "RST" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.36, "z": 0 },
+    "placement": { "allowedSurfaces": ["breadboard", "stage"], "breadboardCompatible": true, "defaultOrientation": "antenna-up", "notes": ["ESP-01 is shown as UART command-state context; real WiFi networking is not simulated."] },
+    "simulationOverlayAnchors": [
+      { "id": "module-state", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "uart-activity", "anchor": "TX", "role": "signal-overlay" },
+      { "id": "module-current", "anchor": "VCC", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "ESP-01 WiFi module", "explainableAs": ["uart-communication-module", "wireless-command-state"] }
+    ]
+  },
+  "hc05-bluetooth-module": {
+    "type": "hc05-bluetooth-module",
+    "width": 1.05,
+    "depth": 0.5,
+    "height": 0.12,
+    "visualStyle": { "shape": "wireless-module", "color": "#1f6fb2", "material": "pcb-antenna" },
+    "pinAnchors": {
+      "VCC": { "x": -0.42, "y": 0.1, "z": -0.22, "role": "power", "label": "VCC" },
+      "GND": { "x": -0.14, "y": 0.1, "z": -0.22, "role": "ground", "label": "GND" },
+      "TX": { "x": 0.14, "y": 0.1, "z": -0.22, "role": "serial-tx", "label": "TX" },
+      "RX": { "x": 0.42, "y": 0.1, "z": -0.22, "role": "serial-rx", "label": "RX" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.38, "z": 0 },
+    "placement": { "allowedSurfaces": ["breadboard", "stage"], "breadboardCompatible": true, "defaultOrientation": "antenna-up", "notes": ["HC-05 state is simulated as UART command activity, not real pairing."] },
+    "simulationOverlayAnchors": [
+      { "id": "module-state", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "uart-activity", "anchor": "TX", "role": "signal-overlay" },
+      { "id": "module-current", "anchor": "VCC", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "HC-05 Bluetooth module", "explainableAs": ["uart-communication-module", "wireless-command-state"] }
+    ]
+  },
+  "sim800l-gsm-module": {
+    "type": "sim800l-gsm-module",
+    "width": 0.85,
+    "depth": 0.75,
+    "height": 0.12,
+    "visualStyle": { "shape": "wireless-module", "color": "#17171c", "material": "pcb-antenna" },
+    "pinAnchors": {
+      "VCC": { "x": -0.34, "y": 0.1, "z": -0.28, "role": "power", "label": "VCC" },
+      "GND": { "x": -0.17, "y": 0.1, "z": -0.28, "role": "ground", "label": "GND" },
+      "TX": { "x": 0, "y": 0.1, "z": -0.28, "role": "serial-tx", "label": "TX" },
+      "RX": { "x": 0.17, "y": 0.1, "z": -0.28, "role": "serial-rx", "label": "RX" },
+      "RST": { "x": 0.34, "y": 0.1, "z": -0.28, "role": "reset", "label": "RST" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.48, "z": 0 },
+    "placement": { "allowedSurfaces": ["stage"], "breadboardCompatible": false, "defaultOrientation": "antenna-up", "notes": ["SIM800L shows AT-command state only and carries an external power warning."] },
+    "simulationOverlayAnchors": [
+      { "id": "module-state", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "uart-activity", "anchor": "TX", "role": "signal-overlay" },
+      { "id": "module-current", "anchor": "VCC", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "SIM800L GSM module", "explainableAs": ["uart-communication-module", "wireless-command-state", "power-warning"] }
+    ]
+  },
+  "lora-ra02-module": {
+    "type": "lora-ra02-module",
+    "width": 0.85,
+    "depth": 0.55,
+    "height": 0.12,
+    "visualStyle": { "shape": "wireless-module", "color": "#1a5276", "material": "pcb-antenna" },
+    "pinAnchors": {
+      "3V3": { "x": -0.42, "y": 0.1, "z": -0.22, "role": "power", "label": "3V3" },
+      "GND": { "x": -0.25, "y": 0.1, "z": -0.22, "role": "ground", "label": "GND" },
+      "SCK": { "x": -0.08, "y": 0.1, "z": -0.22, "role": "spi-clock", "label": "SCK" },
+      "MISO": { "x": 0.08, "y": 0.1, "z": -0.22, "role": "spi-miso", "label": "MISO" },
+      "MOSI": { "x": 0.25, "y": 0.1, "z": -0.22, "role": "spi-mosi", "label": "MOSI" },
+      "NSS": { "x": 0.42, "y": 0.1, "z": -0.22, "role": "spi-select", "label": "NSS" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.4, "z": 0 },
+    "placement": { "allowedSurfaces": ["breadboard", "stage"], "breadboardCompatible": true, "defaultOrientation": "antenna-up", "notes": ["SPI activity is shown without real RF transmission."] },
+    "simulationOverlayAnchors": [
+      { "id": "module-state", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "spi-activity", "anchor": "SCK", "role": "signal-overlay" },
+      { "id": "module-current", "anchor": "3V3", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "LoRa Ra-02 module", "explainableAs": ["spi-communication-module", "wireless-command-state"] }
+    ]
+  },
+  "nrf24l01-radio-module": {
+    "type": "nrf24l01-radio-module",
+    "width": 0.75,
+    "depth": 0.55,
+    "height": 0.1,
+    "visualStyle": { "shape": "wireless-module", "color": "#17171c", "material": "pcb-antenna" },
+    "pinAnchors": {
+      "VCC": { "x": -0.36, "y": 0.1, "z": -0.22, "role": "power", "label": "VCC" },
+      "GND": { "x": -0.22, "y": 0.1, "z": -0.22, "role": "ground", "label": "GND" },
+      "CE": { "x": -0.08, "y": 0.1, "z": -0.22, "role": "enable", "label": "CE" },
+      "CSN": { "x": 0.08, "y": 0.1, "z": -0.22, "role": "spi-select", "label": "CSN" },
+      "SCK": { "x": 0.22, "y": 0.1, "z": -0.22, "role": "spi-clock", "label": "SCK" },
+      "MOSI": { "x": 0.36, "y": 0.1, "z": -0.22, "role": "spi-mosi", "label": "MOSI" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.38, "z": 0 },
+    "placement": { "allowedSurfaces": ["breadboard", "stage"], "breadboardCompatible": true, "defaultOrientation": "antenna-up", "notes": ["NRF24L01 state is qualitative; RF transmission and link budgets are not simulated."] },
+    "simulationOverlayAnchors": [
+      { "id": "module-state", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "spi-activity", "anchor": "SCK", "role": "signal-overlay" },
+      { "id": "module-current", "anchor": "VCC", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "NRF24L01 radio module", "explainableAs": ["spi-communication-module", "wireless-command-state"] }
+    ]
+  },
+  "mcp2515-can-module": {
+    "type": "mcp2515-can-module",
+    "width": 0.8,
+    "depth": 0.55,
+    "height": 0.12,
+    "visualStyle": { "shape": "communication-module", "color": "#1a5276", "material": "pcb-module" },
+    "pinAnchors": {
+      "VCC": { "x": -0.38, "y": 0.1, "z": -0.22, "role": "power", "label": "VCC" },
+      "GND": { "x": -0.23, "y": 0.1, "z": -0.22, "role": "ground", "label": "GND" },
+      "SCK": { "x": -0.08, "y": 0.1, "z": -0.22, "role": "spi-clock", "label": "SCK" },
+      "SI": { "x": 0.08, "y": 0.1, "z": -0.22, "role": "spi-mosi", "label": "SI" },
+      "SO": { "x": 0.23, "y": 0.1, "z": -0.22, "role": "spi-miso", "label": "SO" },
+      "CS": { "x": 0.38, "y": 0.1, "z": -0.22, "role": "spi-select", "label": "CS" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.4, "z": 0 },
+    "placement": { "allowedSurfaces": ["breadboard", "stage"], "breadboardCompatible": true, "defaultOrientation": "pins-down", "notes": ["MCP2515 shows SPI/CAN controller state; no real vehicle network is simulated."] },
+    "simulationOverlayAnchors": [
+      { "id": "module-state", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "spi-activity", "anchor": "SCK", "role": "signal-overlay" },
+      { "id": "module-current", "anchor": "VCC", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "MCP2515 CAN module", "explainableAs": ["spi-communication-module", "wired-bus-state"] }
+    ]
+  },
+  "rs485-transceiver-module": {
+    "type": "rs485-transceiver-module",
+    "width": 0.7,
+    "depth": 0.45,
+    "height": 0.1,
+    "visualStyle": { "shape": "communication-module", "color": "#1f6fb2", "material": "pcb-module" },
+    "pinAnchors": {
+      "VCC": { "x": -0.28, "y": 0.1, "z": -0.18, "role": "power", "label": "VCC" },
+      "GND": { "x": -0.14, "y": 0.1, "z": -0.18, "role": "ground", "label": "GND" },
+      "DI": { "x": 0, "y": 0.1, "z": -0.18, "role": "serial-rx", "label": "DI" },
+      "RO": { "x": 0.14, "y": 0.1, "z": -0.18, "role": "serial-tx", "label": "RO" },
+      "DE": { "x": 0.28, "y": 0.1, "z": -0.18, "role": "enable", "label": "DE" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.34, "z": 0 },
+    "placement": { "allowedSurfaces": ["breadboard", "stage"], "breadboardCompatible": true, "defaultOrientation": "pins-down", "notes": ["RS-485 is represented as local transceiver direction/state, not a long cable network."] },
+    "simulationOverlayAnchors": [
+      { "id": "module-state", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "uart-activity", "anchor": "RO", "role": "signal-overlay" },
+      { "id": "module-current", "anchor": "VCC", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "RS-485 transceiver module", "explainableAs": ["differential-bus-module", "wired-bus-state"] }
+    ]
+  },
+  "usb-host-shield-module": {
+    "type": "usb-host-shield-module",
+    "width": 0.75,
+    "depth": 0.55,
+    "height": 0.1,
+    "visualStyle": { "shape": "communication-module", "color": "#c2362f", "material": "pcb-module" },
+    "pinAnchors": {
+      "VCC": { "x": -0.36, "y": 0.1, "z": -0.22, "role": "power", "label": "VCC" },
+      "GND": { "x": -0.22, "y": 0.1, "z": -0.22, "role": "ground", "label": "GND" },
+      "SCK": { "x": -0.08, "y": 0.1, "z": -0.22, "role": "spi-clock", "label": "SCK" },
+      "MISO": { "x": 0.08, "y": 0.1, "z": -0.22, "role": "spi-miso", "label": "MISO" },
+      "MOSI": { "x": 0.22, "y": 0.1, "z": -0.22, "role": "spi-mosi", "label": "MOSI" },
+      "SS": { "x": 0.36, "y": 0.1, "z": -0.22, "role": "spi-select", "label": "SS" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.38, "z": 0 },
+    "placement": { "allowedSurfaces": ["breadboard", "stage"], "breadboardCompatible": true, "defaultOrientation": "pins-down", "notes": ["USB host shield shows SPI controller state; real USB enumeration is not simulated."] },
+    "simulationOverlayAnchors": [
+      { "id": "module-state", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "spi-activity", "anchor": "SCK", "role": "signal-overlay" },
+      { "id": "module-current", "anchor": "VCC", "role": "current-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "USB host shield mini", "explainableAs": ["spi-communication-module", "wired-bus-state"] }
+    ]
+  }
+}

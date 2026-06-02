@@ -1,0 +1,191 @@
+[
+  {
+    "id": "prototyping-surface-context",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "full size breadboard",
+      "full breadboard",
+      "mini breadboard",
+      "perfboard",
+      "blank pcb",
+      "single sided pcb",
+      "proto shield",
+      "prototype shield",
+      "prototyping surface",
+      "브레드보드",
+      "미니 브레드보드",
+      "만능기판",
+      "프로토 쉴드"
+    ],
+    "requiredEvidence": [
+      "breadboard",
+      "perfboard",
+      "pcb",
+      "shield",
+      "surface",
+      "prototyping",
+      "브레드보드",
+      "기판",
+      "쉴드"
+    ],
+    "negativeEvidence": [
+      "220v",
+      "mains",
+      "wall outlet",
+      "etch acid",
+      "cnc milling"
+    ],
+    "minimumScore": 0.45,
+    "studentPhrases": [
+      "show a full-size breadboard layout surface",
+      "use a mini breadboard for a compact prototype",
+      "place the circuit on a perfboard",
+      "show an Arduino Uno prototype shield",
+      "미니 브레드보드로 배치해줘",
+      "만능기판 위에 보여줘"
+    ],
+    "inputModalities": [
+      "prototyping-surface"
+    ],
+    "outputModalities": [
+      "prototyping-context",
+      "placement-surface"
+    ],
+    "requiredRoles": [
+      "prototyping-surface",
+      "placement-surface",
+      "state-only-simulation"
+    ],
+    "requiredParts": [
+      "breadboard-half"
+    ],
+    "optionalParts": [
+      "breadboard-full",
+      "breadboard-mini",
+      "perfboard-5x7",
+      "pcb-blank-single",
+      "proto-shield-uno",
+      "jumper-wire"
+    ],
+    "protocols": [
+      "prototyping",
+      "mechanical-context"
+    ],
+    "simulationPrimitives": [
+      "prototyping_surface_context_state"
+    ],
+    "renderFootprints": [
+      "breadboard",
+      "breadboard-full",
+      "breadboard-mini",
+      "perfboard-5x7",
+      "pcb-blank-single",
+      "proto-shield-uno",
+      "wire"
+    ],
+    "validationRules": [
+      "prototyping-surface-context-only",
+      "surface-does-not-create-nets",
+      "no-mains-power"
+    ],
+    "commonMistakes": [
+      "Assuming a surface automatically creates electrical nets.",
+      "Assuming a perfboard or blank PCB has breadboard-style row continuity.",
+      "Treating a prototype shield as a standalone controller."
+    ],
+    "safeAlternatives": [
+      "button-controlled-light-output",
+      "digital-light-output"
+    ]
+  },
+  {
+    "id": "connector-wiring-context",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "male header",
+      "female header",
+      "40 pin header",
+      "header pins",
+      "screw terminal block",
+      "4 pin screw terminal",
+      "terminal block",
+      "connector",
+      "헤더핀",
+      "터미널 블록",
+      "나사 터미널"
+    ],
+    "requiredEvidence": [
+      "header",
+      "terminal",
+      "connector",
+      "pin header",
+      "screw terminal",
+      "헤더",
+      "터미널",
+      "커넥터"
+    ],
+    "negativeEvidence": [
+      "220v",
+      "mains",
+      "wall outlet",
+      "ac line"
+    ],
+    "minimumScore": 0.45,
+    "studentPhrases": [
+      "show a 40 pin male header connector",
+      "use female headers for a stackable board",
+      "add a 4 pin screw terminal block for low-voltage wiring context",
+      "헤더핀을 보여줘",
+      "4핀 터미널 블록을 배치해줘"
+    ],
+    "inputModalities": [
+      "connector-wiring"
+    ],
+    "outputModalities": [
+      "connector-context",
+      "wiring-context"
+    ],
+    "requiredRoles": [
+      "connector-wiring",
+      "state-only-simulation",
+      "low-voltage-only"
+    ],
+    "requiredParts": [
+      "jumper-wire"
+    ],
+    "optionalParts": [
+      "header-male-40pin",
+      "header-female-40pin",
+      "screw-terminal-4pin",
+      "breadboard-half"
+    ],
+    "protocols": [
+      "connector",
+      "mechanical-context"
+    ],
+    "simulationPrimitives": [
+      "connector_wiring_context_state"
+    ],
+    "renderFootprints": [
+      "header-male-40pin",
+      "header-female-40pin",
+      "screw-terminal-4pin",
+      "wire",
+      "breadboard"
+    ],
+    "validationRules": [
+      "connector-context-low-voltage-only",
+      "connector-does-not-create-source",
+      "no-mains-power"
+    ],
+    "commonMistakes": [
+      "Assuming a header or terminal block is a voltage source.",
+      "Using terminal blocks for mains or wall outlet wiring in the student simulator.",
+      "Assuming connector pins are internally bridged without an explicit net."
+    ],
+    "safeAlternatives": [
+      "low-voltage-power-rail",
+      "button-controlled-light-output"
+    ]
+  }
+]

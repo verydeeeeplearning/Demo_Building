@@ -1,0 +1,279 @@
+[
+  {
+    "id": "breadboard-psu",
+    "kind": "power",
+    "label": "Breadboard power supply module",
+    "aliases": [
+      "breadboard power supply",
+      "mb102 power supply",
+      "breadboard psu",
+      "5v breadboard supply",
+      "3.3v breadboard supply",
+      "브레드보드 전원 모듈",
+      "전원 모듈"
+    ],
+    "pins": [
+      { "name": "5V", "role": "regulated-power-output", "aliases": ["5 volt output", "5v rail output"] },
+      { "name": "3V3", "role": "regulated-power-output", "aliases": ["3.3 volt output", "3v3 rail output"] },
+      { "name": "GND", "role": "ground", "aliases": ["ground", "negative"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 3.3, "max": 5, "nominal": 5 },
+      "maxCurrentMa": 500,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "breadboard-psu", "width": 0.85, "depth": 0.55, "height": 0.3 },
+    "simulationModel": { "type": "low-voltage-power-rail", "nominalCurrentMa": 0 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "power-source-or-connector",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["breadboard-psu"],
+    "compatibleTopologies": ["external-low-voltage-power-rail"],
+    "sourceClaimIds": ["breadboard-psu-visual-pin-map", "low-voltage-power-rail-simulation-contract"],
+    "capabilities": [
+      "low-voltage-power-source",
+      "regulated-power-output",
+      "power-rail-source",
+      "breadboard-rail-source"
+    ],
+    "compatibleSimulationPrimitives": ["low_voltage_power_rail_state"],
+    "commonMistakes": [
+      "Connecting 5V to the ground rail or omitting the shared ground rail.",
+      "Treating the educational rail state as a real current budget."
+    ],
+    "safeSubstitutes": ["arduino-uno"]
+  },
+  {
+    "id": "9v-battery-clip",
+    "kind": "power",
+    "label": "9V battery clip",
+    "aliases": ["9v battery", "9v clip", "pp3 battery", "battery clip", "9V 배터리", "배터리 클립"],
+    "pins": [
+      { "name": "+", "role": "power", "aliases": ["positive", "plus", "red lead"] },
+      { "name": "-", "role": "ground", "aliases": ["negative", "minus", "black lead"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 7, "max": 9.6, "nominal": 9 },
+      "maxCurrentMa": 200,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "battery-9v-clip", "width": 0.55, "depth": 0.55, "height": 1.1 },
+    "simulationModel": { "type": "low-voltage-power-rail", "nominalCurrentMa": 0 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "power-source-or-connector",
+    "riskLevel": "power-warning",
+    "visualPartIds": ["9v-battery-clip"],
+    "compatibleTopologies": ["external-low-voltage-power-rail", "regulated-5v-rail"],
+    "sourceClaimIds": ["9v-battery-clip-visual-pin-map", "low-voltage-power-rail-simulation-contract"],
+    "capabilities": [
+      "low-voltage-power-source",
+      "battery-source",
+      "external-power-warning",
+      "power-rail-source"
+    ],
+    "compatibleSimulationPrimitives": ["low_voltage_power_rail_state"],
+    "commonMistakes": [
+      "Feeding a 9V rail into 5V-only modules without a regulator.",
+      "Reversing the positive and negative battery leads."
+    ],
+    "safeSubstitutes": ["breadboard-psu"]
+  },
+  {
+    "id": "aa-battery-holder",
+    "kind": "power",
+    "label": "4x AA battery holder",
+    "aliases": ["aa holder", "4 aa battery holder", "6v battery pack", "AA 배터리 홀더", "건전지 홀더"],
+    "pins": [
+      { "name": "+", "role": "power", "aliases": ["positive", "plus", "red lead"] },
+      { "name": "-", "role": "ground", "aliases": ["negative", "minus", "black lead"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 4.8, "max": 6.4, "nominal": 6 },
+      "maxCurrentMa": 500,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "aa-battery-holder", "width": 1.5, "depth": 0.55, "height": 0.45 },
+    "simulationModel": { "type": "low-voltage-power-rail", "nominalCurrentMa": 0 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "power-source-or-connector",
+    "riskLevel": "power-warning",
+    "visualPartIds": ["aa-battery-holder"],
+    "compatibleTopologies": ["external-low-voltage-power-rail"],
+    "sourceClaimIds": ["aa-battery-holder-visual-pin-map", "low-voltage-power-rail-simulation-contract"],
+    "capabilities": [
+      "low-voltage-power-source",
+      "battery-source",
+      "external-power-warning",
+      "power-rail-source"
+    ],
+    "compatibleSimulationPrimitives": ["low_voltage_power_rail_state"],
+    "commonMistakes": [
+      "Assuming a 4xAA holder is a regulated 5V source.",
+      "Reversing the positive and negative battery leads."
+    ],
+    "safeSubstitutes": ["breadboard-psu"]
+  },
+  {
+    "id": "lipo-battery-1s",
+    "kind": "power",
+    "label": "LiPo battery 1S 1000mAh",
+    "aliases": ["lipo battery", "1s lipo", "3.7v lipo", "lithium polymer battery", "LiPo 배터리", "리튬폴리머 배터리"],
+    "pins": [
+      { "name": "+", "role": "power", "aliases": ["positive", "plus", "red lead"] },
+      { "name": "-", "role": "ground", "aliases": ["negative", "minus", "black lead"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 3.0, "max": 4.2, "nominal": 3.7 },
+      "maxCurrentMa": 500,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["power", "battery"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "lipo-battery-1s", "width": 1.1, "depth": 0.6, "height": 0.25 },
+    "simulationModel": { "type": "low-voltage-power-rail", "nominalCurrentMa": 0 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "power-source-or-connector",
+    "riskLevel": "power-warning",
+    "visualPartIds": ["lipo-battery-1s"],
+    "compatibleTopologies": ["external-low-voltage-power-rail"],
+    "sourceClaimIds": ["lipo-battery-1s-visual-pin-map", "lipo-battery-power-warning-contract", "low-voltage-power-rail-simulation-contract"],
+    "capabilities": [
+      "low-voltage-power-source",
+      "battery-source",
+      "lipo-power-warning",
+      "external-power-warning",
+      "power-rail-source"
+    ],
+    "compatibleSimulationPrimitives": ["low_voltage_power_rail_state"],
+    "commonMistakes": [
+      "Treating a LiPo pack as a regulated 5V source.",
+      "Charging, shorting, puncturing, or high-current loading a LiPo in the educational simulator.",
+      "Reversing the positive and negative battery leads."
+    ],
+    "safeSubstitutes": ["breadboard-psu", "aa-battery-holder"]
+  },
+  {
+    "id": "barrel-jack",
+    "kind": "power",
+    "label": "DC barrel jack",
+    "aliases": ["barrel jack", "dc jack", "power jack", "adapter jack", "DC 잭", "전원 잭"],
+    "pins": [
+      { "name": "VCC", "role": "power", "aliases": ["positive", "center positive"] },
+      { "name": "GND", "role": "ground", "aliases": ["negative", "sleeve"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 5, "max": 12, "nominal": 9 },
+      "maxCurrentMa": 1000,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "barrel-jack", "width": 0.45, "depth": 0.45, "height": 0.32 },
+    "simulationModel": { "type": "low-voltage-power-rail", "nominalCurrentMa": 0 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "power-source-or-connector",
+    "riskLevel": "power-warning",
+    "visualPartIds": ["barrel-jack"],
+    "compatibleTopologies": ["external-low-voltage-power-rail", "regulated-5v-rail"],
+    "sourceClaimIds": ["barrel-jack-visual-pin-map", "external-low-voltage-power-connector-contract"],
+    "capabilities": [
+      "low-voltage-power-source",
+      "low-voltage-power-connector",
+      "external-power-warning",
+      "power-rail-source"
+    ],
+    "compatibleSimulationPrimitives": ["low_voltage_power_rail_state"],
+    "commonMistakes": [
+      "Assuming the adapter voltage is always 5V.",
+      "Using wall-power or mains wiring on a breadboard."
+    ],
+    "safeSubstitutes": ["breadboard-psu"]
+  },
+  {
+    "id": "screw-terminal-2pin",
+    "kind": "power",
+    "label": "2-pin screw terminal",
+    "aliases": ["screw terminal", "2 pin terminal", "terminal block", "2핀 터미널", "스크류 터미널"],
+    "pins": [
+      { "name": "A", "role": "power", "aliases": ["+", "positive", "terminal a"] },
+      { "name": "B", "role": "ground", "aliases": ["-", "negative", "terminal b"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 0, "max": 12, "nominal": 5 },
+      "maxCurrentMa": 1000,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["power", "connector"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "screw-terminal-2pin", "width": 0.5, "depth": 0.35, "height": 0.3 },
+    "simulationModel": { "type": "low-voltage-power-rail", "nominalCurrentMa": 0 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "power-source-or-connector",
+    "riskLevel": "power-warning",
+    "visualPartIds": ["screw-terminal-2pin"],
+    "compatibleTopologies": ["external-low-voltage-power-rail"],
+    "sourceClaimIds": ["screw-terminal-2pin-visual-pin-map", "external-low-voltage-power-connector-contract"],
+    "capabilities": [
+      "low-voltage-power-connector",
+      "external-power-warning",
+      "power-rail-source"
+    ],
+    "compatibleSimulationPrimitives": ["low_voltage_power_rail_state"],
+    "commonMistakes": [
+      "Treating the terminal block as a voltage source instead of a connector for a declared low-voltage source.",
+      "Swapping the positive and ground terminals."
+    ],
+    "safeSubstitutes": ["breadboard-psu"]
+  },
+  {
+    "id": "7805-regulator",
+    "kind": "power",
+    "label": "7805 5V voltage regulator",
+    "aliases": ["7805", "7805 regulator", "5v regulator", "linear regulator", "전압 레귤레이터", "7805 레귤레이터"],
+    "pins": [
+      { "name": "IN", "role": "power-input", "aliases": ["vin", "input"] },
+      { "name": "GND", "role": "ground", "aliases": ["ground", "common"] },
+      { "name": "OUT", "role": "regulated-power-output", "aliases": ["5v out", "vout", "output"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 5, "max": 12, "nominal": 5 },
+      "maxCurrentMa": 500,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["power", "regulated-power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "7805-regulator", "width": 0.36, "depth": 0.42, "height": 0.25 },
+    "simulationModel": { "type": "regulated-5v-rail", "nominalCurrentMa": 0 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "power-regulation-ic",
+    "riskLevel": "power-warning",
+    "visualPartIds": ["7805-regulator"],
+    "compatibleTopologies": ["regulated-5v-rail"],
+    "sourceClaimIds": ["7805-regulator-visual-pin-map", "7805-regulated-5v-contract"],
+    "capabilities": [
+      "voltage-regulator",
+      "regulated-power-output",
+      "external-power-warning"
+    ],
+    "compatibleSimulationPrimitives": ["regulated_5v_rail_state"],
+    "commonMistakes": [
+      "Connecting IN and OUT backwards.",
+      "Forgetting the shared ground between input source and regulated output rail.",
+      "Treating the qualitative model as thermal or current-limit analysis."
+    ],
+    "safeSubstitutes": ["breadboard-psu"]
+  }
+]

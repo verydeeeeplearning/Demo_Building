@@ -1,0 +1,130 @@
+{
+  "version": "2026-06-01",
+  "kind": "array",
+  "keyField": "id",
+  "aggregatePath": "../topology-templates.json",
+  "categories": [
+    {
+      "id": "starter-core",
+      "path": "starter-core.json",
+      "description": "Starter display, LED, button, buzzer, servo, dimmer, distance, DHT11, and LDR topologies."
+    },
+    {
+      "id": "wp01-analog-sensors",
+      "path": "wp01-analog-sensors.json",
+      "description": "WP-01 analog and resistive sensor topologies."
+    },
+    {
+      "id": "wp02-digital-inputs",
+      "path": "wp02-digital-inputs.json",
+      "description": "WP-02 digital input display/output topologies."
+    },
+    {
+      "id": "wp03-matrix-inputs",
+      "path": "wp03-matrix-inputs.json",
+      "description": "WP-03 matrix, joystick, and rotary encoder topologies."
+    },
+    {
+      "id": "wp04-displays",
+      "path": "wp04-displays.json",
+      "description": "WP-04 bare 7-segment, LED-array, addressable, and SPI display topologies."
+    },
+    {
+      "id": "wp05-light-sound",
+      "path": "wp05-light-sound.json",
+      "description": "WP-05 RGB LED and powered light output topologies."
+    },
+    {
+      "id": "wp06-motion-power",
+      "path": "wp06-motion-power.json",
+      "description": "WP-06 servo, motor, driver, relay, and high-current warning topologies."
+    },
+    {
+      "id": "wp07-power-passive",
+      "path": "wp07-power-passive.json",
+      "description": "WP-07 low-voltage power rail and regulator topologies."
+    },
+    {
+      "id": "wp08-controller-boards",
+      "path": "wp08-controller-boards.json",
+      "description": "WP-08 state-only controller board pin-map and voltage-domain topologies."
+    },
+    {
+      "id": "wp09-prototyping",
+      "path": "wp09-prototyping.json",
+      "description": "WP-09 state-only prototyping surface and connector context topologies."
+    },
+    {
+      "id": "wp10-protocol-sensors",
+      "path": "wp10-protocol-sensors.json",
+      "description": "WP-10 protocol sensor display readout topologies."
+    },
+    {
+      "id": "wp11-communication-modules",
+      "path": "wp11-communication-modules.json",
+      "description": "WP-11 wired and wireless communication module topologies."
+    },
+    {
+      "id": "wp12-logic-interface",
+      "path": "wp12-logic-interface.json",
+      "description": "WP-12 logic, ADC, timer, op-amp, and level-shifter context topologies."
+    }
+  ],
+  "order": [
+    "controller-i2c-module",
+    "controller-i2c-character-display",
+    "controller-distance-sensor-i2c-display",
+    "controller-single-wire-sensor-i2c-display",
+    "controller-i2c-sensor-display",
+    "controller-clocked-data-sensor-i2c-display",
+    "controller-spi-sensor-display",
+    "controller-uart-sensor-display",
+    "controller-uart-communication-module",
+    "controller-spi-communication-module",
+    "controller-differential-bus-module",
+    "wireless-module-command-state",
+    "controller-logic-interface-context",
+    "controller-i2c-interface-context",
+    "controller-spi-interface-context",
+    "controller-analog-timing-interface-context",
+    "level-shifted-i2c-bus",
+    "controller-digital-output-series-load",
+    "controller-digital-input-switch-plus-output",
+    "controller-digital-input-switch-plus-multiple-outputs",
+    "controller-direct-low-current-load",
+    "controller-pwm-actuator",
+    "controller-analog-input-pwm-output",
+    "controller-analog-threshold-output",
+    "controller-analog-sensor-i2c-display",
+    "controller-analog-sensor-threshold-output",
+    "controller-resistive-sensor-divider-i2c-display",
+    "controller-resistive-sensor-divider-threshold-output",
+    "controller-digital-input-display",
+    "controller-digital-input-output",
+    "controller-pulse-digital-sensor-display",
+    "controller-matrix-input-display",
+    "controller-dual-analog-input-display",
+    "controller-quadrature-input-display",
+    "controller-bare-seven-segment-display",
+    "controller-led-array-display",
+    "controller-addressable-led-display",
+    "controller-spi-display",
+    "controller-rgb-led-current-limited-output",
+    "controller-powered-light-module-output",
+    "controller-servo-external-power-warning",
+    "controller-transistor-low-side-load",
+    "controller-mosfet-module-load",
+    "controller-uln2003-unipolar-stepper",
+    "controller-step-dir-bipolar-stepper",
+    "controller-hbridge-dc-motor",
+    "controller-relay-low-voltage-load",
+    "external-low-voltage-power-rail",
+    "regulated-5v-rail",
+    "protection-passive-in-series-or-parallel",
+    "timing-passive-context-only",
+    "prototyping-surface-context-only",
+    "connector-wiring-context-only",
+    "controller-board-pin-map-substitution",
+    "controller-voltage-domain-policy"
+  ]
+}

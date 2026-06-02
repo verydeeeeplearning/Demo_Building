@@ -5,7 +5,7 @@ For each prompt family:
 1. Open `http://127.0.0.1:4173/`.
 2. Submit a natural student prompt.
 3. Verify the chat does not expose server secrets, API keys, or raw environment values.
-4. Verify Files tab includes requirement markdown and, for agent-built circuits, context coverage evidence.
+4. Verify Files tab includes requirement markdown and, for agent-built circuits, context coverage plus source bundle evidence.
 5. Verify PCB tab has a nonblank three.js canvas and visible parts from `RenderPlan`.
 6. Hover or select at least one component and one wire.
 7. Ask the inspector tutor why that target is needed.
@@ -14,6 +14,10 @@ For each prompt family:
 10. Record the prompt family and failure class when any step fails.
 
 Default CI may use the offline-safe demo and mocked agent boundary. Live Deepagents browser checks remain opt-in through `RUN_LIVE_E2E=1` and a configured server key.
+
+## Source Bundle Evidence
+
+For agent-created projects, verify that Files context evidence indicates whether the source-backed hardware support bundle is ready. A valid render/run project must have complete source bundle evidence. Planned or visual-only hardware must show a review/support-gap result and must not render PCB wiring or animate current flow.
 
 ## Context QA Artifacts
 

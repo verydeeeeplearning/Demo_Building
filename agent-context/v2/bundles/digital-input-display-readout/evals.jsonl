@@ -1,0 +1,4 @@
+{"id":"v2-pir-motion-display-en","message":"Show PIR motion sensor state on the OLED display.","expected":"render_and_run_valid_simulation"}
+{"id":"v2-limit-switch-display-en","message":"Display whether the limit switch is pressed on the OLED screen.","expected":"render_and_run_valid_simulation"}
+{"id":"v2-tcs3200-color-display-en","message":"Show the TCS3200 color sensor pulse reading on the OLED display.","expected":"render_and_run_valid_simulation"}
+{"id":"v2-floating-passive-switch-invalid","message":"Display a reed switch on OLED but leave the other reed switch lead unconnected.","expected":"validation_warning_or_block"}

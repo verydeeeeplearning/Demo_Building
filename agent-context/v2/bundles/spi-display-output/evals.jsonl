@@ -1,0 +1,4 @@
+{"id":"v2-tft-spi-display","message":"Show HELLO on a 1.8 inch SPI TFT display.","expected":"valid_circuit_synthesis"}
+{"id":"v2-nokia-5110-display","message":"Draw a smile on a Nokia 5110 LCD display.","expected":"valid_circuit_synthesis"}
+{"id":"v2-epaper-213-display","message":"Display a message on a 2.13 inch e-paper screen.","expected":"valid_circuit_synthesis"}
+{"id":"v2-i2c-spi-confusion-counterexample","message":"Wire a SPI TFT display using only I2C SDA and SCL.","expected":"clarification_or_support_gap"}

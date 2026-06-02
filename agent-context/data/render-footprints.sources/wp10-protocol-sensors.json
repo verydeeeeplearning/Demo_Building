@@ -1,0 +1,200 @@
+{
+  "dht22-sensor": {
+    "type": "dht22-sensor",
+    "width": 0.78,
+    "depth": 1.02,
+    "height": 0.34,
+    "visualStyle": { "shape": "vented-sensor", "color": "#f5f5f0", "material": "plastic-pcb" },
+    "pinAnchors": {
+      "VCC": { "x": -0.28, "y": 0.1, "z": -0.22, "role": "power", "label": "VCC" },
+      "DAT": { "x": 0, "y": 0.1, "z": -0.22, "role": "single-wire-data", "label": "DAT" },
+      "GND": { "x": 0.28, "y": 0.1, "z": -0.22, "role": "ground", "label": "GND" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.56, "z": 0 },
+    "placement": {
+      "allowedSurfaces": ["breadboard", "stage"],
+      "breadboardCompatible": true,
+      "defaultOrientation": "vents-forward",
+      "notes": ["DHT22 uses VCC/GND and one single-wire data line for qualitative temperature/humidity readout."]
+    },
+    "simulationOverlayAnchors": [
+      { "id": "sensor-value", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "sensor-current", "anchor": "VCC", "role": "current-overlay" },
+      { "id": "single-wire-data", "anchor": "DAT", "role": "signal-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "DHT22 sensor", "explainableAs": ["temperature-humidity-sensor", "single-wire-readout"] },
+      { "id": "pin-vcc", "label": "VCC pin", "pin": "VCC", "explainableAs": ["module-power"] },
+      { "id": "pin-dat", "label": "Data pin", "pin": "DAT", "explainableAs": ["single-wire-data"] },
+      { "id": "pin-gnd", "label": "GND pin", "pin": "GND", "explainableAs": ["ground-return"] }
+    ]
+  },
+  "bmp280-module": {
+    "type": "bmp280-module",
+    "width": 1.1,
+    "depth": 0.46,
+    "height": 0.12,
+    "visualStyle": { "shape": "sensor-module", "color": "#17171c", "material": "pcb-sensor" },
+    "pinAnchors": {
+      "VCC": { "x": -0.42, "y": 0.1, "z": -0.22, "role": "power", "label": "VCC" },
+      "GND": { "x": -0.14, "y": 0.1, "z": -0.22, "role": "ground", "label": "GND" },
+      "SCL": { "x": 0.14, "y": 0.1, "z": -0.22, "role": "i2c-clock", "label": "SCL" },
+      "SDA": { "x": 0.42, "y": 0.1, "z": -0.22, "role": "i2c-data", "label": "SDA" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.36, "z": 0 },
+    "placement": { "allowedSurfaces": ["breadboard", "stage"], "breadboardCompatible": true, "defaultOrientation": "pins-down", "notes": ["I2C sensor module uses shared SDA/SCL bus with the display."] },
+    "simulationOverlayAnchors": [
+      { "id": "sensor-value", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "sensor-current", "anchor": "VCC", "role": "current-overlay" },
+      { "id": "i2c-activity", "anchor": "SDA", "role": "signal-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "BMP280 module", "explainableAs": ["i2c-protocol-sensor", "educational-readout"] },
+      { "id": "pin-scl", "label": "I2C clock", "pin": "SCL", "explainableAs": ["i2c-clock"] },
+      { "id": "pin-sda", "label": "I2C data", "pin": "SDA", "explainableAs": ["i2c-data"] }
+    ]
+  },
+  "mpu6050-module": {
+    "type": "mpu6050-module",
+    "width": 1.2,
+    "depth": 0.48,
+    "height": 0.12,
+    "visualStyle": { "shape": "sensor-module", "color": "#233d78", "material": "pcb-sensor" },
+    "pinAnchors": {
+      "VCC": { "x": -0.56, "y": 0.1, "z": -0.22, "role": "power", "label": "VCC" },
+      "GND": { "x": -0.28, "y": 0.1, "z": -0.22, "role": "ground", "label": "GND" },
+      "SCL": { "x": 0, "y": 0.1, "z": -0.22, "role": "i2c-clock", "label": "SCL" },
+      "SDA": { "x": 0.28, "y": 0.1, "z": -0.22, "role": "i2c-data", "label": "SDA" },
+      "INT": { "x": 0.56, "y": 0.1, "z": -0.22, "role": "digital-output", "label": "INT" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.38, "z": 0 },
+    "placement": { "allowedSurfaces": ["breadboard", "stage"], "breadboardCompatible": true, "defaultOrientation": "pins-down", "notes": ["INT is optional in the supported qualitative I2C readout; SDA/SCL are required."] },
+    "simulationOverlayAnchors": [
+      { "id": "sensor-value", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "sensor-current", "anchor": "VCC", "role": "current-overlay" },
+      { "id": "i2c-activity", "anchor": "SDA", "role": "signal-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "MPU-6050 module", "explainableAs": ["i2c-protocol-sensor", "motion-readout"] },
+      { "id": "pin-int", "label": "INT pin", "pin": "INT", "explainableAs": ["optional-interrupt"] }
+    ]
+  },
+  "hmc5883l-module": {
+    "type": "hmc5883l-module",
+    "width": 1.1,
+    "depth": 0.42,
+    "height": 0.12,
+    "visualStyle": { "shape": "sensor-module", "color": "#263b7a", "material": "pcb-sensor" },
+    "pinAnchors": {
+      "VCC": { "x": -0.42, "y": 0.1, "z": -0.22, "role": "power", "label": "VCC" },
+      "GND": { "x": -0.14, "y": 0.1, "z": -0.22, "role": "ground", "label": "GND" },
+      "SCL": { "x": 0.14, "y": 0.1, "z": -0.22, "role": "i2c-clock", "label": "SCL" },
+      "SDA": { "x": 0.42, "y": 0.1, "z": -0.22, "role": "i2c-data", "label": "SDA" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.36, "z": 0 },
+    "placement": { "allowedSurfaces": ["breadboard", "stage"], "breadboardCompatible": true, "defaultOrientation": "pins-down", "notes": ["Compass readout is qualitative and not navigation-grade."] },
+    "simulationOverlayAnchors": [
+      { "id": "sensor-value", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "sensor-current", "anchor": "VCC", "role": "current-overlay" },
+      { "id": "i2c-activity", "anchor": "SDA", "role": "signal-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "HMC5883L module", "explainableAs": ["i2c-protocol-sensor", "magnetic-field-readout"] }
+    ]
+  },
+  "hx711-loadcell-module": {
+    "type": "hx711-loadcell-module",
+    "width": 1.1,
+    "depth": 0.48,
+    "height": 0.12,
+    "visualStyle": { "shape": "sensor-module", "color": "#1f6fb2", "material": "pcb-sensor" },
+    "pinAnchors": {
+      "VCC": { "x": -0.42, "y": 0.1, "z": -0.22, "role": "power", "label": "VCC" },
+      "GND": { "x": -0.14, "y": 0.1, "z": -0.22, "role": "ground", "label": "GND" },
+      "DT": { "x": 0.14, "y": 0.1, "z": -0.22, "role": "digital-data", "label": "DT" },
+      "SCK": { "x": 0.42, "y": 0.1, "z": -0.22, "role": "digital-clock", "label": "SCK" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.36, "z": 0 },
+    "placement": { "allowedSurfaces": ["breadboard", "stage"], "breadboardCompatible": true, "defaultOrientation": "pins-down", "notes": ["HX711 uses DT and SCK as a clocked data interface; weight is qualitative only."] },
+    "simulationOverlayAnchors": [
+      { "id": "sensor-value", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "sensor-current", "anchor": "VCC", "role": "current-overlay" },
+      { "id": "clocked-data", "anchor": "DT", "role": "signal-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "HX711 module", "explainableAs": ["clocked-data-sensor", "qualitative-load-readout"] }
+    ]
+  },
+  "gps-neo6m-module": {
+    "type": "gps-neo6m-module",
+    "width": 1.1,
+    "depth": 0.68,
+    "height": 0.14,
+    "visualStyle": { "shape": "sensor-module", "color": "#17171c", "material": "pcb-antenna" },
+    "pinAnchors": {
+      "VCC": { "x": -0.42, "y": 0.1, "z": -0.22, "role": "power", "label": "VCC" },
+      "GND": { "x": -0.14, "y": 0.1, "z": -0.22, "role": "ground", "label": "GND" },
+      "TX": { "x": 0.14, "y": 0.1, "z": -0.22, "role": "serial-tx", "label": "TX" },
+      "RX": { "x": 0.42, "y": 0.1, "z": -0.22, "role": "serial-rx", "label": "RX" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.42, "z": 0 },
+    "placement": { "allowedSurfaces": ["breadboard", "stage"], "breadboardCompatible": true, "defaultOrientation": "antenna-up", "notes": ["GPS readout is classroom NMEA state only and not suitable for tracking or navigation."] },
+    "simulationOverlayAnchors": [
+      { "id": "sensor-value", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "sensor-current", "anchor": "VCC", "role": "current-overlay" },
+      { "id": "uart-activity", "anchor": "TX", "role": "signal-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "NEO-6M GPS module", "explainableAs": ["uart-protocol-sensor", "educational-nmea-readout"] }
+    ]
+  },
+  "rc522-rfid-module": {
+    "type": "rc522-rfid-module",
+    "width": 1.5,
+    "depth": 0.78,
+    "height": 0.12,
+    "visualStyle": { "shape": "rfid-reader", "color": "#1f6fb2", "material": "pcb-antenna" },
+    "pinAnchors": {
+      "3V3": { "x": -0.7, "y": 0.1, "z": -0.22, "role": "power", "label": "3V3" },
+      "GND": { "x": -0.42, "y": 0.1, "z": -0.22, "role": "ground", "label": "GND" },
+      "SCK": { "x": -0.14, "y": 0.1, "z": -0.22, "role": "spi-clock", "label": "SCK" },
+      "MOSI": { "x": 0.14, "y": 0.1, "z": -0.22, "role": "spi-mosi", "label": "MOSI" },
+      "MISO": { "x": 0.42, "y": 0.1, "z": -0.22, "role": "spi-miso", "label": "MISO" },
+      "CS": { "x": 0.7, "y": 0.1, "z": -0.22, "role": "spi-select", "label": "CS" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.42, "z": 0 },
+    "placement": { "allowedSurfaces": ["stage"], "breadboardCompatible": false, "defaultOrientation": "antenna-up", "notes": ["RC522 is a larger antenna board; place it beside the breadboard and wire it to Arduino 3.3V/SPI pins."] },
+    "simulationOverlayAnchors": [
+      { "id": "sensor-value", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "sensor-current", "anchor": "3V3", "role": "current-overlay" },
+      { "id": "spi-activity", "anchor": "MOSI", "role": "signal-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "RC522 RFID module", "explainableAs": ["spi-protocol-sensor", "demo-tag-readout"] }
+    ]
+  },
+  "max30102-pulse-module": {
+    "type": "max30102-pulse-module",
+    "width": 1.2,
+    "depth": 0.46,
+    "height": 0.12,
+    "visualStyle": { "shape": "sensor-module", "color": "#c2362f", "material": "pcb-sensor" },
+    "pinAnchors": {
+      "VIN": { "x": -0.56, "y": 0.1, "z": -0.22, "role": "power", "label": "VIN" },
+      "GND": { "x": -0.28, "y": 0.1, "z": -0.22, "role": "ground", "label": "GND" },
+      "SCL": { "x": 0, "y": 0.1, "z": -0.22, "role": "i2c-clock", "label": "SCL" },
+      "SDA": { "x": 0.28, "y": 0.1, "z": -0.22, "role": "i2c-data", "label": "SDA" },
+      "INT": { "x": 0.56, "y": 0.1, "z": -0.22, "role": "digital-output", "label": "INT" }
+    },
+    "labelAnchor": { "x": 0, "y": 0.38, "z": 0 },
+    "placement": { "allowedSurfaces": ["breadboard", "stage"], "breadboardCompatible": true, "defaultOrientation": "sensor-up", "notes": ["Pulse readout is qualitative and not a medical measurement."] },
+    "simulationOverlayAnchors": [
+      { "id": "sensor-value", "anchor": "labelAnchor", "role": "state-overlay" },
+      { "id": "sensor-current", "anchor": "VIN", "role": "current-overlay" },
+      { "id": "i2c-activity", "anchor": "SDA", "role": "signal-overlay" }
+    ],
+    "hoverTargets": [
+      { "id": "body", "label": "MAX30102 pulse module", "explainableAs": ["i2c-protocol-sensor", "non-medical-pulse-demo"] }
+    ]
+  }
+}

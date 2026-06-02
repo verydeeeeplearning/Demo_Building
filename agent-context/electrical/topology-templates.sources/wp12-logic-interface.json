@@ -1,0 +1,156 @@
+[
+  {
+    "id": "controller-logic-interface-context",
+    "label": "Controller logic interface state display",
+    "description": "A controller powers a logic interface IC, drives the required GPIO control pins, and shows qualitative interface state on an I2C display without inferring hidden output loads.",
+    "requiredRoles": ["controller", "power-source", "ground-return", "data", "clock", "enable", "logic-interface", "i2c-data", "i2c-clock", "i2c-module"],
+    "nets": [
+      { "id": "vcc", "kind": "power" },
+      { "id": "ground", "kind": "ground" },
+      { "id": "logic-data", "kind": "signal" },
+      { "id": "logic-clock", "kind": "signal" },
+      { "id": "logic-latch-enable", "kind": "signal" },
+      { "id": "sda", "kind": "signal" },
+      { "id": "scl", "kind": "signal" }
+    ],
+    "connections": [
+      { "fromRole": "controller.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "logic-interface.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "i2c-module.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "controller.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "logic-interface.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "i2c-module.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "controller.digital-output", "toNet": "logic-data", "signal": "gpio" },
+      { "fromRole": "logic-interface.data", "toNet": "logic-data", "signal": "gpio" },
+      { "fromRole": "controller.digital-output", "toNet": "logic-clock", "signal": "gpio" },
+      { "fromRole": "logic-interface.clock", "toNet": "logic-clock", "signal": "gpio" },
+      { "fromRole": "controller.digital-output", "toNet": "logic-latch-enable", "signal": "gpio" },
+      { "fromRole": "logic-interface.enable", "toNet": "logic-latch-enable", "signal": "gpio" },
+      { "fromRole": "controller.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "i2c-module.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "controller.i2c-clock", "toNet": "scl", "signal": "i2c-clock" },
+      { "fromRole": "i2c-module.i2c-clock", "toNet": "scl", "signal": "i2c-clock" }
+    ],
+    "validationRules": ["logic-interface-power-ground", "logic-interface-signal-required", "i2c-pin-role-match", "common-ground", "precision-analog-overclaim-blocked"],
+    "simulationPrimitiveHints": ["display_sensor_value", "display_static_text", "current_flow_animation"]
+  },
+  {
+    "id": "controller-i2c-interface-context",
+    "label": "Controller I2C interface IC state display",
+    "description": "A controller powers an I2C interface IC, shares SDA/SCL with the interface and display, and shows qualitative state without claiming calibrated measurements or hidden external loads.",
+    "requiredRoles": ["controller", "power-source", "ground-return", "i2c-data", "i2c-clock", "logic-interface", "i2c-module"],
+    "nets": [
+      { "id": "vcc", "kind": "power" },
+      { "id": "ground", "kind": "ground" },
+      { "id": "sda", "kind": "signal" },
+      { "id": "scl", "kind": "signal" },
+      { "id": "interface-state", "kind": "signal" }
+    ],
+    "connections": [
+      { "fromRole": "controller.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "logic-interface.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "i2c-module.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "controller.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "logic-interface.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "i2c-module.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "controller.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "logic-interface.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "i2c-module.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "controller.i2c-clock", "toNet": "scl", "signal": "i2c-clock" },
+      { "fromRole": "logic-interface.i2c-clock", "toNet": "scl", "signal": "i2c-clock" },
+      { "fromRole": "i2c-module.i2c-clock", "toNet": "scl", "signal": "i2c-clock" },
+      { "fromRole": "logic-interface.analog-input", "toNet": "interface-state", "signal": "analog-context" }
+    ],
+    "validationRules": ["logic-interface-power-ground", "logic-interface-i2c-pins", "i2c-pin-role-match", "common-ground", "precision-analog-overclaim-blocked"],
+    "simulationPrimitiveHints": ["display_sensor_value", "display_static_text", "current_flow_animation"]
+  },
+  {
+    "id": "controller-spi-interface-context",
+    "label": "Controller SPI interface IC state display",
+    "description": "A controller powers an SPI interface IC, connects clock/data/select signals, and shows qualitative bus or ADC state on an I2C display.",
+    "requiredRoles": ["controller", "power-source", "ground-return", "spi-clock", "spi-mosi", "spi-miso", "spi-select", "logic-interface", "i2c-data", "i2c-clock", "i2c-module"],
+    "nets": [
+      { "id": "vcc", "kind": "power" },
+      { "id": "ground", "kind": "ground" },
+      { "id": "sck", "kind": "signal" },
+      { "id": "mosi", "kind": "signal" },
+      { "id": "miso", "kind": "signal" },
+      { "id": "cs", "kind": "signal" },
+      { "id": "sda", "kind": "signal" },
+      { "id": "scl", "kind": "signal" }
+    ],
+    "connections": [
+      { "fromRole": "controller.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "logic-interface.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "controller.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "logic-interface.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "controller.digital-output", "toNet": "sck", "signal": "spi" },
+      { "fromRole": "logic-interface.spi-clock", "toNet": "sck", "signal": "spi" },
+      { "fromRole": "controller.digital-output", "toNet": "mosi", "signal": "spi" },
+      { "fromRole": "logic-interface.spi-mosi", "toNet": "mosi", "signal": "spi" },
+      { "fromRole": "logic-interface.spi-miso", "toNet": "miso", "signal": "spi" },
+      { "fromRole": "controller.digital-input", "toNet": "miso", "signal": "spi" },
+      { "fromRole": "controller.digital-output", "toNet": "cs", "signal": "spi" },
+      { "fromRole": "logic-interface.spi-select", "toNet": "cs", "signal": "spi" },
+      { "fromRole": "controller.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "i2c-module.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "controller.i2c-clock", "toNet": "scl", "signal": "i2c-clock" },
+      { "fromRole": "i2c-module.i2c-clock", "toNet": "scl", "signal": "i2c-clock" }
+    ],
+    "validationRules": ["logic-interface-power-ground", "logic-interface-spi-pins", "i2c-pin-role-match", "common-ground", "precision-analog-overclaim-blocked"],
+    "simulationPrimitiveHints": ["display_sensor_value", "display_static_text", "current_flow_animation"]
+  },
+  {
+    "id": "controller-analog-timing-interface-context",
+    "label": "Controller analog or timing interface state display",
+    "description": "A controller powers a timer or op-amp interface IC and displays qualitative signal-conditioning or timing state without exact analog design claims.",
+    "requiredRoles": ["controller", "power-source", "ground-return", "logic-interface", "analog-input", "output", "i2c-data", "i2c-clock", "i2c-module"],
+    "nets": [
+      { "id": "vcc", "kind": "power" },
+      { "id": "ground", "kind": "ground" },
+      { "id": "analog-or-timing-input", "kind": "signal" },
+      { "id": "interface-output", "kind": "signal" },
+      { "id": "sda", "kind": "signal" },
+      { "id": "scl", "kind": "signal" }
+    ],
+    "connections": [
+      { "fromRole": "controller.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "logic-interface.power", "toNet": "vcc", "signal": "power" },
+      { "fromRole": "controller.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "logic-interface.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "logic-interface.analog-input", "toNet": "analog-or-timing-input", "signal": "analog-context" },
+      { "fromRole": "logic-interface.output", "toNet": "interface-output", "signal": "gpio" },
+      { "fromRole": "controller.digital-input", "toNet": "interface-output", "signal": "gpio" },
+      { "fromRole": "controller.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "i2c-module.i2c-data", "toNet": "sda", "signal": "i2c-data" },
+      { "fromRole": "controller.i2c-clock", "toNet": "scl", "signal": "i2c-clock" },
+      { "fromRole": "i2c-module.i2c-clock", "toNet": "scl", "signal": "i2c-clock" }
+    ],
+    "validationRules": ["logic-interface-power-ground", "logic-interface-signal-required", "i2c-pin-role-match", "common-ground", "precision-analog-overclaim-blocked", "timer-frequency-overclaim-blocked"],
+    "simulationPrimitiveHints": ["display_sensor_value", "display_static_text", "current_flow_animation"]
+  },
+  {
+    "id": "level-shifted-i2c-bus",
+    "label": "Single-channel level-shifted signal context",
+    "description": "A controller powers high- and low-voltage reference rails on a level-shifter module, shares common ground, and shows qualitative translated signal state for the exposed HV1/LV1 pair.",
+    "requiredRoles": ["controller", "high-voltage-rail", "low-voltage-rail", "ground-return", "level-shifter", "level-shift-high", "level-shift-low"],
+    "nets": [
+      { "id": "hv-rail", "kind": "power" },
+      { "id": "lv-rail", "kind": "power" },
+      { "id": "ground", "kind": "ground" },
+      { "id": "translated-signal", "kind": "signal" }
+    ],
+    "connections": [
+      { "fromRole": "controller.power", "toNet": "hv-rail", "signal": "power" },
+      { "fromRole": "level-shifter.power", "toNet": "hv-rail", "signal": "power" },
+      { "fromRole": "level-shifter.power", "toNet": "lv-rail", "signal": "power" },
+      { "fromRole": "controller.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "level-shifter.ground", "toNet": "ground", "signal": "ground" },
+      { "fromRole": "controller.digital-output", "toNet": "translated-signal", "signal": "gpio" },
+      { "fromRole": "level-shifter.level-shift-high", "toNet": "translated-signal", "signal": "level-shift" },
+      { "fromRole": "level-shifter.level-shift-low", "toNet": "translated-signal", "signal": "level-shift" }
+    ],
+    "validationRules": ["logic-interface-power-ground", "level-shifter-voltage-domains", "common-ground", "level-shift-overclaim-blocked"],
+    "simulationPrimitiveHints": ["display_static_text", "current_flow_animation"]
+  }
+]

@@ -5,7 +5,9 @@ export const SHARE_CARD_HEIGHT = 630;
 
 export function createShareCardModel(snapshot, locale = 'ko') {
   const normalizedLocale = locale === 'en' ? 'en' : 'ko';
-  const validation = snapshot.validation?.status || snapshot.status || 'draft';
+  const runnable = shareRunnable(snapshot);
+  const diagnosticVisible = !runnable && shareDiagnosticVisible(snapshot);
+  const validation = runnable ? snapshot.validation?.status || snapshot.status || 'draft' : 'invalid';
   const parts = (snapshot.circuit?.components || [])
     .slice(0, 5)
     .map((part) => truncate(redactShareText(part.name || part.id || 'Part'), 34));
@@ -20,11 +22,28 @@ export function createShareCardModel(snapshot, locale = 'ko') {
     badge: badgeLabel(validation, normalizedLocale),
     parts,
     simulation: truncate(
-      redactShareText(snapshot.simulation?.available ? snapshot.simulation.explanation : unavailableSimulationCopy(normalizedLocale)),
+      redactShareText(runnable && snapshot.simulation?.available
+        ? snapshot.simulation.explanation
+        : diagnosticVisible ? diagnosticSimulationCopy(normalizedLocale) : unavailableSimulationCopy(normalizedLocale)),
       170
     ),
     footer: footerLabel(validation, normalizedLocale)
   };
+}
+
+function shareRunnable(snapshot) {
+  const report = snapshot.buildRunnableReport;
+  if (report) {
+    return report.runnable === true;
+  }
+  return snapshot.source === 'demo';
+}
+
+function shareDiagnosticVisible(snapshot) {
+  return snapshot.solverGateResult?.visibleSimulation === true
+    && snapshot.solverGateResult?.buildReady !== true
+    && Array.isArray(snapshot.renderPlan?.parts)
+    && snapshot.renderPlan.parts.length > 0;
 }
 
 export function renderShareCardCanvas(snapshot, locale = 'ko', canvas = document.createElement('canvas')) {
@@ -129,6 +148,12 @@ function unavailableSimulationCopy(locale) {
   return locale === 'en'
     ? 'Simulation is not available for this shared snapshot.'
     : '이 공유 회로에는 시뮬레이션 정보가 없습니다.';
+}
+
+function diagnosticSimulationCopy(locale) {
+  return locale === 'en'
+    ? '3D diagnostic scene available. Run and current-flow simulation need review.'
+    : '3D 진단 장면을 볼 수 있습니다. 실행과 전류 흐름은 검토가 필요합니다.';
 }
 
 function truncate(value, maxLength) {

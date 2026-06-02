@@ -12,6 +12,7 @@ test('projectFromShareSnapshot converts a public snapshot into a local project s
   assert.equal(project.circuit.parts.length, 2);
   assert.equal(project.circuit.connections[0].from.partId, 'arduino-uno');
   assert.equal(project.circuit.connections[0].education.label, 'Digital signal');
+  assert.deepEqual(project.circuit.layout.endpoints['arduino-uno:D9'], { x: -1.2, y: 0.7, z: -0.4 });
   assert.equal(project.circuit.validationReport.status, 'valid');
   assert.equal(project.circuit.simulationPlan.status, 'valid');
   assert.equal(project.files[0].id, 'shared-requirements');
@@ -83,6 +84,62 @@ test('projectFromShareSnapshot blocks renderable PCB data for invalid shares', (
   )));
 });
 
+test('projectFromShareSnapshot blocks valid-looking agent shares without runnable gate evidence', () => {
+  const snapshot = createSnapshot();
+  delete snapshot.buildRunnableReport;
+
+  const project = projectFromShareSnapshot(snapshot, 'en');
+
+  assert.equal(project.circuit.validationReport.status, 'invalid');
+  assert.equal(project.circuit.simulationPlan.status, 'invalid');
+  assert.deepEqual(project.circuit.parts, []);
+  assert.deepEqual(project.circuit.connections, []);
+  assert.match(project.files[0].markdown, /not validated|needs review|non-running/i);
+});
+
+test('projectFromShareSnapshot blocks valid-looking shares when runnable gate is blocked', () => {
+  const snapshot = createSnapshot();
+  snapshot.buildRunnableReport = blockedRunnableReport('simulation has no validated current or signal path');
+
+  const project = projectFromShareSnapshot(snapshot, 'en');
+
+  assert.equal(project.circuit.validationReport.status, 'invalid');
+  assert.equal(project.circuit.simulationPlan.status, 'invalid');
+  assert.deepEqual(project.circuit.parts, []);
+  assert.deepEqual(project.circuit.connections, []);
+  assert.match(project.files[0].markdown, /no validated current or signal path/i);
+});
+
+test('projectFromShareSnapshot preserves diagnostic 3D scenes without enabling run', () => {
+  const snapshot = createSnapshot();
+  snapshot.status = 'invalid';
+  snapshot.validation.status = 'invalid';
+  snapshot.simulation.available = false;
+  snapshot.simulation.currentPathCount = 0;
+  snapshot.buildRunnableReport = blockedRunnableReport('render is diagnostic only');
+  snapshot.solverGateResult = {
+    mode: 'diagnostic',
+    visibleSimulation: true,
+    buildReady: false,
+    simulationActivity: 'diagnostic',
+    notVerified: ['current-flow simulation is not verified']
+  };
+
+  const project = projectFromShareSnapshot(snapshot, 'en');
+
+  assert.equal(project.circuit.validationReport.status, 'invalid');
+  assert.equal(project.circuit.simulationPlan.status, 'invalid');
+  assert.equal(project.circuit.buildRunnableReport.runnable, false);
+  assert.equal(project.circuit.solverGateResult.visibleSimulation, true);
+  assert.equal(project.circuit.parts.length, 2);
+  assert.equal(project.circuit.connections.length, 1);
+  assert.deepEqual(project.circuit.layout.endpoints['arduino-uno:D9'], { x: -1.2, y: 0.7, z: -0.4 });
+  assert.ok(project.circuit.renderWarnings.some((warning) => (
+    warning.code === 'SHARED_SNAPSHOT_NOT_BUILD_READY'
+      && /3D scene|diagnosis only|Run and current-flow/i.test(warning.message)
+  )));
+});
+
 function createSnapshot() {
   return {
     schemaVersion: 1,
@@ -110,6 +167,7 @@ function createSnapshot() {
       warnings: [],
       unsupportedItems: []
     },
+    buildRunnableReport: validRunnableReport(),
     simulation: {
       available: true,
       runText: 'LED blink',
@@ -132,7 +190,13 @@ function createSnapshot() {
           color: '#f97316'
         }
       ],
-      floatingCards: []
+      floatingCards: [],
+      layout: {
+        endpoints: {
+          'arduino-uno:D9': { x: -1.2, y: 0.7, z: -0.4 },
+          'led-1:A': { x: 1.2, y: 0.42, z: 0.34 }
+        }
+      }
     },
     contextEvidence: {
       coverageStatus: 'sufficient',
@@ -140,5 +204,35 @@ function createSnapshot() {
       sourceTypes: ['registry', 'simulation'],
       warnings: []
     }
+  };
+}
+
+function validRunnableReport() {
+  return {
+    status: 'runnable',
+    runnable: true,
+    reasons: [],
+    validationStatus: 'valid',
+    simulationStatus: 'valid',
+    renderWarningCount: 0,
+    renderBlockingWarningCount: 0,
+    renderPartCount: 2,
+    currentPathCount: 1,
+    expectedStateCount: 1
+  };
+}
+
+function blockedRunnableReport(reason) {
+  return {
+    status: 'blocked',
+    runnable: false,
+    reasons: [reason],
+    validationStatus: 'valid',
+    simulationStatus: 'valid',
+    renderWarningCount: 0,
+    renderBlockingWarningCount: 0,
+    renderPartCount: 2,
+    currentPathCount: 0,
+    expectedStateCount: 0
   };
 }

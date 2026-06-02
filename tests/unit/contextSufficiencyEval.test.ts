@@ -12,6 +12,7 @@ type Fixture = {
   expectedCapabilityIds: string[];
   forbiddenCapabilityIds: string[];
   expectedCandidatePartIds: string[];
+  forbiddenCandidatePartIds?: string[];
   expectedInputModalities?: string[];
   expectedOutputModalities?: string[];
   expectedSupportGapPatterns: string[];
@@ -34,6 +35,11 @@ test('context packet prompt-family evals classify supported, planned, unsupporte
     const capabilityIds = packet.capabilityMatches.map((capability) => capability.id);
     const candidatePartIds = packet.candidateParts.map((part) => part.id);
 
+    assert.ok(
+      packet.promptBlock.length <= packet.retrievalPlan.maxPromptChars,
+      `${fixture.id} prompt budget exceeded: ${packet.promptBlock.length}/${packet.retrievalPlan.maxPromptChars}`
+    );
+
     for (const capabilityId of fixture.expectedCapabilityIds) {
       assert.ok(
         capabilityIds.includes(capabilityId),
@@ -53,6 +59,14 @@ test('context packet prompt-family evals classify supported, planned, unsupporte
       assert.ok(
         candidatePartIds.includes(partId),
         `${fixture.id} should include candidate part ${partId}; got ${candidatePartIds.join(', ')}`
+      );
+    }
+
+    for (const partId of fixture.forbiddenCandidatePartIds ?? []) {
+      assert.equal(
+        candidatePartIds.includes(partId),
+        false,
+        `${fixture.id} should not include candidate part ${partId}; got ${candidatePartIds.join(', ')}`
       );
     }
 

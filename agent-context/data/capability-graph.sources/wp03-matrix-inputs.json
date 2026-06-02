@@ -1,0 +1,283 @@
+[
+  {
+    "id": "matrix-input-display-readout",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "matrix keypad display",
+      "keypad on oled",
+      "dip switch display",
+      "membrane keypad display",
+      "show pressed key",
+      "show switch pattern"
+    ],
+    "requiredEvidence": [
+      "keypad",
+      "matrix keypad",
+      "dip switch",
+      "membrane keypad",
+      "pressed key",
+      "switch pattern",
+      "row column"
+    ],
+    "negativeEvidence": [
+      "analog joystick",
+      "rotary encoder",
+      "temperature humidity",
+      "distance sensor",
+      "current flow on screen"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "show the pressed keypad key on OLED",
+      "display DIP switch settings",
+      "4x4 keypad on the OLED",
+      "멤브레인 키패드 값을 표시",
+      "DIP 스위치 상태 표시"
+    ],
+    "inputModalities": [
+      "matrix-input",
+      "digital-input",
+      "keypad"
+    ],
+    "outputModalities": [
+      "display",
+      "key-state"
+    ],
+    "requiredRoles": [
+      "controller",
+      "matrix-input",
+      "digital-input",
+      "digital-output",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module",
+      "ground-return"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "oled-i2c-096"
+    ],
+    "optionalParts": [
+      "jumper-wire",
+      "dip-switch-4",
+      "keypad-4x4",
+      "membrane-keypad-1x4"
+    ],
+    "protocols": [
+      "gpio",
+      "matrix-scan",
+      "i2c"
+    ],
+    "simulationPrimitives": [
+      "matrix_input_state",
+      "display_static_text",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "oled",
+      "wire",
+      "dip-switch-8pin",
+      "matrix-keypad-8pin",
+      "keypad-strip-5pin"
+    ],
+    "validationRules": [
+      "matrix-input-lines-distinct",
+      "matrix-input-reference-defined",
+      "i2c-pin-role-match",
+      "common-ground",
+      "qualitative-sensor-readout-only"
+    ],
+    "commonMistakes": [
+      "Reusing one Arduino pin for multiple row/column lines.",
+      "Forgetting the common/reference pin on passive key strips or DIP switches.",
+      "Treating key scan activity as load current."
+    ],
+    "safeAlternatives": [
+      "digital-input-display-readout"
+    ]
+  },
+  {
+    "id": "joystick-display-readout",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "joystick display",
+      "joystick position on oled",
+      "analog joystick readout",
+      "show x y position"
+    ],
+    "requiredEvidence": [
+      "joystick",
+      "vrx",
+      "vry",
+      "x axis",
+      "y axis",
+      "analog stick"
+    ],
+    "negativeEvidence": [
+      "matrix keypad",
+      "rotary encoder",
+      "dht11",
+      "distance sensor"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "show joystick X and Y on OLED",
+      "display analog joystick position",
+      "조이스틱 위치를 OLED에 표시"
+    ],
+    "inputModalities": [
+      "joystick",
+      "analog",
+      "digital-input"
+    ],
+    "outputModalities": [
+      "display",
+      "position"
+    ],
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "analog-input",
+      "digital-input",
+      "joystick-input",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "joystick-module",
+      "oled-i2c-096"
+    ],
+    "optionalParts": [
+      "jumper-wire"
+    ],
+    "protocols": [
+      "analog-input",
+      "gpio",
+      "i2c"
+    ],
+    "simulationPrimitives": [
+      "joystick_position_state",
+      "display_static_text",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "oled",
+      "wire",
+      "joystick-module-5pin"
+    ],
+    "validationRules": [
+      "joystick-axis-pins-defined",
+      "digital-input-pin-exists",
+      "power-rail-valid",
+      "common-ground",
+      "i2c-pin-role-match",
+      "qualitative-sensor-readout-only"
+    ],
+    "commonMistakes": [
+      "Connecting VRX and VRY to the same analog pin.",
+      "Missing joystick ground.",
+      "Using the SW button as an analog axis."
+    ],
+    "safeAlternatives": [
+      "analog-sensor-display-readout"
+    ]
+  },
+  {
+    "id": "rotary-encoder-display-readout",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "rotary encoder display",
+      "encoder count on oled",
+      "rotary knob direction",
+      "quadrature encoder readout"
+    ],
+    "requiredEvidence": [
+      "rotary encoder",
+      "encoder knob",
+      "quadrature",
+      "clk dt",
+      "rotation count"
+    ],
+    "negativeEvidence": [
+      "joystick",
+      "matrix keypad",
+      "temperature humidity",
+      "distance sensor"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "show rotary encoder count on OLED",
+      "display encoder direction",
+      "로터리 엔코더 값을 표시"
+    ],
+    "inputModalities": [
+      "rotary-encoder",
+      "digital-input"
+    ],
+    "outputModalities": [
+      "display",
+      "rotation"
+    ],
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-input",
+      "quadrature-input",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "rotary-encoder",
+      "oled-i2c-096"
+    ],
+    "optionalParts": [
+      "jumper-wire"
+    ],
+    "protocols": [
+      "gpio",
+      "quadrature",
+      "i2c"
+    ],
+    "simulationPrimitives": [
+      "rotary_encoder_state",
+      "display_static_text",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "oled",
+      "wire",
+      "rotary-encoder-module-5pin"
+    ],
+    "validationRules": [
+      "encoder-quadrature-pins-defined",
+      "digital-input-pin-exists",
+      "power-rail-valid",
+      "common-ground",
+      "i2c-pin-role-match",
+      "qualitative-sensor-readout-only"
+    ],
+    "commonMistakes": [
+      "Connecting CLK and DT to the same Arduino input.",
+      "Omitting common ground.",
+      "Claiming contact-bounce timing simulation."
+    ],
+    "safeAlternatives": [
+      "joystick-display-readout"
+    ]
+  }
+]

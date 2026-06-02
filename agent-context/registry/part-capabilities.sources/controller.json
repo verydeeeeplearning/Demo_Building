@@ -1,0 +1,1624 @@
+[
+  {
+    "id": "arduino-uno",
+    "kind": "controller",
+    "label": "Arduino Uno",
+    "aliases": [
+      "arduino",
+      "uno",
+      "microcontroller",
+      "controller"
+    ],
+    "pins": [
+      {
+        "name": "5V",
+        "role": "power",
+        "aliases": [
+          "vcc",
+          "+5v"
+        ]
+      },
+      {
+        "name": "3V3",
+        "role": "power",
+        "aliases": [
+          "3.3v",
+          "+3v3"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "0v"
+        ]
+      },
+      {
+        "name": "D0/RX",
+        "role": "serial-rx",
+        "aliases": [
+          "rx",
+          "pin 0",
+          "uart rx"
+        ]
+      },
+      {
+        "name": "D1/TX",
+        "role": "serial-tx",
+        "aliases": [
+          "tx",
+          "pin 1",
+          "uart tx"
+        ]
+      },
+      {
+        "name": "A4/SDA",
+        "role": "i2c-data",
+        "aliases": [
+          "sda",
+          "a4"
+        ]
+      },
+      {
+        "name": "A5/SCL",
+        "role": "i2c-clock",
+        "aliases": [
+          "scl",
+          "a5"
+        ]
+      },
+      {
+        "name": "A0",
+        "role": "analog-input",
+        "aliases": [
+          "analog 0",
+          "analog input",
+          "sensor input"
+        ]
+      },
+      {
+        "name": "A1",
+        "role": "analog-input",
+        "aliases": [
+          "analog 1",
+          "analog input 1"
+        ]
+      },
+      {
+        "name": "D2",
+        "role": "digital-input",
+        "aliases": [
+          "pin 2"
+        ]
+      },
+      {
+        "name": "D3",
+        "role": "digital-output",
+        "aliases": [
+          "pin 3"
+        ]
+      },
+      {
+        "name": "D4",
+        "role": "digital-output",
+        "aliases": [
+          "pin 4"
+        ]
+      },
+      {
+        "name": "D5",
+        "role": "digital-output",
+        "aliases": [
+          "pin 5"
+        ]
+      },
+      {
+        "name": "D6",
+        "role": "digital-output",
+        "aliases": [
+          "pin 6"
+        ]
+      },
+      {
+        "name": "D7",
+        "role": "digital-output",
+        "aliases": [
+          "pin 7"
+        ]
+      },
+      {
+        "name": "D8",
+        "role": "digital-output",
+        "aliases": [
+          "pin 8"
+        ]
+      },
+      {
+        "name": "D9",
+        "role": "pwm-output",
+        "aliases": [
+          "pin 9",
+          "pwm"
+        ]
+      },
+      {
+        "name": "D10",
+        "role": "pwm-output",
+        "aliases": [
+          "pin 10",
+          "pwm",
+          "ss",
+          "spi chip select"
+        ]
+      },
+      {
+        "name": "D11",
+        "role": "pwm-output",
+        "aliases": [
+          "pin 11",
+          "pwm",
+          "mosi",
+          "spi data out"
+        ]
+      },
+      {
+        "name": "D12",
+        "role": "digital-input",
+        "aliases": [
+          "pin 12",
+          "miso",
+          "spi data in"
+        ]
+      },
+      {
+        "name": "D13",
+        "role": "digital-output",
+        "aliases": [
+          "pin 13",
+          "sck",
+          "spi clock"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "i2c",
+      "pwm",
+      "power",
+      "spi",
+      "uart"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "arduino",
+      "width": 2.05,
+      "depth": 1.28,
+      "height": 0.16
+    },
+    "simulationModel": {
+      "type": "controller-source",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "capabilities": [
+      "controller-source",
+      "digital-input",
+      "digital-output",
+      "pwm-output",
+      "i2c-controller",
+      "5v-power-source",
+      "3v3-power-source",
+      "spi-controller",
+      "uart-controller"
+    ],
+    "compatibleSimulationPrimitives": [
+      "digital_on_off",
+      "blink_timer",
+      "display_static_text",
+      "display_sensor_value",
+      "buzzer_pulse",
+      "servo_angle",
+      "analog_threshold",
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Using SDA/SCL on the wrong pins.",
+      "Forgetting common ground with modules."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "arduino-nano",
+    "kind": "controller",
+    "label": "Arduino Nano",
+    "aliases": [
+      "arduino nano",
+      "nano",
+      "나노"
+    ],
+    "pins": [
+      {
+        "name": "5V",
+        "role": "power",
+        "aliases": [
+          "vcc",
+          "+5v"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "0v"
+        ]
+      },
+      {
+        "name": "D12",
+        "role": "digital-output",
+        "aliases": [
+          "pin 12",
+          "digital"
+        ]
+      },
+      {
+        "name": "A3",
+        "role": "analog-input",
+        "aliases": [
+          "analog 3",
+          "analog input"
+        ]
+      },
+      {
+        "name": "TX",
+        "role": "serial-tx",
+        "aliases": [
+          "tx",
+          "uart tx"
+        ]
+      },
+      {
+        "name": "RX",
+        "role": "serial-rx",
+        "aliases": [
+          "rx",
+          "uart rx"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "analog",
+      "power",
+      "uart"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "arduino-nano-board",
+      "width": 1.1,
+      "depth": 0.55,
+      "height": 0.1
+    },
+    "simulationModel": {
+      "type": "controller-board-context",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "capabilities": [
+      "controller-source",
+      "controller-board-substitution",
+      "controller-pin-map-context",
+      "digital-output",
+      "analog-input",
+      "5v-power-source",
+      "uart-controller"
+    ],
+    "compatibleSimulationPrimitives": [
+      "controller_board_context_state"
+    ],
+    "commonMistakes": [
+      "Assuming the Nano has the same physical layout as an Uno.",
+      "Using board pins without checking the board-specific pin map."
+    ],
+    "safeSubstitutes": [
+      "arduino-uno"
+    ],
+    "family": "controller-board",
+    "riskLevel": "low-voltage",
+    "supportTier": "simulation-ready",
+    "visualPartIds": [
+      "arduino-nano"
+    ],
+    "compatibleTopologies": [
+      "controller-board-pin-map-substitution",
+      "controller-voltage-domain-policy"
+    ],
+    "sourceClaimIds": [
+      "arduino-nano-visual-pin-map",
+      "controller-board-pin-map-substitution-contract",
+      "controller-board-voltage-domain-policy-contract",
+      "controller-board-context-only-contract"
+    ],
+    "requiredExternalParts": [],
+    "forbiddenTopologies": [
+      "wireless-cloud-control",
+      "mains-control"
+    ]
+  },
+  {
+    "id": "arduino-mega2560",
+    "kind": "controller",
+    "label": "Arduino Mega 2560",
+    "aliases": [
+      "arduino mega",
+      "mega 2560",
+      "mega"
+    ],
+    "pins": [
+      {
+        "name": "5V",
+        "role": "power",
+        "aliases": [
+          "vcc",
+          "+5v"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "0v"
+        ]
+      },
+      {
+        "name": "D2",
+        "role": "pwm-output",
+        "aliases": [
+          "pin 2",
+          "pwm"
+        ]
+      },
+      {
+        "name": "A0",
+        "role": "analog-input",
+        "aliases": [
+          "analog 0"
+        ]
+      },
+      {
+        "name": "TX0",
+        "role": "serial-tx",
+        "aliases": [
+          "tx",
+          "uart tx"
+        ]
+      },
+      {
+        "name": "RX0",
+        "role": "serial-rx",
+        "aliases": [
+          "rx",
+          "uart rx"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "analog",
+      "pwm",
+      "power",
+      "uart"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "arduino-mega2560-board",
+      "width": 2.5,
+      "depth": 1.7,
+      "height": 0.12
+    },
+    "simulationModel": {
+      "type": "controller-board-context",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "capabilities": [
+      "controller-source",
+      "controller-board-substitution",
+      "controller-pin-map-context",
+      "digital-output",
+      "pwm-output",
+      "analog-input",
+      "5v-power-source",
+      "uart-controller"
+    ],
+    "compatibleSimulationPrimitives": [
+      "controller_board_context_state"
+    ],
+    "commonMistakes": [
+      "Assuming Mega digital/PWM pins are physically interchangeable with Uno headers.",
+      "Forgetting to verify the selected serial port."
+    ],
+    "safeSubstitutes": [
+      "arduino-uno"
+    ],
+    "family": "controller-board",
+    "riskLevel": "low-voltage",
+    "supportTier": "simulation-ready",
+    "visualPartIds": [
+      "arduino-mega2560"
+    ],
+    "compatibleTopologies": [
+      "controller-board-pin-map-substitution",
+      "controller-voltage-domain-policy"
+    ],
+    "sourceClaimIds": [
+      "arduino-mega2560-visual-pin-map",
+      "controller-board-pin-map-substitution-contract",
+      "controller-board-voltage-domain-policy-contract",
+      "controller-board-context-only-contract"
+    ],
+    "requiredExternalParts": [],
+    "forbiddenTopologies": [
+      "wireless-cloud-control",
+      "mains-control"
+    ]
+  },
+  {
+    "id": "arduino-leonardo",
+    "kind": "controller",
+    "label": "Arduino Leonardo",
+    "aliases": [
+      "arduino leonardo",
+      "leonardo"
+    ],
+    "pins": [
+      {
+        "name": "5V",
+        "role": "power",
+        "aliases": [
+          "vcc",
+          "+5v"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "0v"
+        ]
+      },
+      {
+        "name": "D9",
+        "role": "pwm-output",
+        "aliases": [
+          "pin 9",
+          "pwm"
+        ]
+      },
+      {
+        "name": "A1",
+        "role": "analog-input",
+        "aliases": [
+          "analog 1"
+        ]
+      },
+      {
+        "name": "SDA",
+        "role": "i2c-data",
+        "aliases": [
+          "i2c data"
+        ]
+      },
+      {
+        "name": "SCL",
+        "role": "i2c-clock",
+        "aliases": [
+          "i2c clock"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "analog",
+      "pwm",
+      "power",
+      "i2c"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "arduino-leonardo-board",
+      "width": 2,
+      "depth": 1.4,
+      "height": 0.12
+    },
+    "simulationModel": {
+      "type": "controller-board-context",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "capabilities": [
+      "controller-source",
+      "controller-board-substitution",
+      "controller-pin-map-context",
+      "digital-output",
+      "pwm-output",
+      "analog-input",
+      "5v-power-source",
+      "i2c-controller"
+    ],
+    "compatibleSimulationPrimitives": [
+      "controller_board_context_state"
+    ],
+    "commonMistakes": [
+      "Assuming Leonardo I2C uses Uno A4/A5 instead of the board-specific SDA/SCL pins."
+    ],
+    "safeSubstitutes": [
+      "arduino-uno"
+    ],
+    "family": "controller-board",
+    "riskLevel": "low-voltage",
+    "supportTier": "simulation-ready",
+    "visualPartIds": [
+      "arduino-leonardo"
+    ],
+    "compatibleTopologies": [
+      "controller-board-pin-map-substitution",
+      "controller-voltage-domain-policy"
+    ],
+    "sourceClaimIds": [
+      "arduino-leonardo-visual-pin-map",
+      "controller-board-pin-map-substitution-contract",
+      "controller-board-voltage-domain-policy-contract",
+      "controller-board-context-only-contract"
+    ],
+    "requiredExternalParts": [],
+    "forbiddenTopologies": [
+      "wireless-cloud-control",
+      "mains-control"
+    ]
+  },
+  {
+    "id": "arduino-micro",
+    "kind": "controller",
+    "label": "Arduino Micro",
+    "aliases": [
+      "arduino micro",
+      "micro board"
+    ],
+    "pins": [
+      {
+        "name": "5V",
+        "role": "power",
+        "aliases": [
+          "vcc",
+          "+5v"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "0v"
+        ]
+      },
+      {
+        "name": "D5",
+        "role": "pwm-output",
+        "aliases": [
+          "pin 5",
+          "pwm"
+        ]
+      },
+      {
+        "name": "A0",
+        "role": "analog-input",
+        "aliases": [
+          "analog 0"
+        ]
+      },
+      {
+        "name": "TX",
+        "role": "serial-tx",
+        "aliases": [
+          "uart tx"
+        ]
+      },
+      {
+        "name": "RX",
+        "role": "serial-rx",
+        "aliases": [
+          "uart rx"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "analog",
+      "pwm",
+      "power",
+      "uart"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "arduino-micro-board",
+      "width": 0.85,
+      "depth": 0.45,
+      "height": 0.1
+    },
+    "simulationModel": {
+      "type": "controller-board-context",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "capabilities": [
+      "controller-source",
+      "controller-board-substitution",
+      "controller-pin-map-context",
+      "digital-output",
+      "pwm-output",
+      "analog-input",
+      "5v-power-source",
+      "uart-controller"
+    ],
+    "compatibleSimulationPrimitives": [
+      "controller_board_context_state"
+    ],
+    "commonMistakes": [
+      "Assuming the compact Micro has the same physical header layout as an Uno."
+    ],
+    "safeSubstitutes": [
+      "arduino-uno"
+    ],
+    "family": "controller-board",
+    "riskLevel": "low-voltage",
+    "supportTier": "simulation-ready",
+    "visualPartIds": [
+      "arduino-micro"
+    ],
+    "compatibleTopologies": [
+      "controller-board-pin-map-substitution",
+      "controller-voltage-domain-policy"
+    ],
+    "sourceClaimIds": [
+      "arduino-micro-visual-pin-map",
+      "controller-board-pin-map-substitution-contract",
+      "controller-board-voltage-domain-policy-contract",
+      "controller-board-context-only-contract"
+    ],
+    "requiredExternalParts": [],
+    "forbiddenTopologies": [
+      "wireless-cloud-control",
+      "mains-control"
+    ]
+  },
+  {
+    "id": "arduino-pro-mini",
+    "kind": "controller",
+    "label": "Arduino Pro Mini",
+    "aliases": [
+      "arduino pro mini",
+      "pro mini"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "vcc",
+          "raw board power"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "0v"
+        ]
+      },
+      {
+        "name": "D3",
+        "role": "pwm-output",
+        "aliases": [
+          "pin 3",
+          "pwm"
+        ]
+      },
+      {
+        "name": "A0",
+        "role": "analog-input",
+        "aliases": [
+          "analog 0"
+        ]
+      },
+      {
+        "name": "TX",
+        "role": "serial-tx",
+        "aliases": [
+          "uart tx"
+        ]
+      },
+      {
+        "name": "RX",
+        "role": "serial-rx",
+        "aliases": [
+          "uart rx"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "analog",
+      "pwm",
+      "power",
+      "uart"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "arduino-pro-mini-board",
+      "width": 0.9,
+      "depth": 0.5,
+      "height": 0.1
+    },
+    "simulationModel": {
+      "type": "controller-board-context",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "capabilities": [
+      "controller-source",
+      "controller-board-substitution",
+      "controller-pin-map-context",
+      "digital-output",
+      "pwm-output",
+      "analog-input",
+      "5v-power-source",
+      "uart-controller"
+    ],
+    "compatibleSimulationPrimitives": [
+      "controller_board_context_state"
+    ],
+    "commonMistakes": [
+      "Treating VCC as USB 5V without checking the Pro Mini voltage variant.",
+      "Forgetting that Pro Mini needs an external USB/serial programmer in real builds."
+    ],
+    "safeSubstitutes": [
+      "arduino-uno"
+    ],
+    "family": "controller-board",
+    "riskLevel": "low-voltage",
+    "supportTier": "simulation-ready",
+    "visualPartIds": [
+      "arduino-pro-mini"
+    ],
+    "compatibleTopologies": [
+      "controller-board-pin-map-substitution",
+      "controller-voltage-domain-policy"
+    ],
+    "sourceClaimIds": [
+      "arduino-pro-mini-visual-pin-map",
+      "controller-board-pin-map-substitution-contract",
+      "controller-board-voltage-domain-policy-contract",
+      "controller-board-context-only-contract"
+    ],
+    "requiredExternalParts": [],
+    "forbiddenTopologies": [
+      "wireless-cloud-control",
+      "mains-control"
+    ]
+  },
+  {
+    "id": "attiny85-board",
+    "kind": "controller",
+    "label": "ATtiny85 Digispark",
+    "aliases": [
+      "attiny85",
+      "digispark",
+      "attiny85 board"
+    ],
+    "pins": [
+      {
+        "name": "VCC",
+        "role": "power",
+        "aliases": [
+          "vcc"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "0v"
+        ]
+      },
+      {
+        "name": "P0",
+        "role": "digital-output",
+        "aliases": [
+          "pin 0",
+          "gpio 0"
+        ]
+      },
+      {
+        "name": "P2",
+        "role": "digital-input",
+        "aliases": [
+          "pin 2",
+          "gpio 2"
+        ]
+      },
+      {
+        "name": "P3",
+        "role": "i2c-data",
+        "aliases": [
+          "data",
+          "sda-like"
+        ]
+      },
+      {
+        "name": "P4",
+        "role": "i2c-clock",
+        "aliases": [
+          "clock",
+          "scl-like"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 20,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "power",
+      "i2c"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "attiny85-board",
+      "width": 0.7,
+      "depth": 0.45,
+      "height": 0.1
+    },
+    "simulationModel": {
+      "type": "controller-board-context",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "capabilities": [
+      "controller-source",
+      "controller-board-substitution",
+      "controller-pin-map-context",
+      "digital-input",
+      "digital-output",
+      "5v-power-source",
+      "i2c-controller"
+    ],
+    "compatibleSimulationPrimitives": [
+      "controller_board_context_state"
+    ],
+    "commonMistakes": [
+      "Assuming an ATtiny85 board has the same number of I/O pins as an Arduino Uno."
+    ],
+    "safeSubstitutes": [
+      "arduino-uno"
+    ],
+    "family": "controller-board",
+    "riskLevel": "low-voltage",
+    "supportTier": "simulation-ready",
+    "visualPartIds": [
+      "attiny85-board"
+    ],
+    "compatibleTopologies": [
+      "controller-board-pin-map-substitution",
+      "controller-voltage-domain-policy"
+    ],
+    "sourceClaimIds": [
+      "attiny85-board-visual-pin-map",
+      "controller-board-pin-map-substitution-contract",
+      "controller-board-voltage-domain-policy-contract",
+      "controller-board-context-only-contract"
+    ],
+    "requiredExternalParts": [],
+    "forbiddenTopologies": [
+      "wireless-cloud-control",
+      "mains-control"
+    ]
+  },
+  {
+    "id": "esp32-devkit",
+    "kind": "controller",
+    "label": "ESP32 DevKit V1",
+    "aliases": [
+      "esp32",
+      "esp32 devkit",
+      "esp32 devkit v1"
+    ],
+    "pins": [
+      {
+        "name": "3V3",
+        "role": "power",
+        "aliases": [
+          "3.3v",
+          "+3v3"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "0v"
+        ]
+      },
+      {
+        "name": "GPIO2",
+        "role": "digital-output",
+        "aliases": [
+          "gpio 2",
+          "digital"
+        ]
+      },
+      {
+        "name": "GPIO34",
+        "role": "analog-input",
+        "aliases": [
+          "gpio 34",
+          "analog"
+        ]
+      },
+      {
+        "name": "TX",
+        "role": "serial-tx",
+        "aliases": [
+          "uart tx"
+        ]
+      },
+      {
+        "name": "RX",
+        "role": "serial-rx",
+        "aliases": [
+          "uart rx"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 3.3,
+        "nominal": 3.3
+      },
+      "maxCurrentMa": 12,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "analog",
+      "power",
+      "uart"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "esp32-devkit-board",
+      "width": 1.3,
+      "depth": 0.7,
+      "height": 0.1
+    },
+    "simulationModel": {
+      "type": "controller-board-context",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "capabilities": [
+      "controller-source",
+      "controller-board-substitution",
+      "controller-pin-map-context",
+      "digital-output",
+      "analog-input",
+      "3v3-power-source",
+      "uart-controller",
+      "voltage-domain-3v3"
+    ],
+    "compatibleSimulationPrimitives": [
+      "controller_board_context_state"
+    ],
+    "commonMistakes": [
+      "Connecting 5V sensor logic directly to 3.3V ESP32 GPIO.",
+      "Assuming WiFi/cloud behavior is simulated by board placement."
+    ],
+    "safeSubstitutes": [
+      "arduino-uno"
+    ],
+    "family": "controller-board",
+    "riskLevel": "low-voltage",
+    "supportTier": "simulation-ready",
+    "visualPartIds": [
+      "esp32-devkit"
+    ],
+    "compatibleTopologies": [
+      "controller-board-pin-map-substitution",
+      "controller-voltage-domain-policy"
+    ],
+    "sourceClaimIds": [
+      "esp32-devkit-visual-pin-map",
+      "controller-board-pin-map-substitution-contract",
+      "controller-board-voltage-domain-policy-contract",
+      "controller-board-context-only-contract"
+    ],
+    "requiredExternalParts": [],
+    "forbiddenTopologies": [
+      "wireless-cloud-control",
+      "mains-control"
+    ]
+  },
+  {
+    "id": "esp8266-nodemcu",
+    "kind": "controller",
+    "label": "NodeMCU ESP8266",
+    "aliases": [
+      "esp8266",
+      "nodemcu",
+      "node mcu"
+    ],
+    "pins": [
+      {
+        "name": "3V3",
+        "role": "power",
+        "aliases": [
+          "3.3v",
+          "+3v3"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "0v"
+        ]
+      },
+      {
+        "name": "D1",
+        "role": "digital-output",
+        "aliases": [
+          "gpio 5",
+          "digital"
+        ]
+      },
+      {
+        "name": "A0",
+        "role": "analog-input",
+        "aliases": [
+          "analog 0"
+        ]
+      },
+      {
+        "name": "TX",
+        "role": "serial-tx",
+        "aliases": [
+          "uart tx"
+        ]
+      },
+      {
+        "name": "RX",
+        "role": "serial-rx",
+        "aliases": [
+          "uart rx"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 3.3,
+        "nominal": 3.3
+      },
+      "maxCurrentMa": 12,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "analog",
+      "power",
+      "uart"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "esp8266-nodemcu-board",
+      "width": 1.2,
+      "depth": 0.65,
+      "height": 0.1
+    },
+    "simulationModel": {
+      "type": "controller-board-context",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "capabilities": [
+      "controller-source",
+      "controller-board-substitution",
+      "controller-pin-map-context",
+      "digital-output",
+      "analog-input",
+      "3v3-power-source",
+      "uart-controller",
+      "voltage-domain-3v3"
+    ],
+    "compatibleSimulationPrimitives": [
+      "controller_board_context_state"
+    ],
+    "commonMistakes": [
+      "Connecting 5V logic directly to ESP8266 GPIO.",
+      "Treating WiFi networking as simulated just because the board is visible."
+    ],
+    "safeSubstitutes": [
+      "arduino-uno"
+    ],
+    "family": "controller-board",
+    "riskLevel": "low-voltage",
+    "supportTier": "simulation-ready",
+    "visualPartIds": [
+      "esp8266-nodemcu"
+    ],
+    "compatibleTopologies": [
+      "controller-board-pin-map-substitution",
+      "controller-voltage-domain-policy"
+    ],
+    "sourceClaimIds": [
+      "esp8266-nodemcu-visual-pin-map",
+      "controller-board-pin-map-substitution-contract",
+      "controller-board-voltage-domain-policy-contract",
+      "controller-board-context-only-contract"
+    ],
+    "requiredExternalParts": [],
+    "forbiddenTopologies": [
+      "wireless-cloud-control",
+      "mains-control"
+    ]
+  },
+  {
+    "id": "raspberry-pi-pico",
+    "kind": "controller",
+    "label": "Raspberry Pi Pico",
+    "aliases": [
+      "raspberry pi pico",
+      "pico",
+      "rp2040"
+    ],
+    "pins": [
+      {
+        "name": "3V3",
+        "role": "power",
+        "aliases": [
+          "3.3v",
+          "+3v3"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "0v"
+        ]
+      },
+      {
+        "name": "GP2",
+        "role": "digital-output",
+        "aliases": [
+          "gpio 2",
+          "digital"
+        ]
+      },
+      {
+        "name": "GP26",
+        "role": "analog-input",
+        "aliases": [
+          "adc0",
+          "analog"
+        ]
+      },
+      {
+        "name": "GP0",
+        "role": "serial-tx",
+        "aliases": [
+          "uart tx"
+        ]
+      },
+      {
+        "name": "GP1",
+        "role": "serial-rx",
+        "aliases": [
+          "uart rx"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 3.3,
+        "nominal": 3.3
+      },
+      "maxCurrentMa": 12,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "analog",
+      "power",
+      "uart"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "raspberry-pi-pico-board",
+      "width": 1.3,
+      "depth": 0.55,
+      "height": 0.1
+    },
+    "simulationModel": {
+      "type": "controller-board-context",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "capabilities": [
+      "controller-source",
+      "controller-board-substitution",
+      "controller-pin-map-context",
+      "digital-output",
+      "analog-input",
+      "3v3-power-source",
+      "uart-controller",
+      "voltage-domain-3v3"
+    ],
+    "compatibleSimulationPrimitives": [
+      "controller_board_context_state"
+    ],
+    "commonMistakes": [
+      "Connecting 5V logic directly to Pico GPIO.",
+      "Assuming Pico pin names match Arduino D/A labels."
+    ],
+    "safeSubstitutes": [
+      "arduino-uno"
+    ],
+    "family": "controller-board",
+    "riskLevel": "low-voltage",
+    "supportTier": "simulation-ready",
+    "visualPartIds": [
+      "raspberry-pi-pico"
+    ],
+    "compatibleTopologies": [
+      "controller-board-pin-map-substitution",
+      "controller-voltage-domain-policy"
+    ],
+    "sourceClaimIds": [
+      "raspberry-pi-pico-visual-pin-map",
+      "controller-board-pin-map-substitution-contract",
+      "controller-board-voltage-domain-policy-contract",
+      "controller-board-context-only-contract"
+    ],
+    "requiredExternalParts": [],
+    "forbiddenTopologies": [
+      "wireless-cloud-control",
+      "mains-control"
+    ]
+  },
+  {
+    "id": "stm32-bluepill",
+    "kind": "controller",
+    "label": "STM32 Blue Pill",
+    "aliases": [
+      "stm32",
+      "blue pill",
+      "stm32 bluepill"
+    ],
+    "pins": [
+      {
+        "name": "3V3",
+        "role": "power",
+        "aliases": [
+          "3.3v",
+          "+3v3"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "0v"
+        ]
+      },
+      {
+        "name": "PA0",
+        "role": "analog-input",
+        "aliases": [
+          "analog",
+          "adc"
+        ]
+      },
+      {
+        "name": "PB6",
+        "role": "i2c-clock",
+        "aliases": [
+          "scl",
+          "clock"
+        ]
+      },
+      {
+        "name": "PA9",
+        "role": "serial-tx",
+        "aliases": [
+          "uart tx"
+        ]
+      },
+      {
+        "name": "PA10",
+        "role": "serial-rx",
+        "aliases": [
+          "uart rx"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 3.3,
+        "nominal": 3.3
+      },
+      "maxCurrentMa": 12,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "analog",
+      "power",
+      "uart",
+      "i2c"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "stm32-bluepill-board",
+      "width": 1.1,
+      "depth": 0.55,
+      "height": 0.1
+    },
+    "simulationModel": {
+      "type": "controller-board-context",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "capabilities": [
+      "controller-source",
+      "controller-board-substitution",
+      "controller-pin-map-context",
+      "analog-input",
+      "3v3-power-source",
+      "uart-controller",
+      "i2c-controller",
+      "voltage-domain-3v3"
+    ],
+    "compatibleSimulationPrimitives": [
+      "controller_board_context_state"
+    ],
+    "commonMistakes": [
+      "Assuming STM32 pin labels use Arduino D/A naming.",
+      "Connecting 5V logic directly to STM32 GPIO."
+    ],
+    "safeSubstitutes": [
+      "arduino-uno"
+    ],
+    "family": "controller-board",
+    "riskLevel": "low-voltage",
+    "supportTier": "simulation-ready",
+    "visualPartIds": [
+      "stm32-bluepill"
+    ],
+    "compatibleTopologies": [
+      "controller-board-pin-map-substitution",
+      "controller-voltage-domain-policy"
+    ],
+    "sourceClaimIds": [
+      "stm32-bluepill-visual-pin-map",
+      "controller-board-pin-map-substitution-contract",
+      "controller-board-voltage-domain-policy-contract",
+      "controller-board-context-only-contract"
+    ],
+    "requiredExternalParts": [],
+    "forbiddenTopologies": [
+      "wireless-cloud-control",
+      "mains-control"
+    ]
+  },
+  {
+    "id": "teensy40",
+    "kind": "controller",
+    "label": "Teensy 4.0",
+    "aliases": [
+      "teensy",
+      "teensy 4.0",
+      "teensy40"
+    ],
+    "pins": [
+      {
+        "name": "3V3",
+        "role": "power",
+        "aliases": [
+          "3.3v",
+          "+3v3"
+        ]
+      },
+      {
+        "name": "GND",
+        "role": "ground",
+        "aliases": [
+          "ground",
+          "0v"
+        ]
+      },
+      {
+        "name": "D0",
+        "role": "serial-rx",
+        "aliases": [
+          "rx",
+          "uart rx"
+        ]
+      },
+      {
+        "name": "D1",
+        "role": "serial-tx",
+        "aliases": [
+          "tx",
+          "uart tx"
+        ]
+      },
+      {
+        "name": "A0",
+        "role": "analog-input",
+        "aliases": [
+          "analog 0"
+        ]
+      },
+      {
+        "name": "D6",
+        "role": "pwm-output",
+        "aliases": [
+          "pin 6",
+          "pwm"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 3.3,
+        "nominal": 3.3
+      },
+      "maxCurrentMa": 12,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "gpio",
+      "analog",
+      "pwm",
+      "power",
+      "uart"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "teensy40-board",
+      "width": 0.9,
+      "depth": 0.5,
+      "height": 0.1
+    },
+    "simulationModel": {
+      "type": "controller-board-context",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "capabilities": [
+      "controller-source",
+      "controller-board-substitution",
+      "controller-pin-map-context",
+      "pwm-output",
+      "analog-input",
+      "3v3-power-source",
+      "uart-controller",
+      "voltage-domain-3v3"
+    ],
+    "compatibleSimulationPrimitives": [
+      "controller_board_context_state"
+    ],
+    "commonMistakes": [
+      "Connecting 5V logic directly to Teensy 4.0 GPIO.",
+      "Assuming Teensy pin current and voltage limits match Arduino Uno."
+    ],
+    "safeSubstitutes": [
+      "arduino-uno"
+    ],
+    "family": "controller-board",
+    "riskLevel": "low-voltage",
+    "supportTier": "simulation-ready",
+    "visualPartIds": [
+      "teensy40"
+    ],
+    "compatibleTopologies": [
+      "controller-board-pin-map-substitution",
+      "controller-voltage-domain-policy"
+    ],
+    "sourceClaimIds": [
+      "teensy40-visual-pin-map",
+      "controller-board-pin-map-substitution-contract",
+      "controller-board-voltage-domain-policy-contract",
+      "controller-board-context-only-contract"
+    ],
+    "requiredExternalParts": [],
+    "forbiddenTopologies": [
+      "wireless-cloud-control",
+      "mains-control"
+    ]
+  }
+]

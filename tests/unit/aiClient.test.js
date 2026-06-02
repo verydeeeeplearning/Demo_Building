@@ -46,7 +46,7 @@ test('getAiRuntimeMode forwards source freshness metadata for stale server warni
     ok: true,
     defaultMode: 'deepagents-live',
     hasServerKey: true,
-    model: 'gpt-5.5',
+    model: 'gpt-5.4-mini',
     provider: 'openai',
     serverStartedAt: '2026-05-31T12:00:00.000Z',
     serverUptimeMs: 120000,
@@ -63,7 +63,7 @@ test('getAiRuntimeMode forwards source freshness metadata for stale server warni
     const mode = await getAiRuntimeMode();
 
     assert.equal(mode.mode, 'deepagents-live');
-    assert.equal(mode.model, 'gpt-5.5');
+    assert.equal(mode.model, 'gpt-5.4-mini');
     assert.equal(mode.serverStartedAt, '2026-05-31T12:00:00.000Z');
     assert.equal(mode.serverUptimeMs, 120000);
     assert.equal(mode.sourceStatus.stale, true);

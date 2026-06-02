@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "2026-06-01",
+  "bundleId": "stepper-motor-output",
+  "capabilityId": "stepper-motor-output",
+  "supportLevel": "supported",
+  "promptBudget": "summary",
+  "agentSummaryPath": "bundles/stepper-motor-output/BUNDLE.md",
+  "requiredParts": ["arduino-uno", "breadboard-half", "uln2003-driver", "stepper-28byj48"],
+  "allowedParts": ["arduino-uno", "breadboard-half", "uln2003-driver", "stepper-28byj48", "a4988-stepper", "drv8825-stepper", "nema17-stepper", "jumper-wire"],
+  "requiredTopologies": ["controller-uln2003-unipolar-stepper", "controller-step-dir-bipolar-stepper"],
+  "validationRules": ["stepper-driver-required", "stepper-phase-lines-required", "stepper-step-dir-required", "common-ground", "high-current-warning", "current-limit-warning"],
+  "simulationPrimitives": ["stepper_motor_state", "current_flow_animation"],
+  "renderFootprints": ["arduino", "breadboard", "uln2003-stepper-driver", "unipolar-stepper", "step-dir-stepper-driver", "nema17-stepper", "wire"],
+  "canonicalRefs": {
+    "parts": ["shared:parts:arduino-uno", "shared:parts:breadboard-half", "shared:parts:uln2003-driver", "shared:parts:stepper-28byj48", "shared:parts:a4988-stepper", "shared:parts:drv8825-stepper", "shared:parts:nema17-stepper"],
+    "footprints": ["shared:footprint:arduino", "shared:footprint:breadboard", "shared:footprint:uln2003-stepper-driver", "shared:footprint:unipolar-stepper", "shared:footprint:step-dir-stepper-driver", "shared:footprint:nema17-stepper", "shared:footprint:wire"],
+    "simulation": ["shared:primitive:stepper_motor_state", "shared:primitive:current_flow_animation"],
+    "topology": ["shared:topology:controller-uln2003-unipolar-stepper", "shared:topology:controller-step-dir-bipolar-stepper"],
+    "sources": ["shared:source:arduino-uno-rev3-io-current-20ma", "shared:source:breadboard-row-continuity-5-hole", "shared:source:stepper-28byj48-visual-pin-map", "shared:source:nema17-stepper-visual-pin-map", "shared:source:uln2003-driver-visual-pin-map", "shared:source:a4988-stepper-visual-pin-map", "shared:source:drv8825-stepper-visual-pin-map", "shared:source:stepper-driver-simulation-contract"]
+  },
+  "promptInclusions": {
+    "includePins": true,
+    "includeElectricalLimits": true,
+    "includeFootprintAnchors": true,
+    "includeSourceQuotes": false
+  },
+  "blockingConditions": ["direct-stepper-to-gpio", "missing-stepper-driver", "missing-step-dir-or-phase-signals", "missing-common-ground", "missing-render-footprint", "missing-simulation-primitive", "unsupported-part-requested"]
+}

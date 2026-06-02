@@ -11,6 +11,8 @@ import {
   type CapabilityGraphEntry,
   type ContextRetrievalBudget,
   type PartCapability,
+  type PartRiskLevel,
+  type PartSupportTier,
   type SimulationPrimitive
 } from '../agent/schemas.ts';
 import {
@@ -31,6 +33,7 @@ import {
   loadSimulationPrimitives,
   loadTopologyTemplates
 } from './contextAssets.ts';
+import { loadHardwareSupportBundles, loadSourceClaims } from './sourceClaims.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_CONTEXT_ROOT = path.resolve(__dirname, '../../agent-context');
@@ -89,6 +92,73 @@ const ContextRoutingMapSchema = z.object({
   routes: z.array(ContextRouteMapRouteSchema).min(1)
 });
 
+export const ContextBundleManifestV2Schema = z.object({
+  schemaVersion: z.string().min(1),
+  bundleId: z.string().min(1),
+  capabilityId: z.string().min(1),
+  supportLevel: z.enum(['supported', 'partial', 'planned', 'unsupported']),
+  promptBudget: ContextRetrievalBudgetSchema,
+  agentSummaryPath: z.string().min(1),
+  requiredParts: z.array(z.string().min(1)).default([]),
+  allowedParts: z.array(z.string().min(1)).default([]),
+  requiredTopologies: z.array(z.string().min(1)).default([]),
+  validationRules: z.array(z.string().min(1)).default([]),
+  simulationPrimitives: z.array(z.string().min(1)).default([]),
+  renderFootprints: z.array(z.string().min(1)).default([]),
+  canonicalRefs: z.object({
+    parts: z.array(z.string().min(1)).default([]),
+    footprints: z.array(z.string().min(1)).default([]),
+    simulation: z.array(z.string().min(1)).default([]),
+    topology: z.array(z.string().min(1)).default([]),
+    sources: z.array(z.string().min(1)).default([])
+  }),
+  promptInclusions: z.object({
+    includePins: z.boolean().default(false),
+    includeElectricalLimits: z.boolean().default(false),
+    includeFootprintAnchors: z.boolean().default(false),
+    includeSourceQuotes: z.boolean().default(false)
+  }),
+  blockingConditions: z.array(z.string().min(1)).default([])
+});
+
+const ContextV2IndexSchema = z.object({
+  version: z.string().min(1),
+  root: z.literal('agent-context/v2'),
+  bundles: z.array(z.object({
+    bundleId: z.string().min(1),
+    capabilityId: z.string().min(1),
+    manifestPath: z.string().min(1),
+    summaryPath: z.string().min(1),
+    evalPath: z.string().min(1).optional(),
+    level: ContextLevelSchema,
+    budget: ContextRetrievalBudgetSchema
+  })),
+  shared: z.record(z.string(), z.string())
+});
+
+const ContextV2RouteSchema = z.object({
+  routeId: z.string().min(1),
+  priority: z.number().int(),
+  policyOnly: z.boolean().default(false),
+  when: z.object({
+    capabilityIds: z.array(z.string()).default([]),
+    capabilityMatchMode: z.enum(['any', 'all']).default('any'),
+    supportLevels: z.array(z.enum(['supported', 'partial', 'planned', 'unsupported'])).default([]),
+    modalities: z.array(z.string()).default([]),
+    ambiguity: z.boolean().optional(),
+    unsafe: z.boolean().optional()
+  }),
+  bundleIds: z.array(z.string()).default([]),
+  alwaysInclude: z.array(z.string()).default([]),
+  maxPromptChars: z.number().int().positive(),
+  reason: z.string().min(1)
+});
+
+const ContextV2RoutesSchema = z.object({
+  version: z.string().min(1),
+  routes: z.array(ContextV2RouteSchema).min(1)
+});
+
 const ContextSufficiencyFixtureSchema = z.object({
   id: z.string(),
   expectedContextRouteId: z.string().min(1).optional(),
@@ -114,7 +184,15 @@ const ContextSufficiencyFixtureSchema = z.object({
 const VisualLibraryPartSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
-  category: z.string().min(1)
+  category: z.string().min(1),
+  description: z.string().optional(),
+  pins: z.array(z.object({
+    name: z.string().min(1),
+    role: z.string().min(1)
+  }).passthrough()).default([]),
+  model: z.object({
+    kind: z.string().min(1).optional()
+  }).passthrough().optional()
 }).passthrough();
 
 const VisualLibraryCrosswalkEntrySchema = z.object({
@@ -154,9 +232,17 @@ export type ContextIndex = {
 };
 export type ContextRoutingMap = z.infer<typeof ContextRoutingMapSchema>;
 export type ContextRoutingRoute = z.infer<typeof ContextRouteMapRouteSchema>;
+export type ContextBundleManifestV2 = z.infer<typeof ContextBundleManifestV2Schema>;
+export type ContextV2Index = z.infer<typeof ContextV2IndexSchema>;
+export type ContextV2Routes = z.infer<typeof ContextV2RoutesSchema>;
+export type ContextBundleV2 = {
+  manifest: ContextBundleManifestV2;
+  summary: string;
+};
 
 export const REQUIRED_CAPABILITY_ARTIFACTS = [
   'capability-graph-entry',
+  'source-claims',
   'part-capability',
   'pin-aliases',
   'validation-rule',
@@ -220,24 +306,49 @@ export type VisualLibraryInvalidMapping = {
   issue: string;
 };
 
+export type VisualLibraryContextPart = {
+  visualPartId: string;
+  visualPartName: string;
+  visualCategory: string;
+  family: string;
+  supportTier: PartSupportTier;
+  riskLevel: PartRiskLevel;
+  status: 'agent-ready' | 'context-known' | 'catalog-only' | 'unsafe-blocked';
+  mappedAgentPartId?: string;
+  mappedAgentPartSupportLevel?: PartCapability['supportLevel'];
+  pinCount: number;
+  pinRoles: string[];
+  reason: string;
+};
+
 export type VisualLibraryExpansionAudit = {
   version: string;
   totalVisualParts: number;
   canonicalAgentPartCount: number;
   unmappedPolicy: 'visual-only';
+  contextKnownCount: number;
+  contextKnownVisualPartIds: string[];
+  simulationReadyVisualPartIds: string[];
+  unrepresentedVisualPartIds: string[];
+  bySupportTier: Record<PartSupportTier, number>;
+  byRiskLevel: Record<PartRiskLevel, number>;
   agentReadyVisualPartIds: string[];
   agentReadyAgentPartIds: string[];
   visualOnlyPartIds: string[];
   visualOnlyExamples: string[];
   invalidMappings: VisualLibraryInvalidMapping[];
   agentReadyMappings: VisualLibraryAgentReadyMapping[];
+  contextPartSummaries: VisualLibraryContextPart[];
 };
 
 export type VisualLibraryPartMention = {
   visualPartId: string;
   visualPartName: string;
   visualCategory: string;
-  status: 'agent-ready' | 'visual-only';
+  status: VisualLibraryContextPart['status'];
+  supportTier: PartSupportTier;
+  riskLevel: PartRiskLevel;
+  family: string;
   agentPartId?: string;
   reason: string;
 };
@@ -249,26 +360,112 @@ const SUPPORTED_VALIDATION_RULES = new Set([
   'closed-current-path',
   'common-ground',
   'current-limit-warning',
+  'digital-input-pin-exists',
+  'digital-input-reference-defined',
+  'external-power-warning',
   'high-current-warning',
+  'hbridge-control-required',
+  'hbridge-driver-required',
   'i2c-pin-role-match',
+  'i2c-protocol-sensor-pins',
   'led-polarity',
+  'analog-input-pin-exists',
   'output-pin-exists',
   'polarity-check',
   'power-rail-valid',
+  'pulse-control-pin-defined',
+  'pulse-output-pin-required',
   'pwm-pin-required',
+  'pwm-output-required',
   'reject-high-voltage',
   'reject-security-actuator',
   'reject-unsupported-autonomy',
+  'relay-control-required',
+  'relay-load-contact-required',
+  'relay-low-voltage-load-only',
   'safe-reframe-required',
+  'sensor-pin-role-match',
+  'sensor-trigger-echo-pin-pair',
+  'single-wire-data-pin',
   'series-current-limit',
   'timed-output-pin-exists',
+  'threshold-defined',
   'validated-current-path-required',
-  'validation-issue-required'
+  'validation-issue-required',
+  'voltage-divider-required',
+  'resistive-sensor-divider-required',
+  'matrix-input-lines-distinct',
+  'matrix-input-reference-defined',
+  'base-resistor-required',
+  'flyback-warning',
+  'low-voltage-source-polarity',
+  'power-rail-positive-required',
+  'ground-rail-return-required',
+  'regulated-output-to-rail-required',
+  'regulator-input-required',
+  'regulator-qualitative-only',
+  'no-mains-power',
+  'passive-context-low-voltage-only',
+  'passive-only-state-simulation',
+  'polarized-passive-orientation',
+  'timing-passive-context-only',
+  'prototyping-surface-context-only',
+  'surface-does-not-create-nets',
+  'connector-context-low-voltage-only',
+  'connector-does-not-create-source',
+  'controller-board-pin-map-substitution',
+  'controller-voltage-domain-policy',
+  'controller-board-context-only',
+  'joystick-axis-pins-defined',
+  'module-signal-required',
+  'motor-driver-required',
+  'stepper-driver-required',
+  'stepper-phase-lines-required',
+  'stepper-step-dir-required',
+  'encoder-quadrature-pins-defined',
+  'addressable-led-data-pin',
+  'addressable-led-power-warning',
+  'bare-seven-segment-common-ground',
+  'bare-seven-segment-segment-resistor',
+  'led-array-display-clock-pin',
+  'led-array-display-data-pin',
+  'led-array-display-select-pin',
+  'spi-display-clock-pin',
+  'spi-display-control-pin',
+  'spi-display-data-pin',
+  'spi-display-select-pin',
+  'clocked-data-sensor-pins',
+  'spi-sensor-clock-pin',
+  'spi-sensor-data-pins',
+  'spi-sensor-select-pin',
+  'uart-sensor-tx-rx-crossing',
+  'qualitative-sensor-readout-only',
+  'uart-communication-module-pins',
+  'spi-communication-module-pins',
+  'differential-bus-module-pins',
+  'wireless-command-state-only',
+  'network-cloud-overclaim-blocked',
+  'radio-power-warning',
+  'logic-interface-power-ground',
+  'logic-interface-signal-required',
+  'logic-interface-i2c-pins',
+  'logic-interface-spi-pins',
+  'level-shifter-voltage-domains',
+  'precision-analog-overclaim-blocked',
+  'timer-frequency-overclaim-blocked',
+  'level-shift-overclaim-blocked',
+  'powered-light-module-power-rail',
+  'powered-light-module-safety-warning',
+  'powered-light-module-signal-pin',
+  'rgb-led-channel-resistor',
+  'rgb-led-common-ground'
 ]);
 
 let cachedIndex: ContextIndex | null = null;
 let cachedParts: PartCapability[] | null = null;
 let cachedRoutingMap: ContextRoutingMap | null = null;
+let cachedContextV2Index: ContextV2Index | null = null;
+let cachedContextV2Routes: ContextV2Routes | null = null;
 
 export async function loadContextIndex(root = DEFAULT_CONTEXT_ROOT): Promise<ContextIndex> {
   if (cachedIndex && root === DEFAULT_CONTEXT_ROOT) {
@@ -308,6 +505,53 @@ export async function loadContextRoutingMap(root = DEFAULT_CONTEXT_ROOT): Promis
     cachedRoutingMap = routingMap;
   }
   return routingMap;
+}
+
+export async function loadContextV2Index(root = DEFAULT_CONTEXT_ROOT): Promise<ContextV2Index> {
+  if (cachedContextV2Index && root === DEFAULT_CONTEXT_ROOT) {
+    return cachedContextV2Index;
+  }
+
+  const content = await readFile(path.join(root, 'v2/index.json'), 'utf8');
+  const index = ContextV2IndexSchema.parse(JSON.parse(content));
+  if (root === DEFAULT_CONTEXT_ROOT) {
+    cachedContextV2Index = index;
+  }
+  return index;
+}
+
+export async function loadContextV2Routes(root = DEFAULT_CONTEXT_ROOT): Promise<ContextV2Routes> {
+  if (cachedContextV2Routes && root === DEFAULT_CONTEXT_ROOT) {
+    return cachedContextV2Routes;
+  }
+
+  const content = await readFile(path.join(root, 'v2/routes.json'), 'utf8');
+  const routes = ContextV2RoutesSchema.parse(JSON.parse(content));
+  if (root === DEFAULT_CONTEXT_ROOT) {
+    cachedContextV2Routes = routes;
+  }
+  return routes;
+}
+
+export async function loadContextBundleV2(
+  bundleId: string,
+  root = DEFAULT_CONTEXT_ROOT
+): Promise<ContextBundleV2> {
+  const index = await loadContextV2Index(root);
+  const entry = index.bundles.find((bundle) => bundle.bundleId === bundleId);
+  if (!entry) {
+    throw new Error(`Unknown v2 context bundle: ${bundleId}`);
+  }
+
+  const [manifestRaw, summary] = await Promise.all([
+    readFile(path.join(root, 'v2', entry.manifestPath), 'utf8'),
+    readFile(path.join(root, 'v2', entry.summaryPath), 'utf8')
+  ]);
+
+  return {
+    manifest: ContextBundleManifestV2Schema.parse(JSON.parse(manifestRaw)),
+    summary: summary.trim()
+  };
 }
 
 export function resolveContextSourceId(sourceId: string, index: ContextIndex): ContextEntry | null {
@@ -406,6 +650,23 @@ export async function auditVisualLibraryExpansion(
 
   const agentReadyVisualPartIds = unique(agentReadyMappings.map((mapping) => mapping.visualPartId)).sort();
   const agentReadyVisualSet = new Set(agentReadyVisualPartIds);
+  const agentReadyMappingByVisualId = new Map(agentReadyMappings.map((mapping) => [mapping.visualPartId, mapping]));
+  const contextPartSummaries = visualParts
+    .map((part) => buildVisualLibraryContextPart(part, agentReadyMappingByVisualId.get(part.id)))
+    .sort((a, b) => a.visualPartId.localeCompare(b.visualPartId));
+  const contextKnownVisualPartIds = contextPartSummaries
+    .filter((part) => part.supportTier !== 'catalog-only')
+    .map((part) => part.visualPartId)
+    .sort();
+  const simulationReadyVisualPartIds = contextPartSummaries
+    .filter((part) => part.supportTier === 'simulation-ready')
+    .map((part) => part.visualPartId)
+    .sort();
+  const representedVisualPartIds = new Set(contextPartSummaries.map((part) => part.visualPartId));
+  const unrepresentedVisualPartIds = visualParts
+    .map((part) => part.id)
+    .filter((partId) => !representedVisualPartIds.has(partId))
+    .sort();
   const visualOnlyPartIds = visualParts
     .map((part) => part.id)
     .filter((partId) => !agentReadyVisualSet.has(partId))
@@ -416,12 +677,19 @@ export async function auditVisualLibraryExpansion(
     totalVisualParts: visualParts.length,
     canonicalAgentPartCount: parts.length,
     unmappedPolicy: crosswalk.defaultUnmappedStatus,
+    contextKnownCount: contextKnownVisualPartIds.length,
+    contextKnownVisualPartIds,
+    simulationReadyVisualPartIds,
+    unrepresentedVisualPartIds,
+    bySupportTier: countBySupportTier(contextPartSummaries),
+    byRiskLevel: countByRiskLevel(contextPartSummaries),
     agentReadyVisualPartIds,
     agentReadyAgentPartIds: unique(agentReadyMappings.map((mapping) => mapping.agentPartId)).sort(),
     visualOnlyPartIds,
     visualOnlyExamples: visualOnlyPartIds.slice(0, 12),
     invalidMappings: invalidMappings.sort((a, b) => a.visualPartId.localeCompare(b.visualPartId)),
-    agentReadyMappings: agentReadyMappings.sort((a, b) => a.visualPartId.localeCompare(b.visualPartId))
+    agentReadyMappings: agentReadyMappings.sort((a, b) => a.visualPartId.localeCompare(b.visualPartId)),
+    contextPartSummaries
   };
 }
 
@@ -430,28 +698,202 @@ export async function detectVisualLibraryPartMentions(
   root = DEFAULT_CONTEXT_ROOT,
   visualLibraryModule = DEFAULT_VISUAL_LIBRARY_MODULE
 ): Promise<VisualLibraryPartMention[]> {
-  const [visualParts, crosswalk] = await Promise.all([
+  const [visualParts, expansionAudit] = await Promise.all([
     loadVisualLibraryParts(visualLibraryModule),
-    loadVisualLibraryCrosswalk(root)
+    auditVisualLibraryExpansion(root, visualLibraryModule)
   ]);
-  const mappedByVisualId = new Map(crosswalk.mappings.map((mapping) => [mapping.visualPartId, mapping]));
+  const contextPartsById = new Map(expansionAudit.contextPartSummaries.map((part) => [part.visualPartId, part]));
   const normalizedQuery = normalizeVisualQuery(query);
   const queryTerms = new Set(tokenize(query));
 
   return visualParts
     .filter((part) => visualPartMatches(part, normalizedQuery, queryTerms))
     .map((part) => {
-      const mapping = mappedByVisualId.get(part.id);
+      const contextPart = contextPartsById.get(part.id) ?? buildVisualLibraryContextPart(part);
       return {
         visualPartId: part.id,
         visualPartName: part.name,
         visualCategory: part.category,
-        status: mapping ? 'agent-ready' as const : 'visual-only' as const,
-        agentPartId: mapping?.agentPartId,
-        reason: mapping?.reason ?? `${part.name} is present in the broad visual library, but it has no canonical agent-ready part capability, validation rules, render footprint contract, and simulation model bundle.`
+        status: contextPart.status,
+        supportTier: contextPart.supportTier,
+        riskLevel: contextPart.riskLevel,
+        family: contextPart.family,
+        agentPartId: contextPart.mappedAgentPartId,
+        reason: contextPart.reason
       };
     })
     .sort((a, b) => mentionSortKey(a).localeCompare(mentionSortKey(b)));
+}
+
+const VISUAL_SUPPORT_TIERS: PartSupportTier[] = [
+  'catalog-only',
+  'context-known',
+  'pin-known',
+  'render-ready',
+  'validation-ready',
+  'simulation-ready',
+  'unsafe-blocked'
+];
+
+const VISUAL_RISK_LEVELS: PartRiskLevel[] = [
+  'low-voltage',
+  'power-warning',
+  'high-current',
+  'mains-unsafe',
+  'unknown'
+];
+
+function buildVisualLibraryContextPart(
+  part: VisualLibraryPart,
+  mapping?: VisualLibraryAgentReadyMapping
+): VisualLibraryContextPart {
+  const family = classifyVisualPartFamily(part);
+  const riskLevel = classifyVisualPartRisk(part);
+  const supportTier = mapping ? 'simulation-ready' : classifyVisualPartSupportTier(part, riskLevel);
+  const status = mapping
+    ? 'agent-ready'
+    : supportTier === 'unsafe-blocked' ? 'unsafe-blocked' : supportTier === 'catalog-only' ? 'catalog-only' : 'context-known';
+  const pinRoles = unique(part.pins.map((pin) => pin.role)).sort();
+
+  return {
+    visualPartId: part.id,
+    visualPartName: part.name,
+    visualCategory: part.category,
+    family,
+    supportTier,
+    riskLevel,
+    status,
+    mappedAgentPartId: mapping?.agentPartId,
+    mappedAgentPartSupportLevel: mapping?.agentPartSupportLevel,
+    pinCount: part.pins.length,
+    pinRoles,
+    reason: mapping?.reason ?? visualContextReason(part, supportTier, riskLevel, family)
+  };
+}
+
+function classifyVisualPartSupportTier(part: VisualLibraryPart, riskLevel: PartRiskLevel): PartSupportTier {
+  if (riskLevel === 'mains-unsafe') {
+    return 'unsafe-blocked';
+  }
+  if (part.pins.length > 0) {
+    return 'pin-known';
+  }
+  return 'context-known';
+}
+
+function classifyVisualPartRisk(part: VisualLibraryPart): PartRiskLevel {
+  const haystack = visualPartSearchText(part);
+  if (/\b(mains|220v|110v|120v|240v|wall outlet|ac line|varistor|mov)\b/.test(haystack)) {
+    return 'mains-unsafe';
+  }
+  if (/\b(solenoid|pump|nema17|stepper|dc motor|motor driver|l298n|a4988|drv8825|l293d|irf520|mosfet|high current)\b/.test(haystack)) {
+    return 'high-current';
+  }
+  if (/\b(relay|laser|lipo|battery|9v|barrel|screw terminal|fan|7805|regulator|driver)\b/.test(haystack)) {
+    return 'power-warning';
+  }
+  return 'low-voltage';
+}
+
+function classifyVisualPartFamily(part: VisualLibraryPart): string {
+  const haystack = visualPartSearchText(part);
+  const roles = new Set(part.pins.map((pin) => pin.role));
+
+  if (part.category === 'boards') return 'controller-board';
+  if (part.category === 'displays') {
+    if (/\b(7seg|matrix|neopixel|led)\b/.test(haystack)) return 'display-led-array';
+    if (roles.has('clock') && roles.has('enable')) return 'display-spi';
+    if (roles.has('clock') && roles.has('data')) return 'display-i2c';
+    return 'display';
+  }
+  if (part.category === 'sensors') {
+    if (roles.has('analog') && roles.has('digital')) return 'sensor-analog-digital';
+    if (roles.has('analog')) return 'sensor-analog';
+    if (roles.has('clock') && roles.has('data')) return 'sensor-i2c-or-spi';
+    if (roles.has('tx') || roles.has('rx')) return 'sensor-serial';
+    if (roles.has('digital') || roles.has('output') || roles.has('signal')) return 'sensor-digital';
+    return 'sensor';
+  }
+  if (part.category === 'actuators') {
+    if (/\b(led|neopixel|ws2812|laser)\b/.test(haystack)) return 'light-output';
+    if (/\b(buzzer)\b/.test(haystack)) return 'sound-output';
+    if (/\b(servo)\b/.test(haystack)) return 'servo-output';
+    if (/\b(relay)\b/.test(haystack)) return 'relay-output';
+    if (/\b(motor|pump|fan|solenoid|stepper)\b/.test(haystack)) return 'motor-or-inductive-output';
+    return 'actuator-output';
+  }
+  if (part.category === 'inputs') {
+    if (/\b(joystick|encoder|pot)\b/.test(haystack) || roles.has('analog')) return 'human-input-analog';
+    if (/\b(keypad|dip)\b/.test(haystack)) return 'matrix-or-multi-input';
+    return 'human-input-digital';
+  }
+  if (part.category === 'passives') {
+    if (/\b(potentiometer|trimmer)\b/.test(haystack)) return 'adjustable-passive';
+    if (/\b(capacitor|cap)\b/.test(haystack)) return 'capacitive-passive';
+    if (/\b(inductor|crystal)\b/.test(haystack)) return 'frequency-or-inductive-passive';
+    if (/\b(diode|fuse|varistor|mov)\b/.test(haystack)) return 'protection-passive';
+    return 'resistive-passive';
+  }
+  if (part.category === 'ics') {
+    if (/\b(driver|stepper|l298n|l293d|uln2003)\b/.test(haystack)) return 'driver-ic';
+    if (/\b(adc|op-amp|opamp|lm358)\b/.test(haystack)) return 'analog-interface-ic';
+    if (/\b(regulator|7805)\b/.test(haystack)) return 'power-regulation-ic';
+    if (/\b(transistor|mosfet)\b/.test(haystack)) return 'discrete-switch-ic';
+    return 'logic-or-interface-ic';
+  }
+  if (part.category === 'power-comms') {
+    if (/\b(battery|psu|barrel|terminal)\b/.test(haystack)) return 'power-source-or-connector';
+    if (/\b(bluetooth|wifi|radio|lora|gsm)\b/.test(haystack)) return 'wireless-communication';
+    return 'wired-communication';
+  }
+  if (part.category === 'prototyping') {
+    if (/\b(breadboard|perfboard|pcb|shield)\b/.test(haystack)) return 'prototyping-surface';
+    if (/\b(level shifter)\b/.test(haystack)) return 'level-shifter-interface';
+    return 'connector-wiring';
+  }
+  return 'general-electronics';
+}
+
+function visualContextReason(
+  part: VisualLibraryPart,
+  supportTier: PartSupportTier,
+  riskLevel: PartRiskLevel,
+  family: string
+) {
+  if (supportTier === 'unsafe-blocked') {
+    return `${part.name} is cataloged as ${family}, but it is safety-blocked for student simulation until mains/high-risk handling evidence exists.`;
+  }
+  if (supportTier === 'pin-known') {
+    return `${part.name} is context-known with catalog pins and family/risk metadata, but it is not simulation-ready until validated topology, render footprint, and current-flow contracts are added.`;
+  }
+  return `${part.name} is context-known as ${family} with ${riskLevel} risk, but it is not simulation-ready until canonical agent evidence is added.`;
+}
+
+function countBySupportTier(parts: VisualLibraryContextPart[]): Record<PartSupportTier, number> {
+  const counts = Object.fromEntries(VISUAL_SUPPORT_TIERS.map((tier) => [tier, 0])) as Record<PartSupportTier, number>;
+  for (const part of parts) {
+    counts[part.supportTier] += 1;
+  }
+  return counts;
+}
+
+function countByRiskLevel(parts: VisualLibraryContextPart[]): Record<PartRiskLevel, number> {
+  const counts = Object.fromEntries(VISUAL_RISK_LEVELS.map((risk) => [risk, 0])) as Record<PartRiskLevel, number>;
+  for (const part of parts) {
+    counts[part.riskLevel] += 1;
+  }
+  return counts;
+}
+
+function visualPartSearchText(part: VisualLibraryPart) {
+  return [
+    part.id,
+    part.name,
+    part.category,
+    part.description ?? '',
+    part.model?.kind ?? '',
+    ...part.pins.flatMap((pin) => [pin.name, pin.role])
+  ].join(' ').toLowerCase();
 }
 
 export async function searchPartCapabilities(query: string, root = DEFAULT_CONTEXT_ROOT): Promise<PartCapability[]> {
@@ -469,13 +911,15 @@ export async function auditCapabilityCoverage(
   capabilityId: string,
   root = DEFAULT_CONTEXT_ROOT
 ): Promise<CapabilityCoverageReport> {
-  const [capabilities, parts, primitives, footprints, pinAliases, evalFixtures] = await Promise.all([
+  const [capabilities, parts, primitives, footprints, pinAliases, evalFixtures, sourceClaims, supportBundles] = await Promise.all([
     loadCapabilityGraph(root),
     getPartRegistry(root),
     loadSimulationPrimitives(root),
     loadRenderFootprints(root),
     loadPinAliases(root),
-    loadContextSufficiencyFixtures(root)
+    loadContextSufficiencyFixtures(root),
+    loadSourceClaims(root),
+    loadHardwareSupportBundles(root)
   ]);
 
   const capability = capabilities.find((candidate) => candidate.id === capabilityId);
@@ -498,6 +942,7 @@ export async function auditCapabilityCoverage(
   }
 
   present.add('capability-graph-entry');
+  auditSourceClaims(capability, sourceClaims, supportBundles, present, missing, details);
   auditPartCapabilities(capability, parts, present, missing, details);
   auditPinAliases(pinAliases, present, missing, details);
   auditValidationRules(capability, primitives, present, missing, details);
@@ -576,6 +1021,8 @@ export function clearContextCache() {
   cachedIndex = null;
   cachedParts = null;
   cachedRoutingMap = null;
+  cachedContextV2Index = null;
+  cachedContextV2Routes = null;
   clearCapabilityGraphCache();
   clearPinAliasCache();
   clearContextAssetCache();
@@ -777,6 +1224,40 @@ function auditPartCapabilities(
   details.push(`Missing required part capabilities: ${missingRequiredParts.join(', ')}`);
 }
 
+function auditSourceClaims(
+  capability: CapabilityGraphEntry,
+  sourceClaims: Awaited<ReturnType<typeof loadSourceClaims>>,
+  supportBundles: Awaited<ReturnType<typeof loadHardwareSupportBundles>>,
+  present: Set<CapabilityArtifact>,
+  missing: Set<CapabilityArtifact>,
+  details: string[]
+) {
+  const claimIds = new Set(sourceClaims.map((claim) => claim.claimId));
+  const supportBundle = supportBundles.find((bundle) => bundle.capabilityId === capability.id);
+  const missingClaimIds = supportBundle?.sourceClaimIds.filter((claimId) => !claimIds.has(claimId)) ?? [];
+
+  if (
+    supportBundle
+    && supportBundle.requiredArtifacts.includes('source-claims')
+    && supportBundle.sourceClaimIds.length > 0
+    && missingClaimIds.length === 0
+  ) {
+    present.add('source-claims');
+    return;
+  }
+
+  missing.add('source-claims');
+  if (!supportBundle) {
+    details.push(`Missing source-claim support bundle for ${capability.id}.`);
+  } else if (!supportBundle.requiredArtifacts.includes('source-claims')) {
+    details.push(`Support bundle for ${capability.id} does not require source-claims.`);
+  } else if (supportBundle.sourceClaimIds.length === 0) {
+    details.push(`Support bundle for ${capability.id} has no source claim IDs.`);
+  } else {
+    details.push(`Missing source-claim IDs for ${capability.id}: ${missingClaimIds.join(', ')}`);
+  }
+}
+
 function auditPinAliases(
   pinAliases: Record<string, string[]>,
   present: Set<CapabilityArtifact>,
@@ -962,6 +1443,7 @@ function detailForArtifact(detail: string, artifact: CapabilityArtifact) {
   const normalized = detail.toLowerCase();
   const patterns: Record<CapabilityArtifact, RegExp> = {
     'capability-graph-entry': /capability graph/,
+    'source-claims': /source-claim|support bundle/,
     'part-capability': /part capabilit|required part/,
     'pin-aliases': /pin alias/,
     'validation-rule': /validation rule|unsupported validation|declares no validation/,
@@ -996,6 +1478,13 @@ function normalizeVisualQuery(query: string) {
 }
 
 function visualPartMatches(part: VisualLibraryPart, normalizedQuery: string, queryTerms: Set<string>) {
+  if (
+    part.id === '7seg-1digit'
+    && /\b(tm1637|4\s*digit|4\s*자리|four\s*digit|max7219|matrix)\b/i.test(normalizedQuery)
+  ) {
+    return false;
+  }
+
   const idPhrase = normalizeVisualQuery(part.id);
   const namePhrase = normalizeVisualQuery(part.name);
   const idTerms = tokenize(part.id).filter((term) => !VISUAL_LIBRARY_STOP_TERMS.has(term));
@@ -1052,7 +1541,13 @@ function isSpecificModelToken(term: string) {
 }
 
 function mentionSortKey(mention: VisualLibraryPartMention) {
-  return `${mention.status === 'visual-only' ? '0' : '1'}:${mention.visualPartId}`;
+  const statusRank: Record<VisualLibraryPartMention['status'], number> = {
+    'unsafe-blocked': 0,
+    'context-known': 1,
+    'catalog-only': 2,
+    'agent-ready': 3
+  };
+  return `${statusRank[mention.status]}:${mention.visualPartId}`;
 }
 
 function scorePart(part: PartCapability, terms: string[]): number {

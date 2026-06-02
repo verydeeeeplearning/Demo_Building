@@ -1,0 +1,3 @@
+{"id":"v2-l298n-dc-motor-supported","message":"Use an L298N H-bridge driver to run a DC motor forward and reverse from Arduino.","expected":"supported_hbridge_motor"}
+{"id":"v2-l293d-dc-motor-supported","message":"L293D 드라이버로 작은 DC 모터 방향을 제어하는 회로를 만들어줘","expected":"supported_l293d_hbridge_motor"}
+{"id":"v2-direct-hbridge-motor-invalid","message":"Connect a DC motor directly to Arduino pins without a motor driver.","expected":"validation_block_direct_motor_gpio"}

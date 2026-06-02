@@ -2,6 +2,7 @@ import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
 
 import {
+  loadContextBundleV2,
   loadContextIndex,
   readContextDoc,
   resolveContextSourceId,
@@ -12,7 +13,9 @@ import {
 import {
   applyCandidatePartGate,
   applyContextCoverageGate,
+  buildRunnableReport,
   buildNetlist,
+  buildSolverGateResult,
   compileRenderPlan,
   compileRequirementMarkdown,
   compileSimulationPlan,
@@ -27,6 +30,7 @@ import {
   type CircuitSpec,
   type ContextCoverageReport,
   type PartCapability,
+  type SupportBundleEvidence,
   type ValidationReport
 } from './schemas.ts';
 
@@ -53,6 +57,7 @@ type HeduwareAgentToolOptions = {
   contextCoverage?: ContextCoverageReport;
   candidateParts?: PartCapability[];
   allowedContextSourceIds?: string[];
+  supportBundles?: SupportBundleEvidence[];
 };
 
 export function createHeduwareAgentTools(options: HeduwareAgentToolOptions = {}) {
@@ -86,6 +91,14 @@ export function createHeduwareAgentTools(options: HeduwareAgentToolOptions = {})
         name: 'search_part_capabilities',
         description: 'Search only the canonical part capabilities allowed by the current context packet. Use returned ids, pins, limits, protocols, and simulation models exactly.',
         schema: SearchInputSchema
+      }
+    ),
+    tool(
+      async ({ capabilityId }) => asJson(loadSupportBundleEvidenceBounded(capabilityId, options)),
+      {
+        name: 'load_support_bundle_evidence',
+        description: 'Load concise source-backed HardwareSupportBundle evidence for a capability selected in the current context packet. Returns an error for capabilities outside the current route.',
+        schema: z.object({ capabilityId: z.string().min(1) })
       }
     ),
     tool(
@@ -148,15 +161,19 @@ export function createHeduwareAgentTools(options: HeduwareAgentToolOptions = {})
       },
       {
         name: 'compile_render_plan',
-        description: 'Compile a RenderPlan from a valid CircuitSpec. Invalid or unsupported specs produce an empty render plan.',
+        description: 'Compile a RenderPlan from a CircuitSpec using server validation. Clarification-only/meta requests may remain no-scene; unsupported hardware can return diagnostic context, missing exact footprints can use placeholder geometry, and unsafe requests can use safe-equivalent simulation without build-ready claims.',
         schema: SpecInputSchema
       }
     ),
     tool(
-      async ({ spec }) => asJson(await compileSimulationArtifacts(spec, options).then((artifacts) => artifacts.simulationPlan)),
+      async ({ spec }) => asJson(await compileSimulationArtifacts(spec, options).then((artifacts) => ({
+        simulationPlan: artifacts.simulationPlan,
+        buildRunnableReport: artifacts.buildRunnableReport,
+        solverGateResult: artifacts.solverGateResult
+      }))),
       {
         name: 'compile_simulation_plan',
-        description: 'Compile a SimulationPlan from a CircuitSpec using validated netlist and current paths.',
+        description: 'Compile a SimulationPlan from a CircuitSpec using validated netlist and current paths. Also returns the authoritative buildRunnableReport gate conclusion.',
         schema: SpecInputSchema
       }
     ),
@@ -171,7 +188,25 @@ export function createHeduwareAgentTools(options: HeduwareAgentToolOptions = {})
   ];
 }
 
+function loadSupportBundleEvidenceBounded(capabilityId: string, options: HeduwareAgentToolOptions) {
+  const supportBundles = options.supportBundles ?? [];
+  const evidence = supportBundles.find((bundle) => bundle.capabilityId === capabilityId);
+  if (!evidence) {
+    return {
+      error: 'SUPPORT_BUNDLE_NOT_IN_CONTEXT',
+      requestedCapabilityId: capabilityId,
+      allowedCapabilityIds: supportBundles.map((bundle) => bundle.capabilityId)
+    };
+  }
+
+  return evidence;
+}
+
 async function readContextDocBounded(id: string, options: HeduwareAgentToolOptions) {
+  if (id.startsWith('bundle:')) {
+    return readContextBundleDocBounded(id, options);
+  }
+
   if (!options.allowedContextSourceIds) {
     return readContextDoc(id);
   }
@@ -195,6 +230,28 @@ async function readContextDocBounded(id: string, options: HeduwareAgentToolOptio
   }
 
   return readContextDoc(requestedEntry.id);
+}
+
+async function readContextBundleDocBounded(id: string, options: HeduwareAgentToolOptions) {
+  const allowed = options.allowedContextSourceIds?.includes(id) ?? true;
+  if (!allowed) {
+    return asJson({
+      error: 'CONTEXT_DOC_NOT_IN_RETRIEVAL_PLAN',
+      requestedId: id,
+      allowedSourceIds: options.allowedContextSourceIds
+    });
+  }
+
+  const bundleId = id.slice('bundle:'.length);
+  const bundle = await loadContextBundleV2(bundleId);
+  return [
+    bundle.summary,
+    '',
+    `supportLevel=${bundle.manifest.supportLevel}`,
+    `allowedParts=${bundle.manifest.allowedParts.join(', ')}`,
+    `validationRules=${bundle.manifest.validationRules.join(', ')}`,
+    `simulationPrimitives=${bundle.manifest.simulationPrimitives.join(', ')}`
+  ].join('\n');
 }
 
 function findContextEntry(index: ContextIndex, id: string): ContextEntry | null {
@@ -235,6 +292,8 @@ async function compileSimulationArtifacts(spec: CircuitSpec, options: HeduwareAg
   const currentPaths = await estimateCurrentPaths(spec, netlist, validationReport);
   const renderPlan = await compileRenderPlan(spec, validationReport);
   const simulationPlan = await compileSimulationPlan(spec, validationReport, currentPaths, renderPlan);
-  const requirementMarkdown = await compileRequirementMarkdown(spec, validationReport, simulationPlan);
-  return { validationReport, netlist, currentPaths, renderPlan, simulationPlan, requirementMarkdown };
+  const runnableReport = buildRunnableReport(validationReport, renderPlan, simulationPlan);
+  const solverGateResult = buildSolverGateResult(validationReport, renderPlan, simulationPlan, runnableReport);
+  const requirementMarkdown = await compileRequirementMarkdown(spec, validationReport, simulationPlan, runnableReport);
+  return { validationReport, netlist, currentPaths, renderPlan, simulationPlan, buildRunnableReport: runnableReport, solverGateResult, requirementMarkdown };
 }

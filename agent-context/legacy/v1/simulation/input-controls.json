@@ -1,0 +1,6 @@
+[
+  { "id": "button-toggle", "type": "toggle", "label": "Button pressed", "primitive": "digital_on_off" },
+  { "id": "light-level", "type": "slider", "label": "Light level", "min": 0, "max": 100, "primitive": "analog_threshold" },
+  { "id": "distance", "type": "slider", "label": "Distance", "min": 0, "max": 200, "primitive": "analog_threshold" },
+  { "id": "servo-angle", "type": "slider", "label": "Servo angle", "min": 0, "max": 180, "primitive": "servo_angle" }
+]

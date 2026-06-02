@@ -1,0 +1,411 @@
+[
+  {
+    "id": "bare-seven-segment-display-output",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "bare 7 segment display",
+      "single digit 7 segment",
+      "one digit 7-segment",
+      "1 digit 7 segment",
+      "7seg-1digit",
+      "decimal point on a 7 segment",
+      "1자리 7세그먼트",
+      "1자리 세븐세그먼트",
+      "한 자리 7세그먼트"
+    ],
+    "requiredEvidence": [
+      "bare 7 segment",
+      "single digit",
+      "one digit",
+      "1 digit",
+      "7seg-1digit",
+      "per segment resistor",
+      "decimal point",
+      "1자리 7세그먼트",
+      "1자리 세븐세그먼트",
+      "한 자리 7세그먼트"
+    ],
+    "negativeEvidence": [
+      "tm1637",
+      "4 digit",
+      "4-digit",
+      "max7219",
+      "led matrix",
+      "neopixel",
+      "spi tft",
+      "nokia 5110",
+      "epaper"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "show a number on a bare single digit 7 segment display",
+      "wire a one digit 7-segment display with resistors",
+      "turn on the A and B segments of a 7seg display",
+      "1자리 세븐세그먼트에 숫자 표시"
+    ],
+    "inputModalities": [],
+    "outputModalities": [
+      "display",
+      "led-array-display",
+      "bare-seven-segment-display",
+      "numeric-display"
+    ],
+    "requiredRoles": [
+      "controller",
+      "ground-return",
+      "digital-output",
+      "series-current-limit",
+      "bare-seven-segment-display"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "7seg-1digit",
+      "resistor-220"
+    ],
+    "optionalParts": [
+      "jumper-wire"
+    ],
+    "protocols": [
+      "gpio",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "bare_seven_segment_display_state",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "wire",
+      "resistor",
+      "seven-segment-1digit"
+    ],
+    "validationRules": [
+      "common-ground",
+      "series-current-limit",
+      "bare-seven-segment-common-ground",
+      "bare-seven-segment-segment-resistor",
+      "qualitative-sensor-readout-only"
+    ],
+    "commonMistakes": [
+      "Driving a segment pin directly from Arduino without a resistor.",
+      "Using TM1637 module wiring on a bare segment display.",
+      "Omitting the common ground pin."
+    ],
+    "safeAlternatives": [
+      "led-array-display-output",
+      "display-text-output"
+    ]
+  },
+  {
+    "id": "led-array-display-output",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "7 segment display",
+      "7-segment display",
+      "tm1637 display",
+      "4 digit display",
+      "numeric display",
+      "led matrix",
+      "8x8 matrix",
+      "max7219",
+      "dot matrix display"
+    ],
+    "requiredEvidence": [
+      "7 segment",
+      "tm1637",
+      "4 digit",
+      "numeric display",
+      "led matrix",
+      "8x8",
+      "max7219",
+      "dot matrix"
+    ],
+    "negativeEvidence": [
+      "bare 7 segment without resistors",
+      "single digit bare segment",
+      "oled text",
+      "lcd text",
+      "neopixel",
+      "spi tft",
+      "nokia 5110",
+      "epaper display",
+      "e-paper display"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "show a number on a 4 digit display",
+      "drive a TM1637 7-segment display",
+      "show a pattern on an 8x8 LED matrix",
+      "7세그먼트에 숫자 표시",
+      "LED 매트릭스 패턴 표시"
+    ],
+    "inputModalities": [],
+    "outputModalities": [
+      "display",
+      "led-array-display",
+      "numeric-display",
+      "pattern"
+    ],
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-output",
+      "led-array-display"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "7seg-4digit-tm1637"
+    ],
+    "optionalParts": [
+      "jumper-wire",
+      "8x8-matrix-max7219"
+    ],
+    "protocols": [
+      "gpio",
+      "tm1637-two-wire",
+      "spi-like",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "led_array_display_state",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "wire",
+      "tm1637-4digit-display",
+      "max7219-8x8-matrix"
+    ],
+    "validationRules": [
+      "common-ground",
+      "power-rail-valid",
+      "led-array-display-data-pin",
+      "led-array-display-clock-pin",
+      "led-array-display-select-pin",
+      "qualitative-sensor-readout-only"
+    ],
+    "commonMistakes": [
+      "Missing display module power or ground.",
+      "Swapping data and clock/control lines.",
+      "Treating module-based displays as bare LEDs that need per-segment wiring."
+    ],
+    "safeAlternatives": [
+      "display-text-output"
+    ]
+  },
+  {
+    "id": "addressable-led-display-output",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "neopixel ring",
+      "ws2812 ring",
+      "addressable led",
+      "rgb led ring",
+      "12 led ring",
+      "neopixel pattern",
+      "rainbow led ring",
+      "ws2812b strip",
+      "ws2812 strip",
+      "addressable led strip",
+      "neopixel strip",
+      "rgb led strip"
+    ],
+    "requiredEvidence": [
+      "neopixel",
+      "ws2812",
+      "addressable led",
+      "rgb led ring",
+      "led ring",
+      "ws2812b strip",
+      "addressable led strip",
+      "neopixel strip"
+    ],
+    "negativeEvidence": [
+      "bare led",
+      "single led",
+      "7 segment",
+      "led matrix",
+      "oled",
+      "lcd",
+      "spi display",
+      "tft",
+      "nokia 5110",
+      "epaper"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "make a NeoPixel ring rainbow",
+      "show a color pattern on an addressable LED ring",
+      "네오픽셀 링에 무지개 패턴 표시",
+      "주소지정 LED 링 제어",
+      "make a WS2812B strip rainbow",
+      "show a color pattern on an addressable LED strip",
+      "WS2812B 스트립 무지개 패턴",
+      "주소지정 LED 스트립 제어"
+    ],
+    "inputModalities": [],
+    "outputModalities": [
+      "display",
+      "addressable-led-display",
+      "light",
+      "rgb-pattern"
+    ],
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-output",
+      "addressable-led-display"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "neopixel-ring-12"
+    ],
+    "optionalParts": [
+      "jumper-wire"
+    ],
+    "protocols": [
+      "single-wire-data",
+      "addressable-led",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "addressable_led_pattern",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "wire",
+      "neopixel-ring-12",
+      "ws2812b-strip"
+    ],
+    "validationRules": [
+      "common-ground",
+      "power-rail-valid",
+      "addressable-led-data-pin",
+      "addressable-led-power-warning",
+      "qualitative-sensor-readout-only"
+    ],
+    "commonMistakes": [
+      "Driving the ring from an Arduino I/O pin instead of DIN signal only.",
+      "Forgetting common ground.",
+      "Ignoring current draw at high brightness.",
+      "Powering a long strip at full brightness without current budgeting"
+    ],
+    "safeAlternatives": [
+      "digital-light-output",
+      "led-array-display-output"
+    ]
+  },
+  {
+    "id": "spi-display-output",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "spi display",
+      "spi tft",
+      "tft lcd",
+      "1.8 tft",
+      "nokia 5110",
+      "pcd8544",
+      "e-paper display",
+      "epaper display",
+      "e-ink display"
+    ],
+    "requiredEvidence": [
+      "spi display",
+      "tft",
+      "nokia 5110",
+      "pcd8544",
+      "epaper",
+      "e-paper",
+      "e-ink",
+      "chip select",
+      "spi clock",
+      "spi data"
+    ],
+    "negativeEvidence": [
+      "i2c oled",
+      "i2c lcd",
+      "tm1637",
+      "max7219",
+      "neopixel",
+      "bare 7 segment",
+      "tcs3200",
+      "color sensor",
+      "pulse reading"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "show text on a TFT SPI display",
+      "draw a smile on a Nokia 5110 LCD",
+      "display a message on a 2.13 e-paper screen",
+      "SPI TFT에 글자 표시",
+      "전자종이에 메시지 표시"
+    ],
+    "inputModalities": [],
+    "outputModalities": [
+      "display",
+      "spi-display",
+      "graphic-display"
+    ],
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-output",
+      "spi-display"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "tft-18"
+    ],
+    "optionalParts": [
+      "jumper-wire",
+      "nokia-5110",
+      "epaper-213"
+    ],
+    "protocols": [
+      "spi",
+      "gpio",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "spi_display_state",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "wire",
+      "tft-18-spi-display",
+      "nokia-5110-display",
+      "epaper-213-display"
+    ],
+    "validationRules": [
+      "common-ground",
+      "power-rail-valid",
+      "spi-display-data-pin",
+      "spi-display-clock-pin",
+      "spi-display-select-pin",
+      "spi-display-control-pin",
+      "qualitative-sensor-readout-only"
+    ],
+    "commonMistakes": [
+      "Confusing SPI SCK/DIN/SDA data lines with I2C SDA/SCL wiring.",
+      "Leaving CS or DC/RS/RST control pins unconnected.",
+      "Expecting pixel-perfect display driver timing instead of qualitative classroom simulation."
+    ],
+    "safeAlternatives": [
+      "display-text-output",
+      "led-array-display-output"
+    ]
+  }
+]

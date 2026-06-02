@@ -1,0 +1,1608 @@
+{
+  "arduino-nano-board": {
+    "type": "arduino-nano-board",
+    "width": 1.1,
+    "depth": 0.55,
+    "height": 0.1,
+    "visualStyle": {
+      "shape": "controller-board",
+      "color": "#0a765d",
+      "material": "pcb"
+    },
+    "pinAnchors": {
+      "5V": {
+        "x": -0.43,
+        "y": 0.18,
+        "z": -0.35,
+        "role": "power",
+        "label": "5V"
+      },
+      "GND": {
+        "x": -0.43,
+        "y": 0.18,
+        "z": 0,
+        "role": "ground",
+        "label": "GND"
+      },
+      "D12": {
+        "x": -0.43,
+        "y": 0.18,
+        "z": 0.35,
+        "role": "digital",
+        "label": "D12"
+      },
+      "A3": {
+        "x": 0.43,
+        "y": 0.18,
+        "z": -0.35,
+        "role": "analog-input",
+        "label": "A3"
+      },
+      "TX": {
+        "x": 0.43,
+        "y": 0.18,
+        "z": 0,
+        "role": "serial-tx",
+        "label": "TX"
+      },
+      "RX": {
+        "x": 0.43,
+        "y": 0.18,
+        "z": 0.35,
+        "role": "serial-rx",
+        "label": "RX"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.34,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "usb-or-header-up",
+      "notes": [
+        "Arduino Nano is rendered as WP-08 controller context; pin-map and voltage domain are visible, but circuit substitution needs a validated topology bundle."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "pin-map-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "voltage-domain-state",
+        "anchor": "labelAnchor",
+        "role": "5v-domain-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Arduino Nano board",
+        "explainableAs": [
+          "controller-board",
+          "5v-logic-domain"
+        ]
+      },
+      {
+        "id": "pin-5v",
+        "label": "Arduino Nano 5V",
+        "pin": "5V",
+        "explainableAs": [
+          "power",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "Arduino Nano GND",
+        "pin": "GND",
+        "explainableAs": [
+          "ground",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-d12",
+        "label": "Arduino Nano D12",
+        "pin": "D12",
+        "explainableAs": [
+          "digital",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-a3",
+        "label": "Arduino Nano A3",
+        "pin": "A3",
+        "explainableAs": [
+          "analog-input",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-tx",
+        "label": "Arduino Nano TX",
+        "pin": "TX",
+        "explainableAs": [
+          "serial-tx",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-rx",
+        "label": "Arduino Nano RX",
+        "pin": "RX",
+        "explainableAs": [
+          "serial-rx",
+          "visual-pin-map"
+        ]
+      }
+    ]
+  },
+  "arduino-mega2560-board": {
+    "type": "arduino-mega2560-board",
+    "width": 2.5,
+    "depth": 1.7,
+    "height": 0.12,
+    "visualStyle": {
+      "shape": "controller-board",
+      "color": "#0a765d",
+      "material": "pcb"
+    },
+    "pinAnchors": {
+      "5V": {
+        "x": -1.13,
+        "y": 0.2,
+        "z": -0.35,
+        "role": "power",
+        "label": "5V"
+      },
+      "GND": {
+        "x": -1.13,
+        "y": 0.2,
+        "z": 0,
+        "role": "ground",
+        "label": "GND"
+      },
+      "D2": {
+        "x": -1.13,
+        "y": 0.2,
+        "z": 0.35,
+        "role": "pwm-output",
+        "label": "D2"
+      },
+      "A0": {
+        "x": 1.13,
+        "y": 0.2,
+        "z": -0.35,
+        "role": "analog-input",
+        "label": "A0"
+      },
+      "TX0": {
+        "x": 1.13,
+        "y": 0.2,
+        "z": 0,
+        "role": "serial-tx",
+        "label": "TX0"
+      },
+      "RX0": {
+        "x": 1.13,
+        "y": 0.2,
+        "z": 0.35,
+        "role": "serial-rx",
+        "label": "RX0"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.36,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "usb-or-header-up",
+      "notes": [
+        "Arduino Mega 2560 is rendered as WP-08 controller context; pin-map and voltage domain are visible, but circuit substitution needs a validated topology bundle."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "pin-map-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "voltage-domain-state",
+        "anchor": "labelAnchor",
+        "role": "5v-domain-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Arduino Mega 2560 board",
+        "explainableAs": [
+          "controller-board",
+          "5v-logic-domain"
+        ]
+      },
+      {
+        "id": "pin-5v",
+        "label": "Arduino Mega 2560 5V",
+        "pin": "5V",
+        "explainableAs": [
+          "power",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "Arduino Mega 2560 GND",
+        "pin": "GND",
+        "explainableAs": [
+          "ground",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-d2",
+        "label": "Arduino Mega 2560 D2",
+        "pin": "D2",
+        "explainableAs": [
+          "pwm-output",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-a0",
+        "label": "Arduino Mega 2560 A0",
+        "pin": "A0",
+        "explainableAs": [
+          "analog-input",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-tx0",
+        "label": "Arduino Mega 2560 TX0",
+        "pin": "TX0",
+        "explainableAs": [
+          "serial-tx",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-rx0",
+        "label": "Arduino Mega 2560 RX0",
+        "pin": "RX0",
+        "explainableAs": [
+          "serial-rx",
+          "visual-pin-map"
+        ]
+      }
+    ]
+  },
+  "arduino-leonardo-board": {
+    "type": "arduino-leonardo-board",
+    "width": 2,
+    "depth": 1.4,
+    "height": 0.12,
+    "visualStyle": {
+      "shape": "controller-board",
+      "color": "#0a5f7d",
+      "material": "pcb"
+    },
+    "pinAnchors": {
+      "5V": {
+        "x": -0.88,
+        "y": 0.2,
+        "z": -0.35,
+        "role": "power",
+        "label": "5V"
+      },
+      "GND": {
+        "x": -0.88,
+        "y": 0.2,
+        "z": 0,
+        "role": "ground",
+        "label": "GND"
+      },
+      "D9": {
+        "x": -0.88,
+        "y": 0.2,
+        "z": 0.35,
+        "role": "pwm-output",
+        "label": "D9"
+      },
+      "A1": {
+        "x": 0.88,
+        "y": 0.2,
+        "z": -0.35,
+        "role": "analog-input",
+        "label": "A1"
+      },
+      "SDA": {
+        "x": 0.88,
+        "y": 0.2,
+        "z": 0,
+        "role": "data",
+        "label": "SDA"
+      },
+      "SCL": {
+        "x": 0.88,
+        "y": 0.2,
+        "z": 0.35,
+        "role": "clock",
+        "label": "SCL"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.36,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "usb-or-header-up",
+      "notes": [
+        "Arduino Leonardo is rendered as WP-08 controller context; pin-map and voltage domain are visible, but circuit substitution needs a validated topology bundle."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "pin-map-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "voltage-domain-state",
+        "anchor": "labelAnchor",
+        "role": "5v-domain-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Arduino Leonardo board",
+        "explainableAs": [
+          "controller-board",
+          "5v-logic-domain"
+        ]
+      },
+      {
+        "id": "pin-5v",
+        "label": "Arduino Leonardo 5V",
+        "pin": "5V",
+        "explainableAs": [
+          "power",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "Arduino Leonardo GND",
+        "pin": "GND",
+        "explainableAs": [
+          "ground",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-d9",
+        "label": "Arduino Leonardo D9",
+        "pin": "D9",
+        "explainableAs": [
+          "pwm-output",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-a1",
+        "label": "Arduino Leonardo A1",
+        "pin": "A1",
+        "explainableAs": [
+          "analog-input",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-sda",
+        "label": "Arduino Leonardo SDA",
+        "pin": "SDA",
+        "explainableAs": [
+          "data",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-scl",
+        "label": "Arduino Leonardo SCL",
+        "pin": "SCL",
+        "explainableAs": [
+          "clock",
+          "visual-pin-map"
+        ]
+      }
+    ]
+  },
+  "arduino-micro-board": {
+    "type": "arduino-micro-board",
+    "width": 0.85,
+    "depth": 0.45,
+    "height": 0.1,
+    "visualStyle": {
+      "shape": "controller-board",
+      "color": "#0a765d",
+      "material": "pcb"
+    },
+    "pinAnchors": {
+      "5V": {
+        "x": -0.3,
+        "y": 0.18,
+        "z": -0.35,
+        "role": "power",
+        "label": "5V"
+      },
+      "GND": {
+        "x": -0.3,
+        "y": 0.18,
+        "z": 0,
+        "role": "ground",
+        "label": "GND"
+      },
+      "D5": {
+        "x": -0.3,
+        "y": 0.18,
+        "z": 0.35,
+        "role": "pwm-output",
+        "label": "D5"
+      },
+      "A0": {
+        "x": 0.3,
+        "y": 0.18,
+        "z": -0.35,
+        "role": "analog-input",
+        "label": "A0"
+      },
+      "TX": {
+        "x": 0.3,
+        "y": 0.18,
+        "z": 0,
+        "role": "serial-tx",
+        "label": "TX"
+      },
+      "RX": {
+        "x": 0.3,
+        "y": 0.18,
+        "z": 0.35,
+        "role": "serial-rx",
+        "label": "RX"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.34,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "usb-or-header-up",
+      "notes": [
+        "Arduino Micro is rendered as WP-08 controller context; pin-map and voltage domain are visible, but circuit substitution needs a validated topology bundle."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "pin-map-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "voltage-domain-state",
+        "anchor": "labelAnchor",
+        "role": "5v-domain-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Arduino Micro board",
+        "explainableAs": [
+          "controller-board",
+          "5v-logic-domain"
+        ]
+      },
+      {
+        "id": "pin-5v",
+        "label": "Arduino Micro 5V",
+        "pin": "5V",
+        "explainableAs": [
+          "power",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "Arduino Micro GND",
+        "pin": "GND",
+        "explainableAs": [
+          "ground",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-d5",
+        "label": "Arduino Micro D5",
+        "pin": "D5",
+        "explainableAs": [
+          "pwm-output",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-a0",
+        "label": "Arduino Micro A0",
+        "pin": "A0",
+        "explainableAs": [
+          "analog-input",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-tx",
+        "label": "Arduino Micro TX",
+        "pin": "TX",
+        "explainableAs": [
+          "serial-tx",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-rx",
+        "label": "Arduino Micro RX",
+        "pin": "RX",
+        "explainableAs": [
+          "serial-rx",
+          "visual-pin-map"
+        ]
+      }
+    ]
+  },
+  "arduino-pro-mini-board": {
+    "type": "arduino-pro-mini-board",
+    "width": 0.9,
+    "depth": 0.5,
+    "height": 0.1,
+    "visualStyle": {
+      "shape": "controller-board",
+      "color": "#c2362f",
+      "material": "pcb"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.33,
+        "y": 0.18,
+        "z": -0.35,
+        "role": "power",
+        "label": "VCC"
+      },
+      "GND": {
+        "x": -0.33,
+        "y": 0.18,
+        "z": 0,
+        "role": "ground",
+        "label": "GND"
+      },
+      "D3": {
+        "x": -0.33,
+        "y": 0.18,
+        "z": 0.35,
+        "role": "pwm-output",
+        "label": "D3"
+      },
+      "A0": {
+        "x": 0.33,
+        "y": 0.18,
+        "z": -0.35,
+        "role": "analog-input",
+        "label": "A0"
+      },
+      "TX": {
+        "x": 0.33,
+        "y": 0.18,
+        "z": 0,
+        "role": "serial-tx",
+        "label": "TX"
+      },
+      "RX": {
+        "x": 0.33,
+        "y": 0.18,
+        "z": 0.35,
+        "role": "serial-rx",
+        "label": "RX"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.34,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "usb-or-header-up",
+      "notes": [
+        "Arduino Pro Mini is rendered as WP-08 controller context; pin-map and voltage domain are visible, but circuit substitution needs a validated topology bundle."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "pin-map-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "voltage-domain-state",
+        "anchor": "labelAnchor",
+        "role": "5v-domain-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Arduino Pro Mini board",
+        "explainableAs": [
+          "controller-board",
+          "5v-logic-domain"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "Arduino Pro Mini VCC",
+        "pin": "VCC",
+        "explainableAs": [
+          "power",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "Arduino Pro Mini GND",
+        "pin": "GND",
+        "explainableAs": [
+          "ground",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-d3",
+        "label": "Arduino Pro Mini D3",
+        "pin": "D3",
+        "explainableAs": [
+          "pwm-output",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-a0",
+        "label": "Arduino Pro Mini A0",
+        "pin": "A0",
+        "explainableAs": [
+          "analog-input",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-tx",
+        "label": "Arduino Pro Mini TX",
+        "pin": "TX",
+        "explainableAs": [
+          "serial-tx",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-rx",
+        "label": "Arduino Pro Mini RX",
+        "pin": "RX",
+        "explainableAs": [
+          "serial-rx",
+          "visual-pin-map"
+        ]
+      }
+    ]
+  },
+  "attiny85-board": {
+    "type": "attiny85-board",
+    "width": 0.7,
+    "depth": 0.45,
+    "height": 0.1,
+    "visualStyle": {
+      "shape": "controller-board",
+      "color": "#222244",
+      "material": "pcb"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.23,
+        "y": 0.18,
+        "z": -0.35,
+        "role": "power",
+        "label": "VCC"
+      },
+      "GND": {
+        "x": -0.23,
+        "y": 0.18,
+        "z": 0,
+        "role": "ground",
+        "label": "GND"
+      },
+      "P0": {
+        "x": -0.23,
+        "y": 0.18,
+        "z": 0.35,
+        "role": "digital",
+        "label": "P0"
+      },
+      "P2": {
+        "x": 0.23,
+        "y": 0.18,
+        "z": -0.35,
+        "role": "digital",
+        "label": "P2"
+      },
+      "P3": {
+        "x": 0.23,
+        "y": 0.18,
+        "z": 0,
+        "role": "data",
+        "label": "P3"
+      },
+      "P4": {
+        "x": 0.23,
+        "y": 0.18,
+        "z": 0.35,
+        "role": "clock",
+        "label": "P4"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.34,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "usb-or-header-up",
+      "notes": [
+        "ATtiny85 Digispark is rendered as WP-08 controller context; pin-map and voltage domain are visible, but circuit substitution needs a validated topology bundle."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "pin-map-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "voltage-domain-state",
+        "anchor": "labelAnchor",
+        "role": "5v-domain-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "ATtiny85 Digispark board",
+        "explainableAs": [
+          "controller-board",
+          "5v-logic-domain"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "ATtiny85 Digispark VCC",
+        "pin": "VCC",
+        "explainableAs": [
+          "power",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "ATtiny85 Digispark GND",
+        "pin": "GND",
+        "explainableAs": [
+          "ground",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-p0",
+        "label": "ATtiny85 Digispark P0",
+        "pin": "P0",
+        "explainableAs": [
+          "digital",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-p2",
+        "label": "ATtiny85 Digispark P2",
+        "pin": "P2",
+        "explainableAs": [
+          "digital",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-p3",
+        "label": "ATtiny85 Digispark P3",
+        "pin": "P3",
+        "explainableAs": [
+          "data",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-p4",
+        "label": "ATtiny85 Digispark P4",
+        "pin": "P4",
+        "explainableAs": [
+          "clock",
+          "visual-pin-map"
+        ]
+      }
+    ]
+  },
+  "esp32-devkit-board": {
+    "type": "esp32-devkit-board",
+    "width": 1.3,
+    "depth": 0.7,
+    "height": 0.1,
+    "visualStyle": {
+      "shape": "controller-board",
+      "color": "#1f3a5f",
+      "material": "pcb"
+    },
+    "pinAnchors": {
+      "3V3": {
+        "x": -0.53,
+        "y": 0.18,
+        "z": -0.35,
+        "role": "power",
+        "label": "3V3"
+      },
+      "GND": {
+        "x": -0.53,
+        "y": 0.18,
+        "z": 0,
+        "role": "ground",
+        "label": "GND"
+      },
+      "GPIO2": {
+        "x": -0.53,
+        "y": 0.18,
+        "z": 0.35,
+        "role": "digital",
+        "label": "GPIO2"
+      },
+      "GPIO34": {
+        "x": 0.53,
+        "y": 0.18,
+        "z": -0.35,
+        "role": "analog-input",
+        "label": "GPIO34"
+      },
+      "TX": {
+        "x": 0.53,
+        "y": 0.18,
+        "z": 0,
+        "role": "serial-tx",
+        "label": "TX"
+      },
+      "RX": {
+        "x": 0.53,
+        "y": 0.18,
+        "z": 0.35,
+        "role": "serial-rx",
+        "label": "RX"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.34,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "usb-or-header-up",
+      "notes": [
+        "ESP32 DevKit V1 is rendered as WP-08 controller context; pin-map and voltage domain are visible, but circuit substitution needs a validated topology bundle."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "pin-map-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "voltage-domain-state",
+        "anchor": "labelAnchor",
+        "role": "3v3-domain-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "ESP32 DevKit V1 board",
+        "explainableAs": [
+          "controller-board",
+          "3.3v-logic-domain"
+        ]
+      },
+      {
+        "id": "pin-3v3",
+        "label": "ESP32 DevKit V1 3V3",
+        "pin": "3V3",
+        "explainableAs": [
+          "power",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "ESP32 DevKit V1 GND",
+        "pin": "GND",
+        "explainableAs": [
+          "ground",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-gpio2",
+        "label": "ESP32 DevKit V1 GPIO2",
+        "pin": "GPIO2",
+        "explainableAs": [
+          "digital",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-gpio34",
+        "label": "ESP32 DevKit V1 GPIO34",
+        "pin": "GPIO34",
+        "explainableAs": [
+          "analog-input",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-tx",
+        "label": "ESP32 DevKit V1 TX",
+        "pin": "TX",
+        "explainableAs": [
+          "serial-tx",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-rx",
+        "label": "ESP32 DevKit V1 RX",
+        "pin": "RX",
+        "explainableAs": [
+          "serial-rx",
+          "visual-pin-map"
+        ]
+      }
+    ]
+  },
+  "esp8266-nodemcu-board": {
+    "type": "esp8266-nodemcu-board",
+    "width": 1.2,
+    "depth": 0.65,
+    "height": 0.1,
+    "visualStyle": {
+      "shape": "controller-board",
+      "color": "#1a5276",
+      "material": "pcb"
+    },
+    "pinAnchors": {
+      "3V3": {
+        "x": -0.48,
+        "y": 0.18,
+        "z": -0.35,
+        "role": "power",
+        "label": "3V3"
+      },
+      "GND": {
+        "x": -0.48,
+        "y": 0.18,
+        "z": 0,
+        "role": "ground",
+        "label": "GND"
+      },
+      "D1": {
+        "x": -0.48,
+        "y": 0.18,
+        "z": 0.35,
+        "role": "digital",
+        "label": "D1"
+      },
+      "A0": {
+        "x": 0.48,
+        "y": 0.18,
+        "z": -0.35,
+        "role": "analog-input",
+        "label": "A0"
+      },
+      "TX": {
+        "x": 0.48,
+        "y": 0.18,
+        "z": 0,
+        "role": "serial-tx",
+        "label": "TX"
+      },
+      "RX": {
+        "x": 0.48,
+        "y": 0.18,
+        "z": 0.35,
+        "role": "serial-rx",
+        "label": "RX"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.34,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "usb-or-header-up",
+      "notes": [
+        "NodeMCU ESP8266 is rendered as WP-08 controller context; pin-map and voltage domain are visible, but circuit substitution needs a validated topology bundle."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "pin-map-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "voltage-domain-state",
+        "anchor": "labelAnchor",
+        "role": "3v3-domain-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "NodeMCU ESP8266 board",
+        "explainableAs": [
+          "controller-board",
+          "3.3v-logic-domain"
+        ]
+      },
+      {
+        "id": "pin-3v3",
+        "label": "NodeMCU ESP8266 3V3",
+        "pin": "3V3",
+        "explainableAs": [
+          "power",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "NodeMCU ESP8266 GND",
+        "pin": "GND",
+        "explainableAs": [
+          "ground",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-d1",
+        "label": "NodeMCU ESP8266 D1",
+        "pin": "D1",
+        "explainableAs": [
+          "digital",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-a0",
+        "label": "NodeMCU ESP8266 A0",
+        "pin": "A0",
+        "explainableAs": [
+          "analog-input",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-tx",
+        "label": "NodeMCU ESP8266 TX",
+        "pin": "TX",
+        "explainableAs": [
+          "serial-tx",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-rx",
+        "label": "NodeMCU ESP8266 RX",
+        "pin": "RX",
+        "explainableAs": [
+          "serial-rx",
+          "visual-pin-map"
+        ]
+      }
+    ]
+  },
+  "raspberry-pi-pico-board": {
+    "type": "raspberry-pi-pico-board",
+    "width": 1.3,
+    "depth": 0.55,
+    "height": 0.1,
+    "visualStyle": {
+      "shape": "controller-board",
+      "color": "#006933",
+      "material": "pcb"
+    },
+    "pinAnchors": {
+      "3V3": {
+        "x": -0.53,
+        "y": 0.18,
+        "z": -0.35,
+        "role": "power",
+        "label": "3V3"
+      },
+      "GND": {
+        "x": -0.53,
+        "y": 0.18,
+        "z": 0,
+        "role": "ground",
+        "label": "GND"
+      },
+      "GP2": {
+        "x": -0.53,
+        "y": 0.18,
+        "z": 0.35,
+        "role": "digital",
+        "label": "GP2"
+      },
+      "GP26": {
+        "x": 0.53,
+        "y": 0.18,
+        "z": -0.35,
+        "role": "analog-input",
+        "label": "GP26"
+      },
+      "GP0": {
+        "x": 0.53,
+        "y": 0.18,
+        "z": 0,
+        "role": "serial-tx",
+        "label": "GP0"
+      },
+      "GP1": {
+        "x": 0.53,
+        "y": 0.18,
+        "z": 0.35,
+        "role": "serial-rx",
+        "label": "GP1"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.34,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "usb-or-header-up",
+      "notes": [
+        "Raspberry Pi Pico is rendered as WP-08 controller context; pin-map and voltage domain are visible, but circuit substitution needs a validated topology bundle."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "pin-map-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "voltage-domain-state",
+        "anchor": "labelAnchor",
+        "role": "3v3-domain-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Raspberry Pi Pico board",
+        "explainableAs": [
+          "controller-board",
+          "3.3v-logic-domain"
+        ]
+      },
+      {
+        "id": "pin-3v3",
+        "label": "Raspberry Pi Pico 3V3",
+        "pin": "3V3",
+        "explainableAs": [
+          "power",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "Raspberry Pi Pico GND",
+        "pin": "GND",
+        "explainableAs": [
+          "ground",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-gp2",
+        "label": "Raspberry Pi Pico GP2",
+        "pin": "GP2",
+        "explainableAs": [
+          "digital",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-gp26",
+        "label": "Raspberry Pi Pico GP26",
+        "pin": "GP26",
+        "explainableAs": [
+          "analog-input",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-gp0",
+        "label": "Raspberry Pi Pico GP0",
+        "pin": "GP0",
+        "explainableAs": [
+          "serial-tx",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-gp1",
+        "label": "Raspberry Pi Pico GP1",
+        "pin": "GP1",
+        "explainableAs": [
+          "serial-rx",
+          "visual-pin-map"
+        ]
+      }
+    ]
+  },
+  "stm32-bluepill-board": {
+    "type": "stm32-bluepill-board",
+    "width": 1.1,
+    "depth": 0.55,
+    "height": 0.1,
+    "visualStyle": {
+      "shape": "controller-board",
+      "color": "#1f6fb2",
+      "material": "pcb"
+    },
+    "pinAnchors": {
+      "3V3": {
+        "x": -0.43,
+        "y": 0.18,
+        "z": -0.35,
+        "role": "power",
+        "label": "3V3"
+      },
+      "GND": {
+        "x": -0.43,
+        "y": 0.18,
+        "z": 0,
+        "role": "ground",
+        "label": "GND"
+      },
+      "PA0": {
+        "x": -0.43,
+        "y": 0.18,
+        "z": 0.35,
+        "role": "analog-input",
+        "label": "PA0"
+      },
+      "PB6": {
+        "x": 0.43,
+        "y": 0.18,
+        "z": -0.35,
+        "role": "data",
+        "label": "PB6"
+      },
+      "PA9": {
+        "x": 0.43,
+        "y": 0.18,
+        "z": 0,
+        "role": "serial-tx",
+        "label": "PA9"
+      },
+      "PA10": {
+        "x": 0.43,
+        "y": 0.18,
+        "z": 0.35,
+        "role": "serial-rx",
+        "label": "PA10"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.34,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "usb-or-header-up",
+      "notes": [
+        "STM32 Blue Pill is rendered as WP-08 controller context; pin-map and voltage domain are visible, but circuit substitution needs a validated topology bundle."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "pin-map-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "voltage-domain-state",
+        "anchor": "labelAnchor",
+        "role": "3v3-domain-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "STM32 Blue Pill board",
+        "explainableAs": [
+          "controller-board",
+          "3.3v-logic-domain"
+        ]
+      },
+      {
+        "id": "pin-3v3",
+        "label": "STM32 Blue Pill 3V3",
+        "pin": "3V3",
+        "explainableAs": [
+          "power",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "STM32 Blue Pill GND",
+        "pin": "GND",
+        "explainableAs": [
+          "ground",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-pa0",
+        "label": "STM32 Blue Pill PA0",
+        "pin": "PA0",
+        "explainableAs": [
+          "analog-input",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-pb6",
+        "label": "STM32 Blue Pill PB6",
+        "pin": "PB6",
+        "explainableAs": [
+          "data",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-pa9",
+        "label": "STM32 Blue Pill PA9",
+        "pin": "PA9",
+        "explainableAs": [
+          "serial-tx",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-pa10",
+        "label": "STM32 Blue Pill PA10",
+        "pin": "PA10",
+        "explainableAs": [
+          "serial-rx",
+          "visual-pin-map"
+        ]
+      }
+    ]
+  },
+  "teensy40-board": {
+    "type": "teensy40-board",
+    "width": 0.9,
+    "depth": 0.5,
+    "height": 0.1,
+    "visualStyle": {
+      "shape": "controller-board",
+      "color": "#c2362f",
+      "material": "pcb"
+    },
+    "pinAnchors": {
+      "3V3": {
+        "x": -0.33,
+        "y": 0.18,
+        "z": -0.35,
+        "role": "power",
+        "label": "3V3"
+      },
+      "GND": {
+        "x": -0.33,
+        "y": 0.18,
+        "z": 0,
+        "role": "ground",
+        "label": "GND"
+      },
+      "D0": {
+        "x": -0.33,
+        "y": 0.18,
+        "z": 0.35,
+        "role": "serial-rx",
+        "label": "D0"
+      },
+      "D1": {
+        "x": 0.33,
+        "y": 0.18,
+        "z": -0.35,
+        "role": "serial-tx",
+        "label": "D1"
+      },
+      "A0": {
+        "x": 0.33,
+        "y": 0.18,
+        "z": 0,
+        "role": "analog-input",
+        "label": "A0"
+      },
+      "D6": {
+        "x": 0.33,
+        "y": 0.18,
+        "z": 0.35,
+        "role": "pwm-output",
+        "label": "D6"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.34,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "usb-or-header-up",
+      "notes": [
+        "Teensy 4.0 is rendered as WP-08 controller context; pin-map and voltage domain are visible, but circuit substitution needs a validated topology bundle."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "pin-map-state",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "voltage-domain-state",
+        "anchor": "labelAnchor",
+        "role": "3v3-domain-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Teensy 4.0 board",
+        "explainableAs": [
+          "controller-board",
+          "3.3v-logic-domain"
+        ]
+      },
+      {
+        "id": "pin-3v3",
+        "label": "Teensy 4.0 3V3",
+        "pin": "3V3",
+        "explainableAs": [
+          "power",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "Teensy 4.0 GND",
+        "pin": "GND",
+        "explainableAs": [
+          "ground",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-d0",
+        "label": "Teensy 4.0 D0",
+        "pin": "D0",
+        "explainableAs": [
+          "serial-rx",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-d1",
+        "label": "Teensy 4.0 D1",
+        "pin": "D1",
+        "explainableAs": [
+          "serial-tx",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-a0",
+        "label": "Teensy 4.0 A0",
+        "pin": "A0",
+        "explainableAs": [
+          "analog-input",
+          "visual-pin-map"
+        ]
+      },
+      {
+        "id": "pin-d6",
+        "label": "Teensy 4.0 D6",
+        "pin": "D6",
+        "explainableAs": [
+          "pwm-output",
+          "visual-pin-map"
+        ]
+      }
+    ]
+  }
+}

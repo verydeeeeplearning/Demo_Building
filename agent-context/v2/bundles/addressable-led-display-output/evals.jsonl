@@ -1,0 +1,2 @@
+{"id":"v2-neopixel-ring-pattern","message":"Make a rainbow pattern on a NeoPixel ring with 12 LEDs.","expected":"valid_circuit_synthesis"}
+{"id":"v2-led-strip-counterexample","message":"Power a five meter LED strip at full brightness from an Arduino pin.","expected":"clarification_or_support_gap"}

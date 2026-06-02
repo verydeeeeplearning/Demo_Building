@@ -38,6 +38,24 @@ export const IntentSpecV2Schema = z.object({
   confidence: z.number().min(0).max(1).default(0.5)
 });
 
+export const PartSupportTierSchema = z.enum([
+  'catalog-only',
+  'context-known',
+  'pin-known',
+  'render-ready',
+  'validation-ready',
+  'simulation-ready',
+  'unsafe-blocked'
+]);
+
+export const PartRiskLevelSchema = z.enum([
+  'low-voltage',
+  'power-warning',
+  'high-current',
+  'mains-unsafe',
+  'unknown'
+]);
+
 export const PartCapabilitySchema = z.object({
   id: z.string().min(1),
   kind: z.enum(['controller', 'board', 'output', 'input', 'passive', 'wiring', 'power']),
@@ -73,6 +91,14 @@ export const PartCapabilitySchema = z.object({
     nominalCurrentMa: z.number().nonnegative().default(0)
   }),
   supportLevel: z.enum(['supported', 'partial', 'planned', 'unsupported']).default('supported'),
+  supportTier: PartSupportTierSchema.default('simulation-ready'),
+  family: z.string().min(1).default('starter-electronics'),
+  riskLevel: PartRiskLevelSchema.default('low-voltage'),
+  visualPartIds: z.array(z.string().min(1)).default([]),
+  compatibleTopologies: z.array(z.string().min(1)).default([]),
+  requiredExternalParts: z.array(z.string().min(1)).default([]),
+  forbiddenTopologies: z.array(z.string().min(1)).default([]),
+  sourceClaimIds: z.array(z.string().min(1)).default([]),
   capabilities: z.array(z.string().min(1)).default([]),
   compatibleSimulationPrimitives: z.array(z.string().min(1)).default([]),
   commonMistakes: z.array(z.string().min(1)).default([]),
@@ -299,11 +325,25 @@ export const CurrentPathSchema = z.object({
   from: z.string().min(1),
   through: z.array(z.string().min(1)),
   to: z.string().min(1),
+  connectionIds: z.array(z.string().min(1)).optional(),
+  segments: z.array(z.object({
+    connectionId: z.string().min(1),
+    from: z.string().min(1),
+    to: z.string().min(1)
+  })).optional(),
   expectedCurrentMa: z.number().nonnegative(),
   animation: z.object({
     color: z.string().min(1),
     speed: z.number().positive()
   })
+});
+
+export const SolverAttemptSchema = z.object({
+  attempt: z.number().int().positive(),
+  stage: z.enum(['placement', 'routing', 'camera', 'label', 'degrade']),
+  action: z.string().min(1),
+  result: z.enum(['passed', 'repaired', 'degraded']),
+  warnings: z.array(z.string().min(1)).default([])
 });
 
 export const RenderPlanSchema = z.object({
@@ -334,6 +374,11 @@ export const RenderPlanSchema = z.object({
     to: RenderEndpointSchema,
     signal: z.string(),
     color: z.string(),
+    route: z.array(z.object({
+      x: z.number(),
+      y: z.number(),
+      z: z.number()
+    })).min(2).optional(),
     education: z.object({
       label: z.string(),
       title: z.string(),
@@ -358,7 +403,29 @@ export const RenderPlanSchema = z.object({
       x: z.number(),
       y: z.number(),
       z: z.number()
-    }))
+    })),
+    labels: z.record(z.string(), z.object({
+      partId: z.string().min(1),
+      text: z.string().min(1),
+      position: z.object({ x: z.number(), y: z.number(), z: z.number() }),
+      width: z.number().positive(),
+      height: z.number().positive()
+    })).optional(),
+    bounds: z.object({
+      min: z.object({ x: z.number(), y: z.number(), z: z.number() }),
+      max: z.object({ x: z.number(), y: z.number(), z: z.number() }),
+      center: z.object({ x: z.number(), y: z.number(), z: z.number() }),
+      size: z.object({ x: z.number().nonnegative(), y: z.number().nonnegative(), z: z.number().nonnegative() }),
+      radius: z.number().nonnegative()
+    }).optional(),
+    camera: z.object({
+      position: z.object({ x: z.number(), y: z.number(), z: z.number() }),
+      target: z.object({ x: z.number(), y: z.number(), z: z.number() }),
+      fov: z.number().positive(),
+      minDistance: z.number().positive(),
+      maxDistance: z.number().positive()
+    }).optional(),
+    solverAttempts: z.array(SolverAttemptSchema).default([]).optional()
   }).optional()
 });
 
@@ -381,6 +448,101 @@ export const SimulationPlanSchema = z.object({
       path: ['currentPaths']
     });
   }
+});
+
+export const BuildRunnableReportSchema = z.object({
+  status: z.enum(['runnable', 'blocked']),
+  runnable: z.boolean(),
+  reasons: z.array(z.string().min(1)).default([]),
+  validationStatus: ValidationReportSchema.shape.status,
+  simulationStatus: z.enum(['valid', 'invalid', 'unsupported']),
+  renderWarningCount: z.number().int().nonnegative(),
+  renderBlockingWarningCount: z.number().int().nonnegative(),
+  renderPartCount: z.number().int().nonnegative(),
+  currentPathCount: z.number().int().nonnegative(),
+  expectedStateCount: z.number().int().nonnegative()
+}).superRefine((report, context) => {
+  if (report.status === 'runnable' && !report.runnable) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Runnable reports must set runnable=true',
+      path: ['runnable']
+    });
+  }
+  if (report.status === 'blocked' && report.runnable) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Blocked reports must set runnable=false',
+      path: ['runnable']
+    });
+  }
+});
+
+export const SolverGateModeSchema = z.enum([
+  'verified_build_simulation',
+  'auto_repaired_simulation',
+  'diagnostic_simulation',
+  'safe_equivalent_simulation',
+  'placeholder_part_simulation'
+]);
+
+export const SolverGateResultSchema = z.object({
+  visibleSimulation: z.boolean(),
+  mode: SolverGateModeSchema,
+  buildReady: z.boolean(),
+  simulationActivity: z.enum(['verified_current', 'verified_signal', 'state_only', 'diagnostic']),
+  benchConfirmed: z.literal(false),
+  sourceSpecId: z.string().min(1).optional(),
+  repairedSpecId: z.string().min(1).optional(),
+  equivalentSpecId: z.string().min(1).optional(),
+  repairLevel: z.enum(['none', 'layout', 'routing', 'circuit_mutation', 'safe_equivalent', 'placeholder']),
+  attempts: z.array(SolverAttemptSchema).default([]),
+  verifiedClaims: z.array(z.string().min(1)).default([]),
+  notVerified: z.array(z.string().min(1)).default([]),
+  visualWarnings: z.array(z.object({
+    code: z.string().min(1),
+    componentId: z.string().optional(),
+    message: z.string().min(1)
+  })).default([]),
+  hardwareWarnings: z.array(z.string().min(1)).default([]),
+  repairSummary: z.array(z.string().min(1)).default([])
+}).superRefine((result, context) => {
+  if (
+    result.buildReady &&
+    result.mode !== 'verified_build_simulation' &&
+    result.mode !== 'auto_repaired_simulation' &&
+    result.mode !== 'safe_equivalent_simulation'
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Build-ready solver results must use a verified, auto-repaired, or safe-equivalent simulation mode',
+      path: ['mode']
+    });
+  }
+  if (result.buildReady && !result.visibleSimulation) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Build-ready solver results require a visible simulation',
+      path: ['visibleSimulation']
+    });
+  }
+  if (!result.buildReady && result.notVerified.length === 0) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Non-build-ready solver results must explain at least one unverified claim',
+      path: ['notVerified']
+    });
+  }
+});
+
+export const SupportedAlternativeSchema = z.object({
+  id: z.string().min(1),
+  goal: z.string().min(1),
+  label: z.string().min(1).optional(),
+  reason: z.string().min(1).optional(),
+  source: z.enum(['safety-policy', 'context-support-gap', 'capability-graph', 'agent']),
+  partIds: z.array(z.string().min(1)).default([]),
+  capabilityIds: z.array(z.string().min(1)).default([])
 });
 
 export const AgentEventSchema = z.object({
@@ -427,6 +589,20 @@ export const ContextCoverageReportSchema = z.object({
   warnings: z.array(z.string())
 });
 
+export const SupportBundleEvidenceSchema = z.object({
+  capabilityId: z.string().min(1),
+  bundleId: z.string().min(1).nullable(),
+  supportLevel: z.enum(['supported', 'partial', 'planned', 'unsupported']),
+  status: z.enum(['complete', 'missing', 'incomplete']),
+  requiredParts: z.array(z.string().min(1)).default([]),
+  requiredArtifacts: z.array(z.string().min(1)).default([]),
+  presentArtifacts: z.array(z.string().min(1)).default([]),
+  missingArtifacts: z.array(z.string().min(1)).default([]),
+  sourceClaimIds: z.array(z.string().min(1)).default([]),
+  sourceTiers: z.array(z.string().min(1)).default([]),
+  promptSummary: z.string().min(1)
+});
+
 export const ContextRouteSchema = z.object({
   routeId: z.string().min(1),
   intentSignals: z.array(z.string().min(1)).default([]),
@@ -463,6 +639,7 @@ export const ContextPacketSchema = z.object({
   requiredContextIds: z.array(z.string()),
   unsupportedSignals: z.array(z.string()),
   supportGaps: z.array(z.string()).default([]),
+  supportBundles: z.array(SupportBundleEvidenceSchema).default([]),
   contextRoute: ContextRouteSchema,
   retrievalPlan: RetrievalPlanSchema,
   contextTrace: z.array(ContextTraceEntrySchema).min(1),
@@ -471,6 +648,7 @@ export const ContextPacketSchema = z.object({
 });
 
 export const AgentRunResultSchema = z.object({
+  traceId: z.string().min(1).optional(),
   sessionId: z.string().min(1),
   mode: z.literal('live'),
   assistantMessages: z.array(z.string()),
@@ -482,7 +660,10 @@ export const AgentRunResultSchema = z.object({
   circuitSpec: CircuitSpecSchema,
   validationReport: ValidationReportSchema,
   renderPlan: RenderPlanSchema,
-  simulationPlan: SimulationPlanSchema
+  simulationPlan: SimulationPlanSchema,
+  buildRunnableReport: BuildRunnableReportSchema,
+  solverGateResult: SolverGateResultSchema.optional(),
+  supportedAlternatives: z.array(SupportedAlternativeSchema).default([])
 });
 
 export const ConversationTurnSchema = z.object({
@@ -496,6 +677,8 @@ export const AgentArtifactSnapshotSchema = z.object({
   requirementMarkdown: z.string().max(12000).optional(),
   circuitSpec: CircuitSpecSchema.optional(),
   validationReport: ValidationReportSchema.optional(),
+  buildRunnableReport: BuildRunnableReportSchema.optional(),
+  solverGateResult: SolverGateResultSchema.optional(),
   renderPlan: RenderPlanSchema.optional(),
   simulationPlan: SimulationPlanSchema.optional()
 });
@@ -504,6 +687,7 @@ export const AgentConversationContextSchema = z.object({
   recentTurns: z.array(ConversationTurnSchema).max(12).default([]),
   currentArtifact: AgentArtifactSnapshotSchema.optional(),
   lastSupportedGoal: z.string().max(500).optional(),
+  pendingSupportedAlternative: SupportedAlternativeSchema.optional(),
   awaitingBuildConfirmation: z.boolean().default(false)
 });
 
@@ -575,9 +759,14 @@ export type AgentConversationContext = z.infer<typeof AgentConversationContextSc
 export type AgentArtifactSnapshot = z.infer<typeof AgentArtifactSnapshotSchema>;
 export type AgentEvent = z.infer<typeof AgentEventSchema>;
 export type AgentRunResult = z.infer<typeof AgentRunResultSchema>;
+export type BuildRunnableReport = z.infer<typeof BuildRunnableReportSchema>;
+export type SolverAttempt = z.infer<typeof SolverAttemptSchema>;
+export type SolverGateResult = z.infer<typeof SolverGateResultSchema>;
+export type SupportedAlternative = z.infer<typeof SupportedAlternativeSchema>;
 export type CapabilityGraphEntry = z.infer<typeof CapabilityGraphEntrySchema>;
 export type ContextPacket = z.infer<typeof ContextPacketSchema>;
 export type ContextCoverageReport = z.infer<typeof ContextCoverageReportSchema>;
+export type SupportBundleEvidence = z.infer<typeof SupportBundleEvidenceSchema>;
 export type ContextRoute = z.infer<typeof ContextRouteSchema>;
 export type ContextRetrievalBudget = z.infer<typeof ContextRetrievalBudgetSchema>;
 export type ContextTraceEntry = z.infer<typeof ContextTraceEntrySchema>;
@@ -587,6 +776,8 @@ export type CurrentPath = z.infer<typeof CurrentPathSchema>;
 export type IntentSpecV2 = z.infer<typeof IntentSpecV2Schema>;
 export type Netlist = z.infer<typeof NetlistSchema>;
 export type PartCapability = z.infer<typeof PartCapabilitySchema>;
+export type PartRiskLevel = z.infer<typeof PartRiskLevelSchema>;
+export type PartSupportTier = z.infer<typeof PartSupportTierSchema>;
 export type RenderFootprintEntry = z.infer<typeof RenderFootprintEntrySchema>;
 export type RenderPlan = z.infer<typeof RenderPlanSchema>;
 export type SimulationPlan = z.infer<typeof SimulationPlanSchema>;

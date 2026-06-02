@@ -1,0 +1,107 @@
+{
+  "version": "2026-06-01",
+  "kind": "array",
+  "keyField": "id",
+  "aggregatePath": "../capability-graph.json",
+  "categories": [
+    {
+      "id": "starter-core-policy",
+      "path": "starter-core-policy.json",
+      "description": "Starter capabilities and unsupported policy capabilities that predate the WP slices."
+    },
+    {
+      "id": "wp01-analog-sensors",
+      "path": "wp01-analog-sensors.json",
+      "description": "WP-01 analog and resistive sensor readout/threshold capabilities."
+    },
+    {
+      "id": "wp02-digital-inputs",
+      "path": "wp02-digital-inputs.json",
+      "description": "WP-02 digital sensor and switch capabilities."
+    },
+    {
+      "id": "wp03-matrix-inputs",
+      "path": "wp03-matrix-inputs.json",
+      "description": "WP-03 matrix, joystick, and rotary encoder capabilities."
+    },
+    {
+      "id": "wp04-displays",
+      "path": "wp04-displays.json",
+      "description": "WP-04 display expansion capabilities."
+    },
+    {
+      "id": "wp07-power-passive",
+      "path": "wp07-power-passive.json",
+      "description": "WP-07 low-voltage power rail, passive protection, and timing passive capabilities."
+    },
+    {
+      "id": "wp08-controller-boards",
+      "path": "wp08-controller-boards.json",
+      "description": "WP-08 controller board pin-map and voltage-domain context capability."
+    },
+    {
+      "id": "wp09-prototyping",
+      "path": "wp09-prototyping.json",
+      "description": "WP-09 prototyping surface and connector context capabilities."
+    },
+    {
+      "id": "wp10-protocol-sensors",
+      "path": "wp10-protocol-sensors.json",
+      "description": "WP-10 protocol sensor display readout capabilities."
+    },
+    {
+      "id": "wp11-communication-modules",
+      "path": "wp11-communication-modules.json",
+      "description": "WP-11 wired and wireless communication module capabilities."
+    },
+    {
+      "id": "wp12-logic-interface",
+      "path": "wp12-logic-interface.json",
+      "description": "WP-12 logic, ADC, timer, op-amp, and level-shifter context capability."
+    }
+  ],
+  "order": [
+    "controller-board-substitution",
+    "low-voltage-power-rail",
+    "passive-protection-context",
+    "timing-passive-context",
+    "prototyping-surface-context",
+    "connector-wiring-context",
+    "display-text-output",
+    "digital-light-output",
+    "button-controlled-light-output",
+    "sound-alert-output",
+    "servo-motion-output",
+    "low-side-switched-load-output",
+    "stepper-motor-output",
+    "hbridge-motor-output",
+    "relay-low-voltage-output",
+    "analog-led-dimmer",
+    "distance-sensor-display",
+    "dht11-temperature-humidity-display",
+    "dht22-temperature-humidity-display",
+    "i2c-sensor-display-readout",
+    "clocked-data-sensor-display-readout",
+    "spi-sensor-display-readout",
+    "uart-sensor-display-readout",
+    "uart-communication-module-readout",
+    "spi-communication-module-readout",
+    "rs485-communication-module-readout",
+    "logic-interface-context",
+    "light-sensor-triggered-output",
+    "autonomous-wireless-robotics",
+    "home-security-actuator",
+    "high-voltage-load-control",
+    "analog-sensor-display-readout",
+    "analog-sensor-threshold-output",
+    "digital-input-display-readout",
+    "digital-input-threshold-output",
+    "matrix-input-display-readout",
+    "joystick-display-readout",
+    "rotary-encoder-display-readout",
+    "bare-seven-segment-display-output",
+    "led-array-display-output",
+    "addressable-led-display-output",
+    "spi-display-output"
+  ]
+}

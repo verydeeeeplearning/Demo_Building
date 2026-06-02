@@ -28,7 +28,15 @@ export function renderShareView(shareView, locale = 'ko') {
 
   const snapshot = shareView.snapshot;
   const parts = snapshot.circuit?.components || [];
-  const validation = snapshot.validation?.status || snapshot.status || 'draft';
+  const runnable = shareRunnable(snapshot);
+  const validation = runnable ? snapshot.validation?.status || snapshot.status || 'draft' : 'invalid';
+  const simulationAvailable = runnable && snapshot.simulation?.available === true;
+  const diagnosticVisible = !simulationAvailable && shareDiagnosticVisible(snapshot);
+  const simulationExplanation = simulationAvailable
+    ? snapshot.simulation?.explanation || ''
+    : diagnosticVisible
+      ? copy(locale, 'diagnosticBody')
+    : copy(locale, 'simulationUnavailable');
   const sourceTypes = snapshot.contextEvidence?.sourceTypes || [];
 
   return `
@@ -51,8 +59,8 @@ export function renderShareView(shareView, locale = 'ko') {
         </article>
         <article data-testid="public-share-simulation">
           <span class="panel-kicker">${copy(locale, 'simulation')}</span>
-          <strong>${snapshot.simulation?.available ? copy(locale, 'simulationAvailable') : copy(locale, 'simulationUnavailable')}</strong>
-          <p>${escapeHtml(snapshot.simulation?.explanation || '')}</p>
+          <strong>${simulationAvailable ? copy(locale, 'simulationAvailable') : diagnosticVisible ? copy(locale, 'diagnosticAvailable') : copy(locale, 'simulationUnavailable')}</strong>
+          <p>${escapeHtml(simulationExplanation)}</p>
         </article>
         <article data-testid="public-share-parts">
           <span class="panel-kicker">${copy(locale, 'parts')}</span>
@@ -70,6 +78,21 @@ export function renderShareView(shareView, locale = 'ko') {
       </section>
     </main>
   `;
+}
+
+function shareRunnable(snapshot) {
+  const report = snapshot.buildRunnableReport;
+  if (report) {
+    return report.runnable === true;
+  }
+  return snapshot.source === 'demo';
+}
+
+function shareDiagnosticVisible(snapshot) {
+  return snapshot.solverGateResult?.visibleSimulation === true
+    && snapshot.solverGateResult?.buildReady !== true
+    && Array.isArray(snapshot.renderPlan?.parts)
+    && snapshot.renderPlan.parts.length > 0;
 }
 
 function copy(locale, key) {

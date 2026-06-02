@@ -1,0 +1,337 @@
+[
+  {
+    "id": "controller-digital-input-display",
+    "label": "Controller digital input state plus I2C display",
+    "description": "A controller reads a low-voltage digital input or sensor state and shows the qualitative state on an I2C display.",
+    "requiredRoles": [
+      "controller",
+      "digital-input",
+      "digital-input-source",
+      "power-source",
+      "ground-return",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "nets": [
+      {
+        "id": "sensor-power",
+        "kind": "power"
+      },
+      {
+        "id": "input-signal",
+        "kind": "signal"
+      },
+      {
+        "id": "i2c-data",
+        "kind": "signal"
+      },
+      {
+        "id": "i2c-clock",
+        "kind": "signal"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "sensor-power",
+        "signal": "power"
+      },
+      {
+        "fromRole": "digital-input-source.power",
+        "toNet": "sensor-power",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.digital-input",
+        "toNet": "input-signal",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "digital-input-source.signal",
+        "toNet": "input-signal",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "digital-input-source.ground-reference",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.i2c-data",
+        "toNet": "i2c-data",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "i2c-module.data",
+        "toNet": "i2c-data",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "controller.i2c-clock",
+        "toNet": "i2c-clock",
+        "signal": "i2c-clock"
+      },
+      {
+        "fromRole": "i2c-module.clock",
+        "toNet": "i2c-clock",
+        "signal": "i2c-clock"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "i2c-module.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      }
+    ],
+    "validationRules": [
+      "digital-input-pin-exists",
+      "digital-input-reference-defined",
+      "power-rail-valid",
+      "common-ground",
+      "i2c-pin-role-match",
+      "qualitative-sensor-readout-only"
+    ],
+    "simulationPrimitiveHints": [
+      "digital_input_state",
+      "display_static_text",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-digital-input-output",
+    "label": "Controller digital input state plus protected output",
+    "description": "A controller reads a digital input or sensor state and drives a separate current-limited LED output.",
+    "requiredRoles": [
+      "controller",
+      "digital-input",
+      "digital-input-source",
+      "digital-output",
+      "series-current-limit",
+      "dc-load",
+      "ground-return"
+    ],
+    "nets": [
+      {
+        "id": "input-signal",
+        "kind": "signal"
+      },
+      {
+        "id": "output-signal",
+        "kind": "signal"
+      },
+      {
+        "id": "load-input-net",
+        "kind": "signal"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      },
+      {
+        "id": "sensor-power",
+        "kind": "power"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.digital-input",
+        "toNet": "input-signal",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "digital-input-source.signal",
+        "toNet": "input-signal",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "digital-input-source.ground-reference",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.power",
+        "toNet": "sensor-power",
+        "signal": "power"
+      },
+      {
+        "fromRole": "digital-input-source.power",
+        "toNet": "sensor-power",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "output-signal",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "series-current-limit.input",
+        "toNet": "output-signal",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "series-current-limit.output",
+        "toNet": "load-input-net",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "dc-load.input",
+        "toNet": "load-input-net",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "dc-load.ground-return",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      }
+    ],
+    "validationRules": [
+      "digital-input-pin-exists",
+      "digital-input-reference-defined",
+      "series-current-limit",
+      "closed-current-path",
+      "common-ground",
+      "qualitative-sensor-readout-only"
+    ],
+    "simulationPrimitiveHints": [
+      "digital_input_state",
+      "digital_on_off",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-pulse-digital-sensor-display",
+    "label": "Controller pulse digital sensor plus I2C display",
+    "description": "A controller reads qualitative pulse or frequency activity from a low-voltage digital sensor and shows the interpreted state on an I2C display.",
+    "requiredRoles": [
+      "controller",
+      "digital-input",
+      "pulse-digital-sensor",
+      "digital-output",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module",
+      "ground-return"
+    ],
+    "nets": [
+      {
+        "id": "sensor-power",
+        "kind": "power"
+      },
+      {
+        "id": "pulse-output",
+        "kind": "signal"
+      },
+      {
+        "id": "control-signal",
+        "kind": "signal"
+      },
+      {
+        "id": "i2c-data",
+        "kind": "signal"
+      },
+      {
+        "id": "i2c-clock",
+        "kind": "signal"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "sensor-power",
+        "signal": "power"
+      },
+      {
+        "fromRole": "pulse-digital-sensor.power",
+        "toNet": "sensor-power",
+        "signal": "power"
+      },
+      {
+        "fromRole": "pulse-digital-sensor.output",
+        "toNet": "pulse-output",
+        "signal": "pulse"
+      },
+      {
+        "fromRole": "controller.digital-input",
+        "toNet": "pulse-output",
+        "signal": "pulse"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "control-signal",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "pulse-digital-sensor.control",
+        "toNet": "control-signal",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "controller.i2c-data",
+        "toNet": "i2c-data",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "i2c-module.data",
+        "toNet": "i2c-data",
+        "signal": "i2c-data"
+      },
+      {
+        "fromRole": "controller.i2c-clock",
+        "toNet": "i2c-clock",
+        "signal": "i2c-clock"
+      },
+      {
+        "fromRole": "i2c-module.clock",
+        "toNet": "i2c-clock",
+        "signal": "i2c-clock"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "pulse-digital-sensor.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "i2c-module.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      }
+    ],
+    "validationRules": [
+      "digital-input-pin-exists",
+      "pulse-output-pin-required",
+      "pulse-control-pin-defined",
+      "power-rail-valid",
+      "common-ground",
+      "i2c-pin-role-match",
+      "qualitative-sensor-readout-only"
+    ],
+    "simulationPrimitiveHints": [
+      "digital_input_state",
+      "display_static_text",
+      "current_flow_animation"
+    ]
+  }
+]

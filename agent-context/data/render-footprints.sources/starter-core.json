@@ -1,0 +1,957 @@
+{
+  "oled": {
+    "type": "oled",
+    "width": 1.45,
+    "depth": 0.95,
+    "height": 0.14,
+    "visualStyle": {
+      "shape": "oled",
+      "color": "#103950",
+      "material": "pcb-display"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.42,
+        "y": 0.18,
+        "z": -0.42,
+        "role": "power",
+        "label": "VCC"
+      },
+      "GND": {
+        "x": -0.14,
+        "y": 0.18,
+        "z": -0.22,
+        "role": "ground",
+        "label": "GND"
+      },
+      "SDA": {
+        "x": 0.14,
+        "y": 0.18,
+        "z": 0.22,
+        "role": "i2c-data",
+        "label": "SDA"
+      },
+      "SCL": {
+        "x": 0.42,
+        "y": 0.18,
+        "z": 0.42,
+        "role": "i2c-clock",
+        "label": "SCL"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.32,
+      "z": -0.08
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard",
+        "stage"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "pins-down",
+      "notes": [
+        "Place pins near breadboard rows so SDA/SCL and power wires remain visually traceable."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "display-text-overlay",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "i2c-pulses",
+        "anchor": "SDA",
+        "role": "signal-overlay"
+      },
+      {
+        "id": "oled-current",
+        "anchor": "VCC",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "OLED module",
+        "explainableAs": [
+          "display-module",
+          "i2c-peripheral"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "VCC pin",
+        "pin": "VCC",
+        "explainableAs": [
+          "module-power"
+        ]
+      },
+      {
+        "id": "pin-sda",
+        "label": "SDA pin",
+        "pin": "SDA",
+        "explainableAs": [
+          "i2c-data"
+        ]
+      },
+      {
+        "id": "pin-scl",
+        "label": "SCL pin",
+        "pin": "SCL",
+        "explainableAs": [
+          "i2c-clock"
+        ]
+      }
+    ]
+  },
+  "led": {
+    "type": "led",
+    "width": 0.3,
+    "depth": 0.3,
+    "height": 0.5,
+    "visualStyle": {
+      "shape": "led",
+      "color": "#ff5b59",
+      "material": "translucent-emissive"
+    },
+    "pinAnchors": {
+      "A": {
+        "x": -0.14,
+        "y": 0.05,
+        "z": -0.12,
+        "role": "anode",
+        "label": "A"
+      },
+      "K": {
+        "x": 0.14,
+        "y": 0.05,
+        "z": 0.12,
+        "role": "cathode",
+        "label": "K"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.58,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "legs-down",
+      "notes": [
+        "LED anode and cathode should land on separate rows with a series resistor."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "led-glow",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "led-current",
+        "anchor": "A",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "LED body",
+        "explainableAs": [
+          "current-limited-load",
+          "polarity"
+        ]
+      },
+      {
+        "id": "pin-anode",
+        "label": "Anode",
+        "pin": "A",
+        "explainableAs": [
+          "polarity",
+          "current-entry"
+        ]
+      },
+      {
+        "id": "pin-cathode",
+        "label": "Cathode",
+        "pin": "K",
+        "explainableAs": [
+          "ground-return",
+          "polarity"
+        ]
+      }
+    ]
+  },
+  "resistor": {
+    "type": "resistor",
+    "width": 0.7,
+    "depth": 0.16,
+    "height": 0.16,
+    "visualStyle": {
+      "shape": "resistor",
+      "color": "#d7b56d",
+      "material": "ceramic"
+    },
+    "pinAnchors": {
+      "1": {
+        "x": -0.32,
+        "y": 0.05,
+        "z": -0.08,
+        "role": "passive-terminal",
+        "label": "1"
+      },
+      "2": {
+        "x": 0.32,
+        "y": 0.05,
+        "z": 0.08,
+        "role": "passive-terminal",
+        "label": "2"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.22,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "horizontal",
+      "notes": [
+        "Use series placement for LED current limiting."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "resistor-current",
+        "anchor": "1",
+        "role": "current-overlay"
+      },
+      {
+        "id": "resistor-label",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Resistor body",
+        "explainableAs": [
+          "current-limiter",
+          "series-passive"
+        ]
+      },
+      {
+        "id": "terminal-1",
+        "label": "Terminal 1",
+        "pin": "1",
+        "explainableAs": [
+          "passive-terminal"
+        ]
+      },
+      {
+        "id": "terminal-2",
+        "label": "Terminal 2",
+        "pin": "2",
+        "explainableAs": [
+          "passive-terminal"
+        ]
+      }
+    ]
+  },
+  "button": {
+    "type": "button",
+    "width": 0.5,
+    "depth": 0.5,
+    "height": 0.2,
+    "visualStyle": {
+      "shape": "button",
+      "color": "#353a44",
+      "material": "plastic"
+    },
+    "pinAnchors": {
+      "A": {
+        "x": -0.14,
+        "y": 0.08,
+        "z": 0.22,
+        "role": "switch-terminal",
+        "label": "A"
+      },
+      "B": {
+        "x": 0.14,
+        "y": 0.08,
+        "z": -0.22,
+        "role": "switch-terminal",
+        "label": "B"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.32,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "straddles-gap",
+      "notes": [
+        "Button terminals must bridge different breadboard node groups."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "button-press",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "button-signal",
+        "anchor": "A",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Pushbutton body",
+        "explainableAs": [
+          "momentary-switch",
+          "digital-input"
+        ]
+      },
+      {
+        "id": "terminal-a",
+        "label": "Terminal A",
+        "pin": "A",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      },
+      {
+        "id": "terminal-b",
+        "label": "Terminal B",
+        "pin": "B",
+        "explainableAs": [
+          "switch-terminal"
+        ]
+      }
+    ]
+  },
+  "buzzer": {
+    "type": "buzzer",
+    "width": 0.55,
+    "depth": 0.95,
+    "height": 0.35,
+    "visualStyle": {
+      "shape": "buzzer",
+      "color": "#2b2b32",
+      "material": "plastic"
+    },
+    "pinAnchors": {
+      "+": {
+        "x": -0.14,
+        "y": 0.08,
+        "z": -0.14,
+        "role": "positive",
+        "label": "+"
+      },
+      "-": {
+        "x": 0.14,
+        "y": 0.08,
+        "z": 0.14,
+        "role": "ground",
+        "label": "-"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.48,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "polarity-visible",
+      "notes": [
+        "Keep polarity markings visible for beginner wiring."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "sound-rings",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "buzzer-current",
+        "anchor": "+",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Buzzer body",
+        "explainableAs": [
+          "sound-output",
+          "low-current-load"
+        ]
+      },
+      {
+        "id": "pin-positive",
+        "label": "Positive pin",
+        "pin": "+",
+        "explainableAs": [
+          "current-entry",
+          "polarity"
+        ]
+      },
+      {
+        "id": "pin-negative",
+        "label": "Negative pin",
+        "pin": "-",
+        "explainableAs": [
+          "ground-return",
+          "polarity"
+        ]
+      }
+    ]
+  },
+  "servo": {
+    "type": "servo",
+    "width": 0.8,
+    "depth": 0.42,
+    "height": 0.68,
+    "visualStyle": {
+      "shape": "servo",
+      "color": "#334e7a",
+      "material": "plastic"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.2,
+        "y": 0.14,
+        "z": 0.28,
+        "role": "power",
+        "label": "VCC"
+      },
+      "GND": {
+        "x": 0,
+        "y": 0.14,
+        "z": 0.28,
+        "role": "ground",
+        "label": "GND"
+      },
+      "SIG": {
+        "x": 0.2,
+        "y": 0.14,
+        "z": 0.28,
+        "role": "pwm-signal",
+        "label": "SIG"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.82,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "stage",
+        "beside-breadboard"
+      ],
+      "breadboardCompatible": false,
+      "defaultOrientation": "horn-visible",
+      "notes": [
+        "Servo body sits beside the breadboard; only its leads route to rails and PWM pin."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "servo-angle-arc",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "servo-supply-current",
+        "anchor": "VCC",
+        "role": "current-overlay"
+      },
+      {
+        "id": "servo-pwm",
+        "anchor": "SIG",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Servo body",
+        "explainableAs": [
+          "pwm-actuator",
+          "motion-output"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "VCC lead",
+        "pin": "VCC",
+        "explainableAs": [
+          "servo-supply-current"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "GND lead",
+        "pin": "GND",
+        "explainableAs": [
+          "ground-return"
+        ]
+      },
+      {
+        "id": "pin-sig",
+        "label": "Signal lead",
+        "pin": "SIG",
+        "explainableAs": [
+          "pwm-signal"
+        ]
+      }
+    ]
+  },
+  "potentiometer": {
+    "type": "potentiometer",
+    "width": 0.55,
+    "depth": 0.48,
+    "height": 0.45,
+    "visualStyle": {
+      "shape": "potentiometer",
+      "color": "#4b5563",
+      "material": "plastic-metal"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.22,
+        "y": 0.08,
+        "z": -0.18,
+        "role": "power",
+        "label": "VCC"
+      },
+      "OUT": {
+        "x": 0,
+        "y": 0.08,
+        "z": 0,
+        "role": "analog-output",
+        "label": "OUT"
+      },
+      "GND": {
+        "x": 0.22,
+        "y": 0.08,
+        "z": 0.18,
+        "role": "ground",
+        "label": "GND"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.58,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "pins-down",
+      "notes": [
+        "Place VCC, OUT, and GND on separate breadboard rows so the wiper can feed an analog input."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "knob-value",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "analog-signal",
+        "anchor": "OUT",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "Potentiometer body",
+        "explainableAs": [
+          "variable-divider",
+          "analog-input"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "VCC end",
+        "pin": "VCC",
+        "explainableAs": [
+          "divider-end"
+        ]
+      },
+      {
+        "id": "pin-out",
+        "label": "Wiper output",
+        "pin": "OUT",
+        "explainableAs": [
+          "analog-signal"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "GND end",
+        "pin": "GND",
+        "explainableAs": [
+          "divider-end"
+        ]
+      }
+    ]
+  },
+  "ldr-module": {
+    "type": "ldr-module",
+    "width": 0.62,
+    "depth": 0.48,
+    "height": 0.26,
+    "visualStyle": {
+      "shape": "sensor-module",
+      "color": "#256f5a",
+      "material": "pcb-sensor"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.24,
+        "y": 0.08,
+        "z": -0.18,
+        "role": "power",
+        "label": "VCC"
+      },
+      "GND": {
+        "x": -0.08,
+        "y": 0.08,
+        "z": -0.06,
+        "role": "ground",
+        "label": "GND"
+      },
+      "AO": {
+        "x": 0.08,
+        "y": 0.08,
+        "z": 0.06,
+        "role": "analog-output",
+        "label": "AO"
+      },
+      "DO": {
+        "x": 0.24,
+        "y": 0.08,
+        "z": 0.18,
+        "role": "digital-output",
+        "label": "DO"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.42,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "pins-down",
+      "notes": [
+        "Use AO for the simplified analog light level simulation; DO is a module threshold output."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "light-level",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "analog-signal",
+        "anchor": "AO",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "LDR module",
+        "explainableAs": [
+          "light-sensor",
+          "analog-input"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "VCC pin",
+        "pin": "VCC",
+        "explainableAs": [
+          "module-power"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "GND pin",
+        "pin": "GND",
+        "explainableAs": [
+          "ground-return"
+        ]
+      },
+      {
+        "id": "pin-ao",
+        "label": "Analog output",
+        "pin": "AO",
+        "explainableAs": [
+          "analog-signal"
+        ]
+      },
+      {
+        "id": "pin-do",
+        "label": "Digital output",
+        "pin": "DO",
+        "explainableAs": [
+          "threshold-output"
+        ]
+      }
+    ]
+  },
+  "ultrasonic-sensor": {
+    "type": "ultrasonic-sensor",
+    "width": 1,
+    "depth": 0.55,
+    "height": 0.42,
+    "visualStyle": {
+      "shape": "ultrasonic-sensor",
+      "color": "#1f6fb2",
+      "material": "pcb-sensor"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.42,
+        "y": 0.08,
+        "z": -0.42,
+        "role": "power",
+        "label": "VCC"
+      },
+      "TRIG": {
+        "x": -0.14,
+        "y": 0.08,
+        "z": -0.22,
+        "role": "digital-input",
+        "label": "TRIG"
+      },
+      "ECHO": {
+        "x": 0.14,
+        "y": 0.08,
+        "z": 0.22,
+        "role": "digital-output",
+        "label": "ECHO"
+      },
+      "GND": {
+        "x": 0.42,
+        "y": 0.08,
+        "z": 0.42,
+        "role": "ground",
+        "label": "GND"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.54,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard",
+        "stage"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "transducers-forward",
+      "notes": [
+        "Keep VCC, TRIG, ECHO, and GND on distinct rows so trigger and echo timing wires are visually traceable."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "distance-value",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "trigger-pulse",
+        "anchor": "TRIG",
+        "role": "signal-overlay"
+      },
+      {
+        "id": "echo-pulse",
+        "anchor": "ECHO",
+        "role": "signal-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "HC-SR04 module",
+        "explainableAs": [
+          "distance-sensor",
+          "timed-pulse-sensor"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "VCC pin",
+        "pin": "VCC",
+        "explainableAs": [
+          "module-power"
+        ]
+      },
+      {
+        "id": "pin-trig",
+        "label": "TRIG pin",
+        "pin": "TRIG",
+        "explainableAs": [
+          "trigger-pulse"
+        ]
+      },
+      {
+        "id": "pin-echo",
+        "label": "ECHO pin",
+        "pin": "ECHO",
+        "explainableAs": [
+          "echo-pulse"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "GND pin",
+        "pin": "GND",
+        "explainableAs": [
+          "ground-return"
+        ]
+      }
+    ]
+  },
+  "dht11-sensor": {
+    "type": "dht11-sensor",
+    "width": 0.72,
+    "depth": 0.95,
+    "height": 0.32,
+    "visualStyle": {
+      "shape": "sensor",
+      "color": "#1d78c1",
+      "material": "vented-plastic-sensor"
+    },
+    "pinAnchors": {
+      "VCC": {
+        "x": -0.28,
+        "y": 0.08,
+        "z": -0.42,
+        "role": "power",
+        "label": "VCC"
+      },
+      "DAT": {
+        "x": 0,
+        "y": 0.08,
+        "z": -0.22,
+        "role": "single-wire-data",
+        "label": "DAT"
+      },
+      "GND": {
+        "x": 0.28,
+        "y": 0.08,
+        "z": 0.22,
+        "role": "ground",
+        "label": "GND"
+      }
+    },
+    "labelAnchor": {
+      "x": 0,
+      "y": 0.5,
+      "z": 0
+    },
+    "placement": {
+      "allowedSurfaces": [
+        "breadboard",
+        "stage"
+      ],
+      "breadboardCompatible": true,
+      "defaultOrientation": "vents-visible",
+      "notes": [
+        "Keep VCC, DAT, and GND on distinct rows so the single-wire data lead is visually traceable."
+      ]
+    },
+    "simulationOverlayAnchors": [
+      {
+        "id": "temperature-humidity-value",
+        "anchor": "labelAnchor",
+        "role": "state-overlay"
+      },
+      {
+        "id": "dht11-data-pulse",
+        "anchor": "DAT",
+        "role": "signal-overlay"
+      },
+      {
+        "id": "dht11-current",
+        "anchor": "VCC",
+        "role": "current-overlay"
+      }
+    ],
+    "hoverTargets": [
+      {
+        "id": "body",
+        "label": "DHT11 sensor",
+        "explainableAs": [
+          "temperature-humidity-sensor",
+          "single-wire-data-sensor"
+        ]
+      },
+      {
+        "id": "pin-vcc",
+        "label": "VCC pin",
+        "pin": "VCC",
+        "explainableAs": [
+          "module-power"
+        ]
+      },
+      {
+        "id": "pin-dat",
+        "label": "DAT pin",
+        "pin": "DAT",
+        "explainableAs": [
+          "single-wire-data"
+        ]
+      },
+      {
+        "id": "pin-gnd",
+        "label": "GND pin",
+        "pin": "GND",
+        "explainableAs": [
+          "ground-return"
+        ]
+      }
+    ]
+  }
+}

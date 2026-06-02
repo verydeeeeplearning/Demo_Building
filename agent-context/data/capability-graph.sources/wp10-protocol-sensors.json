@@ -1,0 +1,490 @@
+[
+  {
+    "id": "dht22-temperature-humidity-display",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "dht22 temperature humidity display",
+      "show dht22 on oled",
+      "dht22 sensor readout",
+      "dht22 온습도 표시"
+    ],
+    "requiredEvidence": [
+      "dht22",
+      "am2302",
+      "dht22 sensor"
+    ],
+    "negativeEvidence": [
+      "dht11",
+      "bmp280",
+      "gps",
+      "rfid",
+      "medical",
+      "navigation",
+      "security"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "Show temperature and humidity from a DHT22 on the OLED display",
+      "DHT22 온습도 값을 OLED에 표시"
+    ],
+    "inputModalities": [
+      "temperature-humidity-sensor",
+      "digital-sensor"
+    ],
+    "outputModalities": [
+      "display",
+      "temperature",
+      "humidity"
+    ],
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "single-wire-data",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "dht22",
+      "oled-i2c-096"
+    ],
+    "optionalParts": [
+      "jumper-wire",
+      "oled-13-i2c",
+      "lcd-16x2",
+      "lcd-20x4"
+    ],
+    "protocols": [
+      "single-wire-data",
+      "i2c",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "display_sensor_value",
+      "display_static_text",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "dht22-sensor",
+      "oled",
+      "wire",
+      "oled-large",
+      "lcd-character-16x2",
+      "lcd-character-20x4"
+    ],
+    "validationRules": [
+      "single-wire-data-pin",
+      "i2c-pin-role-match",
+      "common-ground",
+      "power-rail-valid",
+      "qualitative-sensor-readout-only"
+    ],
+    "commonMistakes": [
+      "Using a generic temperature/humidity prompt without naming DHT22.",
+      "Treating the classroom readout as calibrated weather-station data."
+    ],
+    "safeAlternatives": [
+      "dht11-temperature-humidity-display",
+      "i2c-sensor-display-readout"
+    ]
+  },
+  {
+    "id": "i2c-sensor-display-readout",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "i2c sensor display",
+      "bmp280 on oled",
+      "mpu6050 on oled",
+      "hmc5883l on oled",
+      "max30102 on oled",
+      "protocol sensor readout"
+    ],
+    "requiredEvidence": [
+      "bmp280",
+      "mpu6050",
+      "hmc5883l",
+      "max30102",
+      "i2c sensor"
+    ],
+    "negativeEvidence": [
+      "dht11",
+      "dht22",
+      "hx711",
+      "gps",
+      "rfid",
+      "security",
+      "track",
+      "diagnose",
+      "medical"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "Show BMP280 pressure on the OLED display",
+      "Show MPU6050 tilt on the OLED",
+      "Show HMC5883L compass state on OLED",
+      "Show MAX30102 pulse demo values on OLED",
+      "BMP280 값을 OLED에 표시"
+    ],
+    "inputModalities": [
+      "protocol-sensor",
+      "i2c-sensor",
+      "digital-sensor"
+    ],
+    "outputModalities": [
+      "display",
+      "sensor-value"
+    ],
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "i2c-data",
+      "i2c-clock",
+      "protocol-sensor",
+      "i2c-module"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "oled-i2c-096"
+    ],
+    "optionalParts": [
+      "jumper-wire",
+      "bmp280",
+      "hmc5883l",
+      "mpu6050",
+      "max30102-pulse",
+      "oled-13-i2c",
+      "lcd-16x2",
+      "lcd-20x4"
+    ],
+    "protocols": [
+      "i2c",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "display_sensor_value",
+      "display_static_text",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "bmp280-module",
+      "hmc5883l-module",
+      "mpu6050-module",
+      "max30102-pulse-module",
+      "oled",
+      "wire",
+      "oled-large",
+      "lcd-character-16x2",
+      "lcd-character-20x4"
+    ],
+    "validationRules": [
+      "i2c-protocol-sensor-pins",
+      "i2c-pin-role-match",
+      "common-ground",
+      "power-rail-valid",
+      "qualitative-sensor-readout-only"
+    ],
+    "commonMistakes": [
+      "Swapping SDA and SCL.",
+      "Requesting calibrated medical, navigation, or safety measurements instead of a qualitative readout."
+    ],
+    "safeAlternatives": [
+      "analog-sensor-display-readout",
+      "dht22-temperature-humidity-display"
+    ]
+  },
+  {
+    "id": "clocked-data-sensor-display-readout",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "hx711 display",
+      "load cell value on oled",
+      "weight sensor on display",
+      "clocked data sensor display",
+      "로드셀 OLED 표시"
+    ],
+    "requiredEvidence": [
+      "hx711",
+      "load cell",
+      "weight sensor"
+    ],
+    "negativeEvidence": [
+      "spi rfid",
+      "gps",
+      "medical",
+      "certified scale",
+      "legal for trade"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "Show HX711 load cell value on the OLED display",
+      "로드셀 값을 OLED에 표시"
+    ],
+    "inputModalities": [
+      "protocol-sensor",
+      "clocked-data-sensor",
+      "loadcell-sensor"
+    ],
+    "outputModalities": [
+      "display",
+      "sensor-value"
+    ],
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-input",
+      "digital-output",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "hx711-loadcell",
+      "oled-i2c-096"
+    ],
+    "optionalParts": [
+      "jumper-wire",
+      "oled-13-i2c",
+      "lcd-16x2",
+      "lcd-20x4"
+    ],
+    "protocols": [
+      "clocked-data",
+      "i2c",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "display_sensor_value",
+      "display_static_text",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "hx711-loadcell-module",
+      "oled",
+      "wire",
+      "oled-large",
+      "lcd-character-16x2",
+      "lcd-character-20x4"
+    ],
+    "validationRules": [
+      "clocked-data-sensor-pins",
+      "digital-input-pin-exists",
+      "output-pin-exists",
+      "i2c-pin-role-match",
+      "common-ground",
+      "qualitative-sensor-readout-only"
+    ],
+    "commonMistakes": [
+      "Swapping DT and SCK.",
+      "Claiming certified weight or calibration accuracy."
+    ],
+    "safeAlternatives": [
+      "analog-sensor-display-readout"
+    ]
+  },
+  {
+    "id": "spi-sensor-display-readout",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "rc522 rfid display",
+      "rfid tag on oled",
+      "spi sensor display",
+      "rfid reader demo",
+      "RFID OLED 표시"
+    ],
+    "requiredEvidence": [
+      "rc522",
+      "rfid",
+      "mfrc522"
+    ],
+    "negativeEvidence": [
+      "door lock",
+      "security",
+      "payment",
+      "access control",
+      "gps",
+      "medical"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "Show an RC522 RFID tag id on the OLED display",
+      "RFID 태그 값을 OLED에 표시"
+    ],
+    "inputModalities": [
+      "protocol-sensor",
+      "spi-sensor",
+      "rfid-sensor"
+    ],
+    "outputModalities": [
+      "display",
+      "sensor-value"
+    ],
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "spi-clock",
+      "spi-mosi",
+      "spi-miso",
+      "spi-select",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "rc522-rfid",
+      "oled-i2c-096"
+    ],
+    "optionalParts": [
+      "jumper-wire",
+      "oled-13-i2c",
+      "lcd-16x2",
+      "lcd-20x4"
+    ],
+    "protocols": [
+      "spi",
+      "i2c",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "display_sensor_value",
+      "display_static_text",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "rc522-rfid-module",
+      "oled",
+      "wire",
+      "oled-large",
+      "lcd-character-16x2",
+      "lcd-character-20x4"
+    ],
+    "validationRules": [
+      "spi-sensor-clock-pin",
+      "spi-sensor-data-pins",
+      "spi-sensor-select-pin",
+      "i2c-pin-role-match",
+      "common-ground",
+      "qualitative-sensor-readout-only"
+    ],
+    "commonMistakes": [
+      "Powering RC522 from 5V.",
+      "Using the demo tag readout for access control, payment, or real security."
+    ],
+    "safeAlternatives": [
+      "digital-input-display-readout"
+    ]
+  },
+  {
+    "id": "uart-sensor-display-readout",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "gps display",
+      "neo6m on oled",
+      "uart sensor display",
+      "nmea data on display",
+      "GPS OLED 표시"
+    ],
+    "requiredEvidence": [
+      "gps",
+      "neo6m",
+      "neo-6m",
+      "nmea"
+    ],
+    "negativeEvidence": [
+      "tracker",
+      "tracking",
+      "navigation",
+      "autopilot",
+      "drone",
+      "security"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "Show GPS NEO-6M NMEA data on the OLED display",
+      "GPS 모듈 값을 OLED에 표시"
+    ],
+    "inputModalities": [
+      "protocol-sensor",
+      "uart-sensor",
+      "gps-sensor"
+    ],
+    "outputModalities": [
+      "display",
+      "sensor-value"
+    ],
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "serial-rx",
+      "serial-tx",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "gps-neo6m",
+      "oled-i2c-096"
+    ],
+    "optionalParts": [
+      "jumper-wire",
+      "oled-13-i2c",
+      "lcd-16x2",
+      "lcd-20x4"
+    ],
+    "protocols": [
+      "uart",
+      "i2c",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "display_sensor_value",
+      "display_static_text",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "gps-neo6m-module",
+      "oled",
+      "wire",
+      "oled-large",
+      "lcd-character-16x2",
+      "lcd-character-20x4"
+    ],
+    "validationRules": [
+      "uart-sensor-tx-rx-crossing",
+      "i2c-pin-role-match",
+      "common-ground",
+      "power-rail-valid",
+      "qualitative-sensor-readout-only"
+    ],
+    "commonMistakes": [
+      "Connecting sensor TX to Arduino TX instead of RX.",
+      "Using the educational GPS readout for tracking or navigation."
+    ],
+    "safeAlternatives": [
+      "i2c-sensor-display-readout"
+    ]
+  }
+]

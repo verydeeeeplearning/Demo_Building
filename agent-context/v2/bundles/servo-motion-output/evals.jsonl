@@ -1,0 +1,4 @@
+{"id":"v2-servo-ko","message":"서보모터를 90도로 움직이는 회로를 만들고 싶어","expected":"render_and_run_valid_simulation"}
+{"id":"v2-servo-en","message":"Move a micro servo arm to 90 degrees from Arduino.","expected":"render_and_run_valid_simulation"}
+{"id":"v2-mg996r-servo-warning","message":"MG996R 고토크 서보를 90도로 움직이는 회로를 만들어줘","expected":"render_and_run_valid_simulation_with_power_warning"}
+{"id":"v2-servo-motor-invalid","message":"DC 모터를 Arduino 핀에 바로 연결해서 돌려줘","expected":"validation_warning_or_block"}

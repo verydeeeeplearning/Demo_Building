@@ -76,7 +76,7 @@ function scoreCapability(capability: CapabilityGraphEntry, normalizedQuery: stri
   const rawScore = positivePhraseHits * 0.25
     + requiredEvidenceHits * 0.4
     + modalityEvidenceHits * 0.25
-    - (requiredEvidenceHits === 0 ? negativeEvidenceHits * 0.5 : 0);
+    - negativeEvidenceHits * 0.25;
   const score = Math.max(0, Math.min(1, Number(rawScore.toFixed(3))));
 
   return score >= capability.minimumScore ? score : 0;

@@ -85,7 +85,7 @@ Do not modify:
 - Modify: `server/agent/schemas.ts`
 - Create: `tests/unit/supportBundleEvidence.test.ts`
 
-- [ ] **Step 1: Write failing schema test**
+- [x] **Step 1: Write failing schema test**
 
 Create `tests/unit/supportBundleEvidence.test.ts`:
 
@@ -116,7 +116,7 @@ test('support bundle evidence summarizes source-backed capability coverage', () 
 });
 ```
 
-- [ ] **Step 2: Run failing test**
+- [x] **Step 2: Run failing test**
 
 Run:
 
@@ -128,7 +128,7 @@ Expected:
 
 - Fails because `SupportBundleEvidenceSchema` is not exported.
 
-- [ ] **Step 3: Add schema**
+- [x] **Step 3: Add schema**
 
 Add to `server/agent/schemas.ts` near the context schemas:
 
@@ -156,7 +156,7 @@ Extend `ContextPacketSchema`:
 supportBundles: z.array(SupportBundleEvidenceSchema).default([]),
 ```
 
-- [ ] **Step 4: Verify schema test passes**
+- [x] **Step 4: Verify schema test passes**
 
 Run:
 
@@ -175,7 +175,7 @@ Expected:
 - Create: `server/context/supportBundleEvidence.ts`
 - Modify: `tests/unit/supportBundleEvidence.test.ts`
 
-- [ ] **Step 1: Add failing evidence builder test**
+- [x] **Step 1: Add failing evidence builder test**
 
 Append to `tests/unit/supportBundleEvidence.test.ts`:
 
@@ -213,7 +213,7 @@ test('buildSupportBundleEvidence returns complete evidence for a supported start
 });
 ```
 
-- [ ] **Step 2: Run failing test**
+- [x] **Step 2: Run failing test**
 
 Run:
 
@@ -225,7 +225,7 @@ Expected:
 
 - Fails because `server/context/supportBundleEvidence.ts` does not exist.
 
-- [ ] **Step 3: Implement evidence builder**
+- [x] **Step 3: Implement evidence builder**
 
 Create `server/context/supportBundleEvidence.ts`:
 
@@ -299,7 +299,7 @@ export function bundleEvidenceBlocksSynthesis(evidence: SupportBundleEvidence[])
 }
 ```
 
-- [ ] **Step 4: Verify evidence builder test passes**
+- [x] **Step 4: Verify evidence builder test passes**
 
 Run:
 
@@ -319,7 +319,7 @@ Expected:
 - Modify: `tests/unit/contextPacket.test.ts`
 - Modify: `tests/unit/contextCoverage.test.ts`
 
-- [ ] **Step 1: Add failing packet evidence test**
+- [x] **Step 1: Add failing packet evidence test**
 
 Add to `tests/unit/contextPacket.test.ts`:
 
@@ -340,7 +340,7 @@ test('context packet includes support bundle evidence for supported capabilities
 });
 ```
 
-- [ ] **Step 2: Run failing context packet test**
+- [x] **Step 2: Run failing context packet test**
 
 Run:
 
@@ -352,7 +352,7 @@ Expected:
 
 - Fails because `ContextPacket` has no `supportBundles` field.
 
-- [ ] **Step 3: Load bundle evidence in context packet**
+- [x] **Step 3: Load bundle evidence in context packet**
 
 In `server/context/contextPacket.ts`, import:
 
@@ -373,7 +373,7 @@ Pass `supportBundles` into:
 - `renderPromptBlock`
 - final `ContextPacketSchema.parse({ ... })`
 
-- [ ] **Step 4: Add bundle evidence to context trace**
+- [x] **Step 4: Add bundle evidence to context trace**
 
 Extend `buildContextTrace()` input with:
 
@@ -395,7 +395,7 @@ for (const bundle of supportBundles) {
 }
 ```
 
-- [ ] **Step 5: Add bundle evidence to prompt block**
+- [x] **Step 5: Add bundle evidence to prompt block**
 
 Extend `renderPromptBlock()` input with:
 
@@ -427,7 +427,7 @@ Update the non-negotiable rule:
 'Non-negotiable rule: produce CircuitSpec only from candidate capabilities with complete support bundle evidence. If bundle evidence is missing or incomplete, mark unsupportedItems or clarificationNeeds. Never upgrade a planned, unsupported, or source-incomplete capability to supported.'
 ```
 
-- [ ] **Step 6: Block synthesis eligibility when bundle evidence is incomplete**
+- [x] **Step 6: Block synthesis eligibility when bundle evidence is incomplete**
 
 Extend `buildContextCoverage()` input with:
 
@@ -470,7 +470,7 @@ if (supportBundles.some((bundle) => bundle.supportLevel === 'supported' && bundl
 }
 ```
 
-- [ ] **Step 7: Verify packet and coverage tests**
+- [x] **Step 7: Verify packet and coverage tests**
 
 Run:
 
@@ -490,7 +490,7 @@ Expected:
 - Modify: `server/agent/deepAgentTools.ts`
 - Modify: `tests/unit/agentWorkflow.test.ts`
 
-- [ ] **Step 1: Add failing bounded tool test**
+- [x] **Step 1: Add failing bounded tool test**
 
 Add to `tests/unit/agentWorkflow.test.ts`:
 
@@ -522,7 +522,7 @@ test('Deepagents support bundle tool is bounded to current capability matches', 
 });
 ```
 
-- [ ] **Step 2: Run failing tool test**
+- [x] **Step 2: Run failing tool test**
 
 Run:
 
@@ -534,7 +534,7 @@ Expected:
 
 - Fails because `load_support_bundle_evidence` does not exist and `HeduwareAgentToolOptions` lacks `supportBundles`.
 
-- [ ] **Step 3: Add tool option and tool**
+- [x] **Step 3: Add tool option and tool**
 
 In `server/agent/deepAgentTools.ts`, import:
 
@@ -571,7 +571,7 @@ tool(
 ),
 ```
 
-- [ ] **Step 4: Verify tool test passes**
+- [x] **Step 4: Verify tool test passes**
 
 Run:
 
@@ -592,7 +592,7 @@ Expected:
 - Modify: `server/agent/deepAgentRuntime.ts`
 - Modify: `tests/unit/agentWorkflow.test.ts`
 
-- [ ] **Step 1: Add failing prompt contract test**
+- [x] **Step 1: Add failing prompt contract test**
 
 Add to `tests/unit/agentWorkflow.test.ts`:
 
@@ -612,7 +612,7 @@ test('Deepagents user prompt keeps source bundle evidence separate from raw sour
 });
 ```
 
-- [ ] **Step 2: Run failing prompt contract test**
+- [x] **Step 2: Run failing prompt contract test**
 
 Run:
 
@@ -624,7 +624,7 @@ Expected:
 
 - Fails until `contextPacket.supportBundles` is passed into tools and trace.
 
-- [ ] **Step 3: Pass bundles into tools and subagents**
+- [x] **Step 3: Pass bundles into tools and subagents**
 
 In `server/agent/deepAgentRuntime.ts`, update both `createHeduwareAgentTools()` calls:
 
@@ -639,7 +639,7 @@ tools: createHeduwareAgentTools({
 
 Update `createSubagents()` tool options similarly.
 
-- [ ] **Step 4: Tighten coordinator prompt**
+- [x] **Step 4: Tighten coordinator prompt**
 
 In `buildSystemPrompt()`, replace the existing tool guidance line with:
 
@@ -648,7 +648,7 @@ In `buildSystemPrompt()`, replace the existing tool guidance line with:
 'A supported capability is build-ready only when its support bundle evidence status is complete. If the support bundle is missing or incomplete, do not produce build-ready wiring, render plans, or current-flow claims.',
 ```
 
-- [ ] **Step 5: Tighten subagent prompts**
+- [x] **Step 5: Tighten subagent prompts**
 
 Update subagent system prompts:
 
@@ -674,7 +674,7 @@ Update subagent system prompts:
 }
 ```
 
-- [ ] **Step 6: Verify runtime prompt contract test passes**
+- [x] **Step 6: Verify runtime prompt contract test passes**
 
 Run:
 
@@ -687,7 +687,7 @@ Expected:
 - Scripted Deepagents path still validates supported LED.
 - Result context trace includes support bundle evidence.
 
-## Task 6: Enforce Bundle Gate After LLM Draft
+## Task 6: Enforce Bundle Gate at Final Context Coverage
 
 **Files:**
 
@@ -695,33 +695,36 @@ Expected:
 - Modify: `server/agent/deepAgentRuntime.ts`
 - Modify: `tests/unit/agentWorkflow.test.ts`
 
-- [ ] **Step 1: Add failing forged-draft test**
+- [x] **Step 1: Add failing support-bundle gate test**
 
 Add to `tests/unit/agentWorkflow.test.ts`:
 
 ```ts
-test('missing support bundle evidence blocks a plausible live draft after deterministic validation', async () => {
-  const result = await runAgentWithScriptedDrafts({
-    request: {
-      message: '가변저항으로 LED 밝기를 조절하고 싶어',
-      locale: 'ko',
-      mode: 'live'
+test('context coverage gate treats incomplete support bundle evidence as synthesis-ineligible', async () => {
+  const validationReport = await validateCircuitSpec(ledCircuit());
+  const gatedReport = applyContextCoverageGate(validationReport, {
+    status: 'insufficient',
+    score: 1,
+    sufficientFor: ['clarification_response', 'unsupported_response'],
+    synthesisEligibility: {
+      status: 'ineligible',
+      reason: 'Missing support bundle evidence for synthesis: digital-light-output.'
     },
-    drafts: [
-      agentDraft('가능합니다. 가변저항 LED 밝기 조절 회로입니다.', ledCircuit())
-    ]
+    requiredSourceTypes: ['memory', 'policy', 'reference', 'data', 'registry', 'rendering'],
+    presentSourceTypes: ['memory', 'policy', 'reference', 'data', 'registry', 'rendering'],
+    missingSourceTypes: [],
+    warnings: ['Support bundle evidence gap: digital-light-output is missing source-backed support evidence: source-claims.']
   });
 
-  assert.notEqual(result.validationReport.status, 'valid');
-  assert.equal(result.renderPlan.parts.length, 0);
-  assert.equal(result.simulationPlan.currentPaths.length, 0);
-  assert.ok(result.validationReport.errors.concat(result.validationReport.warnings).some((item) =>
-    /CONTEXT_COVERAGE_INSUFFICIENT|support bundle|context support gap/i.test(item)
-  ));
+  assert.equal(validationReport.status, 'valid');
+  assert.equal(gatedReport.status, 'invalid');
+  assert.match(gatedReport.errors.join('\n'), /CONTEXT_COVERAGE_INSUFFICIENT/);
+  assert.match(gatedReport.errors.join('\n'), /Support bundle evidence gap/);
+  assert.match(gatedReport.warnings.join('\n'), /Support bundle evidence gap/);
 });
 ```
 
-- [ ] **Step 2: Run failing forged-draft test**
+- [x] **Step 2: Run failing support-bundle gate test**
 
 Run:
 
@@ -731,9 +734,9 @@ npm exec -- tsx --test tests/unit/agentWorkflow.test.ts
 
 Expected:
 
-- Fails if the forged LED draft can still pass for a planned potentiometer request.
+- Fails if a valid circuit can still pass when context coverage says support bundle evidence is incomplete.
 
-- [ ] **Step 3: Reuse context coverage gate as the bundle gate**
+- [x] **Step 3: Reuse context coverage gate as the bundle gate**
 
 Ensure `buildContextCoverage()` adds warnings for incomplete or missing source bundle evidence and removes `valid_circuit_synthesis` from `sufficientFor`.
 
@@ -761,7 +764,7 @@ errors: [
 ]
 ```
 
-- [ ] **Step 4: Verify forged-draft test passes**
+- [x] **Step 4: Verify support-bundle gate test passes**
 
 Run:
 
@@ -771,7 +774,11 @@ npm exec -- tsx --test tests/unit/agentWorkflow.test.ts
 
 Expected:
 
-- Planned/source-incomplete requests cannot be repaired into a supported-looking valid circuit.
+- Source-incomplete requests cannot be finalized into a supported-looking valid circuit.
+
+Implementation note:
+
+- Completed as the backend Deepagents mechanism slice. The explicit final gate is covered by `context coverage gate treats incomplete support bundle evidence as synthesis-ineligible`; planned potentiometer requests are still blocked at preflight before draft consumption, and supported-looking drafts cannot pass when context coverage removes `valid_circuit_synthesis`.
 
 ## Task 7: Add Bundle Evidence to Context Trace Markdown and Files Evidence
 
@@ -781,7 +788,7 @@ Expected:
 - Modify: `tests/unit/i18n.test.js`
 - Modify: `tests/e2e/features.spec.js`
 
-- [ ] **Step 1: Add failing E2E assertion**
+- [x] **Step 1: Add failing E2E assertion**
 
 Extend the existing Files evidence E2E in `tests/e2e/features.spec.js` to assert:
 
@@ -789,7 +796,7 @@ Extend the existing Files evidence E2E in `tests/e2e/features.spec.js` to assert
 await expect(page.getByTestId('context-evidence-panel')).toContainText(/Source bundle|출처 묶음|근거 묶음/i);
 ```
 
-- [ ] **Step 2: Run failing E2E subset**
+- [x] **Step 2: Run failing E2E subset**
 
 Run:
 
@@ -801,7 +808,7 @@ Expected:
 
 - Fails because Files evidence panel does not mention source bundle coverage.
 
-- [ ] **Step 3: Add localized evidence labels**
+- [x] **Step 3: Add localized evidence labels**
 
 In `src/locales/ko.js`, add:
 
@@ -817,7 +824,7 @@ sourceBundle: 'Source bundle'
 
 Add unit assertions in `tests/unit/i18n.test.js`.
 
-- [ ] **Step 4: Render source bundle status in Files evidence panel**
+- [x] **Step 4: Render source bundle status in Files evidence panel**
 
 In `src/main.js`, when rendering `contextCoverage`, show the bundle status if present in warnings or a new field.
 
@@ -843,7 +850,7 @@ sourceBundleReady: 'Source bundle checked'
 sourceBundleReviewNeeded: 'Source bundle needs review'
 ```
 
-- [ ] **Step 5: Verify UI evidence**
+- [x] **Step 5: Verify UI evidence**
 
 Run:
 
@@ -893,7 +900,7 @@ Expected:
 - Modify: `docs/browser_generalization_verification.md`
 - Modify: `docs/coworking_handoff_2026-05-31.md`
 
-- [ ] **Step 1: Update browser verification protocol**
+- [x] **Step 1: Update browser verification protocol**
 
 Add to `docs/browser_generalization_verification.md`:
 
@@ -903,12 +910,12 @@ Add to `docs/browser_generalization_verification.md`:
 For agent-created projects, verify that Files context evidence indicates whether the source-backed hardware support bundle is ready. A valid render/run project must have complete source bundle evidence. Planned or visual-only hardware must show a review/support-gap result and must not render PCB wiring or animate current flow.
 ```
 
-- [ ] **Step 2: Add coworking memo**
+- [x] **Step 2: Add coworking memo**
 
 Append to `docs/coworking_handoff_2026-05-31.md`:
 
 ```markdown
-## 35. 2026-06-01 Deepagents Source Bundle Workflow Memo
+## 39. 2026-06-01 Deepagents Source Bundle Workflow Memo
 
 This slice wires source-backed hardware support bundles into the Deepagents runtime.
 
@@ -935,7 +942,7 @@ Verification:
 
 - No new files.
 
-- [ ] **Step 1: Run targeted unit verification**
+- [x] **Step 1: Run targeted unit verification**
 
 Run:
 
@@ -953,7 +960,7 @@ Expected:
 - Missing bundle evidence blocks synthesis.
 - Eval rows classify supported and planned source-bundle behavior correctly.
 
-- [ ] **Step 2: Run browser evidence subset**
+- [x] **Step 2: Run browser evidence subset**
 
 Run:
 
@@ -966,7 +973,7 @@ Expected:
 - Files evidence panel shows source bundle readiness.
 - No build/render/current simulation appears for planned source-bundle gaps.
 
-- [ ] **Step 3: Run full acceptance gate**
+- [x] **Step 3: Run full acceptance gate**
 
 Run:
 

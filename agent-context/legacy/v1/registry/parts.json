@@ -1,0 +1,66 @@
+[
+  {
+    "id": "arduino-uno",
+    "displayName": "Arduino Uno",
+    "description": "Beginner-friendly controller board for low-voltage classroom circuits.",
+    "physicalModelType": "arduino",
+    "pins": ["5V", "GND", "A4/SDA", "A5/SCL", "D2", "D3", "D8", "D9"],
+    "educationalDescription": "The tiny computer that reads inputs and controls outputs."
+  },
+  {
+    "id": "breadboard-half",
+    "displayName": "Half-size breadboard",
+    "description": "Reusable board for jumper-wire prototypes.",
+    "physicalModelType": "breadboard",
+    "pins": ["+ rail", "- rail"],
+    "educationalDescription": "The workspace where parts connect without soldering."
+  },
+  {
+    "id": "oled-i2c-096",
+    "displayName": "0.96 inch I2C OLED",
+    "description": "Small text display module with four pins.",
+    "physicalModelType": "oled",
+    "pins": ["VCC", "GND", "SDA", "SCL"],
+    "educationalDescription": "Shows messages sent by the Arduino over I2C."
+  },
+  {
+    "id": "led-5mm",
+    "displayName": "5 mm LED",
+    "description": "Simple visual output that lights when current flows in the right direction.",
+    "physicalModelType": "led",
+    "pins": ["A", "K"],
+    "educationalDescription": "A one-way light that needs a resistor."
+  },
+  {
+    "id": "resistor-220",
+    "displayName": "220 ohm resistor",
+    "description": "Passive part that limits current in beginner LED circuits.",
+    "physicalModelType": "resistor",
+    "pins": ["1", "2"],
+    "educationalDescription": "Protects LEDs and Arduino pins by slowing current down."
+  },
+  {
+    "id": "button-tactile",
+    "displayName": "Tactile pushbutton",
+    "description": "Simple switch input.",
+    "physicalModelType": "button",
+    "pins": ["A", "B"],
+    "educationalDescription": "Lets the student change a digital input by pressing it."
+  },
+  {
+    "id": "piezo-buzzer",
+    "displayName": "Piezo buzzer",
+    "description": "Small sound output for beeps and alarms.",
+    "physicalModelType": "buzzer",
+    "pins": ["+", "-"],
+    "educationalDescription": "Turns a signal into a beep."
+  },
+  {
+    "id": "micro-servo",
+    "displayName": "Micro servo",
+    "description": "Small actuator for educational motion examples.",
+    "physicalModelType": "servo",
+    "pins": ["VCC", "GND", "SIG"],
+    "educationalDescription": "Moves to an angle based on a PWM signal."
+  }
+]

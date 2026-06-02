@@ -51,6 +51,47 @@ test('createShareCardModel does not claim invalid snapshots were validated', () 
   assert.match(model.footer, /needs review|not validated/i);
 });
 
+test('createShareCardModel does not claim runnable status without build runnable evidence', () => {
+  const snapshot = createSnapshot();
+  delete snapshot.buildRunnableReport;
+
+  const model = createShareCardModel(snapshot, 'en');
+
+  assert.equal(model.badge, 'Needs review');
+  assert.match(model.simulation, /not available/i);
+  assert.doesNotMatch(model.footer, /validated/i);
+});
+
+test('createShareCardModel distinguishes diagnostic scenes from runnable current simulation', () => {
+  const snapshot = createSnapshot();
+  snapshot.status = 'invalid';
+  snapshot.validation.status = 'invalid';
+  snapshot.buildRunnableReport = {
+    ...validRunnableReport(),
+    status: 'blocked',
+    runnable: false,
+    reasons: ['render is diagnostic only'],
+    currentPathCount: 0,
+    expectedStateCount: 0
+  };
+  snapshot.solverGateResult = {
+    visibleSimulation: true,
+    buildReady: false,
+    simulationActivity: 'diagnostic'
+  };
+  snapshot.renderPlan = {
+    parts: [{ id: 'arduino-uno', type: 'arduino', label: 'Arduino Uno' }],
+    connections: []
+  };
+  snapshot.simulation.available = false;
+
+  const model = createShareCardModel(snapshot, 'en');
+
+  assert.equal(model.badge, 'Needs review');
+  assert.match(model.simulation, /3D diagnostic scene available/i);
+  assert.doesNotMatch(model.footer, /validated/i);
+});
+
 function createSnapshot() {
   return {
     schemaVersion: 1,
@@ -75,11 +116,27 @@ function createSnapshot() {
       warnings: [],
       unsupportedItems: []
     },
+    buildRunnableReport: validRunnableReport(),
     simulation: {
       available: true,
       runText: 'RALPHTON BUSAN',
       explanation: 'OLED module current flows through VCC and returns to GND.',
       currentPathCount: 1
     }
+  };
+}
+
+function validRunnableReport() {
+  return {
+    status: 'runnable',
+    runnable: true,
+    reasons: [],
+    validationStatus: 'valid',
+    simulationStatus: 'valid',
+    renderWarningCount: 0,
+    renderBlockingWarningCount: 0,
+    renderPartCount: 2,
+    currentPathCount: 1,
+    expectedStateCount: 1
   };
 }

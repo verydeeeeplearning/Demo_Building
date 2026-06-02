@@ -1,0 +1,392 @@
+[
+  {
+    "id": "breadboard-half",
+    "kind": "board",
+    "label": "Half-size breadboard",
+    "aliases": [
+      "breadboard",
+      "prototype board"
+    ],
+    "pins": [
+      {
+        "name": "+ rail",
+        "role": "power-rail",
+        "aliases": [
+          "5v rail"
+        ]
+      },
+      {
+        "name": "- rail",
+        "role": "ground-rail",
+        "aliases": [
+          "ground rail",
+          "gnd rail"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 500,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "power"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "breadboard",
+      "width": 5.6,
+      "depth": 2.15,
+      "height": 0.18
+    },
+    "simulationModel": {
+      "type": "connection-board",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "capabilities": [
+      "breadboard-topology",
+      "power-rail-distribution",
+      "ground-rail-distribution"
+    ],
+    "compatibleSimulationPrimitives": [
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Power and ground rails are not bridged intentionally.",
+      "Ground rail is not connected to Arduino GND."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "jumper-wire",
+    "kind": "wiring",
+    "label": "Jumper wire",
+    "aliases": [
+      "wire",
+      "jumper",
+      "dupont"
+    ],
+    "pins": [
+      {
+        "name": "A",
+        "role": "conductor-end",
+        "aliases": [
+          "end a"
+        ]
+      },
+      {
+        "name": "B",
+        "role": "conductor-end",
+        "aliases": [
+          "end b"
+        ]
+      }
+    ],
+    "electrical": {
+      "voltageRange": {
+        "min": 0,
+        "max": 5,
+        "nominal": 5
+      },
+      "maxCurrentMa": 500,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": [
+      "wire"
+    ],
+    "requiredPassives": [],
+    "renderFootprint": {
+      "type": "wire",
+      "width": 0.1,
+      "depth": 0.1,
+      "height": 0.1
+    },
+    "simulationModel": {
+      "type": "conductor",
+      "nominalCurrentMa": 0
+    },
+    "supportLevel": "supported",
+    "capabilities": [
+      "electrical-connection",
+      "breadboard-jumper"
+    ],
+    "compatibleSimulationPrimitives": [
+      "current_flow_animation"
+    ],
+    "commonMistakes": [
+      "Connecting to an adjacent but unconnected breadboard row."
+    ],
+    "safeSubstitutes": []
+  },
+  {
+    "id": "breadboard-full",
+    "kind": "board",
+    "label": "Full-size breadboard",
+    "aliases": ["full breadboard", "830 tie point breadboard", "large breadboard"],
+    "pins": [
+      { "name": "PWR+", "role": "power-rail", "aliases": ["+ rail", "5v rail"] },
+      { "name": "PWR-", "role": "ground-rail", "aliases": ["- rail", "gnd rail"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 0, "max": 5, "nominal": 5 },
+      "maxCurrentMa": 500,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["power", "prototyping"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "breadboard-full", "width": 6.7, "depth": 2.55, "height": 0.18 },
+    "simulationModel": { "type": "prototyping-surface-context", "nominalCurrentMa": 0 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "prototyping-surface",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["breadboard-full"],
+    "compatibleTopologies": ["prototyping-surface-context-only"],
+    "sourceClaimIds": ["breadboard-full-visual-pin-map", "prototyping-surface-context-contract"],
+    "capabilities": ["breadboard-topology", "prototyping-surface", "placement-surface", "state-only-simulation"],
+    "compatibleSimulationPrimitives": ["prototyping_surface_context_state"],
+    "commonMistakes": [
+      "Assuming power rails are energized without a declared low-voltage source.",
+      "Assuming every full breadboard rail segment is bridged automatically."
+    ],
+    "safeSubstitutes": ["breadboard-half"]
+  },
+  {
+    "id": "breadboard-mini",
+    "kind": "board",
+    "label": "Mini breadboard",
+    "aliases": ["mini breadboard", "170 tie point breadboard", "small breadboard"],
+    "pins": [
+      { "name": "PWR+", "role": "power-rail", "aliases": ["+ rail", "5v rail"] },
+      { "name": "PWR-", "role": "ground-rail", "aliases": ["- rail", "gnd rail"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 0, "max": 5, "nominal": 5 },
+      "maxCurrentMa": 500,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["power", "prototyping"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "breadboard-mini", "width": 3.05, "depth": 1.55, "height": 0.14 },
+    "simulationModel": { "type": "prototyping-surface-context", "nominalCurrentMa": 0 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "prototyping-surface",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["breadboard-mini"],
+    "compatibleTopologies": ["prototyping-surface-context-only"],
+    "sourceClaimIds": ["breadboard-mini-visual-pin-map", "prototyping-surface-context-contract"],
+    "capabilities": ["breadboard-topology", "prototyping-surface", "placement-surface", "state-only-simulation"],
+    "compatibleSimulationPrimitives": ["prototyping_surface_context_state"],
+    "commonMistakes": [
+      "Assuming mini breadboards have the same rail layout as a half-size breadboard.",
+      "Placing too many through-hole parts on the compact surface."
+    ],
+    "safeSubstitutes": ["breadboard-half"]
+  },
+  {
+    "id": "perfboard-5x7",
+    "kind": "board",
+    "label": "Perfboard 5x7cm",
+    "aliases": ["perfboard", "prototype perfboard", "solderable prototyping board"],
+    "pins": [
+      { "name": "PAD", "role": "signal", "aliases": ["pad", "copper pad"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 0, "max": 5, "nominal": 5 },
+      "maxCurrentMa": 500,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["prototyping", "soldered-layout"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "perfboard-5x7", "width": 4.8, "depth": 3.35, "height": 0.08 },
+    "simulationModel": { "type": "prototyping-surface-context", "nominalCurrentMa": 0 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "prototyping-surface",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["perfboard-5x7"],
+    "compatibleTopologies": ["prototyping-surface-context-only"],
+    "sourceClaimIds": ["perfboard-5x7-visual-pin-map", "prototyping-surface-context-contract"],
+    "capabilities": ["prototyping-surface", "soldered-layout-context", "placement-surface", "state-only-simulation"],
+    "compatibleSimulationPrimitives": ["prototyping_surface_context_state"],
+    "commonMistakes": [
+      "Assuming perfboard pads are connected like breadboard rows.",
+      "Treating a soldering surface as a power source."
+    ],
+    "safeSubstitutes": ["breadboard-half"]
+  },
+  {
+    "id": "pcb-blank-single",
+    "kind": "board",
+    "label": "Single-sided blank PCB",
+    "aliases": ["blank pcb", "single sided pcb", "copper clad board"],
+    "pins": [
+      { "name": "PAD", "role": "signal", "aliases": ["pad", "copper area"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 0, "max": 5, "nominal": 5 },
+      "maxCurrentMa": 500,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["prototyping", "pcb-layout"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "pcb-blank-single", "width": 5.1, "depth": 3.75, "height": 0.07 },
+    "simulationModel": { "type": "prototyping-surface-context", "nominalCurrentMa": 0 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "prototyping-surface",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["pcb-blank-single"],
+    "compatibleTopologies": ["prototyping-surface-context-only"],
+    "sourceClaimIds": ["pcb-blank-single-visual-pin-map", "prototyping-surface-context-contract"],
+    "capabilities": ["prototyping-surface", "pcb-layout-context", "placement-surface", "state-only-simulation"],
+    "compatibleSimulationPrimitives": ["prototyping_surface_context_state"],
+    "commonMistakes": [
+      "Assuming a blank copper board has predefined nets.",
+      "Skipping insulation and layout checks in real etched boards."
+    ],
+    "safeSubstitutes": ["perfboard-5x7", "breadboard-half"]
+  },
+  {
+    "id": "proto-shield-uno",
+    "kind": "board",
+    "label": "Prototype shield for Uno",
+    "aliases": ["proto shield", "arduino prototype shield", "uno proto shield"],
+    "pins": [
+      { "name": "5V", "role": "power", "aliases": ["5v"] },
+      { "name": "GND", "role": "ground", "aliases": ["ground"] },
+      { "name": "D2", "role": "digital", "aliases": ["digital 2"] },
+      { "name": "A0", "role": "analog", "aliases": ["analog 0"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 0, "max": 5, "nominal": 5 },
+      "maxCurrentMa": 500,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["arduino-shield", "prototyping"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "proto-shield-uno", "width": 5.2, "depth": 3.95, "height": 0.16 },
+    "simulationModel": { "type": "prototyping-surface-context", "nominalCurrentMa": 0 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "prototyping-surface",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["proto-shield-uno"],
+    "compatibleTopologies": ["prototyping-surface-context-only"],
+    "sourceClaimIds": ["proto-shield-uno-visual-pin-map", "prototyping-surface-context-contract"],
+    "capabilities": ["prototyping-surface", "arduino-shield-context", "placement-surface", "state-only-simulation"],
+    "compatibleSimulationPrimitives": ["prototyping_surface_context_state"],
+    "commonMistakes": [
+      "Assuming every Uno pin is available without a board-specific pin map.",
+      "Treating the shield as a standalone controller."
+    ],
+    "safeSubstitutes": ["breadboard-half"]
+  },
+  {
+    "id": "header-male-40pin",
+    "kind": "wiring",
+    "label": "Male header pins 40-pin",
+    "aliases": ["male header", "40 pin header", "breakaway header"],
+    "pins": [
+      { "name": "A", "role": "signal", "aliases": ["end a"] },
+      { "name": "B", "role": "signal", "aliases": ["end b"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 0, "max": 5, "nominal": 5 },
+      "maxCurrentMa": 500,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["connector", "header"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "header-male-40pin", "width": 5.1, "depth": 0.18, "height": 0.32 },
+    "simulationModel": { "type": "connector-wiring-context", "nominalCurrentMa": 0 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "connector-wiring",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["header-male-40pin"],
+    "compatibleTopologies": ["connector-wiring-context-only"],
+    "sourceClaimIds": ["header-male-40pin-visual-pin-map", "connector-wiring-context-contract"],
+    "capabilities": ["connector-wiring", "header-strip-context", "state-only-simulation"],
+    "compatibleSimulationPrimitives": ["connector_wiring_context_state"],
+    "commonMistakes": [
+      "Assuming a header strip creates a connection by itself.",
+      "Using headers as power distribution without defined nets."
+    ],
+    "safeSubstitutes": ["jumper-wire"]
+  },
+  {
+    "id": "header-female-40pin",
+    "kind": "wiring",
+    "label": "Female header pins 40-pin",
+    "aliases": ["female header", "40 pin socket header", "stacking header"],
+    "pins": [
+      { "name": "A", "role": "signal", "aliases": ["end a"] },
+      { "name": "B", "role": "signal", "aliases": ["end b"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 0, "max": 5, "nominal": 5 },
+      "maxCurrentMa": 500,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["connector", "header"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "header-female-40pin", "width": 5.1, "depth": 0.24, "height": 0.24 },
+    "simulationModel": { "type": "connector-wiring-context", "nominalCurrentMa": 0 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "connector-wiring",
+    "riskLevel": "low-voltage",
+    "visualPartIds": ["header-female-40pin"],
+    "compatibleTopologies": ["connector-wiring-context-only"],
+    "sourceClaimIds": ["header-female-40pin-visual-pin-map", "connector-wiring-context-contract"],
+    "capabilities": ["connector-wiring", "header-socket-context", "state-only-simulation"],
+    "compatibleSimulationPrimitives": ["connector_wiring_context_state"],
+    "commonMistakes": [
+      "Assuming a female header is a signal source.",
+      "Skipping mating orientation or pin mapping in real stacked boards."
+    ],
+    "safeSubstitutes": ["jumper-wire"]
+  },
+  {
+    "id": "screw-terminal-4pin",
+    "kind": "wiring",
+    "label": "4-pin screw terminal block",
+    "aliases": ["4 pin screw terminal", "four position terminal block", "terminal block"],
+    "pins": [
+      { "name": "A", "role": "signal", "aliases": ["terminal a"] },
+      { "name": "B", "role": "signal", "aliases": ["terminal b"] },
+      { "name": "C", "role": "signal", "aliases": ["terminal c"] },
+      { "name": "D", "role": "signal", "aliases": ["terminal d"] }
+    ],
+    "electrical": {
+      "voltageRange": { "min": 0, "max": 5, "nominal": 5 },
+      "maxCurrentMa": 500,
+      "requiresCurrentLimiting": false
+    },
+    "protocols": ["connector", "terminal-block"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "screw-terminal-4pin", "width": 1.05, "depth": 0.35, "height": 0.32 },
+    "simulationModel": { "type": "connector-wiring-context", "nominalCurrentMa": 0 },
+    "supportLevel": "supported",
+    "supportTier": "simulation-ready",
+    "family": "connector-wiring",
+    "riskLevel": "power-warning",
+    "visualPartIds": ["screw-terminal-4pin"],
+    "compatibleTopologies": ["connector-wiring-context-only"],
+    "sourceClaimIds": ["screw-terminal-4pin-visual-pin-map", "connector-wiring-context-contract"],
+    "capabilities": ["connector-wiring", "terminal-block-context", "external-power-warning", "state-only-simulation"],
+    "compatibleSimulationPrimitives": ["connector_wiring_context_state"],
+    "commonMistakes": [
+      "Treating a terminal block as a voltage source.",
+      "Using terminal blocks for mains or wall outlet wiring in the student simulator."
+    ],
+    "safeSubstitutes": ["screw-terminal-2pin", "jumper-wire"]
+  }
+]

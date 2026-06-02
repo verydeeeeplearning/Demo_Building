@@ -1,0 +1,1523 @@
+[
+  {
+    "id": "display-text-output",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "show text",
+      "display message",
+      "oled",
+      "i2c oled",
+      "tiny display",
+      "lcd",
+      "i2c lcd",
+      "character lcd",
+      "16x2 lcd",
+      "20x4 lcd",
+      "1.3 oled"
+    ],
+    "requiredEvidence": [
+      "oled",
+      "display message",
+      "show text",
+      "text display",
+      "lcd",
+      "character lcd",
+      "i2c display"
+    ],
+    "negativeEvidence": [
+      "current flow on screen",
+      "see current flow",
+      "visualize current",
+      "app screen",
+      "spi display",
+      "tft",
+      "nokia 5110",
+      "epaper",
+      "e-paper",
+      "SCK",
+      "CS pin"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "show text",
+      "display message",
+      "screen",
+      "oled",
+      "tiny display",
+      "텍스트 표시",
+      "문자 표시",
+      "화면에 보여줘",
+      "OLED에 출력",
+      "LCD에 출력",
+      "LCD에 표시",
+      "문자 LCD",
+      "16x2 LCD",
+      "20x4 LCD",
+      "OLED 1.3"
+    ],
+    "inputModalities": [],
+    "outputModalities": [
+      "display",
+      "text"
+    ],
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "oled-i2c-096"
+    ],
+    "optionalParts": [
+      "jumper-wire"
+    ],
+    "protocols": [
+      "i2c",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "display_static_text",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "oled",
+      "wire"
+    ],
+    "validationRules": [
+      "i2c-pin-role-match",
+      "common-ground",
+      "power-rail-valid"
+    ],
+    "commonMistakes": [
+      "SDA/SCL swapped",
+      "OLED VCC or GND missing"
+    ],
+    "safeAlternatives": []
+  },
+  {
+    "id": "digital-light-output",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "turn on led",
+      "blink led",
+      "led",
+      "light output",
+      "indicator",
+      "rgb led",
+      "common cathode rgb led",
+      "laser module",
+      "laser diode"
+    ],
+    "requiredEvidence": [
+      "led",
+      "light",
+      "lamp",
+      "indicator",
+      "rgb led",
+      "laser"
+    ],
+    "negativeEvidence": [
+      "light sensor",
+      "dark room",
+      "photoresistor",
+      "distance display",
+      "led matrix",
+      "max7219",
+      "7 segment",
+      "7-segment",
+      "tm1637",
+      "neopixel",
+      "addressable led",
+      "rgb led ring",
+      "matrix",
+      "8x8",
+      "dot matrix",
+      "display pattern",
+      "smile pattern",
+      "neopixel strip",
+      "addressable led strip",
+      "ws2812b strip",
+      "relay",
+      "relay module",
+      "relay contact"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "turn on led",
+      "blink led",
+      "make a light",
+      "lamp",
+      "indicator",
+      "LED 켜기",
+      "LED 깜빡이기",
+      "불빛",
+      "조명",
+      "rgb led color mix",
+      "common cathode rgb led",
+      "turn on a laser module",
+      "RGB LED 색 조합",
+      "레이저 모듈 켜기"
+    ],
+    "inputModalities": [
+      "time"
+    ],
+    "outputModalities": [
+      "light",
+      "digital",
+      "rgb-light",
+      "laser-light"
+    ],
+    "requiredRoles": [
+      "controller",
+      "digital-output",
+      "series-current-limit",
+      "dc-load",
+      "ground-return",
+      "multi-channel-light-output",
+      "powered-light-output"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "led-5mm",
+      "resistor-220"
+    ],
+    "optionalParts": [
+      "jumper-wire"
+    ],
+    "protocols": [
+      "gpio",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "digital_on_off",
+      "blink_timer",
+      "current_flow_animation",
+      "rgb_led_color_mix",
+      "powered_light_module_state"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "led",
+      "resistor",
+      "wire",
+      "rgb-led-common-cathode",
+      "laser-diode-module"
+    ],
+    "validationRules": [
+      "series-current-limit",
+      "led-polarity",
+      "closed-current-path",
+      "rgb-led-channel-resistor",
+      "rgb-led-common-ground",
+      "powered-light-module-power-rail",
+      "powered-light-module-signal-pin",
+      "powered-light-module-safety-warning"
+    ],
+    "commonMistakes": [
+      "Missing LED current-limiting resistor",
+      "LED polarity reversed",
+      "Using one resistor for multiple RGB LED channels",
+      "Wiring only a laser module signal pin without VCC and GND"
+    ],
+    "safeAlternatives": []
+  },
+  {
+    "id": "button-controlled-light-output",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "button turns on led",
+      "press button",
+      "switch led",
+      "button led"
+    ],
+    "requiredEvidence": [
+      "button",
+      "press",
+      "switch"
+    ],
+    "negativeEvidence": [
+      "photoresistor",
+      "potentiometer",
+      "distance sensor",
+      "relay",
+      "relay module",
+      "relay contact"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "button turns on led",
+      "press button light",
+      "switch led",
+      "버튼으로 LED",
+      "스위치를 누르면 켜짐",
+      "누르면 불"
+    ],
+    "inputModalities": [
+      "button",
+      "digital"
+    ],
+    "outputModalities": [
+      "light",
+      "digital"
+    ],
+    "requiredRoles": [
+      "controller",
+      "digital-input",
+      "switch-input",
+      "digital-output",
+      "series-current-limit",
+      "dc-load",
+      "ground-return"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "button-tactile",
+      "led-5mm",
+      "resistor-220"
+    ],
+    "optionalParts": [
+      "jumper-wire"
+    ],
+    "protocols": [
+      "gpio",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "digital_on_off",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "button",
+      "led",
+      "resistor",
+      "wire"
+    ],
+    "validationRules": [
+      "button-pullup-or-pulldown",
+      "series-current-limit",
+      "closed-current-path"
+    ],
+    "commonMistakes": [
+      "Floating button input",
+      "Button legs placed on the same breadboard row"
+    ],
+    "safeAlternatives": []
+  },
+  {
+    "id": "sound-alert-output",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "buzzer",
+      "beep",
+      "alarm sound",
+      "tone",
+      "make sound",
+      "active buzzer",
+      "fixed tone buzzer"
+    ],
+    "requiredEvidence": [
+      "buzzer",
+      "beep",
+      "sound",
+      "alarm",
+      "tone",
+      "active buzzer"
+    ],
+    "negativeEvidence": [
+      "screen",
+      "display",
+      "servo",
+      "led brightness",
+      "sound sensor",
+      "microphone sensor",
+      "noise sensor",
+      "sensor gets loud"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "buzzer",
+      "beep",
+      "alarm sound",
+      "tone",
+      "make sound",
+      "부저",
+      "삐 소리",
+      "알람",
+      "소리 내기",
+      "active buzzer beep",
+      "fixed tone buzzer",
+      "액티브 부저",
+      "능동 부저"
+    ],
+    "inputModalities": [
+      "digital",
+      "time"
+    ],
+    "outputModalities": [
+      "sound"
+    ],
+    "requiredRoles": [
+      "controller",
+      "digital-output",
+      "direct-low-current-load",
+      "ground-return"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "piezo-buzzer"
+    ],
+    "optionalParts": [
+      "jumper-wire"
+    ],
+    "protocols": [
+      "gpio",
+      "pwm",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "buzzer_pulse",
+      "digital_on_off",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "buzzer",
+      "wire",
+      "active-buzzer"
+    ],
+    "validationRules": [
+      "polarity-check",
+      "current-limit-warning",
+      "common-ground"
+    ],
+    "commonMistakes": [
+      "Buzzer polarity reversed",
+      "Using an I2C pin as a buzzer output while also using I2C",
+      "Treating an active buzzer as a frequency-accurate speaker"
+    ],
+    "safeAlternatives": []
+  },
+  {
+    "id": "servo-motion-output",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "servo",
+      "servo angle",
+      "move arm",
+      "rotate",
+      "sweep"
+    ],
+    "requiredEvidence": [
+      "servo",
+      "servo angle",
+      "move arm",
+      "rotate"
+    ],
+    "negativeEvidence": [
+      "screen",
+      "display",
+      "buzzer",
+      "led brightness"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "servo",
+      "mg996r",
+      "high torque servo",
+      "move arm",
+      "rotate",
+      "sweep",
+      "actuator",
+      "서보",
+      "고토크 서보",
+      "모터 팔",
+      "회전",
+      "움직이기"
+    ],
+    "inputModalities": [
+      "pwm"
+    ],
+    "outputModalities": [
+      "motion"
+    ],
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "pwm-output",
+      "pwm-actuator"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "micro-servo"
+    ],
+    "optionalParts": [
+      "jumper-wire"
+    ],
+    "protocols": [
+      "pwm",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "servo_angle",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "servo",
+      "large-servo",
+      "wire"
+    ],
+    "validationRules": [
+      "pwm-pin-required",
+      "common-ground",
+      "high-current-warning"
+    ],
+    "commonMistakes": [
+      "Servo signal on a non-PWM pin",
+      "Missing common ground",
+      "Real servo current exceeds weak power source"
+    ],
+    "safeAlternatives": []
+  },
+  {
+    "id": "low-side-switched-load-output",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "dc motor",
+      "motor",
+      "fan",
+      "water pump",
+      "pump",
+      "solenoid",
+      "vibration motor",
+      "low side",
+      "mosfet",
+      "transistor switch",
+      "motor driver"
+    ],
+    "requiredEvidence": [
+      "motor",
+      "fan",
+      "pump",
+      "solenoid",
+      "vibration",
+      "mosfet",
+      "transistor",
+      "low side"
+    ],
+    "negativeEvidence": [
+      "servo",
+      "stepper",
+      "relay",
+      "mains",
+      "220v",
+      "display",
+      "screen"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "dc motor",
+      "spin a motor",
+      "turn on a fan",
+      "run a pump",
+      "solenoid valve",
+      "vibration motor",
+      "irf520",
+      "2n2222",
+      "mosfet",
+      "transistor",
+      "low-side switch",
+      "DC 모터",
+      "모터",
+      "팬",
+      "펌프",
+      "솔레노이드",
+      "진동 모터",
+      "모스펫",
+      "트랜지스터"
+    ],
+    "inputModalities": [
+      "digital-output",
+      "pwm"
+    ],
+    "outputModalities": [
+      "motion",
+      "switched-load",
+      "motor-output"
+    ],
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-output",
+      "low-side-driver",
+      "inductive-load",
+      "flyback-warning"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "irf520-mosfet",
+      "dc-motor-130"
+    ],
+    "optionalParts": [
+      "2n2222-npn",
+      "resistor-220",
+      "dc-fan-5v",
+      "mini-water-pump",
+      "solenoid-valve",
+      "vibration-motor",
+      "jumper-wire"
+    ],
+    "protocols": [
+      "gpio",
+      "pwm",
+      "low-side-switch"
+    ],
+    "simulationPrimitives": [
+      "low_side_switched_load_state",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "mosfet-module",
+      "to92-transistor",
+      "resistor",
+      "dc-motor",
+      "dc-fan",
+      "mini-water-pump",
+      "solenoid-valve",
+      "vibration-motor-module",
+      "wire"
+    ],
+    "validationRules": [
+      "motor-driver-required",
+      "base-resistor-required",
+      "module-signal-required",
+      "common-ground",
+      "high-current-warning",
+      "flyback-warning"
+    ],
+    "commonMistakes": [
+      "Connecting a motor, fan, pump, or solenoid directly to Arduino GPIO.",
+      "Forgetting common ground between controller and load driver.",
+      "Omitting base resistor for the 2N2222 path.",
+      "Treating qualitative motor simulation as real current, torque, airflow, water flow, or coil design."
+    ],
+    "safeAlternatives": [
+      "Use an LED or buzzer if the student only needs visible feedback."
+    ]
+  },
+  {
+    "id": "stepper-motor-output",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "stepper motor",
+      "28byj",
+      "28byj-48",
+      "nema17",
+      "nema 17",
+      "uln2003",
+      "a4988",
+      "drv8825",
+      "step dir",
+      "스테퍼",
+      "스텝 모터"
+    ],
+    "requiredEvidence": [
+      "stepper",
+      "28byj",
+      "nema",
+      "uln2003",
+      "a4988",
+      "drv8825"
+    ],
+    "negativeEvidence": [
+      "servo",
+      "dc motor",
+      "fan",
+      "pump",
+      "relay",
+      "mains",
+      "220v",
+      "display"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "stepper motor",
+      "rotate a stepper",
+      "28byj-48 with uln2003",
+      "nema17 with a4988",
+      "nema17 with drv8825",
+      "step dir stepper",
+      "스테퍼 모터",
+      "스텝 모터",
+      "ULN2003으로 28BYJ",
+      "A4988로 NEMA17"
+    ],
+    "inputModalities": [
+      "digital-output",
+      "step-dir"
+    ],
+    "outputModalities": [
+      "motion",
+      "stepper-motion",
+      "motor-output"
+    ],
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-output",
+      "stepper-driver",
+      "unipolar-stepper",
+      "stepper-phase-lines",
+      "high-current-warning"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "uln2003-driver",
+      "stepper-28byj48"
+    ],
+    "optionalParts": [
+      "a4988-stepper",
+      "drv8825-stepper",
+      "nema17-stepper",
+      "jumper-wire"
+    ],
+    "protocols": [
+      "four-phase-stepper",
+      "step-dir",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "stepper_motor_state",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "uln2003-stepper-driver",
+      "unipolar-stepper",
+      "step-dir-stepper-driver",
+      "nema17-stepper",
+      "wire"
+    ],
+    "validationRules": [
+      "stepper-driver-required",
+      "stepper-phase-lines-required",
+      "stepper-step-dir-required",
+      "common-ground",
+      "high-current-warning",
+      "current-limit-warning"
+    ],
+    "commonMistakes": [
+      "Driving stepper coils directly from Arduino GPIO.",
+      "Missing the ULN2003/A4988/DRV8825 driver.",
+      "Missing STEP/DIR or four phase-control signals.",
+      "Treating qualitative step animation as real torque, speed, or current-limit sizing."
+    ],
+    "safeAlternatives": [
+      "Use a servo when the lesson only needs simple angle motion."
+    ]
+  },
+  {
+    "id": "hbridge-motor-output",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "h bridge",
+      "h-bridge",
+      "l298n",
+      "l293d",
+      "motor driver",
+      "direction control motor",
+      "dc motor forward reverse",
+      "H브리지",
+      "L298N",
+      "L293D"
+    ],
+    "requiredEvidence": [
+      "h bridge",
+      "h-bridge",
+      "l298n",
+      "l293d",
+      "motor driver",
+      "forward reverse"
+    ],
+    "negativeEvidence": [
+      "servo",
+      "stepper",
+      "relay",
+      "mains",
+      "220v",
+      "display",
+      "directly to Arduino",
+      "directly to Arduino pins",
+      "without a motor driver",
+      "no motor driver",
+      "without driver",
+      "no driver"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "L298N으로 DC 모터 방향 제어",
+      "L293D motor driver",
+      "H-bridge DC motor",
+      "dc motor forward and reverse",
+      "Arduino L298N motor driver",
+      "H브리지로 모터 정역회전"
+    ],
+    "inputModalities": [
+      "digital-output",
+      "pwm"
+    ],
+    "outputModalities": [
+      "motion",
+      "motor-output",
+      "hbridge-motor"
+    ],
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-output",
+      "hbridge-driver",
+      "dc-motor-load",
+      "hbridge-control",
+      "hbridge-motor-output",
+      "high-current-warning"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "l298n-driver",
+      "dc-motor-130"
+    ],
+    "optionalParts": [
+      "l293d-driver",
+      "jumper-wire"
+    ],
+    "protocols": [
+      "gpio",
+      "pwm",
+      "h-bridge",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "hbridge_motor_state",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "hbridge-driver-module",
+      "hbridge-driver-ic",
+      "dc-motor",
+      "wire"
+    ],
+    "validationRules": [
+      "hbridge-driver-required",
+      "hbridge-control-required",
+      "common-ground",
+      "high-current-warning",
+      "external-power-warning"
+    ],
+    "commonMistakes": [
+      "Connecting the DC motor directly to GPIO instead of OUT1/OUT2.",
+      "Forgetting enable plus two direction inputs.",
+      "Forgetting common ground between Arduino and the motor driver.",
+      "Treating qualitative motor animation as real torque, stall current, speed, or thermal sizing."
+    ],
+    "safeAlternatives": [
+      "Use the low-side switched load topology when direction control is not needed."
+    ]
+  },
+  {
+    "id": "relay-low-voltage-output",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "relay",
+      "relay module",
+      "1-channel relay",
+      "4-channel relay",
+      "1 channel relay",
+      "4 channel relay",
+      "relay low voltage",
+      "relay low-voltage",
+      "switch low voltage load",
+      "switch low-voltage load",
+      "릴레이",
+      "릴레이 모듈"
+    ],
+    "requiredEvidence": [
+      "relay",
+      "relay module",
+      "low voltage",
+      "low-voltage",
+      "contact",
+      "COM",
+      "NO"
+    ],
+    "negativeEvidence": [
+      "mains",
+      "220v",
+      "110v",
+      "wall outlet",
+      "ac load",
+      "servo",
+      "stepper"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "Arduino relay module low voltage LED load",
+      "1-channel relay module",
+      "4-channel relay board",
+      "릴레이로 저전압 LED 켜기",
+      "릴레이 모듈 제어"
+    ],
+    "inputModalities": [
+      "digital-output"
+    ],
+    "outputModalities": [
+      "switched-load",
+      "relay-output",
+      "light"
+    ],
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-output",
+      "relay-module",
+      "relay-control",
+      "relay-contact-load",
+      "low-voltage-contact-load",
+      "mains-blocked"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "relay-1ch",
+      "led-5mm",
+      "resistor-220"
+    ],
+    "optionalParts": [
+      "relay-4ch",
+      "jumper-wire"
+    ],
+    "protocols": [
+      "gpio",
+      "relay-contact",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "relay_switch_state",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "relay-module-1ch",
+      "relay-module-4ch",
+      "led",
+      "resistor",
+      "wire"
+    ],
+    "validationRules": [
+      "relay-control-required",
+      "relay-load-contact-required",
+      "relay-low-voltage-load-only",
+      "common-ground",
+      "high-current-warning"
+    ],
+    "commonMistakes": [
+      "Using classroom relay wiring for mains or wall power.",
+      "Forgetting VCC, GND, and IN on the relay input side.",
+      "Forgetting the contact-side COM/NO low-voltage load path.",
+      "Treating relay animation as real contact rating, isolation, or safety approval."
+    ],
+    "safeAlternatives": [
+      "Use a direct LED or buzzer output if isolation or contact switching is not the lesson goal."
+    ]
+  },
+  {
+    "id": "analog-led-dimmer",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "potentiometer",
+      "trimmer potentiometer",
+      "trimmer pot",
+      "trim pot",
+      "dial",
+      "knob",
+      "control brightness",
+      "led brightness"
+    ],
+    "requiredEvidence": [
+      "potentiometer",
+      "trimmer",
+      "trimmer potentiometer",
+      "dial",
+      "knob",
+      "brightness"
+    ],
+    "negativeEvidence": [
+      "show text",
+      "screen",
+      "distance sensor",
+      "buzzer"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "potentiometer",
+      "trimmer potentiometer",
+      "trimmer pot",
+      "dial",
+      "knob",
+      "control brightness",
+      "led brightness",
+      "analog dimmer",
+      "trimmer pot LED brightness",
+      "가변저항",
+      "반고정 가변저항",
+      "다이얼",
+      "노브",
+      "밝기 조절",
+      "아날로그 입력"
+    ],
+    "inputModalities": [
+      "analog",
+      "potentiometer"
+    ],
+    "outputModalities": [
+      "light",
+      "pwm"
+    ],
+    "requiredRoles": [
+      "controller",
+      "analog-input",
+      "voltage-divider",
+      "pwm-output",
+      "series-current-limit",
+      "dc-load",
+      "ground-return"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "potentiometer-10k",
+      "led-5mm",
+      "resistor-220"
+    ],
+    "optionalParts": [
+      "trimmer-pot",
+      "jumper-wire"
+    ],
+    "protocols": [
+      "analog-input",
+      "pwm",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "analog_pwm_dimmer",
+      "digital_on_off",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "potentiometer",
+      "trimmer-pot",
+      "led",
+      "resistor",
+      "wire"
+    ],
+    "validationRules": [
+      "voltage-divider-required",
+      "analog-input-pin-exists",
+      "series-current-limit",
+      "pwm-output-required"
+    ],
+    "commonMistakes": [
+      "Potentiometer wiper not connected to analog input",
+      "LED resistor missing",
+      "LED connected to a non-PWM output for brightness control"
+    ],
+    "safeAlternatives": [
+      "digital-light-output"
+    ]
+  },
+  {
+    "id": "distance-sensor-display",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "ultrasonic sensor",
+      "distance sensor",
+      "hc-sr04",
+      "show distance",
+      "distance display"
+    ],
+    "requiredEvidence": [
+      "ultrasonic",
+      "distance sensor",
+      "hc-sr04",
+      "distance"
+    ],
+    "negativeEvidence": [
+      "current flow on screen",
+      "see current flow",
+      "visualize current",
+      "screen only"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "ultrasonic sensor",
+      "distance sensor",
+      "hc-sr04",
+      "show distance",
+      "measure distance",
+      "distance on oled",
+      "distance display",
+      "초음파 센서",
+      "거리 센서",
+      "거리를 표시"
+    ],
+    "inputModalities": [
+      "distance-sensor"
+    ],
+    "outputModalities": [
+      "display",
+      "distance"
+    ],
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-output",
+      "digital-input",
+      "distance-sensor",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "ultrasonic-hc-sr04",
+      "oled-i2c-096"
+    ],
+    "optionalParts": [
+      "jumper-wire"
+    ],
+    "protocols": [
+      "gpio",
+      "i2c",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "display_sensor_value",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "ultrasonic-sensor",
+      "oled",
+      "wire"
+    ],
+    "validationRules": [
+      "sensor-trigger-echo-pin-pair",
+      "i2c-pin-role-match",
+      "common-ground",
+      "power-rail-valid"
+    ],
+    "commonMistakes": [
+      "Trigger and echo pins swapped",
+      "Missing common ground between sensor and display"
+    ],
+    "safeAlternatives": [
+      "display-text-output"
+    ]
+  },
+  {
+    "id": "dht11-temperature-humidity-display",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "dht11",
+      "dht11 temperature humidity",
+      "temperature and humidity sensor",
+      "temperature humidity display",
+      "온습도 센서",
+      "온도랑 습도"
+    ],
+    "requiredEvidence": [
+      "dht11",
+      "DHT11"
+    ],
+    "negativeEvidence": [
+      "dht22",
+      "bmp280",
+      "tmp36",
+      "current flow on screen",
+      "see current flow",
+      "visualize current",
+      "screen only"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "dht11",
+      "dht11 sensor",
+      "dht11 temperature humidity",
+      "dht11 display",
+      "DHT11",
+      "DHT11 온습도 센서",
+      "DHT11 온습도 OLED",
+      "DHT11 온도랑 습도 표시"
+    ],
+    "inputModalities": [
+      "temperature-humidity-sensor",
+      "digital-sensor"
+    ],
+    "outputModalities": [
+      "display",
+      "temperature",
+      "humidity"
+    ],
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-input",
+      "single-wire-data-sensor",
+      "i2c-data",
+      "i2c-clock",
+      "i2c-module"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "dht11",
+      "oled-i2c-096"
+    ],
+    "optionalParts": [
+      "jumper-wire"
+    ],
+    "protocols": [
+      "gpio",
+      "single-wire-data",
+      "i2c",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "display_sensor_value",
+      "display_static_text",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "dht11-sensor",
+      "oled",
+      "wire"
+    ],
+    "validationRules": [
+      "single-wire-data-pin",
+      "i2c-pin-role-match",
+      "common-ground",
+      "power-rail-valid"
+    ],
+    "commonMistakes": [
+      "Leaving DAT disconnected",
+      "Reading DHT11 too frequently",
+      "Missing common ground between sensor and display"
+    ],
+    "safeAlternatives": [
+      "display-text-output",
+      "distance-sensor-display"
+    ]
+  },
+  {
+    "id": "light-sensor-triggered-output",
+    "supportLevel": "supported",
+    "positivePhrases": [
+      "photoresistor",
+      "ldr",
+      "light sensor",
+      "dark room",
+      "turn on led when dark"
+    ],
+    "requiredEvidence": [
+      "photoresistor",
+      "ldr",
+      "light sensor",
+      "dark"
+    ],
+    "negativeEvidence": [
+      "screen",
+      "display text",
+      "distance sensor",
+      "buzzer"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "photoresistor",
+      "ldr",
+      "light sensor",
+      "dark room",
+      "turn on led when dark",
+      "빛 센서",
+      "조도 센서",
+      "어두우면 LED"
+    ],
+    "inputModalities": [
+      "light-sensor",
+      "analog"
+    ],
+    "outputModalities": [
+      "light"
+    ],
+    "requiredRoles": [
+      "controller",
+      "analog-input",
+      "voltage-divider",
+      "digital-output",
+      "series-current-limit",
+      "dc-load",
+      "ground-return"
+    ],
+    "requiredParts": [
+      "arduino-uno",
+      "breadboard-half",
+      "photoresistor-ldr",
+      "led-5mm",
+      "resistor-220"
+    ],
+    "optionalParts": [
+      "jumper-wire"
+    ],
+    "protocols": [
+      "analog-input",
+      "gpio",
+      "power"
+    ],
+    "simulationPrimitives": [
+      "analog_threshold",
+      "digital_on_off",
+      "current_flow_animation"
+    ],
+    "renderFootprints": [
+      "arduino",
+      "breadboard",
+      "ldr-module",
+      "led",
+      "resistor",
+      "wire"
+    ],
+    "validationRules": [
+      "voltage-divider-required",
+      "series-current-limit",
+      "threshold-defined",
+      "common-ground"
+    ],
+    "commonMistakes": [
+      "Photoresistor not wired as a voltage divider",
+      "LED resistor missing"
+    ],
+    "safeAlternatives": [
+      "digital-light-output"
+    ]
+  },
+  {
+    "id": "autonomous-wireless-robotics",
+    "supportLevel": "unsupported",
+    "positivePhrases": [
+      "drone",
+      "autopilot",
+      "bluetooth drone",
+      "autonomous robot"
+    ],
+    "requiredEvidence": [
+      "drone",
+      "autopilot",
+      "autonomous"
+    ],
+    "negativeEvidence": [
+      "servo only",
+      "display text",
+      "led"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "drone",
+      "autopilot",
+      "bluetooth drone",
+      "autonomous robot",
+      "무인 드론",
+      "자율 주행"
+    ],
+    "inputModalities": [
+      "wireless",
+      "autonomy"
+    ],
+    "outputModalities": [
+      "motion"
+    ],
+    "requiredParts": [],
+    "optionalParts": [],
+    "protocols": [],
+    "simulationPrimitives": [
+      "fault_visualization"
+    ],
+    "renderFootprints": [],
+    "validationRules": [
+      "reject-unsupported-autonomy",
+      "safe-reframe-required"
+    ],
+    "commonMistakes": [
+      "Treating wireless autonomous vehicles as beginner breadboard circuits"
+    ],
+    "safeAlternatives": [
+      "servo-motion-output",
+      "display-text-output"
+    ],
+    "unsupportedReason": "Autonomous wireless robotics, GPS navigation, and drones are outside the low-voltage classroom circuit simulator."
+  },
+  {
+    "id": "home-security-actuator",
+    "supportLevel": "unsupported",
+    "positivePhrases": [
+      "wi-fi door lock",
+      "wifi door lock",
+      "smart lock",
+      "unlock my house",
+      "phone door lock"
+    ],
+    "requiredEvidence": [
+      "door lock",
+      "smart lock",
+      "unlock",
+      "house"
+    ],
+    "negativeEvidence": [
+      "button led",
+      "buzzer alarm demo",
+      "classroom alarm"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "wi-fi door lock",
+      "wifi door lock",
+      "smart lock",
+      "unlock my house",
+      "phone door lock",
+      "현관문 잠금",
+      "스마트 도어락",
+      "와이파이 도어락"
+    ],
+    "inputModalities": [
+      "wireless",
+      "security"
+    ],
+    "outputModalities": [
+      "actuator"
+    ],
+    "requiredParts": [],
+    "optionalParts": [],
+    "protocols": [],
+    "simulationPrimitives": [
+      "fault_visualization"
+    ],
+    "renderFootprints": [],
+    "validationRules": [
+      "reject-security-actuator",
+      "safe-reframe-required"
+    ],
+    "commonMistakes": [
+      "Building real access-control devices without security, power, and mechanical safety review"
+    ],
+    "safeAlternatives": [
+      "button-controlled-light-output",
+      "sound-alert-output"
+    ],
+    "unsupportedReason": "Real access-control and home-security actuators are outside H-eduware's safe classroom simulation scope."
+  },
+  {
+    "id": "high-voltage-load-control",
+    "supportLevel": "unsupported",
+    "positivePhrases": [
+      "220v",
+      "110v",
+      "mains",
+      "wall outlet",
+      "heater"
+    ],
+    "requiredEvidence": [
+      "220v",
+      "110v",
+      "mains",
+      "wall outlet",
+      "heater"
+    ],
+    "negativeEvidence": [
+      "led",
+      "usb 5v",
+      "low voltage"
+    ],
+    "minimumScore": 0.62,
+    "studentPhrases": [
+      "220v",
+      "110v",
+      "mains",
+      "wall outlet",
+      "heater",
+      "콘센트",
+      "교류",
+      "220볼트",
+      "히터"
+    ],
+    "inputModalities": [
+      "unsafe-power"
+    ],
+    "outputModalities": [
+      "hazardous-load"
+    ],
+    "requiredParts": [],
+    "optionalParts": [],
+    "protocols": [],
+    "simulationPrimitives": [
+      "fault_visualization"
+    ],
+    "renderFootprints": [],
+    "validationRules": [
+      "reject-high-voltage",
+      "safe-reframe-required"
+    ],
+    "commonMistakes": [
+      "Connecting Arduino or breadboard directly to mains power"
+    ],
+    "safeAlternatives": [
+      "digital-light-output",
+      "sound-alert-output"
+    ],
+    "unsupportedReason": "H-eduware only supports low-voltage classroom circuits and must not synthesize mains-powered circuits."
+  }
+]

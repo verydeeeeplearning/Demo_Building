@@ -97,6 +97,101 @@ test('whole-circuit run guidance uses generic simulation output copy', () => {
   assert.doesNotMatch(answer.message, /OLED output/i);
 });
 
+test('whole-circuit tutor copy explains potentiometer dimming without blink fallback', () => {
+  const circuit = {
+    title: '가변저항으로 LED 밝기 조절',
+    runText: 'KNOB -> PWM LED BRIGHTNESS',
+    parts: [
+      { id: 'uno', type: 'arduino', label: 'Arduino Uno', pins: [] },
+      { id: 'pot', type: 'potentiometer', label: '10K potentiometer', pins: [] },
+      { id: 'r1', type: 'resistor', label: '220 ohm resistor', pins: [] },
+      { id: 'led', type: 'led', label: '5 mm LED', pins: [] }
+    ],
+    connections: [
+      {
+        id: 'c1',
+        from: { partId: 'pot', pin: 'OUT' },
+        to: { partId: 'uno', pin: 'A0' },
+        signal: 'analog',
+        education: { label: 'A0', title: 'A0', what: 'pot to A0', why: 'analog input', missing: 'No brightness control.' }
+      }
+    ]
+  };
+  const target = describeCircuitTarget(circuit, null, 'ko');
+  const answer = answerTutorQuestion({
+    circuit,
+    target,
+    question: '실행하면 어떻게 돼?',
+    locale: 'ko'
+  });
+
+  assert.match(answer.message, /가변저항|A0|PWM|밝기/);
+  assert.doesNotMatch(answer.message, /깜빡입니다/);
+});
+
+test('whole-circuit tutor copy explains light sensor threshold output', () => {
+  const circuit = {
+    title: 'Photoresistor dark-triggered LED',
+    runText: 'DARK THRESHOLD -> LED ON',
+    parts: [
+      { id: 'uno', type: 'arduino', label: 'Arduino Uno', pins: [] },
+      { id: 'ldr', type: 'ldr-module', label: 'Photoresistor LDR module', pins: [] },
+      { id: 'r1', type: 'resistor', label: '220 ohm resistor', pins: [] },
+      { id: 'led', type: 'led', label: '5 mm LED', pins: [] }
+    ],
+    connections: [
+      {
+        id: 'c1',
+        from: { partId: 'ldr', pin: 'AO' },
+        to: { partId: 'uno', pin: 'A0' },
+        signal: 'analog',
+        education: { label: 'A0', title: 'A0', what: 'LDR to A0', why: 'threshold input', missing: 'No sensor reading.' }
+      }
+    ]
+  };
+  const target = describeCircuitTarget(circuit, null, 'en');
+  const answer = answerTutorQuestion({
+    circuit,
+    target,
+    question: 'What changes when I press Run?',
+    locale: 'en'
+  });
+
+  assert.match(answer.message, /light sensor|A0|dark threshold|LED output/i);
+  assert.doesNotMatch(answer.message, /alternates HIGH and LOW/i);
+});
+
+test('whole-circuit tutor copy explains ultrasonic distance display before generic OLED copy', () => {
+  const circuit = {
+    title: 'HC-SR04 distance on OLED',
+    runText: 'DISTANCE: 42 CM',
+    parts: [
+      { id: 'uno', type: 'arduino', label: 'Arduino Uno', pins: [] },
+      { id: 'sonar', type: 'ultrasonic-sensor', label: 'HC-SR04 ultrasonic distance sensor', pins: [] },
+      { id: 'oled', type: 'oled', label: '0.96 inch I2C OLED', pins: [] }
+    ],
+    connections: [
+      {
+        id: 'trig',
+        from: { partId: 'uno', pin: 'D3' },
+        to: { partId: 'sonar', pin: 'TRIG' },
+        signal: 'gpio',
+        education: { label: 'TRIG', title: 'TRIG', what: 'D3 to TRIG', why: 'trigger pulse', missing: 'No distance pulse.' }
+      }
+    ]
+  };
+  const target = describeCircuitTarget(circuit, null, 'ko');
+  const answer = answerTutorQuestion({
+    circuit,
+    target,
+    question: '실행하면 어떻게 돼?',
+    locale: 'ko'
+  });
+
+  assert.match(answer.message, /TRIG|ECHO|D2|OLED|거리/);
+  assert.doesNotMatch(answer.message, /표시 장치가 DISTANCE: 42 CM를 보여/);
+});
+
 test('part tutor gives concrete resistor explanations for LED circuits', () => {
   const circuit = {
     title: 'Arduino Uno LED blink',

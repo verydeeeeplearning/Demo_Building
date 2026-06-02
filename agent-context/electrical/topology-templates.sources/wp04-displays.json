@@ -1,0 +1,356 @@
+[
+  {
+    "id": "controller-bare-seven-segment-display",
+    "label": "Controller to bare single-digit 7-segment display",
+    "description": "A controller drives one or more exposed LED segment pins through individual current-limiting resistors and returns the common display pin to ground.",
+    "requiredRoles": [
+      "controller",
+      "ground-return",
+      "digital-output",
+      "series-current-limit",
+      "bare-seven-segment-display"
+    ],
+    "nets": [
+      {
+        "id": "segment-drive",
+        "kind": "signal"
+      },
+      {
+        "id": "segment-current-limit",
+        "kind": "signal"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "segment-drive",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "series-current-limit.input",
+        "toNet": "segment-drive",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "series-current-limit.output",
+        "toNet": "segment-current-limit",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "bare-seven-segment-display.segment-anode",
+        "toNet": "segment-current-limit",
+        "signal": "gpio"
+      },
+      {
+        "fromRole": "bare-seven-segment-display.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      }
+    ],
+    "validationRules": [
+      "common-ground",
+      "bare-seven-segment-common-ground",
+      "bare-seven-segment-segment-resistor",
+      "series-current-limit",
+      "qualitative-sensor-readout-only"
+    ],
+    "simulationPrimitiveHints": [
+      "bare_seven_segment_display_state",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-led-array-display",
+    "label": "Controller to LED array display module",
+    "description": "A controller powers a low-voltage LED array display module and drives data plus optional clock/chip-select control lines with a shared ground.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-output",
+      "led-array-display"
+    ],
+    "nets": [
+      {
+        "id": "vcc",
+        "kind": "power"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      },
+      {
+        "id": "data",
+        "kind": "signal"
+      },
+      {
+        "id": "clock",
+        "kind": "signal"
+      },
+      {
+        "id": "select",
+        "kind": "signal"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "led-array-display.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "led-array-display.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "data",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "led-array-display.data",
+        "toNet": "data",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "clock",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "led-array-display.clock",
+        "toNet": "clock",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "select",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "led-array-display.chip-select",
+        "toNet": "select",
+        "signal": "digital"
+      }
+    ],
+    "validationRules": [
+      "common-ground",
+      "power-rail-valid",
+      "led-array-display-data-pin",
+      "led-array-display-clock-pin",
+      "led-array-display-select-pin",
+      "qualitative-sensor-readout-only"
+    ],
+    "simulationPrimitiveHints": [
+      "led_array_display_state",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-addressable-led-display",
+    "label": "Controller to addressable LED display",
+    "description": "A controller powers an addressable RGB LED module and sends a single data signal to DIN with a shared ground.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-output",
+      "addressable-led-display"
+    ],
+    "nets": [
+      {
+        "id": "vcc",
+        "kind": "power"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      },
+      {
+        "id": "data",
+        "kind": "signal"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "addressable-led-display.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "addressable-led-display.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "data",
+        "signal": "single-wire-data"
+      },
+      {
+        "fromRole": "addressable-led-display.single-wire-data",
+        "toNet": "data",
+        "signal": "single-wire-data"
+      }
+    ],
+    "validationRules": [
+      "common-ground",
+      "power-rail-valid",
+      "addressable-led-data-pin",
+      "addressable-led-power-warning",
+      "qualitative-sensor-readout-only"
+    ],
+    "simulationPrimitiveHints": [
+      "addressable_led_pattern",
+      "current_flow_animation"
+    ]
+  },
+  {
+    "id": "controller-spi-display",
+    "label": "Controller to SPI display module",
+    "description": "A controller powers a low-voltage SPI display module and drives data, clock, chip-select, and optional display control/reset lines with a shared ground.",
+    "requiredRoles": [
+      "controller",
+      "power-source",
+      "ground-return",
+      "digital-output",
+      "spi-display"
+    ],
+    "nets": [
+      {
+        "id": "vcc",
+        "kind": "power"
+      },
+      {
+        "id": "ground",
+        "kind": "ground"
+      },
+      {
+        "id": "spi-data",
+        "kind": "signal"
+      },
+      {
+        "id": "spi-clock",
+        "kind": "signal"
+      },
+      {
+        "id": "chip-select",
+        "kind": "signal"
+      },
+      {
+        "id": "control",
+        "kind": "signal"
+      }
+    ],
+    "connections": [
+      {
+        "fromRole": "controller.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "spi-display.power",
+        "toNet": "vcc",
+        "signal": "power"
+      },
+      {
+        "fromRole": "controller.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "spi-display.ground",
+        "toNet": "ground",
+        "signal": "ground"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "spi-data",
+        "signal": "spi-data"
+      },
+      {
+        "fromRole": "spi-display.data",
+        "toNet": "spi-data",
+        "signal": "spi-data"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "spi-clock",
+        "signal": "spi-clock"
+      },
+      {
+        "fromRole": "spi-display.clock",
+        "toNet": "spi-clock",
+        "signal": "spi-clock"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "chip-select",
+        "signal": "chip-select"
+      },
+      {
+        "fromRole": "spi-display.chip-select",
+        "toNet": "chip-select",
+        "signal": "chip-select"
+      },
+      {
+        "fromRole": "controller.digital-output",
+        "toNet": "control",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "spi-display.data-command",
+        "toNet": "control",
+        "signal": "digital"
+      },
+      {
+        "fromRole": "spi-display.reset",
+        "toNet": "control",
+        "signal": "digital"
+      }
+    ],
+    "validationRules": [
+      "common-ground",
+      "power-rail-valid",
+      "spi-display-data-pin",
+      "spi-display-clock-pin",
+      "spi-display-select-pin",
+      "spi-display-control-pin",
+      "qualitative-sensor-readout-only"
+    ],
+    "simulationPrimitiveHints": [
+      "spi_display_state",
+      "current_flow_animation"
+    ]
+  }
+]

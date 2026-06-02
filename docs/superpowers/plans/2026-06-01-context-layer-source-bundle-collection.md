@@ -1,6 +1,6 @@
 # Context Layer Source Bundle Collection Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Build a repeatable source-of-truth collection pipeline so H-eduware can promote hardware from visual-only/planned to supported only when official-source claims, canonical data, validation, rendering, simulation, evals, and browser evidence are complete.
 
@@ -141,7 +141,7 @@ Do not modify in this phase:
 - Create: `agent-context/sources/source-authority.md`
 - Test: `tests/unit/sourceClaims.test.ts`
 
-- [ ] **Step 1: Write the failing schema test**
+- [x] **Step 1: Write the failing schema test**
 
 Add this test to `tests/unit/sourceClaims.test.ts`:
 
@@ -175,7 +175,7 @@ test('source claims capture one atomic hardware fact with authority metadata', (
 });
 ```
 
-- [ ] **Step 2: Run the failing test**
+- [x] **Step 2: Run the failing test**
 
 Run:
 
@@ -187,7 +187,7 @@ Expected:
 
 - Fails because `server/context/sourceClaims.ts` does not exist or does not export `SourceClaimSchema`.
 
-- [ ] **Step 3: Create the source claim schema**
+- [x] **Step 3: Create the source claim schema**
 
 Create `server/context/sourceClaims.ts` with:
 
@@ -244,7 +244,7 @@ export async function loadSourceClaims(root = DEFAULT_CONTEXT_ROOT): Promise<Sou
 }
 ```
 
-- [ ] **Step 4: Add human source authority policy**
+- [x] **Step 4: Add human source authority policy**
 
 Create `agent-context/sources/source-authority.md`:
 
@@ -270,7 +270,7 @@ Deepagents should consume canonical context data, not long source documents. Sou
 Each claim must be atomic. Do not combine pin mapping, electrical limits, footprint geometry, and simulation assumptions in one claim.
 ```
 
-- [ ] **Step 5: Verify schema test passes**
+- [x] **Step 5: Verify schema test passes**
 
 Run:
 
@@ -289,7 +289,7 @@ Expected:
 - Create: `agent-context/sources/source-claims.json`
 - Modify: `tests/unit/sourceClaims.test.ts`
 
-- [ ] **Step 1: Add failing loader test**
+- [x] **Step 1: Add failing loader test**
 
 Append:
 
@@ -308,7 +308,7 @@ test('source claim catalog loads current starter hardware claims', async () => {
 });
 ```
 
-- [ ] **Step 2: Run the failing loader test**
+- [x] **Step 2: Run the failing loader test**
 
 Run:
 
@@ -320,7 +320,7 @@ Expected:
 
 - Fails because `agent-context/sources/source-claims.json` does not exist.
 
-- [ ] **Step 3: Create starter source claims**
+- [x] **Step 3: Create starter source claims**
 
 Create `agent-context/sources/source-claims.json` with these initial claims:
 
@@ -405,7 +405,7 @@ Create `agent-context/sources/source-claims.json` with these initial claims:
 ]
 ```
 
-- [ ] **Step 4: Verify loader test passes**
+- [x] **Step 4: Verify loader test passes**
 
 Run:
 
@@ -425,7 +425,7 @@ Expected:
 - Modify: `server/context/sourceClaims.ts`
 - Modify: `tests/unit/sourceClaims.test.ts`
 
-- [ ] **Step 1: Add failing bundle schema test**
+- [x] **Step 1: Add failing bundle schema test**
 
 Append:
 
@@ -469,7 +469,7 @@ test('hardware support bundle groups source claims and canonical artifacts by ca
 });
 ```
 
-- [ ] **Step 2: Run the failing bundle schema test**
+- [x] **Step 2: Run the failing bundle schema test**
 
 Run:
 
@@ -481,7 +481,7 @@ Expected:
 
 - Fails because `HardwareSupportBundleSchema` is not exported.
 
-- [ ] **Step 3: Add bundle schema and loader**
+- [x] **Step 3: Add bundle schema and loader**
 
 Add to `server/context/sourceClaims.ts`:
 
@@ -518,7 +518,7 @@ export async function loadHardwareSupportBundles(root = DEFAULT_CONTEXT_ROOT): P
 }
 ```
 
-- [ ] **Step 4: Verify bundle schema test passes**
+- [x] **Step 4: Verify bundle schema test passes**
 
 Run:
 
@@ -537,7 +537,7 @@ Expected:
 - Create: `agent-context/sources/hardware-support-bundles.json`
 - Modify: `tests/unit/sourceClaims.test.ts`
 
-- [ ] **Step 1: Add failing bundle loader test**
+- [x] **Step 1: Add failing bundle loader test**
 
 Append:
 
@@ -567,7 +567,7 @@ test('hardware support bundles reference existing source claims', async () => {
 });
 ```
 
-- [ ] **Step 2: Run the failing bundle loader test**
+- [x] **Step 2: Run the failing bundle loader test**
 
 Run:
 
@@ -579,7 +579,7 @@ Expected:
 
 - Fails because `agent-context/sources/hardware-support-bundles.json` does not exist.
 
-- [ ] **Step 3: Create starter bundle manifest**
+- [x] **Step 3: Create starter bundle manifest**
 
 Create `agent-context/sources/hardware-support-bundles.json` with five bundle records. Use these IDs:
 
@@ -638,7 +638,7 @@ Create `agent-context/sources/hardware-support-bundles.json` with five bundle re
 ]
 ```
 
-- [ ] **Step 4: Verify bundle loader test passes**
+- [x] **Step 4: Verify bundle loader test passes**
 
 Run:
 
@@ -658,7 +658,7 @@ Expected:
 - Modify: `agent-context/index.md`
 - Modify: `tests/unit/contextLayer.test.ts`
 
-- [ ] **Step 1: Add failing context index test**
+- [x] **Step 1: Add failing context index test**
 
 Add to `tests/unit/contextLayer.test.ts`:
 
@@ -678,7 +678,7 @@ test('context index exposes source claims and support bundles as canonical data'
 });
 ```
 
-- [ ] **Step 2: Run the failing context index test**
+- [x] **Step 2: Run the failing context index test**
 
 Run:
 
@@ -690,7 +690,7 @@ Expected:
 
 - Fails because the new entries are not listed in `agent-context/index.json`.
 
-- [ ] **Step 3: Add index entries**
+- [x] **Step 3: Add index entries**
 
 Add to `agent-context/index.json` references:
 
@@ -705,7 +705,7 @@ Add to `agent-context/index.json` data:
 { "id": "hardware-support-bundles", "path": "sources/hardware-support-bundles.json", "description": "Capability-level support bundles grouping source claims and canonical artifacts.", "canonical": true, "level": "L3", "sourceType": "data", "tags": ["sources", "promotion"], "provides": ["HardwareSupportBundle"] }
 ```
 
-- [ ] **Step 4: Update human-readable index**
+- [x] **Step 4: Update human-readable index**
 
 Add to `agent-context/index.md` under `Retrieval levels`:
 
@@ -719,7 +719,7 @@ Add under `Data-First Expansion Rule`:
 Every supported hardware family must include source-claim coverage. A source claim proves where each critical canonical fact came from; runtime agents consume the canonical data, while audits consume the source claims.
 ```
 
-- [ ] **Step 5: Verify index test passes**
+- [x] **Step 5: Verify index test passes**
 
 Run:
 
@@ -738,7 +738,7 @@ Expected:
 - Modify: `server/context/contextLayer.ts`
 - Modify: `tests/unit/contextCoverage.test.ts`
 
-- [ ] **Step 1: Add failing source-claim artifact expectation**
+- [x] **Step 1: Add failing source-claim artifact expectation**
 
 Update the expected artifact list in `tests/unit/contextCoverage.test.ts`:
 
@@ -770,7 +770,7 @@ test('capability promotion audit requires source claim coverage for supported ca
 });
 ```
 
-- [ ] **Step 2: Run the failing coverage tests**
+- [x] **Step 2: Run the failing coverage tests**
 
 Run:
 
@@ -782,7 +782,7 @@ Expected:
 
 - Fails because `REQUIRED_CAPABILITY_ARTIFACTS` does not include `source-claims` and `auditCapabilityCoverage()` does not check bundles.
 
-- [ ] **Step 3: Add source claims artifact to audit**
+- [x] **Step 3: Add source claims artifact to audit**
 
 In `server/context/contextLayer.ts`, update:
 
@@ -825,7 +825,7 @@ if (supportBundle && supportBundle.sourceClaimIds.length > 0 && supportBundle.so
 }
 ```
 
-- [ ] **Step 4: Verify coverage tests pass**
+- [x] **Step 4: Verify coverage tests pass**
 
 Run:
 
@@ -847,7 +847,7 @@ Expected:
 - Modify: `package.json`
 - Test: `tests/unit/sourceClaims.test.ts`
 
-- [ ] **Step 1: Add failing report test**
+- [x] **Step 1: Add failing report test**
 
 Append to `tests/unit/sourceClaims.test.ts`:
 
@@ -865,7 +865,7 @@ test('source claim report summarizes bundle coverage and trust tiers', async () 
 });
 ```
 
-- [ ] **Step 2: Run the failing report test**
+- [x] **Step 2: Run the failing report test**
 
 Run:
 
@@ -877,7 +877,7 @@ Expected:
 
 - Fails because `sourceClaimReport.ts` does not exist.
 
-- [ ] **Step 3: Implement report builder**
+- [x] **Step 3: Implement report builder**
 
 Create `server/context/sourceClaimReport.ts`:
 
@@ -928,7 +928,7 @@ export async function buildSourceClaimReport(root?: string): Promise<SourceClaim
 }
 ```
 
-- [ ] **Step 4: Implement CLI**
+- [x] **Step 4: Implement CLI**
 
 Create `server/context/sourceClaimReportCli.ts`:
 
@@ -945,7 +945,7 @@ Add script to `package.json`:
 "audit:sources": "tsx server/context/sourceClaimReportCli.ts"
 ```
 
-- [ ] **Step 5: Verify report test and CLI**
+- [x] **Step 5: Verify report test and CLI**
 
 Run:
 
@@ -966,7 +966,7 @@ Expected:
 - Create: `agent-context/sources/collection-playbook.md`
 - Modify: `agent-context/index.json`
 
-- [ ] **Step 1: Create collection playbook**
+- [x] **Step 1: Create collection playbook**
 
 Create `agent-context/sources/collection-playbook.md`:
 
@@ -995,7 +995,7 @@ Use this checklist before moving a hardware request from `planned` or `visual-on
 The app may answer unsupported or planned questions with safe guidance before a full bundle exists. It may not generate build-ready wiring, PCB rendering, or current-flow simulation until the bundle audit passes.
 ```
 
-- [ ] **Step 2: Add playbook to index**
+- [x] **Step 2: Add playbook to index**
 
 Add to `agent-context/index.json` references:
 
@@ -1003,7 +1003,7 @@ Add to `agent-context/index.json` references:
 { "id": "source-collection-playbook", "path": "sources/collection-playbook.md", "description": "Step-by-step process for collecting source-backed hardware context bundles.", "canonical": true, "level": "L2", "sourceType": "reference", "tags": ["sources", "promotion"] }
 ```
 
-- [ ] **Step 3: Verify index references**
+- [x] **Step 3: Verify index references**
 
 Run:
 
@@ -1021,7 +1021,7 @@ Expected:
 
 - Create: `docs/context-source-bundle-backlog.md`
 
-- [ ] **Step 1: Create backlog document**
+- [x] **Step 1: Create backlog document**
 
 Create `docs/context-source-bundle-backlog.md`:
 
@@ -1071,7 +1071,7 @@ Do not convert all visual library parts to supported. For each visual-only part,
 - `unsupported`: unsafe, too advanced, or outside H-eduware educational scope.
 ```
 
-- [ ] **Step 2: Verify backlog exists**
+- [x] **Step 2: Verify backlog exists**
 
 Run:
 
@@ -1089,7 +1089,7 @@ Expected:
 
 - No new files.
 
-- [ ] **Step 1: Run source-specific verification**
+- [x] **Step 1: Run source-specific verification**
 
 Run:
 
@@ -1103,7 +1103,7 @@ Expected:
 - Source claim tests pass.
 - Source audit JSON prints no missing claim IDs for supported starter bundles.
 
-- [ ] **Step 2: Run context verification**
+- [x] **Step 2: Run context verification**
 
 Run:
 
@@ -1119,7 +1119,7 @@ Expected:
 - Supported capabilities still pass promotion audit.
 - Planned capabilities remain blocked with explicit missing artifacts.
 
-- [ ] **Step 3: Run acceptance gate**
+- [x] **Step 3: Run acceptance gate**
 
 Run:
 
@@ -1132,7 +1132,7 @@ Expected:
 - Unit tests, typecheck, production build, and Playwright E2E pass.
 - Live agent tests remain opt-in and skipped unless `check:live` is explicitly used.
 
-- [ ] **Step 4: Document coworking handoff**
+- [x] **Step 4: Document coworking handoff**
 
 Append to `docs/coworking_handoff_2026-05-31.md`:
 

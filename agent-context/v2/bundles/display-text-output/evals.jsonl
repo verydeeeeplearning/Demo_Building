@@ -1,0 +1,2 @@
+{"id":"v2-oled-text-ko","message":"OLED에 이름을 표시하고 싶어","expected":"valid_circuit_synthesis"}
+{"id":"v2-app-screen-not-oled","message":"앱 화면에 전류 흐름을 보여줘","expected":"clarification_or_no_hardware_display"}

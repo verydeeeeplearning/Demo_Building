@@ -1,0 +1,146 @@
+[
+  {
+    "id": "breadboard-half",
+    "kind": "board",
+    "label": "Half-size breadboard",
+    "aliases": ["breadboard", "prototype board"],
+    "pins": [
+      { "name": "+ rail", "role": "power-rail", "aliases": ["5v rail"] },
+      { "name": "- rail", "role": "ground-rail", "aliases": ["ground rail", "gnd rail"] }
+    ],
+    "electrical": { "voltageRange": { "min": 0, "max": 5, "nominal": 5 }, "maxCurrentMa": 500, "requiresCurrentLimiting": false },
+    "protocols": ["power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "breadboard", "width": 5.6, "depth": 2.15, "height": 0.18 },
+    "simulationModel": { "type": "connection-board", "nominalCurrentMa": 0 }
+  },
+  {
+    "id": "arduino-uno",
+    "kind": "controller",
+    "label": "Arduino Uno",
+    "aliases": ["arduino", "uno", "microcontroller", "controller"],
+    "pins": [
+      { "name": "5V", "role": "power", "aliases": ["vcc", "+5v"] },
+      { "name": "GND", "role": "ground", "aliases": ["ground", "0v"] },
+      { "name": "A4/SDA", "role": "i2c-data", "aliases": ["sda", "a4"] },
+      { "name": "A5/SCL", "role": "i2c-clock", "aliases": ["scl", "a5"] },
+      { "name": "D2", "role": "digital-input", "aliases": ["pin 2"] },
+      { "name": "D3", "role": "digital-output", "aliases": ["pin 3"] },
+      { "name": "D8", "role": "digital-output", "aliases": ["pin 8"] },
+      { "name": "D9", "role": "pwm-output", "aliases": ["pin 9", "pwm"] }
+    ],
+    "electrical": { "voltageRange": { "min": 0, "max": 5, "nominal": 5 }, "maxCurrentMa": 20, "requiresCurrentLimiting": false },
+    "protocols": ["gpio", "i2c", "pwm", "power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "arduino", "width": 2.05, "depth": 1.28, "height": 0.16 },
+    "simulationModel": { "type": "controller-source", "nominalCurrentMa": 0 }
+  },
+  {
+    "id": "oled-i2c-096",
+    "kind": "output",
+    "label": "0.96 inch I2C OLED",
+    "aliases": ["oled", "screen", "display", "little screen", "tiny screen", "text display"],
+    "pins": [
+      { "name": "VCC", "role": "power", "aliases": ["5v", "vin"] },
+      { "name": "GND", "role": "ground", "aliases": ["ground"] },
+      { "name": "SDA", "role": "i2c-data", "aliases": ["data"] },
+      { "name": "SCL", "role": "i2c-clock", "aliases": ["clock"] }
+    ],
+    "electrical": { "voltageRange": { "min": 3.3, "max": 5, "nominal": 5 }, "maxCurrentMa": 25, "requiresCurrentLimiting": false },
+    "protocols": ["i2c"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "oled", "width": 1.45, "depth": 0.88, "height": 0.14 },
+    "simulationModel": { "type": "i2c-display-load", "nominalCurrentMa": 18 }
+  },
+  {
+    "id": "led-5mm",
+    "kind": "output",
+    "label": "5 mm LED",
+    "aliases": ["led", "light", "lamp", "indicator", "blink"],
+    "pins": [
+      { "name": "A", "role": "anode", "aliases": ["positive", "+"] },
+      { "name": "K", "role": "cathode", "aliases": ["negative", "-"] }
+    ],
+    "electrical": { "voltageRange": { "min": 1.8, "max": 2.4, "nominal": 2 }, "maxCurrentMa": 20, "requiresCurrentLimiting": true },
+    "protocols": ["gpio"],
+    "requiredPassives": [{ "partId": "resistor-220", "reason": "limit LED current from Arduino GPIO" }],
+    "renderFootprint": { "type": "led", "width": 0.3, "depth": 0.3, "height": 0.5 },
+    "simulationModel": { "type": "diode-load", "nominalCurrentMa": 13.6 }
+  },
+  {
+    "id": "resistor-220",
+    "kind": "passive",
+    "label": "220 ohm resistor",
+    "aliases": ["resistor", "220", "current limiter", "current limiting resistor"],
+    "pins": [
+      { "name": "1", "role": "passive-terminal", "aliases": ["left"] },
+      { "name": "2", "role": "passive-terminal", "aliases": ["right"] }
+    ],
+    "electrical": { "voltageRange": { "min": 0, "max": 5, "nominal": 5 }, "maxCurrentMa": 25, "requiresCurrentLimiting": false },
+    "protocols": ["passive"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "resistor", "width": 0.7, "depth": 0.16, "height": 0.16 },
+    "simulationModel": { "type": "resistor", "nominalCurrentMa": 13.6 }
+  },
+  {
+    "id": "button-tactile",
+    "kind": "input",
+    "label": "Tactile pushbutton",
+    "aliases": ["button", "pushbutton", "switch", "press"],
+    "pins": [
+      { "name": "A", "role": "switch-terminal", "aliases": ["side a"] },
+      { "name": "B", "role": "switch-terminal", "aliases": ["side b"] }
+    ],
+    "electrical": { "voltageRange": { "min": 0, "max": 5, "nominal": 5 }, "maxCurrentMa": 2, "requiresCurrentLimiting": false },
+    "protocols": ["gpio"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "button", "width": 0.5, "depth": 0.5, "height": 0.2 },
+    "simulationModel": { "type": "digital-input-switch", "nominalCurrentMa": 1 }
+  },
+  {
+    "id": "piezo-buzzer",
+    "kind": "output",
+    "label": "Piezo buzzer",
+    "aliases": ["buzzer", "beep", "sound", "alarm", "tone"],
+    "pins": [
+      { "name": "+", "role": "positive", "aliases": ["signal", "vcc"] },
+      { "name": "-", "role": "ground", "aliases": ["gnd", "negative"] }
+    ],
+    "electrical": { "voltageRange": { "min": 3, "max": 5, "nominal": 5 }, "maxCurrentMa": 20, "requiresCurrentLimiting": false },
+    "protocols": ["gpio", "pwm"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "buzzer", "width": 0.55, "depth": 0.55, "height": 0.35 },
+    "simulationModel": { "type": "sound-load", "nominalCurrentMa": 15 }
+  },
+  {
+    "id": "micro-servo",
+    "kind": "output",
+    "label": "Micro servo",
+    "aliases": ["servo", "servo arm", "move", "sweep", "actuator"],
+    "pins": [
+      { "name": "VCC", "role": "power", "aliases": ["5v", "red"] },
+      { "name": "GND", "role": "ground", "aliases": ["brown", "black"] },
+      { "name": "SIG", "role": "pwm-signal", "aliases": ["signal", "orange"] }
+    ],
+    "electrical": { "voltageRange": { "min": 4.8, "max": 6, "nominal": 5 }, "maxCurrentMa": 250, "requiresCurrentLimiting": false },
+    "protocols": ["pwm", "power"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "servo", "width": 0.8, "depth": 0.42, "height": 0.68 },
+    "simulationModel": { "type": "servo-load", "nominalCurrentMa": 120 }
+  },
+  {
+    "id": "jumper-wire",
+    "kind": "wiring",
+    "label": "Jumper wire",
+    "aliases": ["wire", "jumper", "dupont"],
+    "pins": [
+      { "name": "A", "role": "conductor-end", "aliases": ["end a"] },
+      { "name": "B", "role": "conductor-end", "aliases": ["end b"] }
+    ],
+    "electrical": { "voltageRange": { "min": 0, "max": 5, "nominal": 5 }, "maxCurrentMa": 500, "requiresCurrentLimiting": false },
+    "protocols": ["wire"],
+    "requiredPassives": [],
+    "renderFootprint": { "type": "wire", "width": 0.1, "depth": 0.1, "height": 0.1 },
+    "simulationModel": { "type": "conductor", "nominalCurrentMa": 0 }
+  }
+]
