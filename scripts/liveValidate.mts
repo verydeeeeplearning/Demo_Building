@@ -31,9 +31,14 @@ type CaseResult = {
 
 const count = Number(process.argv[2] ?? '999');
 const startIndex = Number(process.argv[3] ?? '0');
+// Optional: H_EDUWARE_LIVE_IDS="id1,id2" runs only those case ids (for targeted re-tests).
+const idFilter = (process.env.H_EDUWARE_LIVE_IDS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
 
 const corpus = await loadInCatalogCorpus();
-const sample = corpus.cases.slice(startIndex, startIndex + count);
+const sample = idFilter.length > 0
+  ? corpus.cases.filter((c) => idFilter.includes(c.id))
+  : corpus.cases.slice(startIndex, startIndex + count);
+console.log(`reasoning=${process.env.H_EDUWARE_AGENT_REASONING_EFFORT ?? '(default)'} | running ${sample.length} cases`);
 const results: CaseResult[] = [];
 
 for (const c of sample) {
