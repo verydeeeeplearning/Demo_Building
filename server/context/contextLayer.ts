@@ -65,33 +65,6 @@ const RawContextIndexSchema = z.object({
   routing: z.array(RawContextEntrySchema).default([])
 });
 
-const ContextRouteMapRouteSchema = z.object({
-  routeId: z.string().min(1),
-  priority: z.number().int(),
-  budget: ContextRetrievalBudgetSchema,
-  when: z.object({
-    capabilityIds: z.array(z.string().min(1)).default([]),
-    modalities: z.array(z.string().min(1)).default([]),
-    supportLevels: z.array(z.enum(['supported', 'partial', 'planned', 'unsupported'])).default([]),
-    ambiguity: z.boolean().optional(),
-    unsafe: z.boolean().optional()
-  }).default({ capabilityIds: [], modalities: [], supportLevels: [] }),
-  load: z.record(z.string(), z.array(z.string().min(1))),
-  reason: z.string().min(1)
-});
-
-const ContextRoutingMapSchema = z.object({
-  version: z.string(),
-  maxPromptCharsByBudget: z.object({
-    minimal: z.number().int().positive(),
-    summary: z.number().int().positive(),
-    'data-only': z.number().int().positive(),
-    full: z.number().int().positive()
-  }),
-  heavySourceIds: z.array(z.string().min(1)).default([]),
-  routes: z.array(ContextRouteMapRouteSchema).min(1)
-});
-
 export const ContextBundleManifestV2Schema = z.object({
   schemaVersion: z.string().min(1),
   bundleId: z.string().min(1),
@@ -232,8 +205,6 @@ export type ContextIndex = {
   data: ContextEntry[];
   routing: ContextEntry[];
 };
-export type ContextRoutingMap = z.infer<typeof ContextRoutingMapSchema>;
-export type ContextRoutingRoute = z.infer<typeof ContextRouteMapRouteSchema>;
 export type ContextBundleManifestV2 = z.infer<typeof ContextBundleManifestV2Schema>;
 export type ContextV2Index = z.infer<typeof ContextV2IndexSchema>;
 export type ContextV2Routes = z.infer<typeof ContextV2RoutesSchema>;
@@ -465,7 +436,6 @@ const SUPPORTED_VALIDATION_RULES = new Set([
 
 let cachedIndex: ContextIndex | null = null;
 let cachedParts: PartCapability[] | null = null;
-let cachedRoutingMap: ContextRoutingMap | null = null;
 let cachedContextV2Index: ContextV2Index | null = null;
 let cachedContextV2Routes: ContextV2Routes | null = null;
 
@@ -488,25 +458,6 @@ export async function loadContextIndex(root = DEFAULT_CONTEXT_ROOT): Promise<Con
     cachedIndex = index;
   }
   return index;
-}
-
-export async function loadContextRoutingMap(root = DEFAULT_CONTEXT_ROOT): Promise<ContextRoutingMap> {
-  if (cachedRoutingMap && root === DEFAULT_CONTEXT_ROOT) {
-    return cachedRoutingMap;
-  }
-
-  const index = await loadContextIndex(root);
-  const entry = index.routing.find((candidate) => candidate.id === 'context-routing-map');
-  if (!entry) {
-    throw new Error('Context index is missing context-routing-map routing entry');
-  }
-
-  const content = await readFile(path.join(root, entry.path), 'utf8');
-  const routingMap = ContextRoutingMapSchema.parse(JSON.parse(content));
-  if (root === DEFAULT_CONTEXT_ROOT) {
-    cachedRoutingMap = routingMap;
-  }
-  return routingMap;
 }
 
 export async function loadContextV2Index(root = DEFAULT_CONTEXT_ROOT): Promise<ContextV2Index> {
@@ -1022,7 +973,6 @@ export async function auditCapabilityPromotionGaps(root = DEFAULT_CONTEXT_ROOT):
 export function clearContextCache() {
   cachedIndex = null;
   cachedParts = null;
-  cachedRoutingMap = null;
   cachedContextV2Index = null;
   cachedContextV2Routes = null;
   clearCapabilityGraphCache();
@@ -1134,7 +1084,6 @@ function inferProvidedArtifact(id: string, sourceType: ContextEntry['sourceType'
     'render-footprints': 'RenderFootprint',
     'topology-templates': 'TopologyTemplate',
     'pin-aliases': 'PinAlias',
-    'context-routing-map': 'ContextRoute',
     'retrieval-budget': 'RetrievalBudget'
   };
   return explicit[id] ?? `${sourceType}:context`;

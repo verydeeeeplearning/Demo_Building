@@ -4,7 +4,7 @@ import test from 'node:test';
 import { buildContextPacket } from '../../server/context/contextPacket.ts';
 import {
   loadContextIndex,
-  loadContextRoutingMap,
+  loadContextV2Routes,
   resolveContextSourceId
 } from '../../server/context/contextLayer.ts';
 
@@ -35,16 +35,16 @@ test('context index exposes hierarchical routing metadata and namespaced aliases
   assert.equal(resolveContextSourceId('data:capability-graph:display-text-output', index)?.id, 'capability-graph');
 });
 
-test('routing map references only resolvable context source ids', async () => {
-  const [index, routingMap] = await Promise.all([
+test('v2 routes reference only resolvable context source ids', async () => {
+  const [index, routes] = await Promise.all([
     loadContextIndex(),
-    loadContextRoutingMap()
+    loadContextV2Routes()
   ]);
 
-  for (const route of routingMap.routes) {
+  for (const route of routes.routes) {
     assert.ok(route.routeId.length > 0);
-    assert.ok(route.budget in routingMap.maxPromptCharsByBudget);
-    for (const sourceId of Object.values(route.load).flat()) {
+    assert.ok(route.maxPromptChars > 0);
+    for (const sourceId of route.alwaysInclude) {
       assert.ok(resolveContextSourceId(sourceId, index), `${route.routeId} missing source ${sourceId}`);
     }
   }

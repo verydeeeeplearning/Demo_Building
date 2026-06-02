@@ -92,7 +92,6 @@ const requiredFiles = [
   'data/capability-graph.sources/wp02-digital-inputs.json',
   'data/capability-graph.sources/wp03-matrix-inputs.json',
   'data/capability-graph.sources/wp04-displays.json',
-  'routing/context-routing-map.json',
   'routing/retrieval-budget.md',
   'prompts/coordinator-system.md',
   'prompts/intent-analyst.md',

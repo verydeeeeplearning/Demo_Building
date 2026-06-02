@@ -3,7 +3,6 @@ import {
   detectVisualLibraryPartMentions,
   loadContextBundleV2,
   loadContextIndex,
-  loadContextRoutingMap,
   loadContextV2Index,
   loadContextV2Routes,
   loadRenderFootprints,
@@ -34,8 +33,6 @@ import {
 import type {
   ContextBundleV2,
   ContextIndex,
-  ContextRoutingMap,
-  ContextRoutingRoute,
   ContextV2Routes,
   VisualLibraryPartMention
 } from './contextLayer.ts';
@@ -1788,119 +1785,6 @@ function buildContextRouteV2({
   });
 }
 
-function selectContextRoute({
-  routingMap,
-  intentHints,
-  capabilityMatches,
-  unsupportedSignals,
-  supportGaps
-}: {
-  routingMap: ContextRoutingMap;
-  intentHints: ReturnType<typeof inferIntentHints>;
-  capabilityMatches: CapabilityGraphEntry[];
-  unsupportedSignals: string[];
-  supportGaps: string[];
-}): ContextRoute {
-  const capabilityIds = capabilityMatches.map((capability) => capability.id);
-  const intentSignals = buildIntentSignals({ intentHints, unsupportedSignals, capabilityMatches });
-  const route = [...routingMap.routes]
-    .sort((a, b) => a.priority - b.priority)
-    .find((candidate) => routeMatches(candidate, {
-      capabilityMatches,
-      intentSignals,
-      ambiguity: intentHints.ambiguity.length > 0,
-      unsafe: unsupportedSignals.length > 0,
-      supportGaps
-    })) ?? routingMap.routes.find((candidate) => candidate.routeId === 'supported-hardware-general') ?? routingMap.routes[0];
-
-  const confidence = route.routeId === 'ambiguous-minimal'
-    ? 0.35
-    : route.routeId === 'unsupported-safety'
-      ? 0.9
-      : supportGaps.length > 0
-        ? 0.65
-        : capabilityMatches.length > 0
-          ? 0.85
-          : 0.5;
-
-  return ContextRouteSchema.parse({
-    routeId: route.routeId,
-    intentSignals,
-    capabilityIds,
-    sourceIds: routeSourceIds(route),
-    confidence,
-    reason: route.reason
-  });
-}
-
-function routeMatches(route: ContextRoutingRoute, input: {
-  capabilityMatches: CapabilityGraphEntry[];
-  intentSignals: string[];
-  ambiguity: boolean;
-  unsafe: boolean;
-  supportGaps: string[];
-}) {
-  const { when } = route;
-  if (when.ambiguity && (!input.ambiguity || input.capabilityMatches.length > 0)) {
-    return false;
-  }
-  if (when.unsafe && !input.unsafe && !input.capabilityMatches.some((capability) => capability.supportLevel === 'unsupported')) {
-    return false;
-  }
-  if (
-    when.supportLevels.length > 0
-    && !(when.unsafe && input.unsafe)
-    && !input.capabilityMatches.some((capability) => when.supportLevels.includes(capability.supportLevel))
-  ) {
-    return false;
-  }
-  if (when.capabilityIds.length > 0 && !input.capabilityMatches.some((capability) => when.capabilityIds.includes(capability.id))) {
-    return false;
-  }
-  if (when.modalities.length > 0 && !when.modalities.every((modality) => input.intentSignals.includes(modality))) {
-    return false;
-  }
-  return true;
-}
-
-function buildRetrievalPlan({
-  contextRoute,
-  routingMap,
-  index
-}: {
-  contextRoute: ContextRoute;
-  routingMap: ContextRoutingMap;
-  index: ContextIndex;
-}): RetrievalPlan {
-  const routeSourceIds = contextRoute.sourceIds;
-  const sourceIds: string[] = [];
-  const warnings: string[] = [];
-
-  for (const sourceId of routeSourceIds) {
-    const resolved = resolveContextSourceId(sourceId, index);
-    if (!resolved) {
-      warnings.push(`Missing context source id referenced by route ${contextRoute.routeId}: ${sourceId}`);
-      continue;
-    }
-    sourceIds.push(resolved.sourceId);
-  }
-
-  const selected = new Set(sourceIds);
-  const omittedSourceIds = routingMap.heavySourceIds
-    .map((sourceId) => resolveContextSourceId(sourceId, index)?.sourceId ?? sourceId)
-    .filter((sourceId) => !selected.has(sourceId));
-  const route = routingMap.routes.find((candidate) => candidate.routeId === contextRoute.routeId);
-  const budget = route?.budget ?? 'summary';
-
-  return RetrievalPlanSchema.parse({
-    sourceIds: unique(sourceIds),
-    omittedSourceIds: unique(omittedSourceIds),
-    budget,
-    maxPromptChars: routingMap.maxPromptCharsByBudget[budget],
-    warnings
-  });
-}
-
 function buildRetrievalPlanV2({
   contextRoute,
   route,
@@ -1961,10 +1845,6 @@ function budgetForV2Route(route: ContextV2Route, selectedBundles: ContextBundleV
   if (bundleBudgets.includes('data-only')) return 'data-only';
   if (bundleBudgets.includes('summary')) return 'summary';
   return 'minimal';
-}
-
-function routeSourceIds(route: ContextRoutingRoute) {
-  return unique(Object.values(route.load).flat());
 }
 
 function includesSource(plan: RetrievalPlan, sourceId: string) {

@@ -51,7 +51,6 @@
     { "id": "unsupported-prompts", "path": "evals/unsupported-prompts.jsonl", "description": "Unsupported prompt fixtures." }
   ],
   "routing": [
-    { "id": "context-routing-map", "path": "routing/context-routing-map.json", "description": "Hierarchical source routing map for request-specific context retrieval." },
     { "id": "retrieval-budget", "path": "routing/retrieval-budget.md", "description": "Budget rules for bounded prompt assembly and source loading." }
   ]
 }
