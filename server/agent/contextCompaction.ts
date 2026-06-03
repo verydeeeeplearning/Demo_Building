@@ -115,6 +115,35 @@ export function compactSystemContextBlocks(
   return result;
 }
 
+/**
+ * Compact the blocks so the FULLY ASSEMBLED prompt fits `maxChars`, given the
+ * measured length of that assembled prompt (system-prompt scaffolding + user
+ * prompt + extra blocks built from `rawBlocks`).
+ *
+ * This is the live-path fix for Phase 5a: compacting the raw blocks against
+ * `maxChars` alone (the original behaviour) ignores the non-block overhead, so a
+ * prompt that is only a few chars over budget slips through uncompacted and
+ * hard-fails with AgentPromptBudgetError (observed live: synthesis 9029/9000).
+ * Here we reserve the measured overhead (assembledLength − blocks' own length)
+ * plus a safety margin, then compact the blocks into what remains.
+ *
+ * Pure: callers supply the already-measured `assembledLength`; this function
+ * performs no I/O and builds no prompt.
+ */
+export function compactBlocksWithinAssembledBudget(args: {
+  rawBlocks: SystemContextBlocks;
+  assembledLength: number;
+  maxChars: number;
+  safetyMargin?: number;
+}): SystemContextBlocks {
+  if (args.assembledLength <= args.maxChars) {
+    return args.rawBlocks;
+  }
+  const overhead = args.assembledLength - systemContextBlocksLength(args.rawBlocks);
+  const effectiveBudget = Math.max(0, args.maxChars - overhead - (args.safetyMargin ?? 0));
+  return compactSystemContextBlocks(args.rawBlocks, effectiveBudget);
+}
+
 // ---------------------------------------------------------------------------
 // Phase 5b: foldRunningSummary
 // ---------------------------------------------------------------------------
@@ -163,6 +192,21 @@ export function foldRunningSummary(
 // ---------------------------------------------------------------------------
 
 function combinedLength(blocks: SystemContextBlocks): number {
+  return systemContextBlocksLength(blocks);
+}
+
+/**
+ * Combined char length of the four system/context blocks joined the same way
+ * measureAgentPromptBudget joins prompt segments ('\n\n').
+ *
+ * Exposed so the call site can compute the NON-block overhead of the fully
+ * assembled prompt (system-prompt scaffolding + user prompt + extra blocks)
+ * and reserve it from the compaction budget. Without this, compaction would
+ * only ensure the raw blocks fit `maxPromptChars`, while the assert measures
+ * the whole prompt — letting a prompt that is a few chars over budget slip
+ * through uncompacted and hard-fail with AgentPromptBudgetError.
+ */
+export function systemContextBlocksLength(blocks: SystemContextBlocks): number {
   return [
     blocks.operatingMemory,
     blocks.coordinatorPrompt,

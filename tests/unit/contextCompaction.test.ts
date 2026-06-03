@@ -3,6 +3,8 @@ import test from 'node:test';
 
 import {
   compactSystemContextBlocks,
+  compactBlocksWithinAssembledBudget,
+  systemContextBlocksLength,
   foldRunningSummary,
   type SystemContextBlocks,
   type CompactionTarget
@@ -90,6 +92,66 @@ test('5a — compaction target enum covers all four dominant system/context bloc
     'contextPacketBlock'
   ];
   assert.equal(targets.length, 4);
+});
+
+// ---------------------------------------------------------------------------
+// Phase 5a — live-path regression: overhead-aware assembled-prompt budget
+// ---------------------------------------------------------------------------
+
+test('5a (regression) — blocks that fit alone but overflow the ASSEMBLED prompt are compacted', () => {
+  // Reproduces the live 413: synthesis prompt 9029 / budget 9000.  The four blocks
+  // individually fit within maxChars, so compactSystemContextBlocks() alone would
+  // early-return and do nothing — yet the assembled prompt (blocks + system-prompt
+  // scaffolding + user prompt + subagent blocks) is a few chars over budget.
+  const maxChars = 9000;
+  const rawBlocks: SystemContextBlocks = {
+    operatingMemory: 'A'.repeat(3000),
+    coordinatorPrompt: 'B'.repeat(3000),
+    registrySummary: 'C'.repeat(1400),
+    contextPacketBlock: 'D'.repeat(1400)
+  };
+
+  // Blocks alone are under budget — the old behaviour would NOT compact.
+  const blocksOwnLength = systemContextBlocksLength(rawBlocks);
+  assert.ok(blocksOwnLength <= maxChars, 'precondition: raw blocks fit maxChars on their own');
+
+  // But the assembled prompt overflows by an overhead (scaffold + user prompt) that
+  // pushes the total just past budget — the live 9029/9000 shape.
+  const overhead = 300; // system-prompt scaffolding + a seeded conversation turn
+  const assembledLength = blocksOwnLength + overhead; // > 9000
+  assert.ok(assembledLength > maxChars, 'precondition: assembled prompt overflows budget');
+
+  const compacted = compactBlocksWithinAssembledBudget({
+    rawBlocks,
+    assembledLength,
+    maxChars,
+    safetyMargin: 64
+  });
+
+  // After compaction, the assembled prompt (compacted blocks + the same overhead)
+  // must fit within budget — i.e. it would no longer throw AgentPromptBudgetError.
+  const compactedAssembled = systemContextBlocksLength(compacted) + overhead;
+  assert.ok(
+    compactedAssembled <= maxChars,
+    `Compacted assembled prompt (${compactedAssembled}) must fit budget (${maxChars})`
+  );
+  // And it must actually have changed something (not the no-op early return).
+  assert.notEqual(systemContextBlocksLength(compacted), blocksOwnLength);
+});
+
+test('5a (regression) — assembled prompt already within budget passes through unchanged', () => {
+  const maxChars = 9000;
+  const rawBlocks: SystemContextBlocks = {
+    operatingMemory: 'A'.repeat(2000),
+    coordinatorPrompt: 'B'.repeat(2000),
+    registrySummary: 'C'.repeat(1000),
+    contextPacketBlock: 'D'.repeat(1000)
+  };
+  const assembledLength = systemContextBlocksLength(rawBlocks) + 100; // still < 9000
+
+  const result = compactBlocksWithinAssembledBudget({ rawBlocks, assembledLength, maxChars, safetyMargin: 64 });
+
+  assert.deepEqual(result, rawBlocks);
 });
 
 // ---------------------------------------------------------------------------

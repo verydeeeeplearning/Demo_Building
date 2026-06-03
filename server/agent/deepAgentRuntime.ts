@@ -35,7 +35,11 @@ import {
   validateCircuitSpec
 } from './circuitTools.ts';
 import { createHeduwareAgentTools } from './deepAgentTools.ts';
-import { compactSystemContextBlocks, foldRunningSummary } from './contextCompaction.ts';
+import {
+  compactBlocksWithinAssembledBudget,
+  foldRunningSummary,
+  type SystemContextBlocks
+} from './contextCompaction.ts';
 import {
   AgentEventSchema,
   AgentMessageRequestSchema,
@@ -390,31 +394,39 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
   const subagents = pipelineMode === 'legacy' ? createSubagents(toolOptions) : [];
   // Phase 5a — graceful compaction: compact the dominant system/context blocks at the
   // prompt-assembly boundary so that an over-budget context returns a bounded prompt
-  // instead of throwing AgentPromptBudgetError.  The user prompt and short turn slice
-  // are reserved; the budget here is the full allowance (the assert below then confirms
-  // the compacted prompt fits).
-  const synthesisBlocks = compactSystemContextBlocks(
-    {
+  // instead of throwing AgentPromptBudgetError.  Reserves the non-block overhead
+  // (system-prompt scaffolding + user prompt + subagent blocks) so the FULL assembled
+  // prompt — what the assert measures — fits the route budget, not just the raw blocks.
+  const synthesisUserPrompt = buildAgentUserPrompt(request, { attempt: 1, previousErrors: [] });
+  const synthesisExtraBlocks = [renderSubagentPromptBudgetText(subagents)];
+  const buildSynthesisSystemPrompt = (blocks: SystemContextBlocks): string =>
+    buildSystemPrompt({
+      locale: request.locale ?? 'ko',
+      operatingMemory: blocks.operatingMemory,
+      coordinatorPrompt: blocks.coordinatorPrompt,
+      registrySummary: blocks.registrySummary,
+      contextPacketBlock: blocks.contextPacketBlock
+    });
+  const synthesisBlocks = compactBlocksForAssembledPrompt({
+    stage: 'synthesis',
+    contextPacket,
+    rawBlocks: {
       operatingMemory: runtimeOperatingMemory,
       coordinatorPrompt: runtimeContextIndex,
       registrySummary,
       contextPacketBlock: contextPacket.promptBlock
     },
-    contextPacket.retrievalPlan.maxPromptChars
-  );
-  const synthesisSystemPrompt = buildSystemPrompt({
-    locale: request.locale ?? 'ko',
-    operatingMemory: synthesisBlocks.operatingMemory,
-    coordinatorPrompt: synthesisBlocks.coordinatorPrompt,
-    registrySummary: synthesisBlocks.registrySummary,
-    contextPacketBlock: synthesisBlocks.contextPacketBlock
+    buildSystemPromptFrom: buildSynthesisSystemPrompt,
+    userPrompt: synthesisUserPrompt,
+    extraPromptBlocks: synthesisExtraBlocks
   });
+  const synthesisSystemPrompt = buildSynthesisSystemPrompt(synthesisBlocks);
   assertAgentPromptBudget({
     stage: 'synthesis',
     contextPacket,
     systemPrompt: synthesisSystemPrompt,
-    userPrompt: buildAgentUserPrompt(request, { attempt: 1, previousErrors: [] }),
-    extraPromptBlocks: [renderSubagentPromptBudgetText(subagents)]
+    userPrompt: synthesisUserPrompt,
+    extraPromptBlocks: synthesisExtraBlocks
   });
 
   const agent = deepAgentFactory({
@@ -503,21 +515,28 @@ async function runRequirementAnalysisAgent({
   deepAgentFactory: DeepAgentFactory;
 }): Promise<RequirementAnalysis> {
   // Phase 5a — compact the contextPacketBlock for the requirement-analysis prompt so that
-  // an over-budget context packet does not hard-fail this assert site either.
-  const requirementBlocks = compactSystemContextBlocks(
-    {
+  // an over-budget context packet does not hard-fail this assert site either. Reserves the
+  // non-block overhead so the full assembled prompt fits, not just the raw context block.
+  const requirementUserPrompt = buildRequirementAnalysisUserPrompt(request);
+  const buildRequirementSystemPrompt = (blocks: SystemContextBlocks): string =>
+    buildRequirementAnalysisSystemPrompt({
+      locale: request.locale ?? 'ko',
+      contextPacketBlock: blocks.contextPacketBlock
+    });
+  const requirementBlocks = compactBlocksForAssembledPrompt({
+    stage: 'requirement-analysis',
+    contextPacket,
+    rawBlocks: {
       operatingMemory: '',
       coordinatorPrompt: '',
       registrySummary: '',
       contextPacketBlock: contextPacket.promptBlock
     },
-    contextPacket.retrievalPlan.maxPromptChars
-  );
-  const systemPrompt = buildRequirementAnalysisSystemPrompt({
-    locale: request.locale ?? 'ko',
-    contextPacketBlock: requirementBlocks.contextPacketBlock
+    buildSystemPromptFrom: buildRequirementSystemPrompt,
+    userPrompt: requirementUserPrompt
   });
-  const userPrompt = buildRequirementAnalysisUserPrompt(request);
+  const systemPrompt = buildRequirementSystemPrompt(requirementBlocks);
+  const userPrompt = requirementUserPrompt;
   assertAgentPromptBudget({
     stage: 'requirement-analysis',
     contextPacket,
@@ -641,6 +660,49 @@ function assertAgentPromptBudget(input: Parameters<typeof measureAgentPromptBudg
     });
     throw new AgentPromptBudgetError(audit.stage, audit.actualChars, audit.maxChars);
   }
+}
+
+/**
+ * Chars reserved below the route budget when compacting the system/context
+ * blocks, to absorb minor block-vs-scaffold length differences introduced by
+ * buildSystemPrompt (headers, trimming) so the post-compaction assert clears.
+ */
+const PROMPT_BUDGET_SAFETY_MARGIN = 64;
+
+/**
+ * Phase 5a (live-path fix): compact the dominant system/context blocks so the
+ * FULLY ASSEMBLED prompt fits the route budget — not merely the raw blocks.
+ *
+ * The assert measures `systemPrompt + userPrompt + extraPromptBlocks`, where
+ * `systemPrompt` wraps the blocks with scaffolding. Compacting the blocks alone
+ * against `maxPromptChars` (the original Phase 5a behaviour) let a prompt that
+ * was a few chars over budget slip through uncompacted and hard-fail with a 413
+ * AgentPromptBudgetError (observed live: synthesis 9029/9000). Here we measure
+ * the real assembled prompt; if it is over budget we reserve the measured
+ * non-block overhead (+ a safety margin) and compact the blocks into what
+ * remains. Returns the (possibly unchanged) blocks to build the final prompt.
+ */
+function compactBlocksForAssembledPrompt(args: {
+  stage: AgentPromptBudgetStage;
+  contextPacket: Awaited<ReturnType<typeof buildContextPacket>>;
+  rawBlocks: SystemContextBlocks;
+  buildSystemPromptFrom: (blocks: SystemContextBlocks) => string;
+  userPrompt: string;
+  extraPromptBlocks?: string[];
+}): SystemContextBlocks {
+  const audit = measureAgentPromptBudget({
+    stage: args.stage,
+    contextPacket: args.contextPacket,
+    systemPrompt: args.buildSystemPromptFrom(args.rawBlocks),
+    userPrompt: args.userPrompt,
+    extraPromptBlocks: args.extraPromptBlocks
+  });
+  return compactBlocksWithinAssembledBudget({
+    rawBlocks: args.rawBlocks,
+    assembledLength: audit.actualChars,
+    maxChars: audit.maxChars,
+    safetyMargin: PROMPT_BUDGET_SAFETY_MARGIN
+  });
 }
 
 function compactRuntimeOperatingMemory(memory: string) {
