@@ -111,7 +111,10 @@ test('v2 context packet keeps supported LED prompt under bundle budget', async (
   });
 
   assert.ok(packet.promptBlock.length < 9000, `prompt length was ${packet.promptBlock.length}`);
-  assert.ok(packet.retrievalPlan.maxPromptChars <= 9000);
+  // The digital-light-output route budget was raised 9000 -> 11000 (parity with the peer single-output
+  // sound-alert route) so the synthesis prompt fits the ReAct decision contract + concise-message
+  // guidance; the context block itself stays well under it (asserted above).
+  assert.ok(packet.retrievalPlan.maxPromptChars <= 11000);
 });
 
 test('v2 policy-only routes keep ambiguous requests under prompt budget', async () => {

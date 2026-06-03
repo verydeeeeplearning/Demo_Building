@@ -8,9 +8,9 @@ import type { AgentMessageRequest } from '../../server/agent/schemas.ts';
 
 // Phase 0.5 seams 0.5.1 + 0.5.2: drive the FULL runAgent path with an injected ModelPort and an
 // injected DeepAgentFactory, proving (a) zero live model/config dependency and (b) the
-// createDeepAgent construction count is assertable at runtime. A `clarify_requirements` route keeps
-// the run deterministic: the synthesis agent is constructed (factory call #2) but its `.invoke` is
-// never reached (the preflight short-circuit handles the turn), so no structured circuit is needed.
+// createDeepAgent construction count is assertable at runtime. A `clarify_requirements` route now
+// reaches the synthesis agent (Phase 3: clarify no longer short-circuits); the agent answers
+// conversationally (responseKind:'chat'), so both agents are still constructed exactly once.
 
 type StubAgent = { invoke: (input: unknown, config?: unknown) => Promise<{ structuredResponse: unknown }> };
 
@@ -41,17 +41,17 @@ void test('runAgent uses injected ModelPort + DeepAgentFactory with zero live ca
         clarification: '표시할 내용을 알려주세요.'
       });
     }
-    // Synthesis agent: constructed but never invoked for a clarify route.
-    return stubAgent({});
+    // Synthesis agent: now reached for a clarify route; it answers conversationally.
+    return stubAgent({ responseKind: 'chat', assistantMessage: '어떤 화면에 무엇을 표시할까요?', circuitSpec: null });
   }) as unknown as DeepAgentFactory;
 
   // A small, well-routed message keeps the real prompt-budget gate satisfied; the requirement
   // route is forced to clarify by the injected stub regardless of message content.
   const request = { message: 'LED 하나를 저항이랑 같이 깜빡이게 해줘', locale: 'ko' } as AgentMessageRequest;
-  // Passthrough intent gate (circuit_request) so the front gate adds no model/factory call — this test
-  // asserts the exact requirement+synthesis construction counts (PLAN_intent_gate.md US-3).
+  // No binary pre-gate (PLAN_react_routing_and_clean_chat Phase 3): this test asserts the exact
+  // requirement+synthesis construction counts directly.
   const result = await runAgent(request, {
-    deps: { modelPort, deepAgentFactory, intentGate: async () => ({ kind: 'circuit_request', reply: null, reason: 'test passthrough' }) }
+    deps: { modelPort, deepAgentFactory }
   });
 
   assert.equal(createModelCalls, 1, 'ModelPort.createModel called exactly once (one shared model)');

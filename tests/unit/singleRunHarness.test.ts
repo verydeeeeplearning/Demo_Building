@@ -27,8 +27,9 @@ void test('deterministic derivation maps context signals to routes', async () =>
 });
 
 void test('NEXT collapses to ONE createDeepAgent; LEGACY keeps two', async () => {
-  // A clarify-deriving message keeps it deterministic: the synthesis agent is constructed but never
-  // invoked (the preflight short-circuits), so no structured circuit draft is needed.
+  // A clarify-deriving message now reaches the synthesis agent (Phase 3: clarify no longer short-
+  // circuits); the agent answers conversationally (responseKind:'chat'). Construction counts are
+  // unchanged — legacy still builds requirement + synthesis, next only synthesis.
   const message = '뭔가 만들고 싶은데 잘 모르겠어';
   const modelPort: ModelPort = { createModel: () => new RecordedCassetteModel([]) };
 
@@ -48,12 +49,12 @@ void test('NEXT collapses to ONE createDeepAgent; LEGACY keeps two', async () =>
             clarification: '목표를 알려주세요.'
           });
         }
-        return stubAgent({});
+        return stubAgent({ responseKind: 'chat', assistantMessage: '무엇을 만들까요?', circuitSpec: null });
       }) as unknown as DeepAgentFactory;
       await runAgent({ message, locale: 'ko' } as AgentMessageRequest, {
-        // Passthrough intent gate so the front gate adds no factory call — this asserts the exact
-        // requirement/synthesis construction counts per mode (PLAN_intent_gate.md US-3).
-        deps: { modelPort, deepAgentFactory, intentGate: async () => ({ kind: 'circuit_request', reply: null, reason: 'test passthrough' }) }
+        // No binary pre-gate (PLAN_react_routing_and_clean_chat Phase 3): asserts the exact
+        // requirement/synthesis construction counts per mode directly.
+        deps: { modelPort, deepAgentFactory }
       });
       return names;
     } finally {

@@ -14,6 +14,7 @@ import { askCircuitTutor } from './circuitTutorClient.js';
 import { agentErrorMessage as formatAgentErrorMessage } from './agentErrorMessages.js';
 import { groundAgentResultArtifacts } from './agentArtifactGrounding.js';
 import { canShowAgentSceneFromResult } from './agentSceneVisibility.js';
+import { decisionsForResult } from './agentDecisions.js';
 import { classifyStudentTurn } from './conversationRouting.js';
 import { renderWarningMessage, renderWarningsMarkdown, renderWarningTitle } from './renderWarnings.js';
 import {
@@ -1447,7 +1448,7 @@ async function submitAgentMessage(message) {
     state.interview = {
       ...state.interview,
       status: canShowScene ? 'ready' : 'interviewing',
-      decisions: agentEventsToDecisions(groundedResult.agentEvents || []),
+      decisions: decisionsForResult(groundedResult, state.locale),
       messages: state.interview.messages.concat(
         (groundedResult.assistantMessages?.length ? groundedResult.assistantMessages : [fallbackAgentMessage(groundedResult)])
           .map((text) => ({ role: 'assistant', text }))
@@ -1865,85 +1866,6 @@ function confirmCurrentAgentResult() {
 
   render();
   startBuildSequence();
-}
-
-function agentEventsToDecisions(events) {
-  return events.slice(0, 6).map((event) => ({
-    id: event.name,
-    label: studentFacingEventLabel(event.name, state.locale),
-    value: studentFacingEventSummary(event.summary || event.status, state.locale),
-    status: event.status === 'error' ? 'warning' : 'locked'
-  }));
-}
-
-function studentFacingEventLabel(name, locale) {
-  const key = String(name || '').toLowerCase();
-  const labels = {
-    ko: [
-      [/context[-_ ]?support[-_ ]?gap|support[-_ ]?gap/, '지원 준비 확인'],
-      [/safety/, '안전 확인'],
-      [/unsupported|support/, '지원 범위 확인'],
-      [/intent/, '요구사항 확인'],
-      [/validator|validation|constraint/, '회로 검토'],
-      [/simulation/, '시뮬레이션 확인'],
-      [/render|visual/, '화면 준비'],
-      [/context|retriever|trace/, '참고 자료 확인'],
-      [/coordinator|deepagents|agent/, '요청 정리']
-    ],
-    en: [
-      [/context[-_ ]?support[-_ ]?gap|support[-_ ]?gap/, 'Support readiness check'],
-      [/safety/, 'Safety check'],
-      [/unsupported|support/, 'Support check'],
-      [/intent/, 'Requirement check'],
-      [/validator|validation|constraint/, 'Circuit review'],
-      [/simulation/, 'Simulation check'],
-      [/render|visual/, 'View preparation'],
-      [/context|retriever|trace/, 'Reference check'],
-      [/coordinator|deepagents|agent/, 'Request review']
-    ]
-  };
-
-  const match = labels[locale === 'ko' ? 'ko' : 'en'].find(([pattern]) => pattern.test(key));
-  if (match) {
-    return match[1];
-  }
-
-  return key
-    .replaceAll('-', ' ')
-    .replace(/\b(deepagents?|agent|coordinator|subagent|tool)\b/gi, '')
-    .replace(/\s+/g, ' ')
-    .trim() || (locale === 'ko' ? '확인' : 'Check');
-}
-
-function studentFacingEventSummary(summary, locale) {
-  const raw = String(summary || '').trim();
-  if (!raw) {
-    return locale === 'ko' ? '확인했습니다.' : 'Checked.';
-  }
-
-  if (/context[-_ ]?support[-_ ]?gap|canonical context|valid synthesis|planned capability|part[-_ ]?capability|render[-_ ]?footprint|simulation[-_ ]?primitive|context coverage|support gap|support bundle|verified support data/i.test(raw)) {
-    return locale === 'ko'
-      ? '아직 검증 자료가 부족해 회로를 만들기 전에 지원 범위를 확인했습니다.'
-      : 'Checked that this request needs more verified context before circuit synthesis.';
-  }
-
-  if (/blocked|degraded|hard gate|cannot proceed|strict .*gate/i.test(raw)) {
-    return locale === 'ko'
-      ? '안전하게 볼 수 있도록 장면을 자동으로 검토 상태로 조정했습니다.'
-      : 'Automatically adjusted the scene into a safe review state.';
-  }
-
-  if (/structured circuit draft|deepagents|coordinator|subagent|tool call|trace|stack/i.test(raw)) {
-    return locale === 'ko'
-      ? '요청을 검토하고 회로로 만들 수 있는지 확인했습니다.'
-      : 'Reviewed whether the request can become a circuit.';
-  }
-
-  return raw
-    .replace(/\bDeepagents?\b/g, locale === 'ko' ? 'AI' : 'AI')
-    .replace(/\b(coordinator|subagent|tool call|trace)\b/gi, '')
-    .replace(/\s+/g, ' ')
-    .trim();
 }
 
 function fallbackAgentMessage(result) {

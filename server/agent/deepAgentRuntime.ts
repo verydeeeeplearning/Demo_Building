@@ -12,7 +12,7 @@ import { getPartRegistry, loadTopologyTemplates, readContextDoc } from '../conte
 import { buildContextPacket } from '../context/contextPacket.ts';
 import { getComposeMode } from '../context/composeMode.ts';
 import { getAgentPipelineMode } from './agentPipelineMode.ts';
-import { classifyStudentIntent, getIntentGateMode } from './intentGate.ts';
+import { assessRequestScope } from './requestScope.ts';
 import { createObservabilityMiddleware } from './observabilityMiddleware.ts';
 import { runShadowComposition } from '../context/generatedComposition.ts';
 import {
@@ -62,10 +62,16 @@ import {
   type SupportedAlternative
 } from './schemas.ts';
 
-const LiveAgentDraftSchema = z.object({
+// ReAct decision (LangChain Deep Agents): the synthesis agent itself chooses whether this turn is a
+// conversational reply (greeting / general question / recommendation / clarification) or a built
+// circuit — official guidance: "the agent may skip tools entirely if it can answer conversationally".
+// 'chat' carries no circuitSpec; 'circuit' must include one. Default 'circuit' + nullable circuitSpec
+// keep every existing scripted/preflight/recovered draft (which always supplies a spec) compatible.
+export const LiveAgentDraftSchema = z.object({
+  responseKind: z.enum(['chat', 'circuit']).default('circuit'),
   assistantMessage: z.string().min(1),
   clarification: z.string().nullable().default(null),
-  circuitSpec: CircuitSpecSchema,
+  circuitSpec: CircuitSpecSchema.nullable().default(null),
   agentEvents: z.array(AgentEventSchema).default([]),
   supportedAlternatives: z.array(SupportedAlternativeSchema).default([])
 });
@@ -188,31 +194,20 @@ export function deriveRequirementAnalysis(
   request: AgentMessageRequest,
   contextPacket: Awaited<ReturnType<typeof buildContextPacket>>
 ): RequirementAnalysis {
-  const unsupported = contextPacket.unsupportedSignals.length > 0;
-  const eligible = contextPacket.contextCoverage.synthesisEligibility.status === 'eligible';
-  const route: RequirementAnalysis['route'] = unsupported
-    ? 'unsupported_or_gap'
-    : eligible
-      ? 'synthesize_circuit'
-      : 'clarify_requirements';
-
-  const eligibilityReason = contextPacket.contextCoverage.synthesisEligibility.reason;
-  const summary = unsupported
-    ? `Request falls outside the build-ready scope: ${contextPacket.unsupportedSignals[0]}.`
-    : eligible
-      ? 'Context coverage is sufficient for circuit synthesis.'
-      : `Context coverage is insufficient for synthesis: ${eligibilityReason}`;
+  // Single source of truth for the deterministic route: the same read the agent sees via the
+  // assess_request_scope tool (Phase 3).
+  const scope = assessRequestScope(contextPacket);
 
   return RequirementAnalysisSchema.parse({
-    route,
-    confidence: eligible || unsupported ? 0.9 : 0.6,
-    summary,
-    assistantMessage: summary,
+    route: scope.route,
+    confidence: scope.buildEligible || scope.unsupported ? 0.9 : 0.6,
+    summary: scope.reason,
+    assistantMessage: scope.reason,
     clarification: null,
-    blockingReason: unsupported
+    blockingReason: scope.unsupported
       ? contextPacket.unsupportedSignals[0]
-      : route === 'clarify_requirements'
-        ? eligibilityReason
+      : scope.route === 'clarify_requirements'
+        ? contextPacket.contextCoverage.synthesisEligibility.reason
         : null,
     circuitGoal: {
       input: null,
@@ -366,43 +361,18 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
 
   const model = modelPort.createModel();
 
-  // Front intent gate (PLAN_intent_gate.md): judge circuit-work vs general chat BEFORE synthesis, in
-  // every pipeline mode. A casual_chat decision returns a conversational reply and never touches
-  // synthesis, so a greeting no longer dead-ends in AGENT_STRUCTURED_OUTPUT_MISSING. The gate is
-  // fail-open (defaults to circuit_request) and reuses the single shared model instance. Kill-switch:
-  // H_EDUWARE_INTENT_GATE=off skips it entirely and restores exact pre-gate behavior.
-  if (getIntentGateMode() === 'on') {
-    const intentGate = options.deps?.intentGate ?? classifyStudentIntent;
-    const intentDecision = await intentGate({
-      request,
-      model,
-      deepAgentFactory,
-      traceId,
-      sessionId,
-      metadata: baseMetadata
-    });
-    logAgentEvent('agent.intent.gate.decided', {
-      traceId,
-      sessionId,
-      intentKind: intentDecision.kind,
-      reason: intentDecision.reason
-    });
-    if (intentDecision.kind === 'casual_chat' && intentDecision.reply) {
-      return buildCasualChatResult({
-        traceId,
-        sessionId,
-        request,
-        contextPacket,
-        reply: intentDecision.reply
-      });
-    }
-  }
+  // ReAct routing (PLAN_react_routing_and_clean_chat): there is no binary pre-gate. The deterministic
+  // routing/coverage read is exposed to the synthesis agent as the assess_request_scope tool, and the
+  // agent itself decides whether to converse, recommend, clarify, or build. Safety/unsupported stays a
+  // hard server guardrail (buildPreflightDraftFromAnalysis short-circuits only unsupported_or_gap).
+  const requestScope = assessRequestScope(contextPacket);
 
   const toolOptions = {
     contextCoverage: contextPacket.contextCoverage,
     candidateParts: contextPacket.candidateParts,
     allowedContextSourceIds: contextPacket.retrievalPlan.sourceIds,
-    supportBundles: contextPacket.supportBundles
+    supportBundles: contextPacket.supportBundles,
+    requestScope
   };
   // Phase 3 single-run: in shadow|next, derive the requirement route deterministically instead of
   // running a second deep agent — collapsing the two createDeepAgent runs into the one synthesis
@@ -1092,7 +1062,9 @@ async function finalizeAgentResult({
         clarification,
         locale: request.locale ?? 'ko'
       });
-  const studentMessage = sanitizeStudentFacingAssistantMessage(assistantMessage, request.locale ?? 'ko');
+  const studentMessage = toConciseStudentMessage(
+    sanitizeStudentFacingAssistantMessage(assistantMessage, request.locale ?? 'ko')
+  );
 
   return AgentRunResultSchema.parse({
     traceId,
@@ -1161,9 +1133,9 @@ export function buildCasualChatResult({
     assistantMessages: [reply],
     agentEvents: [{
       type: 'coordinator',
-      name: 'intent-gate',
+      name: 'deepagents-coordinator',
       status: 'completed',
-      summary: 'Routed to a conversational reply (no circuit synthesis).'
+      summary: 'Answered conversationally — no circuit synthesis this turn.'
     }],
     clarification: null,
     contextTrace: contextPacket.contextTrace,
@@ -1205,6 +1177,16 @@ export function buildCasualChatResult({
     },
     supportedAlternatives: []
   });
+}
+
+// ReAct chat decision -> the student-facing message. A conversational draft may carry a follow-up
+// clarification (e.g. "어느 걸 만들어볼까요?"); append it once so the chat bubble reads as one reply.
+function composeStudentChatMessage(draft: LiveAgentDraft): string {
+  const clarification = draft.clarification?.trim();
+  if (clarification && !draft.assistantMessage.includes(clarification)) {
+    return `${draft.assistantMessage}\n\n${clarification}`;
+  }
+  return draft.assistantMessage;
 }
 
 function shouldUseSafeEquivalentSimulation(
@@ -1333,6 +1315,42 @@ function finalAssistantMessage({
     `Validation found ${reason}`,
     clarification ? `Next step: ${clarification}` : 'Fix the parts, pins, power, and ground assumptions before building it.'
   ].join(' ');
+}
+
+// Detail sections that belong in the 3D scene / 문서 tab, never in the chat bubble. If the model
+// pastes them into assistantMessage anyway, strip them so the student sees only a short reply
+// (PLAN_react_routing_and_clean_chat Phase 4). The synthesis prompt also instructs the model not to.
+const CHAT_DETAIL_HEADERS = [
+  '회로 초안', '배선 요약', '배선 안내', '검증 결과 요약', '검증 결과', '회로도',
+  'circuit draft', 'wiring summary', 'validation summary', 'validation result'
+];
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export function toConciseStudentMessage(message: string): string {
+  let out = message;
+  // 1. Drop fenced code blocks (the embedded CircuitSpec JSON / code dumps).
+  out = out.replace(/```[\s\S]*?```/g, ' ');
+  // 2. Drop known detail sections: from a bold header to the next bold header or end of message.
+  for (const header of CHAT_DETAIL_HEADERS) {
+    const re = new RegExp(`\\*\\*\\s*${escapeRegExp(header)}\\s*\\*\\*[\\s\\S]*?(?=\\*\\*[^*\\n]+\\*\\*|$)`, 'gi');
+    out = out.replace(re, ' ');
+  }
+  // 3. Unwrap structural labels, keeping their content (**assistantMessage** - ...).
+  out = out.replace(/\*\*\s*(assistantMessage|clarification|message)\s*\*\*/gi, ' ');
+  // 4. Remove any stray unfenced JSON-ish lines (lone braces/brackets, "key": value).
+  out = out
+    .replace(/^\s*[{}[\],]+\s*$/gm, ' ')
+    .replace(/^\s*"[^"]+"\s*:.*$/gm, ' ');
+  // 5. Collapse whitespace.
+  out = out
+    .replace(/[ \t]*\n[ \t]*/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
+  return out || message;
 }
 
 function sanitizeStudentFacingAssistantMessage(message: string, locale: 'ko' | 'en') {
@@ -1531,6 +1549,26 @@ async function runAgentDraftRepairLoop({
       }
       throw error;
     }
+    // ReAct decision: the agent answered conversationally (greeting / general question /
+    // recommendation / clarification) instead of building. Skip synthesis finalization and return a
+    // chat result — no circuit is rendered. (Invariant 8 still holds: only circuit drafts revalidate.)
+    if (draft.responseKind === 'chat' || !draft.circuitSpec) {
+      const chatResult = buildCasualChatResult({
+        traceId,
+        sessionId,
+        request,
+        contextPacket,
+        reply: composeStudentChatMessage(draft)
+      });
+      logAgentEvent('agent.validation.completed', {
+        traceId,
+        sessionId,
+        attempt,
+        responseKind: 'chat',
+        ...resultLogSummary(chatResult)
+      });
+      return chatResult;
+    }
     const finalized = await finalizeAgentResult({
       sessionId,
       request,
@@ -1580,15 +1618,14 @@ function buildPreflightDraftFromAnalysis(
   contextPacket: Awaited<ReturnType<typeof buildContextPacket>>,
   requirementAnalysis: RequirementAnalysis
 ): LiveAgentDraft | null {
-  if (requirementAnalysis.route === 'synthesize_circuit') {
-    return null;
-  }
-
+  // Hard safety guardrail (server-enforced, NOT agent-optional): unsupported/unsafe requests never
+  // reach synthesis. Everything else — including clarify_requirements — now reaches the agent, which
+  // owns the ReAct decision (answer conversationally vs build). Invariant 6 stays intact.
   if (requirementAnalysis.route === 'unsupported_or_gap') {
     return buildUnsupportedPreflightDraft(request, contextPacket, requirementAnalysis);
   }
 
-  return buildClarificationPreflightDraft(request, contextPacket, requirementAnalysis);
+  return null;
 }
 
 function requirementAnalysisEvent(requirementAnalysis: RequirementAnalysis): AgentEvent {
@@ -2063,7 +2100,7 @@ function buildRequirementAnalysisUserPrompt(request: AgentMessageRequest) {
   ].filter(Boolean).join('\n');
 }
 
-function buildSystemPrompt({
+export function buildSystemPrompt({
   locale,
   operatingMemory,
   coordinatorPrompt,
@@ -2081,10 +2118,21 @@ function buildSystemPrompt({
   return [
     coordinatorPrompt,
     operatingMemory,
-    `Respond in natural ${language}. Build only safe, low-voltage educational Arduino/breadboard circuits.`,
+    `Respond in natural ${language}. You are H-eduware's circuit tutor for students.`,
+    '',
+    // ReAct decision contract (LangChain Deep Agents: reason -> optionally call tools -> answer).
+    'DECIDE this turn first, then act:',
+    '- Greeting, small talk, or a GENERAL question (a concept, "what is X", or "recommend a circuit" with no concrete build target): answer warmly in the student\'s language. For a recommendation, suggest 2-3 concrete buildable circuits from the supported parts and invite the student to pick one to build. Set responseKind="chat" and circuitSpec=null. Never fabricate a circuit just to have one.',
+    '- A circuit request missing key details (no clear output or behavior): ask ONE friendly clarifying question. Set responseKind="chat" and circuitSpec=null.',
+    '- A concrete, buildable circuit goal: build it. Set responseKind="circuit" and return a full CircuitSpec.',
+    'When unsure whether a request is buildable or within the supported scope, call assess_request_scope and respect its verdict.',
+    '',
+    'When building a circuit:',
+    'Build only safe, low-voltage educational Arduino/breadboard circuits.',
     'Use the CONTEXT PACKET and tool outputs as source of truth. Do not invent parts, pins, protocols, wiring, render support, or simulator behavior.',
     'Build-ready requires complete verified hardware data plus deterministic validation. Otherwise return unsupportedItems or one clarification.',
     'Student text must avoid internal terms like context packet, support bundle evidence, structured output, and CircuitSpec; say verified hardware data or 검증 자료.',
+    'Put ONLY a short, friendly human explanation in assistantMessage — do NOT paste the CircuitSpec JSON, wiring tables, or validation summaries into it; the server renders the circuit, wiring, and document views separately.',
     'Return assistantMessage, clarification, CircuitSpec, and concise agentEvents. The server independently validates, renders, simulates, and gates the draft.',
     '',
     contextPacketBlock,
@@ -2115,7 +2163,7 @@ export function buildAgentUserPrompt(
     `Student message: ${request.message}`,
     request.confirmation ? `Student confirmation/context: ${request.confirmation}` : '',
     renderConversationContextForPrompt(request),
-    'Return a validated-ready circuit draft if possible. If not possible, ask one targeted clarification and mark unsupported/clarification needs explicitly.'
+    'Build a circuit (responseKind="circuit") only if this is a concrete, buildable goal; otherwise answer conversationally (responseKind="chat", circuitSpec=null) — greet, recommend buildable options, or ask one targeted clarification.'
   ].filter(Boolean);
 
   if (repair && repair.attempt > 1 && repair.previousErrors.length > 0) {

@@ -33,6 +33,7 @@ import {
   type SupportBundleEvidence,
   type ValidationReport
 } from './schemas.ts';
+import type { RequestScope } from './requestScope.ts';
 
 function asJson(value: unknown) {
   return JSON.stringify(value, null, 2);
@@ -58,6 +59,7 @@ type HeduwareAgentToolOptions = {
   candidateParts?: PartCapability[];
   allowedContextSourceIds?: string[];
   supportBundles?: SupportBundleEvidence[];
+  requestScope?: RequestScope;
 };
 
 export function createHeduwareAgentTools(options: HeduwareAgentToolOptions = {}) {
@@ -69,6 +71,14 @@ export function createHeduwareAgentTools(options: HeduwareAgentToolOptions = {})
   };
 
   return [
+    tool(
+      async () => asJson(options.requestScope ?? { error: 'NO_REQUEST_SCOPE_IN_CONTEXT' }),
+      {
+        name: 'assess_request_scope',
+        description: 'Authoritatively assess the CURRENT student request: its route (synthesize_circuit | clarify_requirements | unsupported_or_gap), whether it is build-eligible, unsupported, or unsafe, plus the candidate parts and supported capabilities in scope. Call this when unsure whether to build, recommend, ask a clarification, or answer conversationally, and respect the verdict.',
+        schema: z.object({})
+      }
+    ),
     tool(
       async () => asJson(await loadContextIndex()),
       {

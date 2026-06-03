@@ -1118,7 +1118,10 @@ test('student-facing assistant copy hides support-bundle jargon', async () => {
   assert.doesNotMatch(message, /필수 지원 번들|지원 번들 증거|컨텍스트|렌더|빌드 가능한/);
 });
 
-test('casual or meta first turns ask for a circuit goal before consuming live drafts', async () => {
+test('a casual or meta first turn returns a conversational reply with no scene', async () => {
+  // PLAN_react_routing_and_clean_chat Phase 3: a casual/meta turn is no longer handled by a
+  // deterministic preflight — the agent OWNS the decision and answers conversationally
+  // (responseKind:'chat', no circuitSpec), which finalizes to a chat result with no rendered scene.
   const result = await runAgentWithScriptedDrafts({
     request: {
       message: '좋아 작업을 시작해보자',
@@ -1127,17 +1130,19 @@ test('casual or meta first turns ask for a circuit goal before consuming live dr
     },
     requirementAnalysis: requirementAnalysisFixture('casual_chat', {
       summary: '학생이 구체적인 회로 목표 없이 작업 시작 의사를 표현했다.',
-      assistantMessage: '좋아요. 시작해 볼게요. 먼저 만들고 싶은 회로의 입력, 출력, 동작을 알려 주세요.',
+      assistantMessage: '좋아요. 시작해 볼게요.',
       clarification: '만들고 싶은 회로의 입력, 출력, 동작을 한 문장으로 알려 주세요.'
     }),
-    drafts: []
+    drafts: [{
+      responseKind: 'chat',
+      assistantMessage: '좋아요. 먼저 만들고 싶은 회로의 입력, 출력, 동작을 한 문장으로 알려 주세요.',
+      circuitSpec: null
+    }]
   });
 
-  assert.equal(result.contextCoverage.synthesisEligibility.status, 'ineligible');
+  assert.equal(result.responseKind, 'chat');
   assert.equal(result.validationReport.status, 'unsupported');
   assert.match(result.assistantMessages[0], /시작|회로|입력|출력|동작/);
-  assert.ok(result.agentEvents.some((event) => event.name === 'requirement-analysis-agent'));
-  assert.equal(result.agentEvents.some((event) => /router/i.test(event.name)), false);
   assert.equal(result.renderPlan.parts.length, 0);
   assert.equal(result.simulationPlan.currentPaths.length, 0);
 });
@@ -1392,7 +1397,7 @@ test('Deepagents tool-call-only output recovers a draft from the latest circuit 
     ]
   });
 
-  assert.equal(draft.circuitSpec.id, spec.id);
+  assert.equal(draft.circuitSpec?.id, spec.id);
   assert.match(draft.assistantMessage, /버튼을 누르면 LED/);
   assert.ok(draft.agentEvents.some((event) => event.name === 'validate_circuit_spec'));
 });

@@ -1058,8 +1058,8 @@
         "policy:safety",
         "policy:truthfulness"
       ],
-      "maxPromptChars": 9000,
-      "reason": "LED output can be handled by one bundle plus shared canonical refs."
+      "maxPromptChars": 11000,
+      "reason": "LED output can be handled by one bundle plus shared canonical refs; budget matches the peer single-output sound-alert route so the synthesis prompt fits the ReAct decision contract and the concise-message guidance."
     },
     {
       "routeId": "v2-uart-communication-module-readout",
