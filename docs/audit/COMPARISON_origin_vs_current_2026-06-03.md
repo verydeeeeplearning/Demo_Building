@@ -24,6 +24,7 @@ origin은 **서버가 없는 프론트엔드 단일 번들 데모**였고, "AI"�
 | HTTP 라우트 | 없음 | 6개 (`server/index.ts:30-114`) |
 | `interviewEngine.js`의 위치 | **기본 경로** (모든 AI 경험) | **레거시 폴백** (`main.js:1198/1370`의 결정 버튼에만 연결) |
 | 기본 대화 엔진 | 상태머신 | `main.js:1433 sendAgentMessage` → 서버 → LLM |
+| 입력 처리 | 모든 입력이 회로 합성 경로로 직행 | 합성 전 **intent gate**가 회로 요청 vs 일반 대화를 LLM으로 판정 — 일반/교육 질문엔 대화로 답하고(회로 씬 비표시), 회로 요청만 합성 경로로 (`intentGate.ts`) |
 | 영속화 | 없음 | 파일시스템 공유 저장소 (`shareStore.ts` → `.local/shared-projects`) |
 | API 키 | 없음(키 존재 여부로 UI 라벨만 토글) | 실제 `OPENAI_API_KEY` 사용(`.env`) |
 
@@ -52,6 +53,7 @@ origin은 **서버가 없는 프론트엔드 단일 번들 데모**였고, "AI"�
 ### 3.1 서버 (`server/`) — 전부 신규
 - **HTTP 진입점** `server/index.ts` — `node:http` 6라우트: `GET /api/agent/health`, `POST /api/agent/message`, `POST /api/agent/explain-target`, `POST /api/agent/placement`, `POST /api/share/projects`, `GET /api/share/projects/:id`
 - **에이전트 런타임** `server/agent/deepAgentRuntime.ts` — `new ChatOpenAI`(`:621`) + `createDeepAgent`(deepagents), repair 루프, 아티팩트 finalization
+- **입력 의도 게이트** `server/agent/intentGate.ts` — 합성 전에 메시지가 회로 요청인지 일반 대화인지 LLM으로 판정(`classifyStudentIntent`). 일반/교육 질문(예: "옴의 법칙이 뭐야?")엔 대화로 답하고 회로 빌드로 유도, 회로 요청은 기존 합성 경로 유지. `responseKind: 'circuit'|'chat'` 판별자(`schemas.ts:1001`), `IntentDecisionSchema`(`schemas.ts:1062`), chat 응답 생성 `buildCasualChatResult`(`deepAgentRuntime.ts:1129`), 주입식 `intentGate` 포트, 킬스위치 `H_EDUWARE_INTENT_GATE=off`
 - **포트/어댑터** `server/agent/agentRuntimePorts.ts` — `ModelPort`, `DeepAgentFactory` (주입식 테스트 페이크)
 - **회로 툴 서피스** `server/agent/circuitTools.ts` (9109 LOC) — `validate→netlist→currentPaths→renderPlan→simulationPlan→runnable+solverGate` 컴파일러
 - **회로 도메인** `server/agent/circuit/*` — `validation.ts`(5385), `shared.ts`(3400), `simulationPlan.ts`, `renderPlan.ts`, `breadboardAudit.ts`, `netlist.ts`, `requirementBrief.ts`, `requirementDoc.ts`
@@ -79,6 +81,7 @@ origin은 **서버가 없는 프론트엔드 단일 번들 데모**였고, "AI"�
 - `src/circuitInspector.js`, `src/inspectorView.js`, `src/circuitMetadata.js` — 회로 인스펙터/튜터 UI
 - `src/shareSnapshot.js`, `src/shareImport.js`, `src/shareCard.js`, `src/shareView.js`, `src/shareModal.js` — 공유 플로우
 - `src/focusTrap.js`, `src/globalErrorHandler.js`, `src/htmlSafe.js`, `src/renderScheduler.js`, `src/heduwareLogo.js` — 분리된 유틸 seam
+- `src/agentSceneVisibility.js` — intent gate의 chat 응답(`responseKind==='chat'`)일 때 3D 씬을 숨기는 판정(`canShowAgentScene`, `main.js:1532`)
 
 ### 3.4 테스트·문서·인프라
 - 서버 단위 테스트 ~50종 (agentPipeline, contextPacket, circuitToolsContract, placementResolver, schemas, shareStore 등)
@@ -178,6 +181,7 @@ origin엔 없던, 또는 origin에 있다가 바뀐 코드 경계들:
 
 - **신규 HTTP 표면:** 인증 없는 6개 라우트 (`server/index.ts:30-114`)
 - **신규 입력 경계:** `AgentMessageRequestSchema.message`가 `z.string().min(1)`, max 길이 없음 (`schemas.ts:1046`) → 모델 프롬프트로 직행
+- **신규 입력 분기:** 요청당 경량 LLM intent 분류 1회 — 회로 요청 vs 일반 대화 판정, chat 판정 시 합성을 단락(short-circuit)하고 3D 씬 미렌더 (`intentGate.ts`, `deepAgentRuntime.ts:374-391`; `H_EDUWARE_INTENT_GATE=off`로 비활성)
 - **신규 영속화 경계:** 공유 create/read CRUD, 32-hex ID + lexical/realpath 가드 (`shareStore.ts`)
 - **신규 신뢰 경계:** `shareSchemas.ts:74,81`에서 `renderPlan`/`solverGateResult`를 `z.unknown()`로 통과
 - **신규 의존성 방향:** `circuitTools.ts`·`circuit/*`가 `contextLayer.ts`(`node:fs`)를 직접 import (도메인→인프라)

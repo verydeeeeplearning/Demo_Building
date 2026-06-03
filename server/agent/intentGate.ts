@@ -81,7 +81,7 @@ export const classifyStudentIntent: IntentGate = async (input) => {
   }
 };
 
-export function parseIntentDecision(output: unknown): IntentDecision {
+function parseIntentDecision(output: unknown): IntentDecision {
   const candidate = output && typeof output === 'object'
     ? (output as Record<string, unknown>).structuredResponse ?? (output as Record<string, unknown>).structured_response
     : null;
