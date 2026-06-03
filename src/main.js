@@ -1108,22 +1108,22 @@ function renderPartLibrary() {
               data-testid="part-thumbnail"
               data-thumbnail-renderer="canvas-isometric"
               src="${createPartThumbnail(part)}"
-              alt="${t('parts.thumbAlt', { label: part.label }, state.locale)}"
+              alt="${escapeHtml(t('parts.thumbAlt', { label: part.label }, state.locale))}"
             />
             <div>
-              <strong>${part.label}</strong>
-              <p>${part.description}</p>
+              <strong>${escapeHtml(part.label)}</strong>
+              <p>${escapeHtml(part.description)}</p>
             </div>
           </article>
         `).join('')}
       </div>
       <div class="properties">
         <div class="panel-kicker">${t('parts.selected', {}, state.locale)}</div>
-        <h2>${selectedPart.label}</h2>
+        <h2>${escapeHtml(selectedPart.label)}</h2>
         ${selectedPart.pins.map((pin) => `
           <div class="property-row">
             <span>${formatPinName(pin.name)}</span>
-            <p>${pin.meaning || pin.role}</p>
+            <p>${escapeHtml(pin.meaning || pin.role)}</p>
           </div>
         `).join('')}
       </div>
