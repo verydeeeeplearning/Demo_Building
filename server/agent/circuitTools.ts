@@ -7395,13 +7395,59 @@ function chooseLabelPlacement(
   const candidateIndex = candidates.findIndex((candidate) =>
     !placedLabels.some((placed) => labelBoundsOverlap(candidate, placed, 0.04)) &&
     !renderParts.some((otherPart) =>
-      otherPart.id !== part.id && labelOverlapsPart(candidate, otherPart, 0.02)
+      otherPart.id !== part.id &&
+      otherPart.footprint &&
+      !isPlacementSurfaceFootprint(otherPart.footprint) &&
+      labelOverlapsPart(candidate, otherPart, 0.02)
     )
   );
   if (candidateIndex >= 0) {
     return { label: candidates[candidateIndex], candidateIndex };
   }
-  return { label: candidates[0], candidateIndex: 0 };
+  // No fully-free spot (crowded scene): pick the candidate with the LEAST total overlap area rather
+  // than candidates[0] (the on-part anchor, a guaranteed overlap). The worst-position fallback is
+  // what kept LABEL_OVERLAP firing. (PLAN_sensible_simulation P2)
+  let bestIndex = 0;
+  let bestArea = Infinity;
+  for (let index = 0; index < candidates.length; index += 1) {
+    const area = labelOverlapArea(candidates[index], part.id, renderParts, placedLabels);
+    if (area < bestArea) {
+      bestArea = area;
+      bestIndex = index;
+    }
+  }
+  return { label: candidates[bestIndex], candidateIndex: bestIndex };
+}
+
+function rectOverlapArea(
+  a: { minX: number; maxX: number; minZ: number; maxZ: number },
+  b: { minX: number; maxX: number; minZ: number; maxZ: number }
+) {
+  const dx = Math.min(a.maxX, b.maxX) - Math.max(a.minX, b.minX);
+  const dz = Math.min(a.maxZ, b.maxZ) - Math.max(a.minZ, b.minZ);
+  return dx > 0 && dz > 0 ? dx * dz : 0;
+}
+
+// Total top-down (XZ) overlap area of a candidate label against placed labels and raised part
+// footprints (flat placement surfaces are ignored — a label above the breadboard is not an overlap).
+function labelOverlapArea(
+  candidate: NonNullable<NonNullable<RenderPlan['layout']>['labels']>[string],
+  ownPartId: string,
+  renderParts: RenderPlan['parts'],
+  placedLabels: Array<NonNullable<NonNullable<RenderPlan['layout']>['labels']>[string]>
+) {
+  const box = labelBounds(candidate, 0.04);
+  let area = 0;
+  for (const placed of placedLabels) {
+    area += rectOverlapArea(box, labelBounds(placed, 0.04));
+  }
+  for (const part of renderParts) {
+    if (part.id === ownPartId || !part.footprint || part.footprint.type === 'wire' || isPlacementSurfaceFootprint(part.footprint)) {
+      continue;
+    }
+    area += rectOverlapArea(box, footprintBounds(part.position, part.footprint));
+  }
+  return area;
 }
 
 function labelPlacementCandidates(
@@ -7424,15 +7470,28 @@ function labelPlacementCandidates(
     }
   });
 
+  const lateral = width / 2 + label.width / 2 + spacing;
+  const far = spacing * 2.6;
+  const lateralFar = width / 2 + label.width / 2 + far;
   return [
     makeLabel(anchor),
+    // Near ring (4 sides + 2 diagonals + lifted center).
     makeLabel({ x: 0, y: lift, z: -depth / 2 - spacing }),
     makeLabel({ x: 0, y: lift, z: depth / 2 + spacing }),
-    makeLabel({ x: -width / 2 - label.width / 2 - spacing, y: lift, z: 0 }),
-    makeLabel({ x: width / 2 + label.width / 2 + spacing, y: lift, z: 0 }),
+    makeLabel({ x: -lateral, y: lift, z: 0 }),
+    makeLabel({ x: lateral, y: lift, z: 0 }),
     makeLabel({ x: 0, y: lift + 0.22, z: 0 }),
-    makeLabel({ x: -width / 2 - label.width / 2 - spacing, y: lift + 0.22, z: -depth / 2 - spacing }),
-    makeLabel({ x: width / 2 + label.width / 2 + spacing, y: lift + 0.22, z: depth / 2 + spacing })
+    makeLabel({ x: -lateral, y: lift + 0.22, z: -depth / 2 - spacing }),
+    makeLabel({ x: lateral, y: lift + 0.22, z: depth / 2 + spacing }),
+    // Far ring — pushes labels into open scene space when the part is crowded (PLAN_sensible P2).
+    makeLabel({ x: 0, y: lift, z: -depth / 2 - far }),
+    makeLabel({ x: 0, y: lift, z: depth / 2 + far }),
+    makeLabel({ x: -lateralFar, y: lift, z: 0 }),
+    makeLabel({ x: lateralFar, y: lift, z: 0 }),
+    makeLabel({ x: -lateralFar, y: lift, z: -depth / 2 - far }),
+    makeLabel({ x: lateralFar, y: lift, z: depth / 2 + far }),
+    makeLabel({ x: lateralFar, y: lift, z: -depth / 2 - far }),
+    makeLabel({ x: -lateralFar, y: lift, z: depth / 2 + far })
   ];
 }
 
@@ -7470,7 +7529,14 @@ function auditLabelLayout(
 
   for (const label of labelEntries) {
     for (const part of renderParts) {
-      if (part.id === label.partId || !part.footprint || part.footprint.type === 'wire') {
+      if (
+        part.id === label.partId ||
+        !part.footprint ||
+        part.footprint.type === 'wire' ||
+        isPlacementSurfaceFootprint(part.footprint)
+      ) {
+        // A label floating above the flat breadboard/PCB surface is not a real overlap; only other
+        // labels and raised components (chips, buttons, modules) count. (PLAN_sensible_simulation P2)
         continue;
       }
       if (!labelOverlapsPart(label, part, 0.02)) {

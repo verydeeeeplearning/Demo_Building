@@ -1,0 +1,21 @@
+{
+  "id": "button-buzzer-decoration",
+  "title": "버튼 누르면 부저 울리기 (브레드보드 미사용/장식)",
+  "intent": { "primaryGoal": "버튼을 누르면 부저가 울린다", "output": "부저 소리", "controller": "arduino-uno", "input": "버튼" },
+  "components": [
+    { "id": "bb1", "partId": "breadboard-half", "label": "Breadboard", "designator": "BB1" },
+    { "id": "u1", "partId": "arduino-uno", "label": "Arduino Uno", "designator": "U1" },
+    { "id": "sw1", "partId": "button-tactile", "label": "Button", "designator": "SW1" },
+    { "id": "bz1", "partId": "piezo-buzzer", "label": "Buzzer", "designator": "BZ1" }
+  ],
+  "connections": [
+    { "id": "c1", "from": { "componentId": "u1", "pin": "D2" }, "to": { "componentId": "sw1", "pin": "A" }, "signal": "button-input" },
+    { "id": "c2", "from": { "componentId": "sw1", "pin": "B" }, "to": { "componentId": "u1", "pin": "GND" }, "signal": "ground-reference" },
+    { "id": "c3", "from": { "componentId": "u1", "pin": "D9" }, "to": { "componentId": "bz1", "pin": "+" }, "signal": "buzzer-drive" },
+    { "id": "c4", "from": { "componentId": "bz1", "pin": "-" }, "to": { "componentId": "u1", "pin": "GND" }, "signal": "common-ground" }
+  ],
+  "behavior": { "runText": "버튼을 누르면 부저가 울린다" },
+  "assumptions": [],
+  "unsupportedItems": [],
+  "clarificationNeeds": []
+}

@@ -1,0 +1,20 @@
+{
+  "id": "led-blink-good",
+  "title": "LED 깜빡이기 (정상 배선)",
+  "intent": { "primaryGoal": "LED를 주기적으로 깜빡인다", "output": "led", "controller": "arduino-uno" },
+  "components": [
+    { "id": "bb1", "partId": "breadboard-half", "label": "Breadboard", "designator": "BB1" },
+    { "id": "u1", "partId": "arduino-uno", "label": "Arduino Uno", "designator": "U1" },
+    { "id": "r1", "partId": "resistor-220", "label": "220Ω", "designator": "R1" },
+    { "id": "d1", "partId": "led-5mm", "label": "LED", "designator": "D1" }
+  ],
+  "connections": [
+    { "id": "c1", "from": { "componentId": "u1", "pin": "D9" }, "to": { "componentId": "r1", "pin": "1" }, "signal": "gpio" },
+    { "id": "c2", "from": { "componentId": "r1", "pin": "2" }, "to": { "componentId": "d1", "pin": "A" }, "signal": "gpio" },
+    { "id": "c3", "from": { "componentId": "d1", "pin": "K" }, "to": { "componentId": "u1", "pin": "GND" }, "signal": "ground" }
+  ],
+  "behavior": { "runText": "D9 HIGH/LOW로 LED가 깜빡인다" },
+  "assumptions": [],
+  "unsupportedItems": [],
+  "clarificationNeeds": []
+}
