@@ -1009,7 +1009,13 @@ export const AgentConversationContextSchema = z.object({
   currentArtifact: AgentArtifactSnapshotSchema.optional(),
   lastSupportedGoal: z.string().max(500).optional(),
   pendingSupportedAlternative: SupportedAlternativeSchema.optional(),
-  awaitingBuildConfirmation: z.boolean().default(false)
+  awaitingBuildConfirmation: z.boolean().default(false),
+  // Phase 5b — advisory running summary for long sessions (>12 turns).
+  // The server RE-COMPUTES this from server-validated turns each request; any
+  // client-supplied value is treated as UNTRUSTED/advisory only and is never
+  // echoed as authoritative instruction.  Bounded at 500 chars (locale-agnostic)
+  // to prevent prompt injection via an oversized client-forged summary.
+  runningSummary: z.string().max(500).optional()
 });
 
 export const AgentMessageRequestSchema = z.object({
