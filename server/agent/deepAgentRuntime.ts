@@ -41,6 +41,10 @@ import {
   type SystemContextBlocks
 } from './contextCompaction.ts';
 import {
+  deriveRequirementDoc,
+  fitBriefToBudget
+} from './circuit/requirementBrief.ts';
+import {
   AgentEventSchema,
   AgentMessageRequestSchema,
   AgentRunResultSchema,
@@ -397,7 +401,6 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
   // instead of throwing AgentPromptBudgetError.  Reserves the non-block overhead
   // (system-prompt scaffolding + user prompt + subagent blocks) so the FULL assembled
   // prompt — what the assert measures — fits the route budget, not just the raw blocks.
-  const synthesisUserPrompt = buildAgentUserPrompt(request, { attempt: 1, previousErrors: [] });
   const synthesisExtraBlocks = [renderSubagentPromptBudgetText(subagents)];
   const buildSynthesisSystemPrompt = (blocks: SystemContextBlocks): string =>
     buildSystemPrompt({
@@ -407,15 +410,29 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
       registrySummary: blocks.registrySummary,
       contextPacketBlock: blocks.contextPacketBlock
     });
+  const synthesisRawBlocks: SystemContextBlocks = {
+    operatingMemory: runtimeOperatingMemory,
+    coordinatorPrompt: runtimeContextIndex,
+    registrySummary,
+    contextPacketBlock: contextPacket.promptBlock
+  };
+  // Faithful chain (flag-gated, default off): author the requirement document and fit it
+  // grounding-first so it LEADS the synthesis prompt without compacting context grounding.
+  // briefOptions === undefined (flag off / non-synthesize route) => prompt byte-identical to before.
+  const requirementBrief = buildSynthesisRequirementBrief({
+    request,
+    contextPacket,
+    requirementAnalysis,
+    buildSystemPromptFrom: buildSynthesisSystemPrompt,
+    rawBlocks: synthesisRawBlocks,
+    extraPromptBlocks: synthesisExtraBlocks
+  });
+  const briefOptions = requirementBrief ? { requirementBrief } : undefined;
+  const synthesisUserPrompt = buildAgentUserPrompt(request, { attempt: 1, previousErrors: [] }, briefOptions);
   const synthesisBlocks = compactBlocksForAssembledPrompt({
     stage: 'synthesis',
     contextPacket,
-    rawBlocks: {
-      operatingMemory: runtimeOperatingMemory,
-      coordinatorPrompt: runtimeContextIndex,
-      registrySummary,
-      contextPacketBlock: contextPacket.promptBlock
-    },
+    rawBlocks: synthesisRawBlocks,
     buildSystemPromptFrom: buildSynthesisSystemPrompt,
     userPrompt: synthesisUserPrompt,
     extraPromptBlocks: synthesisExtraBlocks
@@ -463,7 +480,7 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
         attempt,
         previousErrorCount: previousErrors.length
       });
-      const userPrompt = buildAgentUserPrompt(request, { attempt, previousErrors });
+      const userPrompt = buildAgentUserPrompt(request, { attempt, previousErrors }, briefOptions);
       assertAgentPromptBudget({
         stage: 'synthesis',
         contextPacket,
@@ -668,6 +685,55 @@ function assertAgentPromptBudget(input: Parameters<typeof measureAgentPromptBudg
  * buildSystemPrompt (headers, trimming) so the post-compaction assert clears.
  */
 const PROMPT_BUDGET_SAFETY_MARGIN = 64;
+
+/** Chars reserved for the "=== REQUIREMENT DOCUMENT ... ===" wrapper around the injected brief. */
+const REQUIREMENT_BRIEF_WRAPPER_CHARS = 140;
+
+/**
+ * Requirement-document chain flag (faithful: doc drives synthesis). Default OFF so the synthesis
+ * prompt is byte-identical to prior behavior — the live agent is unaffected until opted in.
+ *   off (default) | derive (deterministic doc) | llm (LLM-authored doc; reserved for US-002 faithful).
+ */
+function requirementDocChainMode(): 'off' | 'derive' | 'llm' {
+  const value = (process.env.H_EDUWARE_REQUIREMENT_DOC_CHAIN ?? '').trim().toLowerCase();
+  if (value === 'llm') return 'llm';
+  if (value === 'derive' || value === '1' || value === 'on' || value === 'true') return 'derive';
+  return 'off';
+}
+
+/**
+ * Build the grounding-first requirement brief to inject into the synthesis user prompt, or undefined
+ * when the chain is off or the route is not synthesize_circuit. Fits the brief to the budget that
+ * remains AFTER the (uncompacted) system blocks + brief-less user prompt + extras, so the brief
+ * yields first and system grounding (contextPacketBlock) is protected (Critic M1).
+ */
+function buildSynthesisRequirementBrief(input: {
+  request: AgentMessageRequest;
+  contextPacket: Awaited<ReturnType<typeof buildContextPacket>>;
+  requirementAnalysis: RequirementAnalysis;
+  buildSystemPromptFrom: (blocks: SystemContextBlocks) => string;
+  rawBlocks: SystemContextBlocks;
+  extraPromptBlocks: string[];
+}): string | undefined {
+  const mode = requirementDocChainMode();
+  if (mode === 'off' || input.requirementAnalysis.route !== 'synthesize_circuit') {
+    return undefined;
+  }
+  const doc = deriveRequirementDoc(
+    input.request.message,
+    input.contextPacket.candidateParts.map((part) => ({ id: part.id, kind: part.kind, label: part.label }))
+  );
+  // Measure the assembled prompt WITHOUT the brief to find the brief's reserved budget.
+  const baseline = measureAgentPromptBudget({
+    stage: 'synthesis',
+    contextPacket: input.contextPacket,
+    systemPrompt: input.buildSystemPromptFrom(input.rawBlocks),
+    userPrompt: buildAgentUserPrompt(input.request, { attempt: 1, previousErrors: [] }),
+    extraPromptBlocks: input.extraPromptBlocks
+  });
+  const reserved = baseline.maxChars - baseline.actualChars - REQUIREMENT_BRIEF_WRAPPER_CHARS;
+  return fitBriefToBudget(doc, Math.max(0, reserved));
+}
 
 /**
  * Phase 5a (live-path fix): compact the dominant system/context blocks so the
@@ -1717,9 +1783,22 @@ function buildSystemPrompt({
 
 export function buildAgentUserPrompt(
   request: AgentMessageRequest,
-  repair?: { attempt: number; previousErrors: string[] }
+  repair?: { attempt: number; previousErrors: string[] },
+  options?: { requirementBrief?: string }
 ) {
+  // Faithful chain: when a requirement document is authored, it LEADS the prompt as the requirement
+  // of record. The raw "Student message" line is KEPT for lexical grounding (verbatim nuance, M2).
+  // When no brief is supplied (flag off / non-synthesize route) the prompt is byte-identical to before.
+  const briefBlock = options?.requirementBrief
+    ? [
+        '=== REQUIREMENT DOCUMENT — build a circuit that satisfies this ===',
+        options.requirementBrief,
+        '=== END REQUIREMENT DOCUMENT ===',
+        ''
+      ]
+    : [];
   const lines = [
+    ...briefBlock,
     `Student message: ${request.message}`,
     request.confirmation ? `Student confirmation/context: ${request.confirmation}` : '',
     renderConversationContextForPrompt(request),
