@@ -659,7 +659,8 @@
       "epaper",
       "e-paper",
       "SCK",
-      "CS pin"
+      "CS pin",
+      "온습도센서"
     ],
     "minimumScore": 0.62,
     "studentPhrases": [
@@ -751,6 +752,14 @@
       "light sensor",
       "dark room",
       "photoresistor",
+      "조도센서",
+      "조도",
+      "빛센서",
+      "광센서",
+      "초음파센서",
+      "거리센서",
+      "온습도센서",
+      "센서",
       "distance display",
       "led matrix",
       "max7219",
@@ -1704,7 +1713,9 @@
       "ultrasonic",
       "distance sensor",
       "hc-sr04",
-      "distance"
+      "distance",
+      "초음파센서",
+      "거리센서"
     ],
     "negativeEvidence": [
       "current flow on screen",
@@ -1723,7 +1734,10 @@
       "distance display",
       "초음파 센서",
       "거리 센서",
-      "거리를 표시"
+      "거리를 표시",
+      "초음파센서",
+      "거리센서",
+      "거리 표시"
     ],
     "inputModalities": [
       "distance-sensor"
@@ -1795,7 +1809,9 @@
     ],
     "requiredEvidence": [
       "dht11",
-      "DHT11"
+      "DHT11",
+      "온습도센서",
+      "온습도"
     ],
     "negativeEvidence": [
       "dht22",
@@ -1815,7 +1831,9 @@
       "DHT11",
       "DHT11 온습도 센서",
       "DHT11 온습도 OLED",
-      "DHT11 온도랑 습도 표시"
+      "DHT11 온도랑 습도 표시",
+      "온습도센서",
+      "온습도 센서"
     ],
     "inputModalities": [
       "temperature-humidity-sensor",
@@ -2860,7 +2878,10 @@
       "photoresistor",
       "ldr",
       "light sensor",
-      "dark"
+      "dark",
+      "조도센서",
+      "빛센서",
+      "광센서"
     ],
     "negativeEvidence": [
       "screen",
@@ -2877,6 +2898,9 @@
       "turn on led when dark",
       "빛 센서",
       "조도 센서",
+      "조도센서",
+      "빛센서",
+      "광센서",
       "어두우면 LED"
     ],
     "inputModalities": [
@@ -3156,7 +3180,9 @@
       "temperature humidity",
       "current flow on screen",
       "calibrated safety alarm",
-      "mains current"
+      "mains current",
+      "온습도",
+      "온습도센서"
     ],
     "minimumScore": 0.62,
     "studentPhrases": [
@@ -3420,7 +3446,9 @@
       "analog value",
       "brightness dimmer",
       "temperature humidity",
-      "distance sensor"
+      "distance sensor",
+      "온습도",
+      "온습도센서"
     ],
     "minimumScore": 0.62,
     "studentPhrases": [

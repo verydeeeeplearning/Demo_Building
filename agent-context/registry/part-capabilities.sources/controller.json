@@ -2,6 +2,7 @@
   {
     "id": "arduino-uno",
     "kind": "controller",
+    "family": "controller-board",
     "label": "Arduino Uno",
     "aliases": [
       "arduino",

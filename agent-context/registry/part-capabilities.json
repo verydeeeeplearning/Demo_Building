@@ -2,6 +2,7 @@
   {
     "id": "breadboard-half",
     "kind": "board",
+    "family": "prototyping-surface",
     "label": "Half-size breadboard",
     "aliases": [
       "breadboard",
@@ -65,6 +66,7 @@
   {
     "id": "arduino-uno",
     "kind": "controller",
+    "family": "controller-board",
     "label": "Arduino Uno",
     "aliases": [
       "arduino",
@@ -2111,6 +2113,7 @@
   {
     "id": "led-5mm",
     "kind": "output",
+    "family": "light-output",
     "label": "5 mm LED",
     "aliases": [
       "led",
@@ -2506,6 +2509,7 @@
   {
     "id": "resistor-220",
     "kind": "passive",
+    "family": "resistive-passive",
     "label": "220 ohm resistor",
     "aliases": [
       "resistor",
@@ -2570,6 +2574,7 @@
   {
     "id": "button-tactile",
     "kind": "input",
+    "family": "human-input-digital",
     "label": "Tactile pushbutton",
     "aliases": [
       "button",
@@ -2635,6 +2640,7 @@
   {
     "id": "piezo-buzzer",
     "kind": "output",
+    "family": "sound-output",
     "label": "Piezo buzzer",
     "aliases": [
       "buzzer",
@@ -2797,6 +2803,7 @@
   {
     "id": "micro-servo",
     "kind": "output",
+    "family": "servo-output",
     "label": "Micro servo",
     "aliases": [
       "servo",
@@ -9345,6 +9352,7 @@
   {
     "id": "jumper-wire",
     "kind": "wiring",
+    "family": "connector-wiring",
     "label": "Jumper wire",
     "aliases": [
       "wire",

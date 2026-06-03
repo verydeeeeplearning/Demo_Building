@@ -29,7 +29,9 @@
       "analog value",
       "brightness dimmer",
       "temperature humidity",
-      "distance sensor"
+      "distance sensor",
+      "온습도",
+      "온습도센서"
     ],
     "minimumScore": 0.62,
     "studentPhrases": [

@@ -2,6 +2,7 @@
   {
     "id": "led-5mm",
     "kind": "output",
+    "family": "light-output",
     "label": "5 mm LED",
     "aliases": [
       "led",
@@ -77,6 +78,7 @@
   {
     "id": "piezo-buzzer",
     "kind": "output",
+    "family": "sound-output",
     "label": "Piezo buzzer",
     "aliases": [
       "buzzer",
@@ -147,6 +149,7 @@
   {
     "id": "micro-servo",
     "kind": "output",
+    "family": "servo-output",
     "label": "Micro servo",
     "aliases": [
       "servo",

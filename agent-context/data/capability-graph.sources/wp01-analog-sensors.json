@@ -44,7 +44,9 @@
       "temperature humidity",
       "current flow on screen",
       "calibrated safety alarm",
-      "mains current"
+      "mains current",
+      "온습도",
+      "온습도센서"
     ],
     "minimumScore": 0.62,
     "studentPhrases": [

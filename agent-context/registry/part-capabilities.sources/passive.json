@@ -2,6 +2,7 @@
   {
     "id": "resistor-220",
     "kind": "passive",
+    "family": "resistive-passive",
     "label": "220 ohm resistor",
     "aliases": [
       "resistor",
