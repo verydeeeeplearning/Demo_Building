@@ -949,7 +949,7 @@ function compactBlocksForAssembledPrompt(args: {
   });
 }
 
-function compactRuntimeOperatingMemory(memory: string) {
+function compactRuntimeOperatingMemory(_memory: string) {
   return [
     '# Operating Memory Summary',
     'Validate before build-ready rendering or current-flow claims.',
