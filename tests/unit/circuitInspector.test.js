@@ -1,11 +1,97 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createDemoCircuit } from '../../src/circuitMetadata.js';
 import { answerTutorQuestion, describeCircuitTarget } from '../../src/circuitInspector.js';
 
+// Inline fixture — replaced createDemoCircuit() after Phase 1 demo removal.
+function makeOledCircuit(locale = 'ko') {
+  const isKo = locale !== 'en';
+  return {
+    title: isKo ? 'Arduino OLED 이름 표시' : 'Arduino OLED name display',
+    runText: 'RALPHTON BUSAN',
+    parts: [
+      {
+        id: 'arduino-uno', type: 'arduino',
+        label: isKo ? 'Arduino Uno' : 'Arduino Uno',
+        description: isKo ? '작은 컴퓨터' : 'Tiny computer',
+        pins: [
+          { name: '5V', role: 'power', meaning: isKo ? '5V 전원' : '5V power' },
+          { name: 'GND', role: 'ground', meaning: isKo ? '공통 GND' : 'common GND' },
+          { name: 'A4/SDA', role: 'i2c-data', meaning: isKo ? 'I2C 데이터' : 'I2C data' },
+          { name: 'A5/SCL', role: 'i2c-clock', meaning: isKo ? 'I2C 클록' : 'I2C clock' }
+        ]
+      },
+      {
+        id: 'oled-display', type: 'oled',
+        label: isKo ? '0.96 inch I2C OLED' : '0.96 inch I2C OLED',
+        description: isKo ? '작은 화면' : 'Small screen',
+        pins: [
+          { name: 'VCC', role: 'power', meaning: isKo ? '전원 입력' : 'power input' },
+          { name: 'GND', role: 'ground', meaning: isKo ? '공통 GND' : 'common GND' },
+          { name: 'SDA', role: 'i2c-data', meaning: isKo ? '데이터 수신' : 'receive data' },
+          { name: 'SCL', role: 'i2c-clock', meaning: isKo ? '클록 수신' : 'receive clock' }
+        ]
+      }
+    ],
+    connections: [
+      {
+        id: 'oled-power',
+        from: { partId: 'arduino-uno', pin: '5V' },
+        to: { partId: 'oled-display', pin: 'VCC' },
+        signal: 'power', color: '#ff4d3d',
+        education: {
+          label: '5V POWER',
+          title: isKo ? '전원을 보내는 선' : 'This wire carries power',
+          what: isKo ? '빨간 점퍼선은 Arduino 5V를 OLED로 보냅니다.' : 'Red jumper carries 5V from Arduino to OLED.',
+          why: isKo ? '화면이 켜지려면 전원이 필요합니다.' : 'The screen needs power before lighting pixels.',
+          missing: isKo ? '이 선이 빠지면 OLED가 켜지지 않습니다.' : 'Without this wire the OLED stays dark.'
+        }
+      },
+      {
+        id: 'oled-ground',
+        from: { partId: 'arduino-uno', pin: 'GND' },
+        to: { partId: 'oled-display', pin: 'GND' },
+        signal: 'ground', color: '#20242a',
+        education: {
+          label: 'GND',
+          title: isKo ? '전류가 돌아오는 길' : 'This wire closes the loop',
+          what: isKo ? '검은 점퍼선은 공통 GND를 만듭니다.' : 'Black jumper gives both boards the same GND.',
+          why: isKo ? '전류에는 돌아오는 길이 필요합니다.' : 'Electricity needs a return path.',
+          missing: isKo ? 'GND가 없으면 화면이 깜빡입니다.' : 'Without GND the screen may flicker.'
+        }
+      },
+      {
+        id: 'oled-sda',
+        from: { partId: 'arduino-uno', pin: 'A4/SDA' },
+        to: { partId: 'oled-display', pin: 'SDA' },
+        signal: 'i2c-data', color: '#2f7df6',
+        education: {
+          label: 'I2C SDA',
+          title: isKo ? '화면 데이터를 보내는 선' : 'This wire carries the message',
+          what: isKo ? '파란 점퍼선은 A4에서 SDA로 데이터를 전달합니다.' : 'Blue jumper carries display data from A4 to SDA.',
+          why: isKo ? 'SDA는 I2C 데이터 선입니다.' : 'SDA is the I2C data line.',
+          missing: isKo ? '이 선이 없으면 OLED가 그릴 수 없습니다.' : 'Without this wire the OLED cannot draw anything.'
+        }
+      },
+      {
+        id: 'oled-scl',
+        from: { partId: 'arduino-uno', pin: 'A5/SCL' },
+        to: { partId: 'oled-display', pin: 'SCL' },
+        signal: 'i2c-clock', color: '#f6c44c',
+        education: {
+          label: 'I2C SCL',
+          title: isKo ? '통신 박자를 맞추는 선' : 'This wire keeps time',
+          what: isKo ? '노란 점퍼선은 A5에서 SCL로 클록을 전달합니다.' : 'Yellow jumper carries clock from A5 to SCL.',
+          why: isKo ? '클록은 두 보드가 데이터를 읽는 박자를 맞춥니다.' : 'The clock tells both boards when to read each bit.',
+          missing: isKo ? '이 선이 없으면 화면을 갱신할 수 없습니다.' : 'Without this wire the screen cannot update.'
+        }
+      }
+    ]
+  };
+}
+
 test('circuit inspector describes a selected connection with simulation grounding', () => {
-  const circuit = createDemoCircuit();
+  const circuit = makeOledCircuit('ko');
   const target = describeCircuitTarget(circuit, { type: 'connection', connectionId: 'oled-sda' }, 'ko');
 
   assert.equal(target.type, 'connection');
@@ -17,7 +103,7 @@ test('circuit inspector describes a selected connection with simulation groundin
 });
 
 test('circuit tutor answers selected-target questions without network', () => {
-  const circuit = createDemoCircuit();
+  const circuit = makeOledCircuit('ko');
   const target = describeCircuitTarget(circuit, { type: 'connection', connectionId: 'oled-power' }, 'ko');
   const answer = answerTutorQuestion({
     circuit,
@@ -231,7 +317,7 @@ test('part tutor gives concrete resistor explanations for LED circuits', () => {
 });
 
 test('circuit inspector keeps English copy available for the language toggle', () => {
-  const circuit = createDemoCircuit('en');
+  const circuit = makeOledCircuit('en');
   const target = describeCircuitTarget(circuit, { type: 'part', partId: 'oled-display' }, 'en');
   const answer = answerTutorQuestion({
     circuit,

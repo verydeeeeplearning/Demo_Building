@@ -111,7 +111,7 @@ function shareRunnable(snapshot) {
   if (report) {
     return report.runnable === true;
   }
-  return snapshot.source === 'demo';
+  return false;
 }
 
 function shareSimulationAvailable(snapshot) {

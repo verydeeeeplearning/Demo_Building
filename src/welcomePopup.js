@@ -48,7 +48,6 @@ export function mountWelcomePopup(host, { onDismiss, locale = getLocale() } = {}
       </ul>
       <div class="welcome-actions">
         <button class="primary-action" type="button" data-testid="welcome-dismiss">${t('welcome.start', {}, locale)}</button>
-        <button class="button-outline" type="button" data-testid="welcome-demo">${t('welcome.demo', {}, locale)}</button>
       </div>
     </div>
   `;
@@ -84,7 +83,6 @@ export function mountWelcomePopup(host, { onDismiss, locale = getLocale() } = {}
   overlay.querySelector('[data-testid="welcome-close"]').setAttribute('aria-label', t('welcome.close', {}, locale));
   overlay.querySelector('[data-testid="welcome-close"]').addEventListener('click', () => close('close'));
   overlay.querySelector('[data-testid="welcome-dismiss"]').addEventListener('click', () => close('dismiss'));
-  overlay.querySelector('[data-testid="welcome-demo"]').addEventListener('click', () => close('demo'));
 
   document.addEventListener('keydown', onKeydown);
 

@@ -1,10 +1,10 @@
 export const en = {
   topbar: {
-    announcement: 'H-eduware demo build',
+    announcement: 'H-eduware',
     projectLoaded: 'Arduino OLED lesson',
     newProject: 'New project',
     tabs: { files: 'Files', pcb: 'PCB' },
-    actions: { library: 'Library', demo: 'Demo', share: 'Share', run: 'Run' }
+    actions: { library: 'Library', share: 'Share', run: 'Run' }
   },
   language: {
     aria: 'Language',
@@ -35,8 +35,8 @@ export const en = {
     ],
     stepDone: 'Done',
     runtimeLabel: 'AI mode',
-    runtimeLocalKey: 'Local demo key ready',
-    runtimeCached: 'Cached demo',
+    runtimeLocalKey: 'Local key ready',
+    runtimeCached: 'Cached response',
     replyLabel: 'Reply to the assistant',
     ideaLabel: 'Describe circuit idea',
     ideaPlaceholder: 'Example: blink an LED from Arduino Uno D8',
@@ -47,9 +47,8 @@ export const en = {
   landing: {
     status: 'No project loaded',
     title: 'Start with a blank learning circuit.',
-    body: 'The workspace opens empty so the student sees when a project is created. A prepared example circuit is available from the Demo control.',
-    loadDemo: 'Load demo project',
-    newProject: 'New project'
+    body: 'Describe the circuit you want to build. The AI will ask a few questions and place the parts in 3D for you.',
+    newProject: 'Describe a circuit'
   },
   files: {
     tocKicker: 'On this page',
@@ -202,7 +201,7 @@ export const en = {
     },
     steps: [
       { id: 'read-idea', phase: 'spec', label: 'Reading your idea', log: 'Parsing the request into a clear goal' },
-      { id: 'draft-spec', phase: 'spec', label: 'Drafting the requirement spec', log: 'Writing demo-oled.md' },
+      { id: 'draft-spec', phase: 'spec', label: 'Drafting the requirement spec', log: 'Writing requirement spec' },
       { id: 'list-parts', phase: 'spec', label: 'Listing the parts', log: 'Arduino Uno, I2C OLED, breadboard, jumper wires' },
       { id: 'write-connections', phase: 'spec', label: 'Writing the connections', log: 'Documenting 5V, GND, SDA, SCL' },
       { id: 'place-breadboard', phase: 'design', label: 'Placing the breadboard', log: 'Dropping the breadboard onto the stage' },
@@ -222,8 +221,7 @@ export const en = {
       'Answer a few short questions to lock the design.',
       'Explore the 3D parts and press Run to see it work.'
     ],
-    start: 'Start exploring',
-    demo: 'Load the demo'
+    start: 'Start exploring'
   },
   library: {
     aria: 'Part library browser',
@@ -254,7 +252,7 @@ export const en = {
     kicker: 'Share',
     emptyTitle: 'No circuit to share yet',
     emptyBody: 'Build or load a circuit first. Then you can share a clean project summary.',
-    emptyHint: 'Use the Demo button or describe a circuit idea to create something shareable.',
+    emptyHint: 'Describe a circuit idea to create something shareable.',
     readyBody: 'Share a safe summary of this circuit. Public links are planned, so this MVP gives you a clean copyable artifact first.',
     summaryLabel: 'Share summary',
     copySummary: 'Copy summary',
@@ -313,8 +311,7 @@ export const en = {
     notAvailable: 'No evidence listed'
   },
   interview: {
-    initial: 'Start a new project or load a prepared example circuit.',
-    demoIdea: 'show the event name on a small OLED screen',
+    initial: 'Describe the circuit you want to build.',
     labels: {
       goal: 'Project goal',
       output: 'Output device',
@@ -325,7 +322,7 @@ export const en = {
     questions: {
       content: 'Do you want the screen to show the event name?',
       controller: 'Should an Arduino Uno run this? It is the friendliest board to start with.',
-      power: 'Will USB power be enough for the demo?'
+      power: 'Will USB power be enough?'
     },
     values: {
       eventName: 'Event name (RALPHTON BUSAN)',
@@ -342,34 +339,4 @@ export const en = {
     goal: 'Turn {subject} into a working {output} circuit',
     ready: 'The design is clear. Press Confirm and build to place the parts in 3D.'
   },
-  circuit: {
-    title: 'Arduino OLED name display',
-    fileName: 'demo-oled.md',
-    requirementPath: 'requirements/demo-oled.md',
-    requirementTitle: 'Project Requirement: Arduino OLED name display',
-    requirementStatus: 'Confirmed demo requirement',
-    statusLabel: 'Status',
-    sections: {
-      goal: 'Goal',
-      parts: 'Parts Needed',
-      behavior: 'What It Should Do',
-      connections: 'Connections',
-      assumptions: 'Assumptions'
-    },
-    goal: 'Build a breadboard circuit that uses an Arduino and a small I2C OLED screen to show {runText}.',
-    behavior: 'When the student presses Run, the OLED lights up and displays {runText}.',
-    partsNeeded: [
-      'Arduino Uno or compatible board',
-      '0.96 inch I2C OLED display',
-      'Half-size breadboard',
-      'Four jumper wires: 5V, GND, SDA, and SCL'
-    ],
-    assumptions: [
-      'The OLED module uses the common four-pin I2C layout: VCC, GND, SDA, and SCL.',
-      'The Arduino provides 5V power and uses A4 for SDA and A5 for SCL.',
-      'This is a scripted teaching demo, not a general-purpose circuit simulator.'
-    ],
-    transcriptConfirm: 'Yes, build that.',
-    transcriptFinal: 'Great. I will build an Arduino and I2C OLED circuit that shows {runText}.'
-  }
 };

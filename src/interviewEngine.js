@@ -7,8 +7,8 @@
 // model could later replace the canned question/answer text without changing
 // the shape of the state.
 //
-// The demo path is preserved exactly, but copy is locale-aware so the same
-// state machine can drive both Korean default UI and English fallback UI.
+// Copy is locale-aware so the same state machine can drive both Korean default
+// UI and English fallback UI.
 
 import { getLocale, t } from './i18n.js';
 
@@ -167,7 +167,7 @@ export function answerInterview(state, answer, locale = getLocale()) {
     messages: messages.concat({
       role: 'assistant',
       text: t('interview.ready', {}, locale),
-      action: 'build-demo-circuit'
+      action: 'build-circuit'
     })
   };
 }

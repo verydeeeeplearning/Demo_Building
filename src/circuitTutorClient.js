@@ -29,7 +29,7 @@ export async function askCircuitTutor({ circuit, target, question, locale, runni
         return response.json();
       }
     } catch (error) {
-      // Default classroom/demo mode is deterministic and offline; server use is opt-in.
+      // Default classroom mode is deterministic and offline; server use is opt-in.
     }
   }
 

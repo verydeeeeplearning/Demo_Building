@@ -1,8 +1,4 @@
 import './styles.css';
-import {
-  createDemoCircuit,
-  createRequirementMarkdown
-} from './circuitMetadata.js';
 import { getAiRuntimeMode, resolvePlacementIntent, sendAgentMessage } from './aiClient.js';
 import { createStageScene } from './stageScene.js';
 import { createLogoMark, createFaviconDataUri } from './heduwareLogo.js';
@@ -21,7 +17,6 @@ import { classifyStudentTurn } from './conversationRouting.js';
 import { renderWarningMessage, renderWarningsMarkdown, renderWarningTitle } from './renderWarnings.js';
 import {
   createInterview,
-  startInterview,
   answerInterview,
   interviewProgress,
   isInterviewReady
@@ -48,7 +43,7 @@ const state = {
   visualArrangement: createEmptyVisualArrangement(),
   placementResolving: false,
   placementError: '',
-  selectedFileId: 'demo-requirements',
+  selectedFileId: null,
   aiRuntimeMode: { mode: 'agent-server-offline', ok: false, hasServerKey: false },
   agentSessionId: null,
   agentResult: null,
@@ -64,7 +59,7 @@ const state = {
   }
 };
 
-state.project = createLocalizedProject(state.locale);
+state.project = createLocalizedProject();
 
 let stageController = null;
 let welcomeController = null;
@@ -73,20 +68,12 @@ let shareController = null;
 let buildController = null;
 let thinkingTimer = 0;
 
-function createLocalizedProject(locale) {
-  const circuit = { ...createDemoCircuit(locale), source: 'demo' };
+function createLocalizedProject() {
+  // Boot to a clean empty workspace — no circuit pre-loaded.
+  // The student is prompted via the landing CTA to describe a circuit idea.
   return {
-    circuit,
-    files: [
-      {
-        id: 'demo-requirements',
-        name: t('circuit.fileName', {}, locale),
-        path: t('circuit.requirementPath', {}, locale),
-        kind: 'Markdown',
-        status: t('circuit.requirementStatus', {}, locale),
-        markdown: createRequirementMarkdown(circuit, locale)
-      }
-    ]
+    circuit: null,
+    files: []
   };
 }
 
@@ -172,15 +159,6 @@ function buildStepsForCurrentCircuit() {
   }));
 }
 
-// A fully-decided interview matching the locked OLED demo, used when the demo
-// is loaded directly or after the student confirms the build.
-function demoInterviewState(locale = state.locale) {
-  let interview = startInterview(createInterview(locale), t('interview.demoIdea', {}, locale), locale);
-  interview = answerInterview(interview, 'yes', locale); // content: event name
-  interview = answerInterview(interview, 'yes', locale); // controller: Arduino Uno
-  interview = answerInterview(interview, 'yes', locale); // power: USB 5V
-  return interview;
-}
 
 getAiRuntimeMode().then((runtimeMode) => {
   state.aiRuntimeMode = runtimeMode;
@@ -214,7 +192,6 @@ function render() {
       <div class="top-actions">
         ${renderLanguageToggle()}
         <button class="secondary-action" type="button" data-action="open-library" data-testid="open-library">${t('topbar.actions.library', {}, state.locale)}</button>
-        <button class="secondary-action demo-action" type="button" data-action="load-demo">${t('topbar.actions.demo', {}, state.locale)}</button>
         <button class="secondary-action" type="button" data-action="share" data-testid="share-project" ${state.projectLoaded ? '' : 'disabled'}>${t('topbar.actions.share', {}, state.locale)}</button>
         <button class="primary-action" type="button" data-action="run" ${canRunCurrentSimulation() ? '' : 'disabled'}>${t('topbar.actions.run', {}, state.locale)}</button>
       </div>
@@ -469,8 +446,7 @@ function renderNewProjectLanding() {
         <h2>${t('landing.title', {}, state.locale)}</h2>
         <p>${t('landing.body', {}, state.locale)}</p>
         <div class="landing-actions">
-          <button class="primary-action" type="button" data-action="load-demo">${t('landing.loadDemo', {}, state.locale)}</button>
-          <button class="button-outline" type="button" data-action="focus-idea">${t('landing.newProject', {}, state.locale)}</button>
+          <button class="primary-action" type="button" data-action="focus-idea">${t('landing.newProject', {}, state.locale)}</button>
         </div>
       </div>
     </section>
@@ -1155,9 +1131,6 @@ function bindEvents() {
     });
   });
 
-  app.querySelectorAll('[data-action="load-demo"]').forEach((button) => {
-    button.addEventListener('click', loadDemoProject);
-  });
 
   app.querySelectorAll('[data-locale]').forEach((button) => {
     button.addEventListener('click', () => switchLocale(button.dataset.locale));
@@ -1564,7 +1537,7 @@ function canRunLoadedProject() {
         || (circuit.simulationPlan.expectedStates || []).length > 0
       );
   }
-  return circuit?.source === 'demo';
+  return false;
 }
 
 function canRunCurrentSimulation() {
@@ -1809,9 +1782,9 @@ function confirmCurrentAgentResult() {
     state.project = createProjectFromAgentResult(state.agentResult);
     state.selectedFileId = state.project.files[0]?.id || 'deepagent-requirements';
   } else {
-    state.interview = demoInterviewState(state.locale);
-    state.project = createLocalizedProject(state.locale);
-    state.selectedFileId = 'demo-requirements';
+    state.interview = createInterview(state.locale);
+    state.project = createLocalizedProject();
+    state.selectedFileId = null;
   }
   state.awaitingConfirmation = false;
   state.interactionMode = 'orbit';
@@ -2319,7 +2292,7 @@ function switchLocale(locale) {
   if (state.interview.status === 'idle') {
     state.interview = createInterview(nextLocale);
   } else if (!state.agentResult && (state.projectLoaded || state.interview.status === 'ready')) {
-    state.interview = demoInterviewState(nextLocale);
+    // Leave the interview as-is (already in 'ready' or loaded state).
   }
 
   render();
@@ -2337,7 +2310,7 @@ function beginThinking() {
 }
 
 // Cancels any in-flight typing reveal so transitions that bypass beginThinking
-// (confirm, demo load, opening a modal) never leave a stale typing indicator.
+// (confirm, opening a modal) never leave a stale typing indicator.
 function cancelThinking() {
   state.thinking = false;
   clearTimeout(thinkingTimer);
@@ -2362,7 +2335,7 @@ function finalizeBuild() {
   state.built = true;
   state.running = false;
   state.activeTab = 'Files';
-  state.selectedFileId = state.project.files[0]?.id || 'demo-requirements';
+  state.selectedFileId = state.project.files[0]?.id || null;
   render();
 }
 
@@ -2385,7 +2358,7 @@ function openShareModal() {
   }
 
   cancelThinking();
-  const requirementFile = projectFiles().find((file) => file.kind === 'Markdown' && /requirement|요구|demo|deepagent/i.test(`${file.id} ${file.name} ${file.path}`))
+  const requirementFile = projectFiles().find((file) => file.kind === 'Markdown' && /requirement|요구|deepagent/i.test(`${file.id} ${file.name} ${file.path}`))
     || projectFiles().find((file) => file.kind === 'Markdown');
   shareController = mountShareModal(document.body, {
     locale: state.locale,
@@ -2393,31 +2366,14 @@ function openShareModal() {
     title: projectDisplayTitle(),
     markdown: requirementFile?.markdown,
     project: state.project,
-    source: state.agentResult ? 'agent' : 'demo',
+    source: state.agentResult ? 'agent' : 'manual',
     onClose() {
       shareController = null;
     }
   });
 }
 
-function loadDemoProject() {
-  cancelThinking();
-  state.agentResult = null;
-  state.shareView = null;
-  state.projectLoaded = true;
-  state.awaitingConfirmation = false;
-  state.built = true;
-  state.running = false;
-  state.activeTab = 'Files';
-  state.selectedFileId = 'demo-requirements';
-  state.interactionMode = 'orbit';
-  state.visualArrangement = createEmptyVisualArrangement();
-  state.placementResolving = false;
-  state.placementError = '';
-  state.interview = demoInterviewState(state.locale);
-  resetInspectorState();
-  render();
-}
+
 
 function importSharedSnapshot() {
   const snapshot = state.shareView?.snapshot;
@@ -2452,13 +2408,13 @@ function startNewProjectFromShareView() {
   cancelThinking();
   state.agentResult = null;
   state.agentSessionId = null;
-  state.project = createLocalizedProject(state.locale);
+  state.project = createLocalizedProject();
   state.projectLoaded = false;
   state.awaitingConfirmation = false;
   state.built = false;
   state.running = false;
   state.activeTab = 'Files';
-  state.selectedFileId = 'demo-requirements';
+  state.selectedFileId = null;
   state.interactionMode = 'orbit';
   state.visualArrangement = createEmptyVisualArrangement();
   state.placementResolving = false;
@@ -2681,11 +2637,8 @@ function maybeShowWelcome() {
   }
   welcomeController = mountWelcomePopup(document.body, {
     locale: state.locale,
-    onDismiss(reason) {
+    onDismiss() {
       welcomeController = null;
-      if (reason === 'demo') {
-        loadDemoProject();
-      }
     }
   });
 }

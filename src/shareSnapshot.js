@@ -140,7 +140,7 @@ function firstMarkdown(project) {
 
 function shareStatus(validationReport, simulationPlan, source, runnableReport, solverGateResult) {
   if (!validationReport) {
-    return source === 'demo' ? 'valid' : 'draft';
+    return 'draft';
   }
   if (!runnableGateAllowsShare(runnableReport, source, validationReport, solverGateResult)) {
     return 'invalid';
@@ -168,7 +168,7 @@ function runnableGateAllowsShare(runnableReport, source, validationReport, solve
   if (runnableReport) {
     return runnableReport.runnable === true;
   }
-  return source === 'demo' && !validationReport;
+  return false;
 }
 
 function snapshotShareRunnable(snapshot) {
@@ -186,7 +186,7 @@ function snapshotShareRunnable(snapshot) {
   if (snapshot?.buildRunnableReport) {
     return snapshot.buildRunnableReport.runnable === true;
   }
-  return snapshot?.source === 'demo';
+  return false;
 }
 
 function snapshotSimulationAvailable(snapshot) {
@@ -293,7 +293,7 @@ function inferSource(circuit) {
   if (circuit?.contextCoverage || circuit?.circuitSpec) {
     return 'agent';
   }
-  return 'demo';
+  return 'manual';
 }
 
 function shareComponents(circuit) {

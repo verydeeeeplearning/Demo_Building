@@ -1,109 +1,49 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  createDemoCircuit,
-  createDemoTranscript,
-  createRequirementDocument,
-  createRequirementMarkdown,
-  isLegalConnection
-} from '../../src/circuitMetadata.js';
+import { isLegalConnection } from '../../src/circuitMetadata.js';
 
-test('demo circuit metadata defines the locked Arduino OLED teaching circuit', () => {
-  const circuit = createDemoCircuit();
+// Minimal inline fixture — the demo circuit data was removed in Phase 1.
+const FIXTURE_CIRCUIT = {
+  parts: [
+    { id: 'arduino-uno', type: 'arduino', label: 'Arduino Uno', designator: 'U1', pins: [
+      { name: '5V', role: 'power' },
+      { name: 'GND', role: 'ground' },
+      { name: 'A4/SDA', role: 'i2c-data' },
+      { name: 'A5/SCL', role: 'i2c-clock' }
+    ] },
+    { id: 'oled-display', type: 'oled', label: '0.96 inch I2C OLED', designator: 'DISP1', pins: [
+      { name: 'VCC', role: 'power' },
+      { name: 'GND', role: 'ground' },
+      { name: 'SDA', role: 'i2c-data' },
+      { name: 'SCL', role: 'i2c-clock' }
+    ] }
+  ],
+  connections: [
+    { id: 'oled-power', from: { partId: 'arduino-uno', pin: '5V' }, to: { partId: 'oled-display', pin: 'VCC' }, signal: 'power', color: '#ff4d3d', education: { label: '5V POWER', title: '', what: '', why: '', missing: '' } },
+    { id: 'oled-ground', from: { partId: 'arduino-uno', pin: 'GND' }, to: { partId: 'oled-display', pin: 'GND' }, signal: 'ground', color: '#20242a', education: { label: 'GND', title: '', what: '', why: '', missing: '' } },
+    { id: 'oled-sda', from: { partId: 'arduino-uno', pin: 'A4/SDA' }, to: { partId: 'oled-display', pin: 'SDA' }, signal: 'i2c-data', color: '#2f7df6', education: { label: 'I2C SDA', title: '', what: '', why: '', missing: '' } },
+    { id: 'oled-scl', from: { partId: 'arduino-uno', pin: 'A5/SCL' }, to: { partId: 'oled-display', pin: 'SCL' }, signal: 'i2c-clock', color: '#f6c44c', education: { label: 'I2C SCL', title: '', what: '', why: '', missing: '' } }
+  ]
+};
 
-  assert.equal(circuit.title, 'Arduino OLED 이름 표시');
-  assert.equal(circuit.runText, 'RALPHTON BUSAN');
-
-  const partTypes = new Set(circuit.parts.map((part) => part.type));
-  for (const requiredType of ['breadboard', 'arduino', 'oled', 'sensor', 'motor']) {
-    assert.ok(partTypes.has(requiredType), `expected demo library to include ${requiredType}`);
-  }
-
-  const arduino = circuit.parts.find((part) => part.type === 'arduino');
-  const oled = circuit.parts.find((part) => part.type === 'oled');
-
-  assert.deepEqual(
-    arduino.pins.map((pin) => pin.name),
-    ['5V', 'GND', 'A4/SDA', 'A5/SCL']
-  );
-  assert.deepEqual(
-    oled.pins.map((pin) => pin.name),
-    ['VCC', 'GND', 'SDA', 'SCL']
-  );
-
-  const labels = new Set(circuit.connections.map((connection) => connection.education.label));
-  for (const label of ['5V POWER', 'GND', 'I2C SDA', 'I2C SCL']) {
-    assert.ok(labels.has(label), `expected floating card label ${label}`);
-  }
-
-  for (const connection of circuit.connections) {
-    assert.ok(connection.from.partId, 'connection includes source part');
-    assert.ok(connection.to.partId, 'connection includes destination part');
-    assert.ok(connection.education.what.length > 10, 'card explains what the wire is');
-    assert.ok(connection.education.why.length > 10, 'card explains why the wire exists');
-    assert.ok(connection.education.missing.length > 10, 'card explains what happens if missing');
-  }
-});
-
-test('cached interview transcript supports the default no-network harness path', () => {
-  const transcript = createDemoTranscript('show some text on a little screen');
-
-  assert.equal(transcript[0].role, 'student');
-  assert.equal(transcript[0].text, 'show some text on a little screen');
-  assert.equal(transcript.at(-1).action, 'build-demo-circuit');
-  assert.match(
-    transcript.map((entry) => entry.text).join('\n'),
-    /화면에는 행사 이름을 표시하면 될까요\?/
-  );
-});
-
-test('demo circuit metadata marks only the OLED I2C wiring as legal', () => {
-  const circuit = createDemoCircuit();
-
-  assert.equal(circuit.connections.length, 4);
-
-  for (const connection of circuit.connections) {
-    assert.equal(
-      isLegalConnection(circuit, connection.from, connection.to),
-      true,
-      `${connection.from.pin} should legally connect to ${connection.to.pin}`
+test('isLegalConnection accepts all defined connections in both directions', () => {
+  for (const connection of FIXTURE_CIRCUIT.connections) {
+    assert.ok(
+      isLegalConnection(FIXTURE_CIRCUIT, connection.from, connection.to),
+      `${connection.from.pin} → ${connection.to.pin} should be legal`
+    );
+    assert.ok(
+      isLegalConnection(FIXTURE_CIRCUIT, connection.to, connection.from),
+      `${connection.to.pin} → ${connection.from.pin} should be legal (reversed)`
     );
   }
+});
 
-  const legalPairs = new Set(
-    circuit.connections.map((connection) => [
-      `${connection.from.partId}:${connection.from.pin}`,
-      `${connection.to.partId}:${connection.to.pin}`
-    ].sort().join(' -> '))
-  );
-  const arduinoPins = circuit.parts.find((part) => part.id === 'arduino-uno').pins;
-  const oledPins = circuit.parts.find((part) => part.id === 'oled-display').pins;
-
-  for (const arduinoPin of arduinoPins) {
-    for (const oledPin of oledPins) {
-      const from = { partId: 'arduino-uno', pin: arduinoPin.name };
-      const to = { partId: 'oled-display', pin: oledPin.name };
-      const pairKey = [`${from.partId}:${from.pin}`, `${to.partId}:${to.pin}`].sort().join(' -> ');
-
-      assert.equal(isLegalConnection(circuit, from, to), legalPairs.has(pairKey));
-    }
-  }
-
-  const libraryOnlyPartIds = new Set(
-    circuit.parts.filter((part) => part.libraryOnly).map((part) => part.id)
-  );
-  assert.equal(
-    circuit.connections.some((connection) => (
-      libraryOnlyPartIds.has(connection.from.partId) ||
-      libraryOnlyPartIds.has(connection.to.partId)
-    )),
-    false
-  );
-
+test('isLegalConnection rejects cross-wired pairs', () => {
   assert.equal(
     isLegalConnection(
-      circuit,
+      FIXTURE_CIRCUIT,
       { partId: 'arduino-uno', pin: 'A4/SDA' },
       { partId: 'oled-display', pin: 'SCL' }
     ),
@@ -111,44 +51,10 @@ test('demo circuit metadata marks only the OLED I2C wiring as legal', () => {
   );
   assert.equal(
     isLegalConnection(
-      circuit,
+      FIXTURE_CIRCUIT,
       { partId: 'arduino-uno', pin: '5V' },
       { partId: 'oled-display', pin: 'SDA' }
     ),
     false
   );
-});
-
-test('requirement document is plain-language and tied to the OLED demo text', () => {
-  const circuit = createDemoCircuit();
-  const document = createRequirementDocument(circuit);
-
-  assert.equal(document.title, '회로 요구사항: Arduino OLED 이름 표시');
-  assert.match(document.goal, /RALPHTON BUSAN/);
-  assert.match(document.partsNeeded.join('\n'), /Arduino/i);
-  assert.match(document.partsNeeded.join('\n'), /I2C OLED/i);
-  assert.match(document.behavior, /실행을 누르면/);
-  assert.ok(document.assumptions.every((assumption) => assumption.length > 12));
-});
-
-test('requirement markdown renders from the same demo document sections', () => {
-  const markdown = createRequirementMarkdown(createDemoCircuit());
-
-  assert.match(markdown, /^# 회로 요구사항: Arduino OLED 이름 표시/m);
-  assert.match(markdown, /^_상태: 확정된 데모 요구사항_/m);
-  assert.match(markdown, /^## 목표/m);
-  assert.match(markdown, /^## 필요한 부품/m);
-  assert.match(markdown, /^## 연결 방법/m);
-  assert.match(markdown, /- \*\*I2C SDA\*\*/);
-  assert.match(markdown, /RALPHTON BUSAN/);
-});
-
-test('demo requirement copy can still render in English for the language toggle', () => {
-  const circuit = createDemoCircuit('en');
-  const markdown = createRequirementMarkdown(circuit, 'en');
-
-  assert.equal(circuit.title, 'Arduino OLED name display');
-  assert.match(markdown, /^# Project Requirement: Arduino OLED name display/m);
-  assert.match(markdown, /^_Status: Confirmed demo requirement_/m);
-  assert.match(markdown, /^## Goal/m);
 });

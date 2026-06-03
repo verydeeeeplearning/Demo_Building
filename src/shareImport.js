@@ -230,7 +230,7 @@ function runnableGateAllowsShare(report, source = 'agent') {
   if (report) {
     return report.runnable === true;
   }
-  return source === 'demo';
+  return false;
 }
 
 function shareRunEnabled(gate = {}) {

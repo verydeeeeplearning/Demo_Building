@@ -1,10 +1,10 @@
 export const ko = {
   topbar: {
-    announcement: 'H-eduware 데모 빌드',
+    announcement: 'H-eduware',
     projectLoaded: 'Arduino OLED 수업 회로',
     newProject: '새 프로젝트',
     tabs: { files: '문서', pcb: '회로' },
-    actions: { library: '부품', demo: '데모', share: '공유', run: '실행' }
+    actions: { library: '부품', share: '공유', run: '실행' }
   },
   language: {
     aria: '언어 선택',
@@ -35,8 +35,8 @@ export const ko = {
     ],
     stepDone: '완료',
     runtimeLabel: 'AI 모드',
-    runtimeLocalKey: '로컬 데모 키 준비됨',
-    runtimeCached: '캐시된 데모',
+    runtimeLocalKey: '로컬 키 준비됨',
+    runtimeCached: '캐시된 응답',
     replyLabel: 'AI에게 답장하기',
     ideaLabel: '만들고 싶은 회로를 적어 주세요',
     ideaPlaceholder: '예: Arduino Uno D8로 LED를 깜빡이고 싶어요',
@@ -47,9 +47,8 @@ export const ko = {
   landing: {
     status: '아직 열린 프로젝트가 없습니다',
     title: '빈 학습 회로에서 시작해 보세요.',
-    body: '작업 공간은 비어 있는 상태로 시작합니다. 준비된 예제 회로는 데모 버튼으로 불러올 수 있습니다.',
-    loadDemo: '데모 프로젝트 불러오기',
-    newProject: '새 프로젝트'
+    body: '만들고 싶은 회로를 설명해 주세요. AI가 몇 가지 질문을 한 뒤 3D로 부품을 배치해 줍니다.',
+    newProject: '회로 설명하기'
   },
   files: {
     tocKicker: '문서 목차',
@@ -202,7 +201,7 @@ export const ko = {
     },
     steps: [
       { id: 'read-idea', phase: 'spec', label: '아이디어 읽기', log: '학생의 요청을 명확한 목표로 정리하는 중' },
-      { id: 'draft-spec', phase: 'spec', label: '요구사항 문서 작성', log: 'demo-oled.md를 작성하는 중' },
+      { id: 'draft-spec', phase: 'spec', label: '요구사항 문서 작성', log: '요구사항 문서를 작성하는 중' },
       { id: 'list-parts', phase: 'spec', label: '필요한 부품 정리', log: 'Arduino Uno, I2C OLED, 브레드보드, 점퍼선을 정리하는 중' },
       { id: 'write-connections', phase: 'spec', label: '연결 방법 작성', log: '5V, GND, SDA, SCL 연결을 문서화하는 중' },
       { id: 'place-breadboard', phase: 'design', label: '브레드보드 배치', log: '브레드보드를 3D 무대에 놓는 중' },
@@ -222,8 +221,7 @@ export const ko = {
       '짧은 질문에 답하면서 설계 조건을 확정합니다.',
       '3D 부품을 살펴보고 실행을 눌러 동작을 확인합니다.'
     ],
-    start: '시작하기',
-    demo: '데모 불러오기'
+    start: '시작하기'
   },
   library: {
     aria: '부품 라이브러리',
@@ -254,7 +252,7 @@ export const ko = {
     kicker: '공유',
     emptyTitle: '아직 공유할 회로가 없습니다',
     emptyBody: '먼저 회로를 만들거나 예제를 불러오세요. 그다음 정리된 회로 요약을 공유할 수 있습니다.',
-    emptyHint: '데모를 불러오거나 만들고 싶은 회로를 적어 공유할 결과물을 만들어 보세요.',
+    emptyHint: '만들고 싶은 회로를 적어 공유할 결과물을 만들어 보세요.',
     readyBody: '이 회로를 다른 사람에게 보여 줄 수 있도록 안전한 요약으로 정리했습니다. 공개 링크 기능은 준비 중이며, 지금은 복사 가능한 요약을 제공합니다.',
     summaryLabel: '공유용 요약',
     copySummary: '요약 복사',
@@ -313,8 +311,7 @@ export const ko = {
     notAvailable: '표시할 근거가 없습니다'
   },
   interview: {
-    initial: '새 프로젝트를 시작하거나 준비된 예제 회로를 불러오세요.',
-    demoIdea: '작은 OLED 화면에 행사 이름을 보여 주고 싶어요',
+    initial: '만들고 싶은 회로를 설명해 주세요.',
     labels: {
       goal: '프로젝트 목표',
       output: '출력 장치',
@@ -342,34 +339,4 @@ export const ko = {
     goal: '{subject} 요청을 작동하는 {output} 회로로 바꾸기',
     ready: '설계에 필요한 정보가 정리됐어요. 확인하고 회로를 만들어 볼게요.'
   },
-  circuit: {
-    title: 'Arduino OLED 이름 표시',
-    fileName: 'demo-oled.md',
-    requirementPath: 'requirements/demo-oled.md',
-    requirementTitle: '회로 요구사항: Arduino OLED 이름 표시',
-    requirementStatus: '확정된 데모 요구사항',
-    statusLabel: '상태',
-    sections: {
-      goal: '목표',
-      parts: '필요한 부품',
-      behavior: '실행하면 보이는 동작',
-      connections: '연결 방법',
-      assumptions: '가정한 내용'
-    },
-    goal: 'Arduino와 작은 I2C OLED 화면을 사용해 {runText}를 표시하는 브레드보드 회로를 만듭니다.',
-    behavior: '학생이 실행을 누르면 OLED가 켜지고 {runText}가 표시됩니다.',
-    partsNeeded: [
-      'Arduino Uno 또는 호환 보드',
-      '0.96 inch I2C OLED 디스플레이',
-      '하프 사이즈 브레드보드',
-      '점퍼선 4개: 5V, GND, SDA, SCL'
-    ],
-    assumptions: [
-      'OLED 모듈은 VCC, GND, SDA, SCL을 사용하는 일반적인 4핀 I2C 배열이라고 가정합니다.',
-      'Arduino는 5V 전원을 제공하고 A4를 SDA, A5를 SCL로 사용합니다.',
-      '이 기능은 수업용 데모이며 범용 회로 시뮬레이터는 아닙니다.'
-    ],
-    transcriptConfirm: '네, 그렇게 만들어 주세요.',
-    transcriptFinal: '좋아요. {runText}를 표시하는 Arduino와 I2C OLED 회로를 만들게요.'
-  }
 };
