@@ -13,6 +13,7 @@ import { describeCircuitTarget } from './circuitInspector.js';
 import { askCircuitTutor } from './circuitTutorClient.js';
 import { agentErrorMessage as formatAgentErrorMessage } from './agentErrorMessages.js';
 import { groundAgentResultArtifacts } from './agentArtifactGrounding.js';
+import { canShowAgentSceneFromResult } from './agentSceneVisibility.js';
 import { classifyStudentTurn } from './conversationRouting.js';
 import { renderWarningMessage, renderWarningsMarkdown, renderWarningTitle } from './renderWarnings.js';
 import {
@@ -1529,10 +1530,9 @@ function canBuildAgentResult(result) {
 }
 
 function canShowAgentScene(result) {
-  if (solverGateVisibleScene(result?.solverGateResult)) {
-    return true;
-  }
-  return Array.isArray(result?.renderPlan?.parts) && result.renderPlan.parts.length > 0;
+  // A front-intent-gate chat reply (responseKind === 'chat') hides the scene; the solver-gate
+  // visible-scene decision is computed here and handed to the pure predicate (PLAN_intent_gate.md).
+  return canShowAgentSceneFromResult(result, solverGateVisibleScene(result?.solverGateResult));
 }
 
 function canShowLoadedProjectScene() {
