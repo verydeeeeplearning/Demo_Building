@@ -153,6 +153,14 @@ function createThreeScene(container, canvas, circuit, options) {
   let targetRotation = 0;
   let hoveredTargetKey = '';
 
+  // Wire-drag state (Phase 3). Separate from part-drag; run-neutral (does NOT
+  // feed canRunCurrentSimulation — wireRouteDirty is kept in main.js).
+  let wireDragConnectionId = '';
+  let wireDragControlIndex = -1;   // index into the live route[] array
+  let wireDragMesh = null;         // the THREE.Mesh being imperatively updated
+  let wireDragRoutePoints = [];    // live THREE.Vector3[] during the drag
+  let wireDragPlaneY = 0;          // horizontal drag plane Y
+
   canvas.addEventListener('pointerdown', (event) => {
     dragging = true;
     dragMode = 'orbit';
@@ -161,6 +169,41 @@ function createThreeScene(container, canvas, circuit, options) {
     lastY = event.clientY;
     dragDistance = 0;
     if (interactionMode === 'visual_move' || interactionMode === 'hardware_move') {
+      // Wire-bend drag: only in visual_move mode and only when the nearest
+      // raycast hit is a wire-tube (not a part). Checked before the part path
+      // so the wire's inspect target doesn't accidentally fall through.
+      if (interactionMode === 'visual_move') {
+        const wireTubeHit = findWireTubeHit(event);
+        if (wireTubeHit) {
+          const { mesh, connectionId } = wireTubeHit;
+          const connection = circuit.connections.find((c) => c.id === connectionId);
+          if (connection) {
+            const endpoints = stageEndpointMap(circuit);
+            const from = endpoints[endpointKey(connection.from)];
+            const to = endpoints[endpointKey(connection.to)];
+            if (from && to) {
+              // Build a working copy of the route points for live editing.
+              const fromVec = new THREE.Vector3(from.x, from.y + 0.24, from.z);
+              const toVec = new THREE.Vector3(to.x, to.y + 0.24, to.z);
+              const existingRoute = Array.isArray(connection.route)
+                ? connection.route
+                    .filter(isFiniteVector)
+                    .map((p) => new THREE.Vector3(p.x, p.y, p.z))
+                : [];
+              wireDragRoutePoints = ensureMinRoutePoints(existingRoute, fromVec, toVec);
+              // Pick the midpoint (index 1 for 3-point routes, center for longer).
+              wireDragControlIndex = Math.floor((wireDragRoutePoints.length - 1) / 2);
+              wireDragPlaneY = wireDragRoutePoints[wireDragControlIndex].y;
+              wireDragMesh = mesh;
+              wireDragConnectionId = connectionId;
+              dragMode = 'visual_wire';
+              dragStartPoint = pointerPointOnDragPlane(event, wireDragPlaneY);
+              canvas.setPointerCapture(event.pointerId);
+              return;
+            }
+          }
+        }
+      }
       const target = findInspectTarget(event);
       if (target?.type === 'part' && target.partId && sceneGraph.partGroupsById.has(target.partId)) {
         const basePosition = sceneGraph.basePartPosition(target.partId);
@@ -180,6 +223,23 @@ function createThreeScene(container, canvas, circuit, options) {
   canvas.addEventListener('pointermove', (event) => {
     if (!dragging) {
       updateHover(event);
+      return;
+    }
+    if (dragMode === 'visual_wire') {
+      const point = pointerPointOnDragPlane(event, wireDragPlaneY);
+      if (!point || !wireDragMesh) {
+        return;
+      }
+      // Move the control point imperatively — no stageRenderKey recreate.
+      wireDragRoutePoints[wireDragControlIndex].set(point.x, wireDragPlaneY, point.z);
+      rebuildWireTubeMesh(wireDragMesh, wireDragRoutePoints, {
+        color: wireDragMesh.material?.color?.getStyle?.() ?? '#ffffff',
+        radius: 0.032,
+        emissiveIntensity: 0.12
+      });
+      dragDistance += Math.abs(event.clientX - lastX) + Math.abs(event.clientY - lastY);
+      lastX = event.clientX;
+      lastY = event.clientY;
       return;
     }
     if (dragMode === 'visual_part') {
@@ -210,7 +270,9 @@ function createThreeScene(container, canvas, circuit, options) {
     const completedDrag = {
       mode: dragMode,
       partId: draggedPartId,
-      transform: dragLatestTransform
+      transform: dragLatestTransform,
+      wireConnectionId: wireDragConnectionId,
+      wireRoutePoints: wireDragRoutePoints.slice()
     };
     dragging = false;
     dragMode = 'orbit';
@@ -218,6 +280,27 @@ function createThreeScene(container, canvas, circuit, options) {
     dragStartPoint = null;
     dragStartOffset = null;
     dragLatestTransform = null;
+    wireDragConnectionId = '';
+    wireDragControlIndex = -1;
+    wireDragMesh = null;
+    wireDragRoutePoints = [];
+
+    if (completedDrag.mode === 'visual_wire' && completedDrag.wireConnectionId) {
+      // Persist route to connection.route[] as plain serializable objects, then
+      // call onWireRouteChange so main.js can set wireRouteDirty (run-neutral).
+      // This changes circuitSpecHash → exactly ONE stage recreate on next render.
+      const serialized = completedDrag.wireRoutePoints.map((p) => ({
+        x: p.x,
+        y: p.y,
+        z: p.z
+      }));
+      options.onWireRouteChange?.({
+        connectionId: completedDrag.wireConnectionId,
+        route: serialized
+      });
+      return;
+    }
+
     if (
       interactionMode === 'hardware_move'
       && completedDrag.mode === 'visual_part'
@@ -377,6 +460,43 @@ function createThreeScene(container, canvas, circuit, options) {
       while (object) {
         if (object.userData?.inspectTarget) {
           return object.userData.inspectTarget;
+        }
+        object = object.parent;
+      }
+    }
+    return null;
+  }
+
+  // Returns the nearest wire-tube mesh + its connectionId when the pointer
+  // hits a wire object. Used by the wire-drag path to disambiguate from parts.
+  function findWireTubeHit(event) {
+    const bounds = canvas.getBoundingClientRect();
+    pointer.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
+    pointer.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
+    raycaster.setFromCamera(pointer, camera);
+
+    for (const hit of raycaster.intersectObjects(root.children, true)) {
+      // Walk up to find a wire group (stageGraphRole === 'wire')
+      let object = hit.object;
+      while (object) {
+        if (object.userData?.stageGraphRole === 'wire-tube') {
+          // Find parent wire group to get connectionId
+          let parent = object.parent;
+          while (parent) {
+            if (parent.userData?.stageGraphRole === 'wire' && parent.userData?.connectionId) {
+              return { mesh: object, connectionId: parent.userData.connectionId };
+            }
+            parent = parent.parent;
+          }
+        }
+        if (object.userData?.stageGraphRole === 'wire' && object.userData?.connectionId) {
+          // Hit the group directly — find the tube child
+          const tubeMesh = object.children.find(
+            (child) => child.userData?.stageGraphRole === 'wire-tube'
+          );
+          if (tubeMesh) {
+            return { mesh: tubeMesh, connectionId: object.userData.connectionId };
+          }
         }
         object = object.parent;
       }
@@ -843,6 +963,23 @@ export function createStageDebugSnapshot(circuit, options = {}) {
     wireRouteHash,
     previewWireRouteHash: options.previewWireRouteHash ?? ''
   };
+}
+
+/**
+ * Pure render key for the stage. Equal key → reconcile in place (no recreate);
+ * changed key → dispose + recreate. Only circuitSpecHash and
+ * visualTransformRevision participate — selection, run/pause, and interaction
+ * mode are handled by in-place updaters and intentionally do NOT force a
+ * recreate.
+ */
+export function stageRenderKey(circuit, options = {}) {
+  if (!circuit) {
+    return '';
+  }
+  const snapshot = createStageDebugSnapshot(circuit, {
+    visualTransformRevision: options.visualTransformRevision ?? 0
+  });
+  return `${snapshot.circuitSpecHash}::${snapshot.visualTransformRevision}`;
 }
 
 export function stagePartPositionSnapshot(circuit) {
@@ -1456,6 +1593,102 @@ function addPreviewWire(root, points, color = '#ffffff') {
   line.computeLineDistances();
   line.userData.stageGraphRole = 'preview-wire';
   root.add(line);
+}
+
+// ---------------------------------------------------------------------------
+// Phase 3 — wire drag helpers (exported for unit testing)
+// ---------------------------------------------------------------------------
+
+/**
+ * Ensure a route array has at least 2 THREE.Vector3 points. When the route
+ * is empty or has only 1 point, inserts a midpoint between `from` and `to`
+ * so the CatmullRomCurve3 always gets a valid shape. Returns the same array
+ * reference when length >= 2.
+ */
+export function ensureMinRoutePoints(route, from, to) {
+  if (route.length >= 2) {
+    return route;
+  }
+  if (route.length === 0) {
+    const mid = new THREE.Vector3(
+      (from.x + to.x) / 2,
+      Math.max(from.y, to.y) + 0.5,
+      (from.z + to.z) / 2
+    );
+    return [from.clone(), mid, to.clone()];
+  }
+  // length === 1: keep the single point and append the to endpoint
+  const mid = new THREE.Vector3(
+    (route[0].x + to.x) / 2,
+    Math.max(route[0].y, to.y) + 0.3,
+    (route[0].z + to.z) / 2
+  );
+  return [route[0], mid, to.clone()];
+}
+
+/**
+ * Imperatively rebuild the geometry and material on an existing wire tube
+ * mesh, disposing the prior GPU resources. Called each pointermove during
+ * a wire-bend drag — does NOT trigger a stageRenderKey recreate.
+ *
+ * @param {THREE.Mesh} mesh - the wire tube mesh to update in place
+ * @param {THREE.Vector3[]} points - the new route control points (>=2)
+ * @param {{ color: string|number, radius: number, emissiveIntensity: number }} style
+ */
+export function rebuildWireTubeMesh(mesh, points, { color, radius = 0.032, emissiveIntensity = 0.12 } = {}) {
+  const oldGeo = mesh.geometry;
+  const oldMat = mesh.material;
+
+  const curve = new THREE.CatmullRomCurve3(points);
+  mesh.geometry = new THREE.TubeGeometry(curve, 56, radius, 12);
+  mesh.material = new THREE.MeshStandardMaterial({
+    color,
+    roughness: 0.34,
+    metalness: 0.05,
+    emissive: color,
+    emissiveIntensity
+  });
+  mesh.userData.wireCurve = curve;
+
+  // Dispose BOTH old geometry AND material to prevent GPU buffer leaks.
+  oldGeo?.dispose?.();
+  oldMat?.dispose?.();
+}
+
+/**
+ * Apply or clear a wire-selection highlight in place on all wire-tube meshes
+ * in the scene graph. Thickens + brightens the selected wire; resets others.
+ * Returns the count of wire groups reconciled.
+ *
+ * Reuses existing geometry when the radius is unchanged (avoids rebuild on
+ * repeated calls with the same selection).
+ */
+export function applyWireSelectionHighlight(sceneGraph, selectedTargetKey) {
+  let touched = 0;
+  for (const [connectionId, group] of sceneGraph.wireGroupsByConnectionId) {
+    const isSelected = selectedTargetKey === `connection:${connectionId}`;
+    const targetRadius = isSelected ? 0.048 : 0.032;
+    const targetEmissive = isSelected ? 0.72 : 0.12;
+    for (const child of group.children) {
+      if (child.userData?.stageGraphRole !== 'wire-tube') {
+        continue;
+      }
+      // Only rebuild when the radius changes to avoid per-render churning.
+      if (child.geometry?.parameters?.radius !== targetRadius) {
+        const curve = child.userData.wireCurve;
+        if (curve) {
+          const oldGeo = child.geometry;
+          child.geometry = new THREE.TubeGeometry(curve, 56, targetRadius, 12);
+          oldGeo?.dispose?.();
+        }
+      }
+      if (child.material) {
+        child.material.emissiveIntensity = targetEmissive;
+      }
+      touched += 1;
+    }
+  }
+  return touched;
 }
 
 export function stageConnectionRoutePoints(connection, from, to, index = 0) {

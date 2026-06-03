@@ -43,6 +43,9 @@ const state = {
   visualArrangement: createEmptyVisualArrangement(),
   placementResolving: false,
   placementError: '',
+  // Phase 3: cosmetic wire-route dirty flag. Does NOT feed canRunCurrentSimulation()
+  // (wire bends are run-neutral — kept separate from visualArrangement.dirty).
+  wireRouteDirty: false,
   selectedFileId: null,
   aiRuntimeMode: { mode: 'agent-server-offline', ok: false, hasServerKey: false },
   agentSessionId: null,
@@ -227,7 +230,10 @@ function render() {
       onHoverTarget: updateHoveredCircuitTarget,
       onSelectTarget: selectCircuitTarget,
       onVisualArrangementChange: updateVisualArrangementFromStage,
-      onHardwarePlacementIntent: submitHardwarePlacementIntent
+      onHardwarePlacementIntent: submitHardwarePlacementIntent,
+      // Phase 3: wire-route commit persists bend into connection.route[].
+      // wireRouteDirty is cosmetic/run-neutral — does NOT feed canRunCurrentSimulation().
+      onWireRouteChange: commitWireRouteChange
     });
   }
 }
@@ -1594,6 +1600,26 @@ function updateVisualArrangementFromStage(update) {
     state.simulationPlaying = false;
     paintVisualArrangementStatus();
   }
+}
+
+// Phase 3 — wire-route commit. Persists the dragged bend into connection.route[]
+// in the live circuit model so the route survives the next stage recreate.
+// wireRouteDirty is intentionally separate from visualArrangement.dirty and does
+// NOT feed canRunCurrentSimulation() — wire bends are cosmetic / run-neutral.
+function commitWireRouteChange({ connectionId, route }) {
+  const circuit = activeDraftOrProjectCircuit() || activeCircuit();
+  if (!circuit) {
+    return;
+  }
+  const connection = circuit.connections.find((c) => c.id === connectionId);
+  if (!connection) {
+    return;
+  }
+  connection.route = route;
+  state.wireRouteDirty = true;
+  // Trigger exactly one stage recreate on the next render by bumping the
+  // circuit reference. The route is now folded into circuitSpecHash.
+  render();
 }
 
 async function submitHardwarePlacementIntent({ componentId, transform }) {
