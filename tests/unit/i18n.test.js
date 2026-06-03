@@ -88,10 +88,10 @@ test('setLocale persists the selected language when localStorage is available', 
   try {
     assert.equal(setLocale('en'), 'en');
     assert.equal(values.get(LOCALE_STORAGE_KEY), 'en');
-    assert.equal(t('topbar.actions.demo'), 'Demo');
+    assert.equal(t('topbar.actions.share'), 'Share');
     assert.equal(setLocale('ko'), 'ko');
     assert.equal(values.get(LOCALE_STORAGE_KEY), 'ko');
-    assert.equal(t('topbar.actions.demo'), '데모');
+    assert.equal(t('topbar.actions.share'), '공유');
   } finally {
     if (originalStorage) {
       globalThis.localStorage = originalStorage;

@@ -50,7 +50,7 @@ test('answering each question advances progress to a build-ready state', () => {
   assert.equal(isInterviewReady(interview), true);
   assert.equal(interviewProgress(interview), 100);
   assert.equal(interview.decisions.length, totalDecisionPoints());
-  assert.equal(interview.messages.at(-1).action, 'build-demo-circuit');
+  assert.equal(interview.messages.at(-1).action, 'build-circuit');
 });
 
 test('a "no" answer selects the alternate decision value', () => {
