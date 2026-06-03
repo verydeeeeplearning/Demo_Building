@@ -118,3 +118,48 @@ test('US-002 — brief renders the deterministically derived doc end-to-end', ()
   assert.ok(brief.includes(REQUIRED_PART_MARKER));
   assert.ok(brief.length <= BRIEF_MAX_CHARS);
 });
+
+import { fitBriefToBudget, renderRequirementBriefFloor } from '../../server/agent/circuit/requirementBrief.ts';
+
+const fitDoc = deriveRequirementDoc('Arduino Uno D8로 LED를 220 ohm으로 깜빡', LED_PARTS, {
+  primaryGoal: 'Blink an LED on Arduino Uno D8 through a 220 ohm series resistor',
+  controller: 'arduino-uno',
+  output: 'LED blink',
+  input: 'time',
+  behavior: 'Toggle D8 HIGH/LOW repeatedly so the LED blinks through the series resistor.'
+});
+
+test('US-003 — absorbable regime: brief shrinks below full but stays within budget', () => {
+  const full = renderRequirementBrief(fitDoc);
+  const budget = full.length - 1; // just over by 1
+  const fitted = fitBriefToBudget(fitDoc, budget);
+  assert.ok(fitted.length <= budget, `fitted ${fitted.length} <= budget ${budget}`);
+  assert.ok(fitted.length < full.length, 'fitted is shorter than the full brief');
+  // floor commitments still present
+  assert.ok(fitted.includes('led-5mm') && fitted.includes('resistor-220'), 'required parts retained');
+});
+
+test('US-003 — at-floor regime: budget between floor and mid returns the floor', () => {
+  const floor = renderRequirementBriefFloor(fitDoc);
+  const fitted = fitBriefToBudget(fitDoc, floor.length); // exactly floor size
+  assert.equal(fitted, floor);
+});
+
+test('US-003 — over-floor regime: floor is returned UNCHANGED, REQUIRED+verbatim preserved', () => {
+  const floor = renderRequirementBriefFloor(fitDoc);
+  const fitted = fitBriefToBudget(fitDoc, floor.length - 50); // below floor
+  assert.equal(fitted, floor, 'floor is not truncated below its core');
+  // every required part + every verbatim constraint survives
+  for (const p of fitDoc.intendedParts.filter((x) => x.required)) {
+    assert.ok(fitted.includes(p.partId), `required part ${p.partId} preserved`);
+  }
+  for (const c of fitDoc.verbatimConstraints) {
+    assert.ok(fitted.includes(c), `verbatim constraint ${c} preserved`);
+  }
+});
+
+test('US-003 — deterministic for a given (doc, budget)', () => {
+  const a = fitBriefToBudget(fitDoc, 200);
+  const b = fitBriefToBudget(fitDoc, 200);
+  assert.equal(a, b);
+});

@@ -124,3 +124,50 @@ export function renderRequirementBrief(doc: RequirementDoc): string {
 
   return brief.length <= BRIEF_MAX_CHARS ? brief : brief.slice(0, BRIEF_MAX_CHARS);
 }
+
+/**
+ * Render the NON-TRUNCATABLE floor of the brief: the goal, the REQUIRED parts, and the verbatim
+ * constraints. These are the commitments synthesis must honor; they never yield to the budget.
+ */
+export function renderRequirementBriefFloor(doc: RequirementDoc): string {
+  const requiredParts = doc.intendedParts.filter((p) => p.required);
+  const partsBlock = requiredParts.length
+    ? requiredParts.map(renderPartLine).join('\n')
+    : '- (none committed)';
+  const constraints = doc.verbatimConstraints.length
+    ? doc.verbatimConstraints.map((c) => `- ${c}`).join('\n')
+    : '- none';
+  return [
+    '# Requirement (essential)',
+    `Goal: ${doc.goal}`,
+    '## REQUIRED parts',
+    partsBlock,
+    '## Verbatim constraints',
+    constraints
+  ].join('\n');
+}
+
+/** Render a middle tier: floor + the behavior line (drops optional parts / inputs / outputs / assumptions). */
+function renderRequirementBriefMid(doc: RequirementDoc): string {
+  return `${renderRequirementBriefFloor(doc)}\nBehavior: ${doc.behavior || '(unspecified)'}`;
+}
+
+/**
+ * Fit the brief into `budget` chars by yielding PROSE FIRST, never the floor (Critic M1).
+ * Tiers, largest-that-fits wins: full -> mid (floor+behavior) -> floor.
+ * If even the floor exceeds the budget (over-floor regime), the floor is returned UNCHANGED — the
+ * REQUIRED parts + verbatim constraints are preserved and the caller's block compactor yields the
+ * remaining budget from the system blocks (contextPacketBlock last). Pure + deterministic.
+ */
+export function fitBriefToBudget(doc: RequirementDoc, budget: number): string {
+  const full = renderRequirementBrief(doc);
+  if (full.length <= budget) {
+    return full;
+  }
+  const mid = renderRequirementBriefMid(doc);
+  if (mid.length <= budget) {
+    return mid;
+  }
+  // floor is non-truncatable; return it even if it exceeds the budget (over-floor regime).
+  return renderRequirementBriefFloor(doc);
+}
