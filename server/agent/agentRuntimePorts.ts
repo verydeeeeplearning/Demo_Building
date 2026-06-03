@@ -14,6 +14,7 @@
 // they need); only the *types* live here to keep the port boundary dependency-light.
 
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
+import type { BaseCheckpointSaver } from '@langchain/langgraph';
 import type { createDeepAgent } from 'deepagents';
 
 /** Creates the chat model used by the requirement-analysis and synthesis agents. */
@@ -28,4 +29,7 @@ export type DeepAgentFactory = typeof createDeepAgent;
 export type AgentRuntimeDeps = {
   modelPort?: ModelPort;
   deepAgentFactory?: DeepAgentFactory;
+  // LangGraph checkpointer for the conversation agent (thread_id = sessionId). Production omits it and
+  // uses the shared in-process MemorySaver; a durable saver (Phase 4) or a test double is injected here.
+  checkpointer?: BaseCheckpointSaver;
 };

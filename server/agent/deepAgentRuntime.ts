@@ -4,7 +4,14 @@ import { ChatOpenAI } from '@langchain/openai';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { createDeepAgent, type SubAgent } from 'deepagents';
 import { toolStrategy } from 'langchain';
+import { MemorySaver } from '@langchain/langgraph';
 import { z } from 'zod';
+
+// Short-term conversation memory (LangGraph "Add Short-Term Memory" pattern): one shared in-process
+// saver, keyed by thread_id = sessionId. The saver is the state store, so re-constructing the agent
+// per request is fine — the same thread accumulates across requests. Production durability (a saver
+// that survives restarts) is Phase 4; injectable via AgentRuntimeDeps.checkpointer.
+const conversationCheckpointer = new MemorySaver();
 
 import type { AgentRuntimeDeps, DeepAgentFactory, ModelPort } from './agentRuntimePorts.ts';
 
@@ -482,6 +489,9 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
     subagents,
     responseFormat: toolStrategy(LiveAgentDraftSchema),
     systemPrompt: synthesisSystemPrompt,
+    // Conversation memory: the thread (thread_id = sessionId) carries prior turns so the agent no
+    // longer depends on the client re-sending history. See conversationCheckpointer above.
+    checkpointer: options.deps?.checkpointer ?? conversationCheckpointer,
     name: 'h-eduware-deepagent',
     middleware: pipelineMode !== 'legacy'
       ? [createObservabilityMiddleware((event) => {
