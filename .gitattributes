@@ -1,0 +1,7 @@
+# Generated context aggregates are byte-compared by scripts/buildContextAggregate.mjs --check.
+# The build always emits LF. Pin them to eol=lf so core.autocrlf=true on Windows does not
+# rewrite the working tree to CRLF and make `npm run context:check` falsely report "stale".
+agent-context/data/render-footprints.json     text eol=lf
+agent-context/data/capability-graph.json      text eol=lf
+agent-context/registry/part-capabilities.json text eol=lf
+agent-context/electrical/topology-templates.json text eol=lf
