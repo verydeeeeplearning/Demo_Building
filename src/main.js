@@ -929,17 +929,17 @@ function renderHardwarePanel() {
       </div>
       <section class="inspector-card" data-testid="inspector-selected">
         <div class="inspector-selected-label">${selected ? t('inspector.selectedContext', {}, state.locale) : t('inspector.emptyTitle', {}, state.locale)}</div>
-        <span class="inspector-target-label">${target.label}</span>
-        <h3>${target.title}</h3>
-        <p>${target.detail || target.summary}</p>
+        <span class="inspector-target-label">${escapeHtml(target.label)}</span>
+        <h3>${escapeHtml(target.title)}</h3>
+        <p>${escapeHtml(target.detail || target.summary)}</p>
         <dl>
           <div>
             <dt>${t('inspector.why', {}, state.locale)}</dt>
-            <dd>${target.why}</dd>
+            <dd>${escapeHtml(target.why)}</dd>
           </div>
           <div>
             <dt>${t('inspector.missing', {}, state.locale)}</dt>
-            <dd>${target.missing}</dd>
+            <dd>${escapeHtml(target.missing)}</dd>
           </div>
         </dl>
         ${selected ? '' : renderInspectorTargetSelector(circuit)}
@@ -957,21 +957,21 @@ function renderHardwarePanel() {
           ${circuit.parts.map((part) => `
             <button
               type="button"
-              class="inspector-part ${target.id === `part:${part.id}` ? 'is-selected' : ''}"
+              class="inspector-part ${target.id === `part:${escapeHtml(part.id)}` ? 'is-selected' : ''}"
               data-inspect-type="part"
-              data-inspect-id="${part.id}"
-              aria-label="${t('inspector.selectPart', { label: part.label }, state.locale)}"
+              data-inspect-id="${escapeHtml(part.id)}"
+              aria-label="${escapeHtml(t('inspector.selectPart', { label: part.label }, state.locale))}"
             >
               <img
                 class="part-thumb-render"
                 data-testid="part-thumbnail"
                 data-thumbnail-renderer="canvas-isometric"
                 src="${createPartThumbnail(part)}"
-                alt="${t('parts.thumbAlt', { label: part.label }, state.locale)}"
+                alt="${escapeHtml(t('parts.thumbAlt', { label: part.label }, state.locale))}"
               />
               <span>
-                <strong>${part.label}</strong>
-                <small>${part.designator || part.type}</small>
+                <strong>${escapeHtml(part.label)}</strong>
+                <small>${escapeHtml(part.designator || part.type)}</small>
               </span>
             </button>
           `).join('')}
@@ -1015,13 +1015,13 @@ function renderConnectionButton(connection, target) {
       class="connection-item ${isSelected ? 'is-selected' : ''}"
       data-testid="connection-item"
       data-inspect-type="connection"
-      data-inspect-id="${connection.id}"
-      aria-label="${t('inspector.selectConnection', { label: connection.education.label }, state.locale)}"
+      data-inspect-id="${escapeHtml(connection.id)}"
+      aria-label="${escapeHtml(t('inspector.selectConnection', { label: connection.education.label }, state.locale))}"
     >
       <span class="connection-signal" style="--wire-color: ${escapeHtml(connection.color || '#1863dc')}"></span>
       <span>
-        <strong>${connection.education.label}</strong>
-        <small>${connection.education.title}</small>
+        <strong>${escapeHtml(connection.education.label)}</strong>
+        <small>${escapeHtml(connection.education.title)}</small>
       </span>
     </button>
   `;
@@ -1047,13 +1047,13 @@ function renderCircuitChatDrawer() {
       </div>
       <div class="chat-target-context">
         <span class="chat-context-label">${t('inspector.currentSelection', {}, state.locale)}</span>
-        <span class="inspector-target-label">${targetLabel}</span>
-        <p>${target.summary}</p>
+        <span class="inspector-target-label">${escapeHtml(targetLabel)}</span>
+        <p>${escapeHtml(target.summary)}</p>
       </div>
       <section class="inspector-suggestions" data-testid="inspector-suggestions">
         <div class="panel-kicker">${t('inspector.suggestions', {}, state.locale)}</div>
         ${target.questions.map((question) => `
-          <button class="inspector-question" type="button" data-action="suggested-question" data-question="${escapeHtml(question)}">${question}</button>
+          <button class="inspector-question" type="button" data-action="suggested-question" data-question="${escapeHtml(question)}">${escapeHtml(question)}</button>
         `).join('')}
       </section>
       <div class="tutor-thread" data-testid="tutor-thread">
