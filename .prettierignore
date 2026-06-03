@@ -1,0 +1,11 @@
+dist
+node_modules
+test-results
+qa-artifacts
+artifacts
+.artifacts
+.local
+.omc
+.omx
+agent-context
+package-lock.json

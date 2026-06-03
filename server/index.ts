@@ -1,4 +1,8 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+import { createReadStream } from 'node:fs';
+import { realpath, stat } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import {
   createAgentTraceId,
@@ -18,8 +22,10 @@ import { createFileShareStore } from './share/shareStore.ts';
 
 loadLocalAgentEnv();
 
-const port = Number(process.env.H_EDUWARE_AGENT_PORT ?? 8787);
+const port = Number(process.env.PORT ?? process.env.H_EDUWARE_AGENT_PORT ?? 8787);
+const host = process.env.HOST ?? (process.env.PORT ? '0.0.0.0' : '127.0.0.1');
 const shareStore = createFileShareStore();
+const distDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../dist');
 
 const server = createServer(async (request, response) => {
   try {
@@ -96,6 +102,10 @@ const server = createServer(async (request, response) => {
       return sendJson(request, response, 200, { snapshot: stored.snapshot });
     }
 
+    if (request.method === 'GET' && !requestUrl.pathname.startsWith('/api/')) {
+      return serveStatic(request, response, requestUrl.pathname);
+    }
+
     return sendJson(request, response, 404, { error: 'Not found' });
   } catch (error) {
     const mapped = mapAgentErrorToResponse(error);
@@ -103,8 +113,8 @@ const server = createServer(async (request, response) => {
   }
 });
 
-server.listen(port, '127.0.0.1', () => {
-  console.log(`H-eduware agent server listening at http://127.0.0.1:${port}`);
+server.listen(port, host, () => {
+  console.log(`H-eduware agent server listening at http://${host}:${port}`);
 });
 
 function sendJson(request: IncomingMessage, response: ServerResponse, statusCode: number, value: unknown) {
@@ -150,4 +160,79 @@ function publicShareUrl(shareId: string) {
   const configuredBase = process.env.H_EDUWARE_PUBLIC_APP_URL ?? 'http://127.0.0.1:4173';
   const base = configuredBase.replace(/\/+$/, '');
   return `${base}/?share=${shareId}`;
+}
+
+const CONTENT_TYPES: Record<string, string> = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.ico': 'image/x-icon',
+  '.webp': 'image/webp',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf',
+  '.map': 'application/json; charset=utf-8'
+};
+
+// Serve the Vite production build from dist/. Unknown non-API paths fall back to
+// index.html so the single-page app (and ?share= deep links) load on any route.
+async function serveStatic(request: IncomingMessage, response: ServerResponse, pathname: string) {
+  const relativePath = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
+  const resolved = path.resolve(distDir, relativePath);
+
+  // Block path traversal outside dist/.
+  if (resolved !== distDir && !resolved.startsWith(distDir + path.sep)) {
+    return sendJson(request, response, 404, { error: 'Not found' });
+  }
+
+  const filePath = (await isFile(resolved)) ? resolved : path.join(distDir, 'index.html');
+  if (!(await isFile(filePath))) {
+    return sendJson(request, response, 500, {
+      error: 'Frontend build not found. Run `npm run build` to generate dist/.'
+    });
+  }
+
+  // Filesystem-authoritative check: dereference symlinks so a link inside dist/
+  // cannot escape the served root, even though the lexical check passed above.
+  const realRoot = await realDistDir();
+  const realFile = await realpath(filePath);
+  if (realRoot && realFile !== realRoot && !realFile.startsWith(realRoot + path.sep)) {
+    return sendJson(request, response, 404, { error: 'Not found' });
+  }
+
+  const contentType = CONTENT_TYPES[path.extname(filePath).toLowerCase()] ?? 'application/octet-stream';
+  const isHashedAsset = filePath.startsWith(path.join(distDir, 'assets') + path.sep);
+  response.writeHead(200, {
+    'content-type': contentType,
+    'cache-control': isHashedAsset ? 'public, max-age=31536000, immutable' : 'no-cache'
+  });
+  createReadStream(filePath).pipe(response);
+}
+
+async function isFile(candidate: string) {
+  try {
+    return (await stat(candidate)).isFile();
+  } catch {
+    return false;
+  }
+}
+
+let cachedRealDistDir: string | null | undefined;
+// Resolve dist/ to its canonical path once; null if it doesn't exist yet.
+async function realDistDir() {
+  if (cachedRealDistDir === undefined) {
+    try {
+      cachedRealDistDir = await realpath(distDir);
+    } catch {
+      cachedRealDistDir = null;
+    }
+  }
+  return cachedRealDistDir;
 }
