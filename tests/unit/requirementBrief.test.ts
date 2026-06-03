@@ -163,3 +163,17 @@ test('US-003 — deterministic for a given (doc, budget)', () => {
   const b = fitBriefToBudget(fitDoc, 200);
   assert.equal(a, b);
 });
+
+import { renderRequirementDocSection } from '../../server/agent/circuit/requirementBrief.ts';
+
+test('US-005 — renderRequirementDocSection shows the authored requirement (goal, required parts, constraints)', () => {
+  const section = renderRequirementDocSection(fitDoc);
+  assert.ok(section.includes('authored by the agent'), 'labeled as authored');
+  assert.ok(section.includes(fitDoc.goal), 'goal present');
+  assert.ok(section.includes(REQUIRED_PART_MARKER), 'required parts marked');
+  assert.ok(section.includes('led-5mm'), 'committed part listed');
+  // coherence: the goal in the section equals the doc goal (one model)
+  assert.ok(section.includes('Blink an LED on Arduino Uno D8'));
+  // uncapped (full detail, not the 1200-char synthesis cap)
+  assert.ok(section.includes('Assumptions'));
+});

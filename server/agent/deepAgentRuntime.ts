@@ -42,7 +42,8 @@ import {
 } from './contextCompaction.ts';
 import {
   deriveRequirementDoc,
-  fitBriefToBudget
+  fitBriefToBudget,
+  renderRequirementDocSection
 } from './circuit/requirementBrief.ts';
 import {
   AgentEventSchema,
@@ -421,7 +422,7 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
   // Faithful chain (flag-gated, default off): author the requirement document and fit it
   // grounding-first so it LEADS the synthesis prompt without compacting context grounding.
   // briefOptions === undefined (flag off / non-synthesize route) => prompt byte-identical to before.
-  const requirementBrief = await buildSynthesisRequirementBrief({
+  const requirementBriefResult = await buildSynthesisRequirementBrief({
     request,
     contextPacket,
     requirementAnalysis,
@@ -435,7 +436,8 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
     traceId,
     sessionId
   });
-  const briefOptions = requirementBrief ? { requirementBrief } : undefined;
+  const requirementDoc = requirementBriefResult?.doc;
+  const briefOptions = requirementBriefResult ? { requirementBrief: requirementBriefResult.brief } : undefined;
   const synthesisUserPrompt = buildAgentUserPrompt(request, { attempt: 1, previousErrors: [] }, briefOptions);
   const synthesisBlocks = compactBlocksForAssembledPrompt({
     stage: 'synthesis',
@@ -480,6 +482,7 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
     request,
     contextPacket,
     requirementAnalysis,
+    requirementDoc,
     structuredOutputFallback: pipelineMode !== 'legacy',
     draftProvider: async ({ attempt, previousErrors }) => {
       logAgentEvent('agent.synthesis.attempt', {
@@ -746,7 +749,7 @@ async function buildSynthesisRequirementBrief(input: {
   metadata: Record<string, unknown>;
   traceId: string;
   sessionId: string;
-}): Promise<string | undefined> {
+}): Promise<{ brief: string; doc: RequirementDoc } | undefined> {
   const mode = requirementDocChainMode();
   if (mode === 'off' || input.requirementAnalysis.route !== 'synthesize_circuit') {
     return undefined;
@@ -791,7 +794,7 @@ async function buildSynthesisRequirementBrief(input: {
     extraPromptBlocks: input.extraPromptBlocks
   });
   const reserved = baseline.maxChars - baseline.actualChars - REQUIREMENT_BRIEF_WRAPPER_CHARS;
-  return fitBriefToBudget(doc, Math.max(0, reserved));
+  return { brief: fitBriefToBudget(doc, Math.max(0, reserved)), doc };
 }
 
 /** Faithful chain (US-002): the model AUTHORS the requirement document before synthesis. */
@@ -983,6 +986,7 @@ async function finalizeAgentResult({
     status: 'completed',
     summary: 'Created structured circuit draft through Deepagents.'
   },
+  requirementDoc,
   repairEvents = []
 }: {
   traceId?: string;
@@ -991,6 +995,7 @@ async function finalizeAgentResult({
   draft: LiveAgentDraft;
   contextPacket: Awaited<ReturnType<typeof buildContextPacket>>;
   coordinatorEvent?: AgentEvent;
+  requirementDoc?: RequirementDoc;
   repairEvents?: AgentEvent[];
 }): Promise<AgentRunResult> {
   const sourceCircuitSpec = normalizePhysicalCircuitSpec(CircuitSpecSchema.parse(draft.circuitSpec));
@@ -1038,7 +1043,13 @@ async function finalizeAgentResult({
         }
       : {}
   );
-  const requirementMarkdown = await compileRequirementMarkdown(circuitSpec, effectiveValidationReport, simulationPlan, runnableReport);
+  // Faithful chain (US-005): when the agent authored a requirement document, surface it FIRST in the
+  // 문서 tab (the requirement that drove synthesis), then the realized circuit details below it — one
+  // model, two views. Flag off (requirementDoc undefined) => unchanged post-synthesis doc.
+  const realizedMarkdown = await compileRequirementMarkdown(circuitSpec, effectiveValidationReport, simulationPlan, runnableReport);
+  const requirementMarkdown = requirementDoc
+    ? `${renderRequirementDocSection(requirementDoc)}\n\n---\n\n${realizedMarkdown}`
+    : realizedMarkdown;
   const clarification = effectiveValidationReport.status === 'valid'
     ? null
     : draft.clarification ?? firstCoverageClarification(contextPacket.contextCoverage, request.locale ?? 'ko') ?? firstClarification(circuitSpec, request.locale ?? 'ko');
@@ -1322,6 +1333,7 @@ async function runAgentDraftRepairLoop({
   request,
   contextPacket,
   requirementAnalysis,
+  requirementDoc,
   draftProvider,
   maxAttempts = 2,
   structuredOutputFallback = false
@@ -1331,6 +1343,9 @@ async function runAgentDraftRepairLoop({
   request: AgentMessageRequest;
   contextPacket: Awaited<ReturnType<typeof buildContextPacket>>;
   requirementAnalysis: RequirementAnalysis;
+  // Faithful chain (US-005): the authored requirement document, surfaced in the 문서 tab. Optional
+  // (undefined when the chain is off / on scripted paths) -> falls back to the post-synthesis doc.
+  requirementDoc?: RequirementDoc;
   draftProvider: DraftProvider;
   maxAttempts?: number;
   // Phase 4 (flag-gated): catch AGENT_STRUCTURED_OUTPUT_MISSING and fall back deterministically
@@ -1345,6 +1360,7 @@ async function runAgentDraftRepairLoop({
       draft: preflightDraft,
       traceId,
       contextPacket,
+      requirementDoc,
       coordinatorEvent: {
         type: 'coordinator',
         name: 'deepagents-coordinator',
@@ -1385,6 +1401,7 @@ async function runAgentDraftRepairLoop({
           draft: fallbackDraft,
           traceId,
           contextPacket,
+          requirementDoc,
           repairEvents: [...repairEvents, structuredOutputFallbackEvent(maxAttempts)]
         });
         logAgentEvent('agent.validation.completed', {
@@ -1404,6 +1421,7 @@ async function runAgentDraftRepairLoop({
       draft,
       traceId,
       contextPacket,
+      requirementDoc,
       repairEvents
     });
     logAgentEvent('agent.validation.completed', {

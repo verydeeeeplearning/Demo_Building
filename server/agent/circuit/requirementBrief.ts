@@ -126,6 +126,43 @@ export function renderRequirementBrief(doc: RequirementDoc): string {
 }
 
 /**
+ * Render the authored requirement document for DISPLAY in the 문서 tab (uncapped, full detail).
+ * Same canonical model as the synthesis brief — this is the human-facing view of what the agent
+ * authored before drawing the circuit.
+ */
+export function renderRequirementDocSection(doc: RequirementDoc): string {
+  const parts = doc.intendedParts.length
+    ? doc.intendedParts.map(renderPartLine).join('\n')
+    : '- (none committed)';
+  const constraints = doc.verbatimConstraints.length
+    ? doc.verbatimConstraints.map((c) => `- ${c}`).join('\n')
+    : '- none';
+  const assumptions = doc.assumptions.length
+    ? doc.assumptions.map((a) => `- ${a}`).join('\n')
+    : '- none';
+  return [
+    `# Requirement (authored by the agent)`,
+    '',
+    `**Goal:** ${doc.goal}`,
+    `**Controller:** ${doc.controller ?? 'unspecified'}`,
+    `**Inputs:** ${doc.inputs.join(', ') || 'none'}`,
+    `**Outputs:** ${doc.outputs.join(', ') || 'none'}`,
+    '',
+    '## Required & intended parts',
+    parts,
+    '',
+    '## What it should do',
+    doc.behavior || '(unspecified)',
+    '',
+    '## Constraints from the request',
+    constraints,
+    '',
+    '## Assumptions',
+    assumptions
+  ].join('\n');
+}
+
+/**
  * Render the NON-TRUNCATABLE floor of the brief: the goal, the REQUIRED parts, and the verbatim
  * constraints. These are the commitments synthesis must honor; they never yield to the budget.
  */
