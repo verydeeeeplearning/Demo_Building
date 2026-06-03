@@ -42,7 +42,9 @@ export const en = {
     ideaPlaceholder: 'Example: blink an LED from Arduino Uno D8',
     sendIdea: 'Send idea',
     confirm: 'Confirm and build',
-    typingAria: 'Assistant is typing'
+    typingAria: 'Assistant is typing',
+    contextWindow: '{count} turns in context window',
+    contextWindowSummarised: '{count} turns in window · earlier turns summarised'
   },
   landing: {
     status: 'No project loaded',

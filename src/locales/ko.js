@@ -42,7 +42,9 @@ export const ko = {
     ideaPlaceholder: '예: Arduino Uno D8로 LED를 깜빡이고 싶어요',
     sendIdea: '보내기',
     confirm: '확인하고 회로 만들기',
-    typingAria: 'AI가 답변을 작성 중'
+    typingAria: 'AI가 답변을 작성 중',
+    contextWindow: '대화 {count}개 반영 중',
+    contextWindowSummarised: '대화 {count}개 반영 중 · 이전 내용 요약됨'
   },
   landing: {
     status: '아직 열린 프로젝트가 없습니다',

@@ -268,6 +268,21 @@ function renderTab(name) {
   `;
 }
 
+// Phase 5c — lightweight context-usage indicator.
+// Shows how many turns are in the active send window (max 12 sent, server renders 6)
+// and whether older turns have been folded into the advisory running summary (5b).
+// Only rendered when there are messages in the thread.
+function renderContextUsageIndicator(messages) {
+  if (messages.length === 0) {
+    return '';
+  }
+  const windowCount = Math.min(messages.length, 12);
+  const hasSummary = messages.length > 12;
+  const key = hasSummary ? 'aiPanel.contextWindowSummarised' : 'aiPanel.contextWindow';
+  const label = t(key, { count: windowCount }, state.locale);
+  return `<div class="context-usage-indicator" data-testid="context-usage-indicator" aria-live="polite">${escapeHtml(label)}</div>`;
+}
+
 function renderAiPanel() {
   const planItems = currentPlanItems();
   const interview = state.interview;
@@ -284,6 +299,7 @@ function renderAiPanel() {
       <div class="panel-kicker">${t('aiPanel.kicker', {}, state.locale)}</div>
       <h1>${state.projectLoaded ? t('aiPanel.titleLoaded', {}, state.locale) : t('aiPanel.titleNew', {}, state.locale)}</h1>
       ${interviewActive ? renderInterviewProgress(interview) : ''}
+      ${renderContextUsageIndicator(interview.messages)}
       <div class="thread" aria-live="polite">
         ${visibleMessages.map(renderMessage).join('')}
         ${state.thinking ? renderTypingIndicator() : ''}
