@@ -390,6 +390,20 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
         toolOptions,
         metadata: baseMetadata,
         deepAgentFactory
+      }).catch((error) => {
+        // Robustness: on a non-circuit turn (greeting / general question) the requirement-analysis
+        // model often replies in plain text and never emits the structured route. Rather than 502 with
+        // "회로 초안을 구조화해서 확인하지 못했어요", fall back to the SAME deterministic route the
+        // next-pipeline uses. The turn still reaches the synthesis agent, which answers conversationally.
+        if (error instanceof AgentStructuredOutputError) {
+          logAgentEvent('requirement.analysis.recovered', {
+            traceId,
+            sessionId,
+            reason: 'requirement-analysis structured output missing; using deterministic route'
+          });
+          return deriveRequirementAnalysis(request, contextPacket);
+        }
+        throw error;
       })
     : deriveRequirementAnalysis(request, contextPacket);
   logAgentEvent('requirement.analysis.completed', {

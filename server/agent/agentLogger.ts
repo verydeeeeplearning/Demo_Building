@@ -18,6 +18,7 @@ type AgentLogEvent =
   | 'context.compose.shadow.failed'
   | 'prompt.budget.exceeded'
   | 'requirement.analysis.completed'
+  | 'requirement.analysis.recovered'
   | 'requirement.doc.authored'
   | 'requirement.doc.authoring.failed'
   | 'agent.synthesis.attempt'

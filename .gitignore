@@ -14,3 +14,6 @@ coverage/
 .env.*
 manual-ui-current.png
 progress.txt
+
+# Playwright MCP run artifacts (local only)
+.playwright-mcp/
