@@ -1087,6 +1087,92 @@ async function finalizeAgentResult({
 	  });
 }
 
+// Front intent gate (PLAN_intent_gate.md): turn a conversational reply into an AgentRunResult that
+// carries NO renderable circuit. AgentRunResultSchema requires a circuitSpec with >=1 component, so a
+// minimal placeholder is attached; the `responseKind: 'chat'` discriminator tells the frontend to skip
+// the 3D scene entirely. Validation/render/simulation are reported as empty + not-runnable. The chat
+// reply is surfaced verbatim — the circuit-validation messaging in finalizeAgentResult is bypassed.
+export function buildCasualChatResult({
+  traceId,
+  sessionId,
+  request,
+  contextPacket,
+  reply
+}: {
+  traceId?: string;
+  sessionId: string;
+  request: AgentMessageRequest;
+  contextPacket: Awaited<ReturnType<typeof buildContextPacket>>;
+  reply: string;
+}): AgentRunResult {
+  const locale = request.locale ?? 'ko';
+  const placeholderSpec = {
+    id: 'casual-chat',
+    title: locale === 'ko' ? '일반 대화' : 'General conversation',
+    intent: { primaryGoal: request.message, output: 'conversation', controller: 'none' },
+    // Schema floor: >=1 component. Inert and never rendered (responseKind === 'chat').
+    components: [{ id: 'chat-context', partId: 'arduino-uno', label: 'Arduino Uno' }],
+    connections: [],
+    behavior: { runText: 'CHAT' },
+    assumptions: [],
+    unsupportedItems: [],
+    clarificationNeeds: []
+  };
+
+  return AgentRunResultSchema.parse({
+    traceId,
+    sessionId,
+    mode: 'live',
+    responseKind: 'chat',
+    assistantMessages: [reply],
+    agentEvents: [{
+      type: 'coordinator',
+      name: 'intent-gate',
+      status: 'completed',
+      summary: 'Routed to a conversational reply (no circuit synthesis).'
+    }],
+    clarification: null,
+    contextTrace: contextPacket.contextTrace,
+    contextCoverage: contextPacket.contextCoverage,
+    requirementMarkdown: '',
+    circuitSpec: placeholderSpec,
+    validationReport: {
+      status: 'unsupported',
+      errors: [],
+      warnings: [],
+      validatedCurrentPathIds: []
+    },
+    renderPlan: {
+      title: placeholderSpec.title,
+      runText: 'CHAT',
+      parts: [],
+      connections: [],
+      floatingCards: [],
+      warnings: []
+    },
+    simulationPlan: {
+      status: 'unsupported',
+      runText: 'CHAT',
+      currentPaths: [],
+      expectedStates: [],
+      warnings: []
+    },
+    buildRunnableReport: {
+      status: 'blocked',
+      runnable: false,
+      reasons: ['Casual conversation — there is no circuit to build.'],
+      validationStatus: 'unsupported',
+      simulationStatus: 'unsupported',
+      renderWarningCount: 0,
+      renderBlockingWarningCount: 0,
+      renderPartCount: 0,
+      currentPathCount: 0,
+      expectedStateCount: 0
+    },
+    supportedAlternatives: []
+  });
+}
+
 function shouldUseSafeEquivalentSimulation(
   sourceCircuitSpec: CircuitSpec,
   draft: LiveAgentDraft,

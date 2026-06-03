@@ -995,6 +995,10 @@ export const AgentRunResultSchema = z.object({
   traceId: z.string().min(1).optional(),
   sessionId: z.string().min(1),
   mode: z.literal('live'),
+  // Discriminates a normal circuit answer from a front-intent-gate conversational reply. Defaults to
+  // 'circuit' so every existing synthesis/finalize path stays valid unchanged. 'chat' results carry a
+  // placeholder circuitSpec (schema requires >=1 component) that the frontend never renders.
+  responseKind: z.enum(['circuit', 'chat']).default('circuit'),
   assistantMessages: z.array(z.string()),
   agentEvents: z.array(AgentEventSchema),
   clarification: z.string().nullable(),
