@@ -1,6 +1,6 @@
 # Implementation Plan: Front Intent Gate (off-topic / general-question routing)
 
-**Status**: In Progress
+**Status**: Complete
 **Started**: 2026-06-03
 **Last Updated**: 2026-06-03
 
@@ -62,7 +62,26 @@ import), so tests run with zero live OpenAI calls and the dependency rule is res
 ## Rollback
 Per story: revert the story's commit. Global runtime kill-switch: `H_EDUWARE_INTENT_GATE=off`.
 
+## Kill-switch
+`H_EDUWARE_INTENT_GATE=off` (read by `getIntentGateMode`) skips the gate in `runLiveAgent` entirely —
+every message goes straight to requirement-analysis / synthesis exactly as before. Default is `on`.
+Covered by `getIntentGateMode` unit tests and the `intentGateRouting` "off skips the gate" test.
+
+## Final verification (2026-06-03)
+- `npm run typecheck`: 0 errors.
+- TS unit suite (`tsx --test`): 482 tests, 481 pass, 0 fail, 1 skip (env-gated live test).
+- JS unit suite (`node --test`): 158 tests, 155 pass, **3 fail — pre-existing, OUT OF SCOPE**
+  (styles.css design-token tests: token drift / WCAG contrast / focus token; identical to the
+  pre-US-1 baseline, untouched by this feature).
+- `npm run build`: success.
+
 ## Notes & Learnings
 - Only `runAgent` (live path) hits the gate; `runAgentWithScriptedDrafts` bypasses `runLiveAgent`,
   so `agentWorkflow` / `structuredOutputReliability` tests are unaffected.
 - Live-path count tests needing a passthrough gate: `agentRuntimeSeams`, `singleRunHarness`.
+- `circuitSpec.components` is `.min(1)`, so a chat result cannot use an empty spec — it carries an
+  inert placeholder component, hidden by `responseKind === 'chat'`.
+- `groundAgentResultArtifacts` is already a no-op when `simulationPlan.currentPaths` is empty, so chat
+  results pass through it untouched (no frontend change needed there).
+- Clean Architecture: `intentGate.ts` (application use case) depends only on `ModelPort` /
+  `DeepAgentFactory` abstractions + the `toolStrategy` response-format helper — never on `ChatOpenAI`.
