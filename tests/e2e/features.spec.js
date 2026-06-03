@@ -1250,6 +1250,49 @@ test('public share link renders a read-only project page and imports the snapsho
   assertClean(guards);
 });
 
+test('public share view shows a visual circuit card canvas alongside the metadata grid', async ({ page }) => {
+  const guards = attachGuards(page);
+  const shareId = 'd'.repeat(32);
+  await page.route(`http://127.0.0.1:8787/api/share/projects/${shareId}`, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ snapshot: sharedLedSnapshotFixture(shareId) })
+    });
+  });
+
+  await page.goto(`/?share=${shareId}`);
+  await expect(page.getByTestId('public-share-view')).toBeVisible();
+
+  // The share card canvas must be present and sized correctly (1200x630)
+  const card = page.getByTestId('share-card-canvas');
+  await expect(card).toBeVisible();
+  const cardWidth = await card.evaluate((el) => el.width);
+  const cardHeight = await card.evaluate((el) => el.height);
+  expect(cardWidth).toBe(1200);
+  expect(cardHeight).toBe(630);
+
+  // The canvas must have non-background pixels (i.e. something was drawn)
+  const drawnPixels = await card.evaluate((el) => {
+    const ctx = el.getContext('2d');
+    const data = ctx.getImageData(0, 0, el.width, el.height).data;
+    const [r0, g0, b0] = data;
+    let changed = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      const dist = Math.abs(data[i] - r0) + Math.abs(data[i + 1] - g0) + Math.abs(data[i + 2] - b0);
+      if (data[i + 3] > 0 && dist > 40) changed += 1;
+    }
+    return changed;
+  });
+  expect(drawnPixels).toBeGreaterThan(20000);
+
+  // The metadata grid must still be present alongside the card
+  await expect(page.getByTestId('public-share-title')).toContainText('Shared LED Badge');
+  await expect(page.getByTestId('public-share-parts')).toContainText(/Arduino Uno|Red LED/);
+
+  assertClean(guards);
+});
+
 test('public share link blocks valid-looking snapshots without runnable evidence', async ({ page }) => {
   const guards = attachGuards(page);
   const shareId = 'e'.repeat(32);

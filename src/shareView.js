@@ -1,4 +1,5 @@
 import { t } from './i18n.js';
+import { renderShareCardCanvas } from './shareCard.js';
 
 export function renderShareView(shareView, locale = 'ko') {
   if (shareView.status === 'loading') {
@@ -40,6 +41,15 @@ export function renderShareView(shareView, locale = 'ko') {
     : copy(locale, 'simulationUnavailable');
   const sourceTypes = snapshot.contextEvidence?.sourceTypes || [];
 
+  // Schedule card rendering after innerHTML injection gives us a real DOM node.
+  // setTimeout(0) fires after the current task (the innerHTML assignment) settles.
+  setTimeout(() => {
+    const placeholder = document.querySelector('canvas[data-testid="share-card-canvas"]');
+    if (placeholder) {
+      renderShareCardCanvas(snapshot, locale, placeholder);
+    }
+  }, 0);
+
   return `
     <main class="public-share-view" data-testid="public-share-view">
       <section class="public-share-hero">
@@ -50,6 +60,10 @@ export function renderShareView(shareView, locale = 'ko') {
           <button class="primary-action" type="button" data-action="share-import" data-testid="share-import">${copy(locale, 'import')}</button>
           <button class="secondary-action" type="button" data-action="share-create-own">${copy(locale, 'createOwn')}</button>
         </div>
+      </section>
+
+      <section class="public-share-card" aria-label="${copy(locale, 'sharedProject')}">
+        <canvas data-testid="share-card-canvas" class="share-card-canvas" width="1200" height="630" aria-label="${escapeHtml(snapshot.title)}"></canvas>
       </section>
 
       <section class="public-share-grid" aria-label="${copy(locale, 'details')}">

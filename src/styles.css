@@ -179,11 +179,6 @@ a:focus-visible {
   text-decoration: underline;
 }
 
-.demo-action {
-  border: 1px solid var(--c-primary);
-  text-decoration: none;
-}
-
 .button-outline {
   border: 1px solid var(--c-hairline);
   background: transparent;
@@ -1317,6 +1312,19 @@ body.has-modal {
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 22px;
+}
+
+.public-share-card {
+  max-width: 920px;
+  margin: 0 auto clamp(20px, 3vw, 36px);
+}
+
+.share-card-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(23, 23, 29, 0.14);
 }
 
 .public-share-grid {
