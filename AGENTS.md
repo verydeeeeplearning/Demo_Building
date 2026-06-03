@@ -75,6 +75,22 @@ Access 1002k tokens of past work via get_observations([IDs]) or mem-search skill
 
 # H-eduware Agent Instructions
 
+## Framework-native agent work (non-negotiable)
+
+When implementing or modifying the Deep Agents / LangChain agent (`server/agent/*`, especially
+`deepAgentRuntime.ts`), ALWAYS consult the official documentation first and use the framework's
+native mechanism — never hand-roll a bespoke equivalent.
+
+- **Memory** → LangGraph **checkpointer + `thread_id`** (short-term) and **`Store`/`BaseStore`**
+  (long-term). Not a manual `recentTurns` re-injection or hand-folded running summary.
+- **Clarification / narrowing / "역제안"** → LangGraph **`interrupt()` + `Command({ resume })`** HITL.
+  Not a custom field the LLM is hoped to fill; not a hardcoded menu in `.ts`.
+- **Stateful subagent** → subagent `checkpointer: true` + `toolCallLimitMiddleware`.
+- **Curated content** lives in the `agent-context/` data layer, never in application code.
+- Docs to cite (context7): `/langchain-ai/deepagentsjs`, `/websites/langchain_oss_javascript_langgraph`.
+
+Query the docs for the exact pattern + signatures before writing agent code. See `CLAUDE.md`.
+
 ## Source of truth
 
 - Treat `Spec/H-eduware_master_statement.md` as binding product scope.
