@@ -382,7 +382,8 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
     candidateParts: contextPacket.candidateParts,
     allowedContextSourceIds: contextPacket.retrievalPlan.sourceIds,
     supportBundles: contextPacket.supportBundles,
-    requestScope
+    requestScope,
+    locale: request.locale ?? 'ko'
   };
   // Phase 3 single-run: in shadow|next, derive the requirement route deterministically instead of
   // running a second deep agent — collapsing the two createDeepAgent runs into the one synthesis
@@ -2204,7 +2205,7 @@ export function buildSystemPrompt({
     // ReAct decision contract (LangChain Deep Agents: reason -> optionally call tools -> answer).
     'DECIDE this turn first, then act:',
     '- Greeting, small talk, or a GENERAL question (a concept, "what is X", or "recommend a circuit" with no concrete build target): answer warmly in the student\'s language. For a recommendation, suggest 2-3 concrete buildable circuits from the supported parts and invite the student to pick one to build. Set responseKind="chat" and circuitSpec=null. Never fabricate a circuit just to have one.',
-    '- A circuit request missing key details (no clear output or behavior): ask ONE friendly clarifying question. Set responseKind="chat" and circuitSpec=null.',
+    '- The request is too vague to build — no clear output device (e.g. "뭔가 만들어줘", "회로 추천"), or a required sensor/detail is missing: call the ask_to_narrow tool to offer grounded options the student can tap (level="output" for categories; a category id like "sensor-readout"/"motion" to drill down). Prefer ask_to_narrow over a free-text question whenever concrete options exist. After the student picks a capability, build it.',
     '- A concrete, buildable circuit goal: build it. Set responseKind="circuit" and return a full CircuitSpec.',
     'When unsure whether a request is buildable or within the supported scope, call assess_request_scope and respect its verdict.',
     '',

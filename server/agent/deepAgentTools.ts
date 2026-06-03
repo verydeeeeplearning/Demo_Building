@@ -1,5 +1,8 @@
 import { tool } from '@langchain/core/tools';
+import { interrupt } from '@langchain/langgraph';
 import { z } from 'zod';
+
+import { narrowOptions } from './slotPolicy.ts';
 
 import {
   loadContextBundleV2,
@@ -60,6 +63,7 @@ type HeduwareAgentToolOptions = {
   allowedContextSourceIds?: string[];
   supportBundles?: SupportBundleEvidence[];
   requestScope?: RequestScope;
+  locale?: 'ko' | 'en';
 };
 
 export function createHeduwareAgentTools(options: HeduwareAgentToolOptions = {}) {
@@ -71,6 +75,25 @@ export function createHeduwareAgentTools(options: HeduwareAgentToolOptions = {})
   };
 
   return [
+    tool(
+      async ({ level }) => {
+        const narrowed = await narrowOptions(level ?? 'output', options.locale ?? 'ko');
+        // LangGraph human-in-the-loop: pause the graph and surface grounded options. The resume value
+        // (a category id or a capabilityId the student tapped) flows back as this tool's result.
+        const selected = interrupt({
+          kind: 'clarification',
+          level: narrowed.level,
+          question: narrowed.question,
+          options: narrowed.options
+        });
+        return asJson({ selected });
+      },
+      {
+        name: 'ask_to_narrow',
+        description: 'When the request is too vague to build (no clear output device, or a required sensor/detail is missing), ASK the student to choose instead of guessing or writing a free-text question. Pass level="output" to offer the build categories (light/sound/motor/display/sensor...), or a category id (e.g. "sensor-readout","motion") to offer the specific options inside it. The student taps one; the selection (a category id, then a capabilityId) is returned. Call again with the chosen category id to drill down. Only the options provided are buildable.',
+        schema: z.object({ level: z.string().default('output') })
+      }
+    ),
     tool(
       async () => asJson(options.requestScope ?? { error: 'NO_REQUEST_SCOPE_IN_CONTEXT' }),
       {
