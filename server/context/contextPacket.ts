@@ -11,6 +11,7 @@ import {
   resolveContextSourceId,
   searchPartCapabilities
 } from './contextLayer.ts';
+import { loadCapabilityGraph } from './capabilityGraph.ts';
 import {
   ContextPacketSchema,
   ContextRouteSchema,
@@ -45,7 +46,12 @@ import {
 import type { AgentPipelineMode } from '../agent/agentPipelineMode.ts';
 import { selectContextByComposition } from './compositionSelection.ts';
 
-type BuildContextPacketInput = Pick<AgentMessageRequest, 'message' | 'locale' | 'conversationContext'>;
+type BuildContextPacketInput = Pick<AgentMessageRequest, 'message' | 'locale' | 'conversationContext'> & {
+  // Re-grounding seam: when the student narrows to a specific capability (HITL clarification), force it
+  // to the top of the matches so route/bundle/candidateParts/coverage ground to that capability rather
+  // than the fuzzy match of the original (often vague) message. Unknown/unsupported ids are ignored.
+  forceCapabilityId?: string;
+};
 
 // Phase 0.5 seam: the part registry is injectable so tests can double/grow the catalog (the
 // catalog-growth test doubles it). Production passes nothing -> the real cached `getPartRegistry`.
@@ -1368,7 +1374,10 @@ export async function buildContextPacket(
     loadContextV2Index(),
     detectVisualLibraryPartMentions(contextualMessage)
   ]);
-  const capabilityMatches = pruneCapabilityMatchesForExplicitHardware(rawCapabilityMatches, contextualMessage);
+  const capabilityMatches = await applyForcedCapabilityMatch(
+    pruneCapabilityMatchesForExplicitHardware(rawCapabilityMatches, contextualMessage),
+    input.forceCapabilityId
+  );
 
   const intentHints = inferIntentHints(contextualMessage, capabilityMatches);
   const unsupportedSignals = detectUnsupportedSignals(contextualMessage);
@@ -3429,6 +3438,23 @@ function matchesHardwareKeyword(entry: typeof ACTIVE_HARDWARE_KEYWORDS[number], 
     return true;
   }
   return hasAnyTerm(message, ['oled', 'display', 'text display', 'show text', 'display message']);
+}
+
+// Re-grounding: promote a student-selected capability to the top match so the packet grounds to it.
+// Ignores unknown/unsupported ids (returns matches unchanged), so a stale selection never throws.
+async function applyForcedCapabilityMatch(
+  matches: CapabilityGraphEntry[],
+  forceCapabilityId?: string
+): Promise<CapabilityGraphEntry[]> {
+  if (!forceCapabilityId) {
+    return matches;
+  }
+  const graph = await loadCapabilityGraph();
+  const forced = graph.find((entry) => entry.id === forceCapabilityId && entry.supportLevel === 'supported');
+  if (!forced) {
+    return matches;
+  }
+  return [forced, ...matches.filter((match) => match.id !== forced.id)];
 }
 
 function pruneCapabilityMatchesForExplicitHardware(matches: CapabilityGraphEntry[], message: string) {
