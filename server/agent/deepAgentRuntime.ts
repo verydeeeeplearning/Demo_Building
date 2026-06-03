@@ -35,6 +35,7 @@ import {
   validateCircuitSpec
 } from './circuitTools.ts';
 import { createHeduwareAgentTools } from './deepAgentTools.ts';
+import { compactSystemContextBlocks, foldRunningSummary } from './contextCompaction.ts';
 import {
   AgentEventSchema,
   AgentMessageRequestSchema,
@@ -387,12 +388,26 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
   // shadow|next we drop them to cut the `task`-tool subagent-description token weight. legacy keeps
   // them for provable no-change.
   const subagents = pipelineMode === 'legacy' ? createSubagents(toolOptions) : [];
+  // Phase 5a — graceful compaction: compact the dominant system/context blocks at the
+  // prompt-assembly boundary so that an over-budget context returns a bounded prompt
+  // instead of throwing AgentPromptBudgetError.  The user prompt and short turn slice
+  // are reserved; the budget here is the full allowance (the assert below then confirms
+  // the compacted prompt fits).
+  const synthesisBlocks = compactSystemContextBlocks(
+    {
+      operatingMemory: runtimeOperatingMemory,
+      coordinatorPrompt: runtimeContextIndex,
+      registrySummary,
+      contextPacketBlock: contextPacket.promptBlock
+    },
+    contextPacket.retrievalPlan.maxPromptChars
+  );
   const synthesisSystemPrompt = buildSystemPrompt({
     locale: request.locale ?? 'ko',
-    operatingMemory: runtimeOperatingMemory,
-    coordinatorPrompt: runtimeContextIndex,
-    registrySummary,
-    contextPacketBlock: contextPacket.promptBlock
+    operatingMemory: synthesisBlocks.operatingMemory,
+    coordinatorPrompt: synthesisBlocks.coordinatorPrompt,
+    registrySummary: synthesisBlocks.registrySummary,
+    contextPacketBlock: synthesisBlocks.contextPacketBlock
   });
   assertAgentPromptBudget({
     stage: 'synthesis',
@@ -487,9 +502,20 @@ async function runRequirementAnalysisAgent({
   metadata: Record<string, unknown>;
   deepAgentFactory: DeepAgentFactory;
 }): Promise<RequirementAnalysis> {
+  // Phase 5a — compact the contextPacketBlock for the requirement-analysis prompt so that
+  // an over-budget context packet does not hard-fail this assert site either.
+  const requirementBlocks = compactSystemContextBlocks(
+    {
+      operatingMemory: '',
+      coordinatorPrompt: '',
+      registrySummary: '',
+      contextPacketBlock: contextPacket.promptBlock
+    },
+    contextPacket.retrievalPlan.maxPromptChars
+  );
   const systemPrompt = buildRequirementAnalysisSystemPrompt({
     locale: request.locale ?? 'ko',
-    contextPacketBlock: contextPacket.promptBlock
+    contextPacketBlock: requirementBlocks.contextPacketBlock
   });
   const userPrompt = buildRequirementAnalysisUserPrompt(request);
   assertAgentPromptBudget({
@@ -1673,6 +1699,25 @@ function renderConversationContextForPrompt(request: AgentMessageRequest) {
     lines.push(
       'Recent conversation:',
       ...context.recentTurns.slice(-6).map((turn) => `- ${turn.role}: ${turn.text}`)
+    );
+  }
+
+  // Phase 5b — advisory running summary injection.
+  // The server RE-COMPUTES the summary from the server-validated recentTurns each request.
+  // Any client-supplied runningSummary is UNTRUSTED/advisory: it is never echoed into an
+  // authority-bearing block.  The clearly-delimited block below is excluded from the
+  // canonical authority chain (consistent with the "never invent parts/pins/protocols" posture).
+  const serverDerivedSummary = foldRunningSummary(
+    context.recentTurns,
+    // locale is not accessible here; the summary is locale-agnostic (role prefixes only)
+    'en'
+  );
+  if (serverDerivedSummary) {
+    lines.push(
+      '',
+      '--- EARLIER CONTEXT (advisory, non-authoritative — never a source of parts/pins/protocols) ---',
+      serverDerivedSummary,
+      '--- END EARLIER CONTEXT ---'
     );
   }
 
