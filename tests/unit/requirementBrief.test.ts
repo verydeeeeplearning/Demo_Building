@@ -4,9 +4,18 @@ import test from 'node:test';
 import { RequirementDocSchema, type RequirementDoc } from '../../server/agent/schemas.ts';
 import {
   renderRequirementBrief,
+  deriveRequirementDoc,
+  extractVerbatimConstraints,
   BRIEF_MAX_CHARS,
   REQUIRED_PART_MARKER
 } from '../../server/agent/circuit/requirementBrief.ts';
+
+const LED_PARTS = [
+  { id: 'arduino-uno', kind: 'controller', label: 'Arduino Uno' },
+  { id: 'led-5mm', kind: 'output', label: 'LED' },
+  { id: 'resistor-220', kind: 'passive', label: '220 ohm resistor' },
+  { id: 'breadboard-half', kind: 'board', label: 'Breadboard' }
+];
 
 const sampleDoc: RequirementDoc = RequirementDocSchema.parse({
   goal: 'Blink an LED on Arduino Uno D8',
@@ -67,4 +76,45 @@ test('US-001 — hard cap is enforced even for an oversized doc', () => {
   });
   const brief = renderRequirementBrief(huge);
   assert.ok(brief.length <= BRIEF_MAX_CHARS, `oversized brief length ${brief.length} must be capped at ${BRIEF_MAX_CHARS}`);
+});
+
+test('US-002 — deriveRequirementDoc populates goal, controller and committed parts', () => {
+  const doc = deriveRequirementDoc('Arduino Uno D8로 LED를 깜빡이고 싶어요', LED_PARTS, {
+    primaryGoal: 'Blink an LED on D8',
+    controller: 'arduino-uno',
+    output: 'LED blink'
+  });
+  assert.equal(doc.goal, 'Blink an LED on D8');
+  assert.equal(doc.controller, 'arduino-uno');
+  assert.equal(doc.intendedParts.length, 4);
+  // controller / output / passive are committed REQUIRED; board is optional
+  const required = doc.intendedParts.filter((p) => p.required).map((p) => p.partId).sort();
+  assert.deepEqual(required, ['arduino-uno', 'led-5mm', 'resistor-220']);
+  const board = doc.intendedParts.find((p) => p.partId === 'breadboard-half');
+  assert.equal(board?.required, false);
+});
+
+test('US-002 — verbatimConstraints captures lexical detail (pin D8, value, count)', () => {
+  const constraints = extractVerbatimConstraints('D8로 LED를 2번 깜빡, 220 ohm 저항 사용');
+  assert.ok(constraints.some((c) => c.toUpperCase() === 'D8'), 'captures pin D8');
+  assert.ok(constraints.some((c) => /220\s?ohm/i.test(c)), 'captures resistor value');
+  assert.ok(constraints.some((c) => /2\s?번/.test(c)), 'captures repeat count');
+  // and the derived doc carries them
+  const doc = deriveRequirementDoc('D8로 LED를 깜빡', LED_PARTS);
+  assert.ok(doc.verbatimConstraints.some((c) => c.toUpperCase() === 'D8'));
+});
+
+test('US-002 — edge case: empty candidateParts yields a safe doc with no committed parts (no throw)', () => {
+  const doc = deriveRequirementDoc('make something blink', []);
+  assert.equal(doc.intendedParts.length, 0);
+  assert.equal(doc.controller, null);
+  assert.ok(doc.goal.length > 0);
+});
+
+test('US-002 — brief renders the deterministically derived doc end-to-end', () => {
+  const doc = deriveRequirementDoc('Arduino Uno D8로 LED 깜빡', LED_PARTS, { primaryGoal: 'Blink LED' });
+  const brief = renderRequirementBrief(doc);
+  assert.ok(brief.includes('Blink LED'));
+  assert.ok(brief.includes(REQUIRED_PART_MARKER));
+  assert.ok(brief.length <= BRIEF_MAX_CHARS);
 });
