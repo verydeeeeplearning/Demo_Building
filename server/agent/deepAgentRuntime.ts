@@ -4,7 +4,7 @@ import { ChatOpenAI } from '@langchain/openai';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { createDeepAgent, type SubAgent } from 'deepagents';
 import { toolStrategy } from 'langchain';
-import { MemorySaver } from '@langchain/langgraph';
+import { MemorySaver, Command } from '@langchain/langgraph';
 import { z } from 'zod';
 
 // Short-term conversation memory (LangGraph "Add Short-Term Memory" pattern): one shared in-process
@@ -58,6 +58,7 @@ import {
   AgentMessageRequestSchema,
   AgentRunResultSchema,
   CircuitSpecSchema,
+  ClarificationRequestSchema,
   RequirementDocSchema,
   SupportedAlternativeSchema,
   type AgentEvent,
@@ -65,6 +66,7 @@ import {
   type AgentRunResult,
   type BuildRunnableReport,
   type CircuitSpec,
+  type ClarificationRequest,
   type RequirementDoc,
   type SupportedAlternative
 } from './schemas.ts';
@@ -134,6 +136,18 @@ export class AgentStructuredOutputError extends Error {
   constructor(message = 'Deepagents did not return a structured circuit draft.') {
     super(message);
     this.name = 'AgentStructuredOutputError';
+  }
+}
+
+// Propagates a LangGraph interrupt (the agent called ask_to_narrow and the graph paused) out of the
+// repair loop so runLiveAgent can return an awaiting_input result instead of a circuit draft.
+class AgentInterruptSignal extends Error {
+  readonly payload: ClarificationRequest;
+
+  constructor(payload: ClarificationRequest) {
+    super('Agent paused for clarification.');
+    this.name = 'AgentInterruptSignal';
+    this.payload = payload;
   }
 }
 
@@ -349,7 +363,12 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
   const pipelineMode = getAgentPipelineMode();
   const sessionId = request.sessionId ?? `session-${randomUUID()}`;
   const traceId = options.traceId ?? createAgentTraceId();
-  const contextPacket = await buildContextPacket(request, { pipelineMode });
+  // On a clarification resume, ground the packet to the chosen capability (forceCapabilityId ignores a
+  // category-id resume, so an intermediate narrowing step still re-asks rather than mis-building).
+  const contextPacket = await buildContextPacket(
+    { ...request, forceCapabilityId: request.resume },
+    { pipelineMode }
+  );
   const baseMetadata = langSmithMetadata({ traceId, request, contextPacket });
   logAgentEvent('context.packet.built', {
     traceId,
@@ -507,7 +526,8 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
       : undefined
   });
 
-  return runAgentDraftRepairLoop({
+  try {
+    return await runAgentDraftRepairLoop({
     traceId,
     sessionId,
     request,
@@ -530,12 +550,12 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
         userPrompt,
         extraPromptBlocks: [renderSubagentPromptBudgetText(subagents)]
       });
-      const output = await agent.invoke({
-        messages: [{
-          role: 'user',
-          content: userPrompt
-        }]
-      }, {
+      // A clarification answer resumes the paused thread (Command) on the first attempt only; a repair
+      // retry re-prompts normally (the resume was already consumed into the thread).
+      const invokeInput = request.resume && attempt === 1
+        ? new Command({ resume: request.resume })
+        : { messages: [{ role: 'user', content: userPrompt }] };
+      const output = await agent.invoke(invokeInput, {
         runName: 'h-eduware-circuit-synthesis',
         tags: langSmithTags('synthesis', contextPacket),
         metadata: {
@@ -549,9 +569,21 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
           thread_id: sessionId
         }
       });
+      // HITL: the agent called ask_to_narrow -> the graph paused. Surface the question/options to the
+      // client as an awaiting_input turn instead of parsing a (non-existent) draft.
+      const interruptPayload = extractInterruptPayload(output);
+      if (interruptPayload) {
+        throw new AgentInterruptSignal(interruptPayload);
+      }
       return parseLiveAgentDraft(output);
     }
-  });
+    });
+  } catch (error) {
+    if (error instanceof AgentInterruptSignal) {
+      return buildAwaitingInputResult({ traceId, sessionId, request, contextPacket, payload: error.payload });
+    }
+    throw error;
+  }
 }
 
 async function runRequirementAnalysisAgent({
@@ -1204,6 +1236,51 @@ export function buildCasualChatResult({
       expectedStateCount: 0
     },
     supportedAlternatives: []
+  });
+}
+
+// Read a LangGraph interrupt payload off an agent.invoke result and validate it into a
+// ClarificationRequest. Returns null when the run did not pause (a normal draft result).
+function extractInterruptPayload(output: unknown): ClarificationRequest | null {
+  if (!output || typeof output !== 'object') {
+    return null;
+  }
+  const interrupts = (output as Record<string, unknown>).__interrupt__;
+  if (!Array.isArray(interrupts) || interrupts.length === 0) {
+    return null;
+  }
+  const value = (interrupts[0] as { value?: unknown })?.value;
+  const parsed = ClarificationRequestSchema.safeParse(value);
+  return parsed.success ? parsed.data : null;
+}
+
+// An awaiting_input turn: the agent paused (ask_to_narrow) and is waiting for the student to pick an
+// option. Mirrors buildCasualChatResult's inert placeholders; carries the question + grounded options.
+function buildAwaitingInputResult({
+  traceId,
+  sessionId,
+  request,
+  contextPacket,
+  payload
+}: {
+  traceId?: string;
+  sessionId: string;
+  request: AgentMessageRequest;
+  contextPacket: Awaited<ReturnType<typeof buildContextPacket>>;
+  payload: ClarificationRequest;
+}): AgentRunResult {
+  const locale = request.locale ?? 'ko';
+  const base = buildCasualChatResult({
+    traceId,
+    sessionId,
+    request,
+    contextPacket,
+    reply: payload.question || (locale === 'ko' ? '아래에서 골라주세요.' : 'Please choose below.')
+  });
+  return AgentRunResultSchema.parse({
+    ...base,
+    responseKind: 'awaiting_input',
+    clarificationRequest: payload
   });
 }
 
