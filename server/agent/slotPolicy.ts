@@ -79,6 +79,32 @@ export async function capabilityOptions(categoryId: string, locale: Locale, root
   }));
 }
 
+// The narrowing prompt for a level: 'output' proposes the build categories; a category id drills into
+// the supported capabilities within it. Used by the ask_to_narrow tool to interrupt with grounded options.
+export async function narrowOptions(
+  level: string,
+  locale: Locale,
+  root = DEFAULT_CONTEXT_ROOT
+): Promise<{ level: string; question: string; options: SlotOption[] }> {
+  const policy = await loadSlotPolicy(root);
+  if (level === 'output') {
+    return {
+      level,
+      question: locale === 'ko' ? '무엇을 만들어 볼까요? 아래에서 골라보세요.' : 'What would you like to build? Pick one below.',
+      options: policy.categories.map((category) => ({ id: category.id, label: category.label[locale] }))
+    };
+  }
+  const category = policy.categories.find((candidate) => candidate.id === level);
+  if (!category) {
+    throw new Error(`Unknown narrow level: ${level}`);
+  }
+  return {
+    level,
+    question: locale === 'ko' ? `${category.label.ko} 중에서 어떤 걸 만들까요?` : `Which ${category.label.en.toLowerCase()} should we build?`,
+    options: category.options.map((option) => ({ id: option.capabilityId, label: option.label[locale], capabilityId: option.capabilityId }))
+  };
+}
+
 export async function categoryOfCapability(capabilityId: string, root = DEFAULT_CONTEXT_ROOT): Promise<string | null> {
   const policy = await loadSlotPolicy(root);
   const match = policy.categories.find((category) =>

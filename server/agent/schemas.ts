@@ -991,6 +991,22 @@ export const PlacementResolutionSchema = z.object({
   }
 });
 
+// A grounded, tappable option the agent offers when it pauses (LangGraph interrupt) to let the student
+// narrow an open slot. `value` is what the next request carries (a category id or a capabilityId).
+export const ClarificationOptionSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1),
+  capabilityId: z.string().min(1).optional()
+});
+
+// Surfaced on an 'awaiting_input' turn: the agent paused via interrupt() and is waiting for the student
+// to pick one option (or type), which the client returns as `resume` on the next request.
+export const ClarificationRequestSchema = z.object({
+  level: z.string().min(1),
+  question: z.string().min(1),
+  options: z.array(ClarificationOptionSchema).default([])
+});
+
 export const AgentRunResultSchema = z.object({
   traceId: z.string().min(1).optional(),
   sessionId: z.string().min(1),
@@ -998,7 +1014,8 @@ export const AgentRunResultSchema = z.object({
   // Discriminates a normal circuit answer from a front-intent-gate conversational reply. Defaults to
   // 'circuit' so every existing synthesis/finalize path stays valid unchanged. 'chat' results carry a
   // placeholder circuitSpec (schema requires >=1 component) that the frontend never renders.
-  responseKind: z.enum(['circuit', 'chat']).default('circuit'),
+  // 'awaiting_input' = the agent paused (interrupt) to ask the student to narrow; see clarificationRequest.
+  responseKind: z.enum(['circuit', 'chat', 'awaiting_input']).default('circuit'),
   assistantMessages: z.array(z.string()),
   agentEvents: z.array(AgentEventSchema),
   clarification: z.string().nullable(),
@@ -1011,7 +1028,9 @@ export const AgentRunResultSchema = z.object({
   simulationPlan: SimulationPlanSchema,
   buildRunnableReport: BuildRunnableReportSchema,
   solverGateResult: SolverGateResultSchema.optional(),
-  supportedAlternatives: z.array(SupportedAlternativeSchema).default([])
+  supportedAlternatives: z.array(SupportedAlternativeSchema).default([]),
+  // Present only when responseKind === 'awaiting_input': the paused agent's question + grounded options.
+  clarificationRequest: ClarificationRequestSchema.nullable().default(null)
 });
 
 export const ConversationTurnSchema = z.object({
@@ -1048,6 +1067,10 @@ export const AgentConversationContextSchema = z.object({
 export const AgentMessageRequestSchema = z.object({
   sessionId: z.string().optional(),
   message: z.string().min(1),
+  // A clarification answer also sets `resume` (the chosen option's value — a category id or capabilityId).
+  // When present, the runtime resumes the paused thread via Command instead of grounding a new message;
+  // `message` then carries the human label only (for the visible thread), not a build request.
+  resume: z.string().min(1).optional(),
   confirmation: z.string().optional(),
   mode: z.literal('live').optional(),
   locale: z.enum(['ko', 'en']).default('ko'),
@@ -1116,6 +1139,8 @@ export type BuildRunnableReport = z.infer<typeof BuildRunnableReportSchema>;
 export type SolverAttempt = z.infer<typeof SolverAttemptSchema>;
 export type SolverGateResult = z.infer<typeof SolverGateResultSchema>;
 export type SupportedAlternative = z.infer<typeof SupportedAlternativeSchema>;
+export type ClarificationOption = z.infer<typeof ClarificationOptionSchema>;
+export type ClarificationRequest = z.infer<typeof ClarificationRequestSchema>;
 export type CapabilityGraphEntry = z.infer<typeof CapabilityGraphEntrySchema>;
 export type ContextPacket = z.infer<typeof ContextPacketSchema>;
 export type ContextCoverageReport = z.infer<typeof ContextCoverageReportSchema>;
