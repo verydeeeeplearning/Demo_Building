@@ -1346,8 +1346,30 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+// A model on the provider-native structured-output path echoes the full LiveAgentDraft JSON into the
+// message text channel (empirical R6.5, PLAN_sensible_simulation P1). If a whole string is that
+// serialized draft, return its parsed object so callers can use the inner assistantMessage instead of
+// leaking the raw JSON. Returns null for anything that is not a single JSON object with an assistantMessage.
+function tryUnwrapDraftText(text: string): { responseKind?: string; assistantMessage?: string; clarification?: unknown; circuitSpec?: unknown } | null {
+  const trimmed = text.trim();
+  if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(trimmed) as Record<string, unknown>;
+    if (parsed && typeof parsed === 'object' && typeof parsed.assistantMessage === 'string') {
+      return parsed;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 export function toConciseStudentMessage(message: string): string {
-  let out = message;
+  // 0. If the whole message is a serialized agent draft (provider-native echoes the JSON into the
+  // text channel — R6.5), keep only its human assistantMessage.
+  let out = tryUnwrapDraftText(message)?.assistantMessage ?? message;
   // 1. Drop fenced code blocks (the embedded CircuitSpec JSON / code dumps).
   out = out.replace(/```[\s\S]*?```/g, ' ');
   // 2. Drop known detail sections: from a bold header to the next bold header or end of message.
@@ -1355,10 +1377,15 @@ export function toConciseStudentMessage(message: string): string {
     const re = new RegExp(`\\*\\*\\s*${escapeRegExp(header)}\\s*\\*\\*[\\s\\S]*?(?=\\*\\*[^*\\n]+\\*\\*|$)`, 'gi');
     out = out.replace(re, ' ');
   }
-  // 3. Unwrap structural labels, keeping their content (**assistantMessage** - ...).
-  out = out.replace(/\*\*\s*(assistantMessage|clarification|message)\s*\*\*/gi, ' ');
-  // 4. Remove any stray unfenced JSON-ish lines (lone braces/brackets, "key": value).
+  // 3. Unwrap structural labels, keeping their content — both bold (**assistantMessage**) and bare
+  // (assistantMessage:) forms the model sometimes emits as labeled plain text instead of JSON.
   out = out
+    .replace(/\*\*\s*(assistantMessage|clarification|message)\s*\*\*/gi, ' ')
+    .replace(/\b(assistantMessage|clarificationNeeds|clarification|responseKind|circuitSpec)\s*[:：]\s*/gi, ' ');
+  // 4. Remove any stray unfenced JSON-ish content (a whole-line minified object, lone braces/brackets,
+  // "key": value lines).
+  out = out
+    .replace(/^\s*\{".*\}\s*$/gm, ' ')
     .replace(/^\s*[{}[\],]+\s*$/gm, ' ')
     .replace(/^\s*"[^"]+"\s*:.*$/gm, ' ');
   // 5. Collapse whitespace.
@@ -1988,8 +2015,12 @@ function recoverDraftFromAgentMessages(output: unknown) {
     return null;
   }
 
-  const assistantText = latestAssistantText(messages);
-  const circuitSpec = latestCircuitSpecFromToolCalls(messages);
+  const assistantTextRaw = latestAssistantText(messages);
+  // The model may emit the whole draft as plain JSON text with no structured tool call (the live leak).
+  // Unwrap it so the inner human message is recovered instead of the serialized blob.
+  const unwrapped = assistantTextRaw ? tryUnwrapDraftText(assistantTextRaw) : null;
+  const assistantText = unwrapped?.assistantMessage ?? assistantTextRaw;
+  const circuitSpec = latestCircuitSpecFromToolCalls(messages) ?? unwrapped?.circuitSpec ?? null;
   if (!circuitSpec) {
     // The agent answered conversationally (greeting / recommendation / clarification) in plain text
     // WITHOUT emitting the structured circuit tool — a perfectly valid ReAct outcome. Recover it as a
