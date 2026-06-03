@@ -1050,6 +1050,17 @@ export const AgentMessageRequestSchema = z.object({
   conversationContext: AgentConversationContextSchema.optional()
 });
 
+// Front intent gate decision (PLAN_intent_gate.md). The classifier judges — agent-side, not by
+// regex — whether a student message is circuit work or general conversation. For `casual_chat` it
+// also authors the conversational `reply` so the gate needs no second model call. The gate is
+// biased toward `circuit_request`: when in doubt, fall through to the existing synthesis pipeline
+// rather than chat away a real request.
+export const IntentDecisionSchema = z.object({
+  kind: z.enum(['circuit_request', 'casual_chat']),
+  reply: z.string().nullable().default(null),
+  reason: z.string().default('')
+});
+
 export const TutorTargetSchema = z.object({
   id: z.string().min(1),
   type: z.enum(['circuit', 'connection', 'part']),
@@ -1105,6 +1116,7 @@ export const TutorMessageResponseSchema = z.object({
 });
 
 export type AgentMessageRequest = z.infer<typeof AgentMessageRequestSchema>;
+export type IntentDecision = z.infer<typeof IntentDecisionSchema>;
 export type AgentConversationContext = z.infer<typeof AgentConversationContextSchema>;
 export type AgentEvent = z.infer<typeof AgentEventSchema>;
 export type AgentRunResult = z.infer<typeof AgentRunResultSchema>;
