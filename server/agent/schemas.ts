@@ -18,6 +18,29 @@ export const IntentSpecSchema = z.object({
   behavior: z.string().optional()
 });
 
+// Canonical requirement-document model (faithful chain: the agent authors this BEFORE synthesis,
+// and synthesis is driven by it). One model, two renderers: renderRequirementBrief (pre-synthesis
+// driver) and the enriched post-synthesis renderer. See PLAN_requirement_document_chain.md.
+export const RequirementDocPartSchema = z.object({
+  partId: z.string().min(1),
+  role: z.string().min(1),
+  required: z.boolean()
+});
+
+export const RequirementDocSchema = z.object({
+  goal: z.string().min(1),
+  controller: z.string().min(1).nullable().default(null),
+  inputs: z.array(z.string().min(1)).default([]),
+  outputs: z.array(z.string().min(1)).default([]),
+  intendedParts: z.array(RequirementDocPartSchema).default([]),
+  behavior: z.string().default(''),
+  verbatimConstraints: z.array(z.string().min(1)).default([]),
+  assumptions: z.array(z.string().min(1)).default([])
+});
+
+export type RequirementDocPart = z.infer<typeof RequirementDocPartSchema>;
+export type RequirementDoc = z.infer<typeof RequirementDocSchema>;
+
 export const IntentBehaviorSchema = z.object({
   trigger: z.string().min(1),
   action: z.string().min(1),
