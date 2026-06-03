@@ -73,3 +73,43 @@ test('US-002 — parseRequirementDoc extracts JSON from array-content message', 
   const doc = parseRequirementDoc(output);
   assert.equal(doc.goal, 'g');
 });
+
+import { deriveRequirementDoc, renderRequirementBrief } from '../../server/agent/circuit/requirementBrief.ts';
+
+test('US-006 — counterfactual causation: different committed parts produce different driving input', () => {
+  // Same kind of request, DIFFERENT candidate part sets -> the authored doc commits to different
+  // required parts -> the synthesis-driving brief/prompt differs accordingly. Changing the doc
+  // changes what synthesis is told to build (the mechanism by which doc drives circuit).
+  const docA = deriveRequirementDoc('show text on a display', [
+    { id: 'arduino-uno', kind: 'controller' },
+    { id: 'oled-i2c-096', kind: 'output' }
+  ]);
+  const docB = deriveRequirementDoc('blink a light and buzz', [
+    { id: 'arduino-uno', kind: 'controller' },
+    { id: 'led-5mm', kind: 'output' },
+    { id: 'buzzer', kind: 'output' }
+  ]);
+  const briefA = renderRequirementBrief(docA);
+  const briefB = renderRequirementBrief(docB);
+  assert.notEqual(briefA, briefB, 'different docs produce different briefs');
+  assert.ok(briefA.includes('oled-i2c-096') && !briefA.includes('buzzer'), 'A commits OLED, not buzzer');
+  assert.ok(briefB.includes('buzzer') && !briefB.includes('oled-i2c-096'), 'B commits buzzer, not OLED');
+
+  const promptA = buildAgentUserPrompt(req, { attempt: 1, previousErrors: [] }, { requirementBrief: briefA });
+  const promptB = buildAgentUserPrompt(req, { attempt: 1, previousErrors: [] }, { requirementBrief: briefB });
+  assert.notEqual(promptA, promptB, 'the injected synthesis prompts differ as a function of the doc');
+});
+
+test('US-006 — secondary guard: required committed parts are the parts synthesis is instructed to include', () => {
+  const doc = deriveRequirementDoc('blink LED', [
+    { id: 'arduino-uno', kind: 'controller' },
+    { id: 'led-5mm', kind: 'output' },
+    { id: 'resistor-220', kind: 'passive' },
+    { id: 'breadboard-half', kind: 'board' }
+  ]);
+  const brief = renderRequirementBrief(doc);
+  // every required part is named in the driving brief; the optional board is not REQUIRED-marked
+  for (const p of doc.intendedParts.filter((x) => x.required)) {
+    assert.ok(brief.includes(p.partId), `required ${p.partId} present in driving brief`);
+  }
+});
