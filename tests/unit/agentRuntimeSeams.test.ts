@@ -48,7 +48,11 @@ void test('runAgent uses injected ModelPort + DeepAgentFactory with zero live ca
   // A small, well-routed message keeps the real prompt-budget gate satisfied; the requirement
   // route is forced to clarify by the injected stub regardless of message content.
   const request = { message: 'LED 하나를 저항이랑 같이 깜빡이게 해줘', locale: 'ko' } as AgentMessageRequest;
-  const result = await runAgent(request, { deps: { modelPort, deepAgentFactory } });
+  // Passthrough intent gate (circuit_request) so the front gate adds no model/factory call — this test
+  // asserts the exact requirement+synthesis construction counts (PLAN_intent_gate.md US-3).
+  const result = await runAgent(request, {
+    deps: { modelPort, deepAgentFactory, intentGate: async () => ({ kind: 'circuit_request', reply: null, reason: 'test passthrough' }) }
+  });
 
   assert.equal(createModelCalls, 1, 'ModelPort.createModel called exactly once (one shared model)');
   assert.equal(factoryNames.length, 2, 'DeepAgentFactory called exactly twice (requirement + synthesis)');

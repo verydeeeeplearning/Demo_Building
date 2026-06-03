@@ -12,6 +12,7 @@ import { getPartRegistry, loadTopologyTemplates, readContextDoc } from '../conte
 import { buildContextPacket } from '../context/contextPacket.ts';
 import { getComposeMode } from '../context/composeMode.ts';
 import { getAgentPipelineMode } from './agentPipelineMode.ts';
+import { classifyStudentIntent, getIntentGateMode } from './intentGate.ts';
 import { createObservabilityMiddleware } from './observabilityMiddleware.ts';
 import { runShadowComposition } from '../context/generatedComposition.ts';
 import {
@@ -364,6 +365,39 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
   const registrySummary = buildRegistrySummary(contextPacket.candidateParts);
 
   const model = modelPort.createModel();
+
+  // Front intent gate (PLAN_intent_gate.md): judge circuit-work vs general chat BEFORE synthesis, in
+  // every pipeline mode. A casual_chat decision returns a conversational reply and never touches
+  // synthesis, so a greeting no longer dead-ends in AGENT_STRUCTURED_OUTPUT_MISSING. The gate is
+  // fail-open (defaults to circuit_request) and reuses the single shared model instance. Kill-switch:
+  // H_EDUWARE_INTENT_GATE=off skips it entirely and restores exact pre-gate behavior.
+  if (getIntentGateMode() === 'on') {
+    const intentGate = options.deps?.intentGate ?? classifyStudentIntent;
+    const intentDecision = await intentGate({
+      request,
+      model,
+      deepAgentFactory,
+      traceId,
+      sessionId,
+      metadata: baseMetadata
+    });
+    logAgentEvent('agent.intent.gate.decided', {
+      traceId,
+      sessionId,
+      intentKind: intentDecision.kind,
+      reason: intentDecision.reason
+    });
+    if (intentDecision.kind === 'casual_chat' && intentDecision.reply) {
+      return buildCasualChatResult({
+        traceId,
+        sessionId,
+        request,
+        contextPacket,
+        reply: intentDecision.reply
+      });
+    }
+  }
+
   const toolOptions = {
     contextCoverage: contextPacket.contextCoverage,
     candidateParts: contextPacket.candidateParts,

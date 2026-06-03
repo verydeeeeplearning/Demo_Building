@@ -28,4 +28,8 @@ export type DeepAgentFactory = typeof createDeepAgent;
 export type AgentRuntimeDeps = {
   modelPort?: ModelPort;
   deepAgentFactory?: DeepAgentFactory;
+  // Front intent gate (PLAN_intent_gate.md). Default is the LLM-judged classifyStudentIntent; tests
+  // inject a passthrough so deterministic-route assertions stay exact. Inline import type keeps the
+  // port boundary free of a value-level dependency on the gate module.
+  intentGate?: import('./intentGate.ts').IntentGate;
 };

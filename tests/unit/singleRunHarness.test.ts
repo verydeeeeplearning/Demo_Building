@@ -50,7 +50,11 @@ void test('NEXT collapses to ONE createDeepAgent; LEGACY keeps two', async () =>
         }
         return stubAgent({});
       }) as unknown as DeepAgentFactory;
-      await runAgent({ message, locale: 'ko' } as AgentMessageRequest, { deps: { modelPort, deepAgentFactory } });
+      await runAgent({ message, locale: 'ko' } as AgentMessageRequest, {
+        // Passthrough intent gate so the front gate adds no factory call — this asserts the exact
+        // requirement/synthesis construction counts per mode (PLAN_intent_gate.md US-3).
+        deps: { modelPort, deepAgentFactory, intentGate: async () => ({ kind: 'circuit_request', reply: null, reason: 'test passthrough' }) }
+      });
       return names;
     } finally {
       process.env.H_EDUWARE_AGENT_PIPELINE = previous;
