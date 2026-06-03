@@ -431,7 +431,6 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
     extraPromptBlocks: synthesisExtraBlocks,
     model,
     deepAgentFactory,
-    toolOptions,
     metadata: baseMetadata,
     traceId,
     sessionId
@@ -745,7 +744,6 @@ async function buildSynthesisRequirementBrief(input: {
   extraPromptBlocks: string[];
   model: BaseChatModel;
   deepAgentFactory: DeepAgentFactory;
-  toolOptions: Parameters<typeof createHeduwareAgentTools>[0];
   metadata: Record<string, unknown>;
   traceId: string;
   sessionId: string;
@@ -763,7 +761,6 @@ async function buildSynthesisRequirementBrief(input: {
         request: input.request,
         contextPacket: input.contextPacket,
         model: input.model,
-        toolOptions: input.toolOptions,
         metadata: input.metadata,
         deepAgentFactory: input.deepAgentFactory
       });
@@ -804,7 +801,6 @@ async function authorRequirementDoc(input: {
   request: AgentMessageRequest;
   contextPacket: Awaited<ReturnType<typeof buildContextPacket>>;
   model: BaseChatModel;
-  toolOptions: Parameters<typeof createHeduwareAgentTools>[0];
   metadata: Record<string, unknown>;
   deepAgentFactory: DeepAgentFactory;
 }): Promise<RequirementDoc> {

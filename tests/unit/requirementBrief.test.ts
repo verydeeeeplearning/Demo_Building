@@ -6,6 +6,9 @@ import {
   renderRequirementBrief,
   deriveRequirementDoc,
   extractVerbatimConstraints,
+  fitBriefToBudget,
+  renderRequirementBriefFloor,
+  renderRequirementDocSection,
   BRIEF_MAX_CHARS,
   REQUIRED_PART_MARKER
 } from '../../server/agent/circuit/requirementBrief.ts';
@@ -119,8 +122,6 @@ test('US-002 — brief renders the deterministically derived doc end-to-end', ()
   assert.ok(brief.length <= BRIEF_MAX_CHARS);
 });
 
-import { fitBriefToBudget, renderRequirementBriefFloor } from '../../server/agent/circuit/requirementBrief.ts';
-
 const fitDoc = deriveRequirementDoc('Arduino Uno D8로 LED를 220 ohm으로 깜빡', LED_PARTS, {
   primaryGoal: 'Blink an LED on Arduino Uno D8 through a 220 ohm series resistor',
   controller: 'arduino-uno',
@@ -163,8 +164,6 @@ test('US-003 — deterministic for a given (doc, budget)', () => {
   const b = fitBriefToBudget(fitDoc, 200);
   assert.equal(a, b);
 });
-
-import { renderRequirementDocSection } from '../../server/agent/circuit/requirementBrief.ts';
 
 test('US-005 — renderRequirementDocSection shows the authored requirement (goal, required parts, constraints)', () => {
   const section = renderRequirementDocSection(fitDoc);

@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildAgentUserPrompt } from '../../server/agent/deepAgentRuntime.ts';
+import { buildAgentUserPrompt, parseRequirementDoc } from '../../server/agent/deepAgentRuntime.ts';
+import { deriveRequirementDoc, renderRequirementBrief } from '../../server/agent/circuit/requirementBrief.ts';
 
 const req = { message: 'Arduino Uno D8로 LED를 깜빡이고 싶어요', locale: 'ko' } as never;
 
@@ -30,8 +31,6 @@ test('US-004 — brief present: the raw student message is KEPT for lexical grou
     'verbatim student message retained alongside the brief'
   );
 });
-
-import { parseRequirementDoc } from '../../server/agent/deepAgentRuntime.ts';
 
 test('US-002 — parseRequirementDoc extracts and validates the structured authored doc', () => {
   const output = {
@@ -73,8 +72,6 @@ test('US-002 — parseRequirementDoc extracts JSON from array-content message', 
   const doc = parseRequirementDoc(output);
   assert.equal(doc.goal, 'g');
 });
-
-import { deriveRequirementDoc, renderRequirementBrief } from '../../server/agent/circuit/requirementBrief.ts';
 
 test('US-006 — counterfactual causation: different committed parts produce different driving input', () => {
   // Same kind of request, DIFFERENT candidate part sets -> the authored doc commits to different
