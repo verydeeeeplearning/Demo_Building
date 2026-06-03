@@ -14,7 +14,9 @@ import { PartCapabilitySchema } from '../../server/agent/schemas.ts';
 // 2026-06-02). When a later phase intentionally changes behavior, it updates these expectations.
 
 const CURRENT_CATALOG_SIZE = 130;
-const CURRENT_CREATE_DEEP_AGENT_SITES = 2; // synthesis (:339) + requirement-analysis (:422)
+// synthesis + requirement-analysis(legacy) + requirement-doc authoring (faithful chain US-002,
+// flag-gated by H_EDUWARE_REQUIREMENT_DOC_CHAIN=llm; static site present regardless of flag).
+const CURRENT_CREATE_DEEP_AGENT_SITES = 3;
 
 void test('in-catalog corpus loads, is schema-valid, and includes the keyword-collision set', async () => {
   const corpus = await loadInCatalogCorpus();
@@ -47,7 +49,7 @@ void test('static deep-agent construction-site count characterizes the two-run c
   assert.equal(
     count,
     CURRENT_CREATE_DEEP_AGENT_SITES,
-    'legacy path constructs exactly two deep agents per request via the factory seam (Phase 3 collapses to one)'
+    'deep-agent factory seam sites: synthesis + legacy requirement-analysis + faithful requirement-doc authoring (flag-gated)'
   );
 });
 

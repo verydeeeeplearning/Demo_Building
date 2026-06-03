@@ -30,3 +30,46 @@ test('US-004 — brief present: the raw student message is KEPT for lexical grou
     'verbatim student message retained alongside the brief'
   );
 });
+
+import { parseRequirementDoc } from '../../server/agent/deepAgentRuntime.ts';
+
+test('US-002 — parseRequirementDoc extracts and validates the structured authored doc', () => {
+  const output = {
+    structuredResponse: {
+      goal: 'Blink an LED on D8',
+      controller: 'arduino-uno',
+      intendedParts: [{ partId: 'led-5mm', role: 'output', required: true }],
+      behavior: 'toggle D8',
+      verbatimConstraints: ['D8']
+    }
+  };
+  const doc = parseRequirementDoc(output);
+  assert.equal(doc.goal, 'Blink an LED on D8');
+  assert.equal(doc.intendedParts[0].partId, 'led-5mm');
+  assert.deepEqual(doc.verbatimConstraints, ['D8']);
+});
+
+test('US-002 — parseRequirementDoc throws when no structured output is present', () => {
+  assert.throws(() => parseRequirementDoc({ foo: 'bar' }));
+  assert.throws(() => parseRequirementDoc(null));
+});
+
+test('US-002 — parseRequirementDoc extracts JSON from message content (no structuredResponse)', () => {
+  const output = {
+    messages: [
+      { role: 'user', content: 'author it' },
+      { role: 'assistant', content: '```json\n{"goal":"Blink LED","controller":"arduino-uno","intendedParts":[{"partId":"led-5mm","role":"output","required":true}],"behavior":"toggle","verbatimConstraints":["D8"]}\n```' }
+    ]
+  };
+  const doc = parseRequirementDoc(output);
+  assert.equal(doc.goal, 'Blink LED');
+  assert.equal(doc.controller, 'arduino-uno');
+  assert.equal(doc.intendedParts[0].partId, 'led-5mm');
+  assert.deepEqual(doc.verbatimConstraints, ['D8']);
+});
+
+test('US-002 — parseRequirementDoc extracts JSON from array-content message', () => {
+  const output = { messages: [{ role: 'assistant', content: [{ type: 'text', text: 'Here: {"goal":"g","intendedParts":[]}' }] }] };
+  const doc = parseRequirementDoc(output);
+  assert.equal(doc.goal, 'g');
+});

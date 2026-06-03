@@ -49,12 +49,14 @@ import {
   AgentMessageRequestSchema,
   AgentRunResultSchema,
   CircuitSpecSchema,
+  RequirementDocSchema,
   SupportedAlternativeSchema,
   type AgentEvent,
   type AgentMessageRequest,
   type AgentRunResult,
   type BuildRunnableReport,
   type CircuitSpec,
+  type RequirementDoc,
   type SupportedAlternative
 } from './schemas.ts';
 
@@ -419,13 +421,19 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
   // Faithful chain (flag-gated, default off): author the requirement document and fit it
   // grounding-first so it LEADS the synthesis prompt without compacting context grounding.
   // briefOptions === undefined (flag off / non-synthesize route) => prompt byte-identical to before.
-  const requirementBrief = buildSynthesisRequirementBrief({
+  const requirementBrief = await buildSynthesisRequirementBrief({
     request,
     contextPacket,
     requirementAnalysis,
     buildSystemPromptFrom: buildSynthesisSystemPrompt,
     rawBlocks: synthesisRawBlocks,
-    extraPromptBlocks: synthesisExtraBlocks
+    extraPromptBlocks: synthesisExtraBlocks,
+    model,
+    deepAgentFactory,
+    toolOptions,
+    metadata: baseMetadata,
+    traceId,
+    sessionId
   });
   const briefOptions = requirementBrief ? { requirementBrief } : undefined;
   const synthesisUserPrompt = buildAgentUserPrompt(request, { attempt: 1, previousErrors: [] }, briefOptions);
@@ -707,22 +715,73 @@ function requirementDocChainMode(): 'off' | 'derive' | 'llm' {
  * remains AFTER the (uncompacted) system blocks + brief-less user prompt + extras, so the brief
  * yields first and system grounding (contextPacketBlock) is protected (Critic M1).
  */
-function buildSynthesisRequirementBrief(input: {
+function deterministicRequirementDoc(
+  request: AgentMessageRequest,
+  contextPacket: Awaited<ReturnType<typeof buildContextPacket>>
+): RequirementDoc {
+  return deriveRequirementDoc(
+    request.message,
+    contextPacket.candidateParts.map((part) => ({ id: part.id, kind: part.kind, label: part.label }))
+  );
+}
+
+/**
+ * Build the grounding-first requirement brief to inject into the synthesis user prompt, or undefined
+ * when the chain is off or the route is not synthesize_circuit. In 'llm' mode the document is AUTHORED
+ * by the model (faithful); on any authoring failure it falls back to the deterministic doc so synthesis
+ * is never broken. Fits the brief to the budget that remains AFTER the (uncompacted) system blocks +
+ * brief-less user prompt + extras, so the brief yields first and contextPacketBlock grounding is
+ * protected (Critic M1).
+ */
+async function buildSynthesisRequirementBrief(input: {
   request: AgentMessageRequest;
   contextPacket: Awaited<ReturnType<typeof buildContextPacket>>;
   requirementAnalysis: RequirementAnalysis;
   buildSystemPromptFrom: (blocks: SystemContextBlocks) => string;
   rawBlocks: SystemContextBlocks;
   extraPromptBlocks: string[];
-}): string | undefined {
+  model: BaseChatModel;
+  deepAgentFactory: DeepAgentFactory;
+  toolOptions: Parameters<typeof createHeduwareAgentTools>[0];
+  metadata: Record<string, unknown>;
+  traceId: string;
+  sessionId: string;
+}): Promise<string | undefined> {
   const mode = requirementDocChainMode();
   if (mode === 'off' || input.requirementAnalysis.route !== 'synthesize_circuit') {
     return undefined;
   }
-  const doc = deriveRequirementDoc(
-    input.request.message,
-    input.contextPacket.candidateParts.map((part) => ({ id: part.id, kind: part.kind, label: part.label }))
-  );
+  let doc: RequirementDoc;
+  if (mode === 'llm') {
+    try {
+      doc = await authorRequirementDoc({
+        traceId: input.traceId,
+        sessionId: input.sessionId,
+        request: input.request,
+        contextPacket: input.contextPacket,
+        model: input.model,
+        toolOptions: input.toolOptions,
+        metadata: input.metadata,
+        deepAgentFactory: input.deepAgentFactory
+      });
+      logAgentEvent('requirement.doc.authored', {
+        traceId: input.traceId,
+        sessionId: input.sessionId,
+        controller: doc.controller,
+        requiredPartCount: doc.intendedParts.filter((p) => p.required).length,
+        verbatimConstraintCount: doc.verbatimConstraints.length
+      });
+    } catch (error) {
+      logAgentEvent('requirement.doc.authoring.failed', {
+        traceId: input.traceId,
+        sessionId: input.sessionId,
+        errorMessage: error instanceof Error ? error.message : String(error)
+      });
+      doc = deterministicRequirementDoc(input.request, input.contextPacket); // never break synthesis
+    }
+  } else {
+    doc = deterministicRequirementDoc(input.request, input.contextPacket);
+  }
   // Measure the assembled prompt WITHOUT the brief to find the brief's reserved budget.
   const baseline = measureAgentPromptBudget({
     stage: 'synthesis',
@@ -733,6 +792,126 @@ function buildSynthesisRequirementBrief(input: {
   });
   const reserved = baseline.maxChars - baseline.actualChars - REQUIREMENT_BRIEF_WRAPPER_CHARS;
   return fitBriefToBudget(doc, Math.max(0, reserved));
+}
+
+/** Faithful chain (US-002): the model AUTHORS the requirement document before synthesis. */
+async function authorRequirementDoc(input: {
+  traceId: string;
+  sessionId: string;
+  request: AgentMessageRequest;
+  contextPacket: Awaited<ReturnType<typeof buildContextPacket>>;
+  model: BaseChatModel;
+  toolOptions: Parameters<typeof createHeduwareAgentTools>[0];
+  metadata: Record<string, unknown>;
+  deepAgentFactory: DeepAgentFactory;
+}): Promise<RequirementDoc> {
+  const userPrompt = buildRequirementDocUserPrompt(input.request);
+  const buildDocSystemPrompt = (blocks: SystemContextBlocks): string =>
+    buildRequirementDocSystemPrompt({
+      locale: input.request.locale ?? 'ko',
+      contextPacketBlock: blocks.contextPacketBlock
+    });
+  const blocks = compactBlocksForAssembledPrompt({
+    stage: 'requirement-analysis',
+    contextPacket: input.contextPacket,
+    rawBlocks: { operatingMemory: '', coordinatorPrompt: '', registrySummary: '', contextPacketBlock: input.contextPacket.promptBlock },
+    buildSystemPromptFrom: buildDocSystemPrompt,
+    userPrompt
+  });
+  const systemPrompt = buildDocSystemPrompt(blocks);
+  assertAgentPromptBudget({ stage: 'requirement-analysis', contextPacket: input.contextPacket, systemPrompt, userPrompt });
+
+  // No circuit-building tools and no structured-tool responseFormat: the authoring agent emits the
+  // RequirementDoc as a JSON answer (the structured-tool seam did not populate structuredResponse for
+  // this model). parseRequirementDoc extracts the JSON from the message content.
+  const author = input.deepAgentFactory({
+    model: input.model,
+    tools: [],
+    systemPrompt,
+    name: 'h-eduware-requirement-doc-agent'
+  });
+  const output = await author.invoke({
+    messages: [{ role: 'user', content: userPrompt }]
+  }, {
+    runName: 'h-eduware-requirement-doc',
+    tags: langSmithTags('requirement-analysis', input.contextPacket),
+    metadata: { ...input.metadata, traceId: input.traceId },
+    configurable: { thread_id: `${input.sessionId}:requirement-doc` }
+  });
+  return parseRequirementDoc(output);
+}
+
+/** Pull the model's textual answer out of a deepagents/langgraph invoke result, across shapes. */
+function extractAgentOutputText(output: unknown): string {
+  if (typeof output === 'string') return output;
+  if (!output || typeof output !== 'object') return '';
+  const o = output as Record<string, unknown>;
+  const messages = o.messages;
+  if (Array.isArray(messages) && messages.length > 0) {
+    const last = messages[messages.length - 1] as Record<string, unknown> | undefined;
+    const content = last?.content;
+    if (typeof content === 'string') return content;
+    if (Array.isArray(content)) {
+      return content
+        .map((part) => (typeof part === 'string' ? part : ((part as Record<string, unknown>)?.text as string) ?? ''))
+        .join('');
+    }
+  }
+  if (typeof o.content === 'string') return o.content;
+  if (typeof o.output === 'string') return o.output;
+  return '';
+}
+
+/** Extract the first balanced JSON object from text (tolerates markdown fences / surrounding prose). */
+function extractJsonObject(text: string): unknown {
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const body = fenced ? fenced[1] : text;
+  const start = body.indexOf('{');
+  const end = body.lastIndexOf('}');
+  if (start === -1 || end <= start) return null;
+  try {
+    return JSON.parse(body.slice(start, end + 1));
+  } catch {
+    return null;
+  }
+}
+
+export function parseRequirementDoc(output: unknown): RequirementDoc {
+  // 1. Use the framework's structured response if present.
+  const structured = output && typeof output === 'object'
+    ? (output as Record<string, unknown>).structuredResponse ?? (output as Record<string, unknown>).structured_response
+    : null;
+  // 2. Otherwise parse the JSON object the model emitted as its answer (json 형태).
+  const candidate = structured ?? extractJsonObject(extractAgentOutputText(output));
+  if (!candidate) {
+    throw new AgentStructuredOutputError('Deepagents did not return a parseable requirement document.');
+  }
+  return RequirementDocSchema.parse(candidate);
+}
+
+function buildRequirementDocSystemPrompt({ locale, contextPacketBlock }: { locale: 'ko' | 'en'; contextPacketBlock: string }) {
+  return [
+    `You are H-eduware's requirement-document author (locale: ${locale}).`,
+    'Read the student request and the context packet, then AUTHOR a structured requirement document for a beginner-safe, low-voltage circuit. The downstream synthesis step will build a circuit that satisfies this document.',
+    'Rules:',
+    '- Use ONLY parts that appear in the context packet candidate parts. Never invent parts, pins, or protocols.',
+    '- intendedParts: list the parts the circuit needs; set required=true for the controller, the output/load, and any required passive (e.g. a current-limiting resistor). Set required=false for optional aids (breadboard, wiring).',
+    '- verbatimConstraints: copy exact lexical details from the student message (controller pins like D8, component values like 220 ohm, repeat counts). Do not paraphrase them.',
+    '- goal and behavior: concise and faithful to the request.',
+    'Output: return ONLY a single JSON object (no markdown fences, no prose) with EXACTLY these fields:',
+    '{"goal": string, "controller": string|null, "inputs": string[], "outputs": string[], "intendedParts": [{"partId": string, "role": string, "required": boolean}], "behavior": string, "verbatimConstraints": string[], "assumptions": string[]}',
+    '',
+    'Context packet:',
+    contextPacketBlock
+  ].join('\n');
+}
+
+function buildRequirementDocUserPrompt(request: AgentMessageRequest) {
+  return [
+    `Student message: ${request.message}`,
+    request.confirmation ? `Student confirmation/context: ${request.confirmation}` : '',
+    'Author the requirement document now.'
+  ].filter(Boolean).join('\n');
 }
 
 /**
