@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 2,
+  "description": "Category taxonomy for interactive slot-fill. EVERY supported capability is assigned to exactly one build category or to contextCapabilities (non-build infrastructure). A coverage test fails if any supported capability is unassigned or double-assigned, so options are derived from the WHOLE capability set (never a hand-picked subset) and a new capability forces a taxonomy update. Beginners narrow by tapping a category, then a specific capability; selection resumes by capabilityId (structured), so no per-capability routing phrase is authored.",
+  "categories": [
+    {
+      "id": "light",
+      "label": { "ko": "빛 / LED", "en": "Light / LED" },
+      "options": [
+        { "capabilityId": "digital-light-output", "label": { "ko": "LED 켜기", "en": "Turn on an LED" } },
+        { "capabilityId": "button-controlled-light-output", "label": { "ko": "버튼으로 LED", "en": "Button + LED" } },
+        { "capabilityId": "analog-led-dimmer", "label": { "ko": "가변저항 밝기조절", "en": "LED dimmer" } }
+      ]
+    },
+    {
+      "id": "sound",
+      "label": { "ko": "소리", "en": "Sound" },
+      "options": [
+        { "capabilityId": "sound-alert-output", "label": { "ko": "부저", "en": "Buzzer" } }
+      ]
+    },
+    {
+      "id": "motion",
+      "label": { "ko": "모터 / 움직임", "en": "Motor / motion" },
+      "options": [
+        { "capabilityId": "servo-motion-output", "label": { "ko": "서보모터", "en": "Servo" } },
+        { "capabilityId": "low-side-switched-load-output", "label": { "ko": "DC 모터", "en": "DC motor" } },
+        { "capabilityId": "stepper-motor-output", "label": { "ko": "스테퍼 모터", "en": "Stepper" } },
+        { "capabilityId": "hbridge-motor-output", "label": { "ko": "모터 방향제어(L298N)", "en": "H-bridge (L298N)" } }
+      ]
+    },
+    {
+      "id": "switching",
+      "label": { "ko": "스위칭 (릴레이)", "en": "Switching (relay)" },
+      "options": [
+        { "capabilityId": "relay-low-voltage-output", "label": { "ko": "릴레이", "en": "Relay" } }
+      ]
+    },
+    {
+      "id": "display",
+      "label": { "ko": "디스플레이", "en": "Display" },
+      "options": [
+        { "capabilityId": "display-text-output", "label": { "ko": "OLED 글자", "en": "OLED text" } },
+        { "capabilityId": "led-array-display-output", "label": { "ko": "7세그먼트 / LED 배열", "en": "7-segment / LED array" } },
+        { "capabilityId": "bare-seven-segment-display-output", "label": { "ko": "7세그먼트 숫자", "en": "7-segment digit" } },
+        { "capabilityId": "addressable-led-display-output", "label": { "ko": "네오픽셀", "en": "NeoPixel" } },
+        { "capabilityId": "spi-display-output", "label": { "ko": "SPI TFT 디스플레이", "en": "SPI TFT display" } }
+      ]
+    },
+    {
+      "id": "sensor-readout",
+      "label": { "ko": "센서값 표시", "en": "Show a sensor value" },
+      "options": [
+        { "capabilityId": "distance-sensor-display", "label": { "ko": "초음파 거리", "en": "Ultrasonic distance" } },
+        { "capabilityId": "dht11-temperature-humidity-display", "label": { "ko": "온습도 (DHT11)", "en": "Temp/Humidity (DHT11)" } },
+        { "capabilityId": "dht22-temperature-humidity-display", "label": { "ko": "온습도 (DHT22)", "en": "Temp/Humidity (DHT22)" } },
+        { "capabilityId": "i2c-sensor-display-readout", "label": { "ko": "I2C 센서", "en": "I2C sensor" } },
+        { "capabilityId": "clocked-data-sensor-display-readout", "label": { "ko": "로드셀 등", "en": "Load cell" } },
+        { "capabilityId": "spi-sensor-display-readout", "label": { "ko": "SPI 센서 (RFID)", "en": "SPI sensor (RFID)" } },
+        { "capabilityId": "uart-sensor-display-readout", "label": { "ko": "UART 센서 (GPS)", "en": "UART sensor (GPS)" } },
+        { "capabilityId": "analog-sensor-display-readout", "label": { "ko": "아날로그 센서값", "en": "Analog sensor" } },
+        { "capabilityId": "digital-input-display-readout", "label": { "ko": "디지털 센서 상태", "en": "Digital sensor" } },
+        { "capabilityId": "matrix-input-display-readout", "label": { "ko": "키패드", "en": "Keypad" } },
+        { "capabilityId": "joystick-display-readout", "label": { "ko": "조이스틱", "en": "Joystick" } },
+        { "capabilityId": "rotary-encoder-display-readout", "label": { "ko": "로터리 엔코더", "en": "Rotary encoder" } },
+        { "capabilityId": "uart-communication-module-readout", "label": { "ko": "UART 통신모듈", "en": "UART module" } },
+        { "capabilityId": "spi-communication-module-readout", "label": { "ko": "SPI 통신모듈", "en": "SPI module" } },
+        { "capabilityId": "rs485-communication-module-readout", "label": { "ko": "RS485 통신", "en": "RS485" } }
+      ]
+    },
+    {
+      "id": "sensor-trigger",
+      "label": { "ko": "센서로 감지 → 출력", "en": "Sense → act" },
+      "options": [
+        { "capabilityId": "light-sensor-triggered-output", "label": { "ko": "조도센서로 LED", "en": "Light sensor → LED" } },
+        { "capabilityId": "analog-sensor-threshold-output", "label": { "ko": "아날로그 임계값 출력", "en": "Analog threshold" } },
+        { "capabilityId": "digital-input-threshold-output", "label": { "ko": "디지털 감지 출력", "en": "Digital trigger" } }
+      ]
+    }
+  ],
+  "contextCapabilities": [
+    "controller-board-substitution",
+    "low-voltage-power-rail",
+    "passive-protection-context",
+    "timing-passive-context",
+    "prototyping-surface-context",
+    "connector-wiring-context",
+    "logic-interface-context"
+  ]
+}

@@ -48,7 +48,52 @@ containing the turn's messages (`await conversationCheckpointer.getTuple({config
 This is a deterministic *wiring* test (no live model). Memory *recall* quality is a live/cassette smoke.
 **Gate**: eval + context suites 0 regression; tsc clean. Docs: langgraph "Add Short-Term Memory".
 
-## Phase 2 — HITL clarification via `interrupt()` (server)
+## Phase 2 (slot fill) — category taxonomy + grounded options, derived from ALL supported capabilities
+
+**Why this shape**: the narrowing criterion is "does the agent have enough parameters (slots) to build?".
+A hand-picked option list is incomplete (it dropped 27 of 39 supported capabilities) and is the
+hardcoding the project forbids. Instead, derive options from the **whole** capability graph via a small
+authored **category taxonomy**, guaranteed complete by a coverage test. Beginners narrow by tapping a
+category, then a specific capability (progressive disclosure), so all 39 stay reachable without a wall
+of choices.
+
+**The slots** (criterion for "sufficient to build"), grounded in already-computed data:
+- `output` — from `intentSpec.outputModalities`; open ⇒ propose **categories** (below).
+- `sensor`/`trigger` — conditionally required when behavior is reactive (`intentSpec.behaviors`/`inputModalities`);
+  open ⇒ propose the sensor capabilities.
+- `must-ask disambiguation` — when the choice changes behavior (motor type, active/passive buzzer, generic sensor).
+- `display_content` — when output is a text display (free text).
+- Auto-derived (never asked): controller, power, pins, passives, topology (capability `requiredRoles`/`requiredParts` + principles).
+- **Sufficiency** = `output` resolved ∧ all required slots for that output filled ∧ no must-ask open.
+
+**Category taxonomy (authored in `agent-context/data/slot-policy.json`, NOT in code):** every supported
+capability is assigned to exactly one build category, or marked context/non-build. 7 build categories:
+빛/LED · 소리 · 모터/움직임 · 스위칭(릴레이) · 디스플레이 · 센서값 표시 · 센서로 감지→출력.
+A **coverage test fails** if any supported capability is unassigned or double-assigned — nothing is
+silently dropped, and a new capability forces a taxonomy update.
+
+**Option value vs capabilityId**: a capability's own `studentPhrases` don't always re-route to it (matcher
+contention — proven by the grounding guard). So a selected option resumes by carrying its **`capabilityId`**
+(structured), and the server forces that capability's route — robust, no per-capability routing phrases to
+author. (Open item: add a "seed/force capability" input to the context funnel.)
+
+### Phase 2a — taxonomy data + loader + coverage guard
+- `agent-context/data/slot-policy.json` (v2): build categories (id, localized label, `capabilityIds`) +
+  `contextCapabilities` (non-build). `server/agent/slotPolicy.ts`: load + validate; `outputCategories(locale)`,
+  `capabilitiesInCategory(id)`, `categoryOfCapability(id)`.
+- RED: coverage test — partition every supported capability across categories ∪ context (exactly once).
+
+### Phase 2b — grounded option generator (categories + drill-down)
+- `outputSlotOptions(locale)` → the 7 categories. `capabilityOptions(categoryId, locale)` → the supported
+  capabilities in it, each `{ id, label, capabilityId }`. Labels authored in the taxonomy (short, student-facing).
+- RED: every drill-down option's `capabilityId` is supported; selecting it (by id) resolves to that capability.
+
+### Phase 2c — slot resolver (sufficiency + open slot)
+- `resolveOpenSlot(intentSpec, capabilityMatches, policy)` → `{ sufficient }` | `{ slotKind, question, options }`.
+  Uses `intentSpec` (output/input/behavior/ambiguities) + the matched capability's `requiredRoles`.
+- RED: value-display-without-sensor → asks sensor; vacuous → asks output (categories); generic motor → asks motor-type; resolved → sufficient.
+
+## Phase 2d — HITL clarification via `interrupt()` (server)
 **Goal**: the agent pauses to ask, the server surfaces it, a follow-up resumes the same thread.
 **Files**: `server/agent/deepAgentTools.ts` (new tool), `deepAgentRuntime.ts`, `schemas.ts`, `server/index.ts`.
 1. **Clarification tool** (`deepAgentTools.ts`): `request_clarification` via `tool()` with schema
