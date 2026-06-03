@@ -16,6 +16,12 @@ import { groundAgentResultArtifacts } from './agentArtifactGrounding.js';
 import { canShowAgentSceneFromResult } from './agentSceneVisibility.js';
 import { decisionsForResult } from './agentDecisions.js';
 import { classifyStudentTurn } from './conversationRouting.js';
+import {
+  clarificationOptionsForDisplay,
+  renderClarificationOptions,
+  resumeValueForOption
+} from './clarificationView.js';
+import { loadAgentSession, saveAgentSession, clearAgentSession } from './agentSessionStore.js';
 import { renderWarningMessage, renderWarningsMarkdown, renderWarningTitle } from './renderWarnings.js';
 import {
   createInterview,
@@ -65,6 +71,34 @@ const state = {
 };
 
 state.project = createLocalizedProject();
+
+// Per-tab session durability: the server is stateless and the agent session id lives in memory, so a
+// reload would otherwise start a new thread (and lose a pending clarification). Guarded for non-browser.
+function agentSessionStorage() {
+  try {
+    return typeof window !== 'undefined' ? window.sessionStorage : null;
+  } catch {
+    return null;
+  }
+}
+
+(function restoreAgentSession() {
+  const restored = loadAgentSession(agentSessionStorage());
+  if (!restored) {
+    return;
+  }
+  state.agentSessionId = restored.sessionId;
+  if (restored.messages.length > 0) {
+    state.interview = { ...state.interview, messages: restored.messages };
+  }
+})();
+
+function persistAgentSession() {
+  saveAgentSession(agentSessionStorage(), {
+    sessionId: state.agentSessionId,
+    messages: state.interview.messages
+  });
+}
 
 let stageController = null;
 let welcomeController = null;
@@ -313,6 +347,9 @@ function renderAiPanel() {
           <button class="reply-chip" type="button" data-action="answer" data-answer="no">${t('aiPanel.no', {}, state.locale)}</button>
         </div>
       ` : ''}
+      ${!state.thinking
+        ? renderClarificationOptions(clarificationOptionsForDisplay(state.agentResult), { escapeHtml })
+        : ''}
       <div class="plan">
         <div class="panel-kicker">${t('aiPanel.planKicker', {}, state.locale)}</div>
         ${planItems.map((item, index) => `
@@ -1200,6 +1237,10 @@ function bindEvents() {
     button.addEventListener('click', () => submitInterviewAnswer(button.dataset.answer));
   });
 
+  app.querySelectorAll('[data-action="clarify-option"]').forEach((button) => {
+    button.addEventListener('click', () => selectClarificationOption(Number(button.dataset.optionIndex)));
+  });
+
   app.querySelector('[data-action="open-library"]')?.addEventListener('click', openLibraryBrowser);
   app.querySelector('[data-action="share"]')?.addEventListener('click', openShareModal);
 
@@ -1269,6 +1310,20 @@ function submitIdeaForm(form) {
   }
 
   submitAgentMessage(input);
+}
+
+// A narrowing chip was tapped: send the option label as the visible turn and resume the paused server
+// thread with the option id (a category id -> drill down, or a capabilityId -> build).
+function selectClarificationOption(index) {
+  if (state.thinking) {
+    return;
+  }
+  const option = clarificationOptionsForDisplay(state.agentResult)[index];
+  const resume = resumeValueForOption(option);
+  if (!resume) {
+    return;
+  }
+  submitAgentMessage(option.label, { resume });
 }
 
 function bindShareViewEvents() {
@@ -1375,15 +1430,18 @@ function submitInterviewAnswer(answer) {
   beginThinking();
 }
 
-async function submitAgentMessage(message) {
+async function submitAgentMessage(message, { resume } = {}) {
   if (state.thinking) {
     return;
   }
 
-  const turnRoute = classifyStudentTurn(message, {
-    hasBuildableDraft: Boolean(state.awaitingConfirmation && canShowAgentScene(state.agentResult)),
-    hasCurrentArtifact: Boolean(state.projectLoaded || canShowAgentScene(state.agentResult))
-  });
+  // A clarification answer (resume) always sends straight through; it is never a confirm/artifact turn.
+  const turnRoute = resume
+    ? { route: 'send-resume' }
+    : classifyStudentTurn(message, {
+        hasBuildableDraft: Boolean(state.awaitingConfirmation && canShowAgentScene(state.agentResult)),
+        hasCurrentArtifact: Boolean(state.projectLoaded || canShowAgentScene(state.agentResult))
+      });
 
   if (turnRoute.route === 'confirm-current-draft') {
     const buildReady = canBuildAgentResult(state.agentResult);
@@ -1435,6 +1493,7 @@ async function submitAgentMessage(message) {
       sendAgentMessage({
         sessionId: state.agentSessionId,
         message,
+        resume,
         locale: state.locale,
         conversationContext
       }),
@@ -1467,6 +1526,7 @@ async function submitAgentMessage(message) {
     state.aiRuntimeMode = await getAiRuntimeMode();
   } finally {
     state.thinking = false;
+    persistAgentSession();
     render();
   }
 }
@@ -2359,6 +2419,7 @@ function importSharedSnapshot() {
   cancelThinking();
   state.agentResult = null;
   state.agentSessionId = null;
+  clearAgentSession(agentSessionStorage());
   state.project = projectFromShareSnapshot(snapshot, state.locale);
   state.projectLoaded = true;
   state.awaitingConfirmation = false;
@@ -2383,6 +2444,7 @@ function startNewProjectFromShareView() {
   cancelThinking();
   state.agentResult = null;
   state.agentSessionId = null;
+  clearAgentSession(agentSessionStorage());
   state.project = createLocalizedProject();
   state.projectLoaded = false;
   state.awaitingConfirmation = false;

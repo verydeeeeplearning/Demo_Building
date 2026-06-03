@@ -39,7 +39,7 @@ export async function getAiRuntimeMode() {
   }
 }
 
-export async function sendAgentMessage({ sessionId, message, confirmation, locale, conversationContext }) {
+export async function sendAgentMessage({ sessionId, message, resume, confirmation, locale, conversationContext }) {
   const health = await getAgentHealth();
   if (!health.ok) {
     throw new AgentApiError(
@@ -53,6 +53,7 @@ export async function sendAgentMessage({ sessionId, message, confirmation, local
     mode: 'live'
   };
   if (sessionId) body.sessionId = sessionId;
+  if (resume) body.resume = resume;
   if (confirmation) body.confirmation = confirmation;
   if (conversationContext) body.conversationContext = conversationContext;
 
