@@ -1,7 +1,12 @@
 import { answerTutorQuestion } from './circuitInspector.js';
 
 const SERVER_OPT_IN_KEY = 'hEduwareAgentServer';
-const DEFAULT_ENDPOINT = 'http://127.0.0.1:8787/api/agent/explain-target';
+// Same-origin in the production build (served by the agent server); the local
+// standalone server only in dev.
+const TUTOR_PATH = '/api/agent/explain-target';
+const DEFAULT_ENDPOINT = import.meta.env?.PROD
+  ? TUTOR_PATH
+  : `http://127.0.0.1:8787${TUTOR_PATH}`;
 
 export async function askCircuitTutor({ circuit, target, question, locale, running }) {
   if (shouldUseAgentServer()) {

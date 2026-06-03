@@ -111,7 +111,15 @@ async function fetchJson(path, { method, body, timeoutMs }) {
 
 function agentApiBase() {
   const storage = globalThis.localStorage;
-  return typeof storage?.getItem === 'function'
-    ? storage.getItem('hEduwareAgentApiBase') || DEFAULT_AGENT_API_BASE
-    : DEFAULT_AGENT_API_BASE;
+  const override =
+    typeof storage?.getItem === 'function' ? storage.getItem('hEduwareAgentApiBase') : null;
+  if (override) {
+    return override;
+  }
+  // Production build is served same-origin by the agent server, so call the API
+  // via relative `/api/...` paths. Only local dev talks to the standalone server.
+  if (import.meta.env?.PROD) {
+    return '';
+  }
+  return DEFAULT_AGENT_API_BASE;
 }
