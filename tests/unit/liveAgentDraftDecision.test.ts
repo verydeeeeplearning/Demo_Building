@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { LiveAgentDraftSchema } from '../../server/agent/deepAgentRuntime.ts';
+import { LiveAgentDraftSchema, parseLiveAgentDraft } from '../../server/agent/deepAgentRuntime.ts';
 
 // PLAN_react_routing_and_clean_chat Phase 1 — the draft schema must let the agent return a
 // conversational decision (responseKind:'chat', circuitSpec:null) OR a circuit, while staying
@@ -41,4 +41,19 @@ void test('a circuit decision keeps its circuitSpec', () => {
   });
   assert.equal(draft.responseKind, 'circuit');
   assert.equal(draft.circuitSpec?.id, 'led-blink');
+});
+
+void test('parseLiveAgentDraft treats a circuit draft missing its spec as a recoverable miss', () => {
+  // responseKind is authoritative: circuit => spec required. A circuit claim with no spec must NOT
+  // silently degrade to chat — it raises a recoverable structured-output error (-> repair/fallback).
+  assert.throws(
+    () => parseLiveAgentDraft({ structuredResponse: { responseKind: 'circuit', assistantMessage: '만들었어요', circuitSpec: null } }),
+    /missing its circuitSpec|structured/i
+  );
+});
+
+void test('parseLiveAgentDraft accepts an explicit chat draft with no spec', () => {
+  const draft = parseLiveAgentDraft({ structuredResponse: { responseKind: 'chat', assistantMessage: '안녕하세요!', circuitSpec: null } });
+  assert.equal(draft.responseKind, 'chat');
+  assert.equal(draft.circuitSpec, null);
 });

@@ -338,6 +338,28 @@ Kill-switches: none new. (The old `H_EDUWARE_INTENT_GATE` switch is removed with
 - Phase 5: 0%
 Overall: 0%
 
+## External Review Follow-ups (post-implementation)
+
+An external review of `deepAgentRuntime.ts` confirmed the hybrid shape (server rules + validation
+gates around a DeepAgent synthesis LLM). Acted on:
+
+- **Comment accuracy** — clarified that "no binary pre-gate" applies to the chat/clarify/build
+  decision only; `unsupported_or_gap` is a hard, server-enforced pre-synthesis guardrail.
+- **responseKind invariant** — `parseLiveAgentDraft` now enforces `circuit ⇒ circuitSpec present`: a
+  circuit claim with no spec is a recoverable structured-output miss (→ bounded repair / deterministic
+  fallback) instead of a silent degrade to chat. Kept the flat schema (live `toolStrategy` contract
+  unchanged) rather than a `discriminatedUnion`, which would alter the live structured-output shape
+  untested by the stub-driven suite.
+
+Deferred (not in this plan; would be separate work):
+- **Centralize policy** — synthesis-eligibility / safety / student-response / structured-output rules
+  are spread across `buildSystemPrompt`, `buildRequirementAnalysisSystemPrompt`, `buildAgentUserPrompt`,
+  `buildPreflightDraftFromAnalysis`, `finalizeAgentResult`, and the sanitizer. A `policy/rules.ts`
+  module rendering rule text into prompts would reduce drift risk.
+- **pipelineMode default is `legacy`** (`getAgentPipelineMode`): production-default KEEPS the
+  requirement-analysis DeepAgent + custom subagents; `assessRequestScope`-derived routing and
+  empty-subagents apply only under `shadow|next`. Worth documenting in the deploy/runtime config.
+
 ## Notes & Learnings
 - Reuses last session's scaffolding: `AgentRunResultSchema.responseKind`, `buildCasualChatResult`,
   `src/agentSceneVisibility.js` (chat hides the scene) all already exist — Feature A wires the

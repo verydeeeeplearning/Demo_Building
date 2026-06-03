@@ -65,8 +65,10 @@ import {
 // ReAct decision (LangChain Deep Agents): the synthesis agent itself chooses whether this turn is a
 // conversational reply (greeting / general question / recommendation / clarification) or a built
 // circuit — official guidance: "the agent may skip tools entirely if it can answer conversationally".
-// 'chat' carries no circuitSpec; 'circuit' must include one. Default 'circuit' + nullable circuitSpec
-// keep every existing scripted/preflight/recovered draft (which always supplies a spec) compatible.
+// The schema permits a null circuitSpec so the 'chat' variant needs no spec; the chat-vs-circuit
+// INVARIANT (chat => no spec, circuit => spec required) is enforced at runtime in parseLiveAgentDraft,
+// which keeps the live toolStrategy contract a single flat object. Default 'circuit' + nullable
+// circuitSpec keep every existing scripted/preflight/recovered draft (which supplies a spec) compatible.
 export const LiveAgentDraftSchema = z.object({
   responseKind: z.enum(['chat', 'circuit']).default('circuit'),
   assistantMessage: z.string().min(1),
@@ -361,10 +363,11 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
 
   const model = modelPort.createModel();
 
-  // ReAct routing (PLAN_react_routing_and_clean_chat): there is no binary pre-gate. The deterministic
-  // routing/coverage read is exposed to the synthesis agent as the assess_request_scope tool, and the
-  // agent itself decides whether to converse, recommend, clarify, or build. Safety/unsupported stays a
-  // hard server guardrail (buildPreflightDraftFromAnalysis short-circuits only unsupported_or_gap).
+  // ReAct routing (PLAN_react_routing_and_clean_chat): there is no binary pre-gate for the
+  // chat/recommend/clarify/build decision — the deterministic routing/coverage read is exposed to the
+  // synthesis agent as the assess_request_scope tool, and the agent itself decides. The ONE thing that
+  // is NOT agent-discretionary is safety: an unsupported_or_gap route is short-circuited before
+  // synthesis by buildPreflightDraftFromAnalysis (a hard, server-enforced guardrail; Invariant 6).
   const requestScope = assessRequestScope(contextPacket);
 
   const toolOptions = {
@@ -1953,7 +1956,14 @@ export function parseLiveAgentDraft(output: unknown): LiveAgentDraft {
     throw new AgentStructuredOutputError();
   }
 
-  return LiveAgentDraftSchema.parse(recoveredCandidate);
+  const draft = LiveAgentDraftSchema.parse(recoveredCandidate);
+  // responseKind is authoritative: a 'circuit' draft MUST carry a circuitSpec. If the model claims a
+  // circuit but omits the spec, treat it as a recoverable structured-output miss (-> bounded repair /
+  // deterministic fallback) rather than silently degrading a build request into a chat reply.
+  if (draft.responseKind === 'circuit' && !draft.circuitSpec) {
+    throw new AgentStructuredOutputError('Circuit draft is missing its circuitSpec.');
+  }
+  return draft;
 }
 
 function recoverDraftFromAgentMessages(output: unknown) {
