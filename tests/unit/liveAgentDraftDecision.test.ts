@@ -57,3 +57,19 @@ void test('parseLiveAgentDraft accepts an explicit chat draft with no spec', () 
   assert.equal(draft.responseKind, 'chat');
   assert.equal(draft.circuitSpec, null);
 });
+
+void test('parseLiveAgentDraft recovers a plain-text reply (no structured circuit) as a chat draft', () => {
+  // Live root cause: for a non-circuit turn the model often answers in plain natural language WITHOUT
+  // calling the structured tool. With no circuitSpec to recover, the old code threw
+  // AGENT_STRUCTURED_OUTPUT_MISSING (-> the rule error on a greeting in legacy mode). Now the plain
+  // reply is recovered as a chat draft.
+  const output = {
+    messages: [
+      { kwargs: { content: '안녕하세요! 어떤 회로를 만들어볼까요?', tool_calls: [] } }
+    ]
+  };
+  const draft = parseLiveAgentDraft(output);
+  assert.equal(draft.responseKind, 'chat');
+  assert.equal(draft.circuitSpec, null);
+  assert.match(draft.assistantMessage, /어떤 회로/);
+});

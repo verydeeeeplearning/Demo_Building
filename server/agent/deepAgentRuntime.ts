@@ -1974,13 +1974,29 @@ function recoverDraftFromAgentMessages(output: unknown) {
     return null;
   }
 
+  const assistantText = latestAssistantText(messages);
   const circuitSpec = latestCircuitSpecFromToolCalls(messages);
   if (!circuitSpec) {
+    // The agent answered conversationally (greeting / recommendation / clarification) in plain text
+    // WITHOUT emitting the structured circuit tool — a perfectly valid ReAct outcome. Recover it as a
+    // chat reply instead of failing with AGENT_STRUCTURED_OUTPUT_MISSING. This is what makes a greeting
+    // robust on the live path (legacy mode has no structured-output fallback), where the model often
+    // just replies in natural language for non-circuit turns.
+    if (assistantText) {
+      return {
+        responseKind: 'chat',
+        assistantMessage: assistantText,
+        clarification: null,
+        circuitSpec: null,
+        agentEvents: []
+      };
+    }
     return null;
   }
 
   return {
-    assistantMessage: latestAssistantText(messages) ?? '회로 초안을 만들었습니다. 서버 검증 결과를 기준으로 배선과 시뮬레이션을 준비할게요.',
+    responseKind: 'circuit',
+    assistantMessage: assistantText ?? '회로 초안을 만들었습니다. 서버 검증 결과를 기준으로 배선과 시뮬레이션을 준비할게요.',
     clarification: null,
     circuitSpec,
     agentEvents: toolCallEvents(messages)
