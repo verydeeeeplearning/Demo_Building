@@ -109,6 +109,15 @@ function activeDraftOrProjectCircuit() {
   return state.projectLoaded ? activeCircuit() : null;
 }
 
+// Single predicate: a real circuit is present (loaded project with a non-null
+// circuit, or a valid agent draft). All circuit-action buttons (run, share,
+// move, simulation) gate on this — one source of truth, no 3rd parallel gate.
+// NOTE: Phase 3 wireRouteDirty is run-neutral and intentionally does NOT feed
+// this predicate; it is kept separate from canRunCurrentSimulation().
+function canInteractWithCircuit() {
+  return Boolean(activeDraftOrProjectCircuit());
+}
+
 function currentPlanItems() {
   const circuit = activeDraftOrProjectCircuit();
   if (!circuit?.circuitSpec) {
@@ -192,7 +201,7 @@ function render() {
       <div class="top-actions">
         ${renderLanguageToggle()}
         <button class="secondary-action" type="button" data-action="open-library" data-testid="open-library">${t('topbar.actions.library', {}, state.locale)}</button>
-        <button class="secondary-action" type="button" data-action="share" data-testid="share-project" ${state.projectLoaded ? '' : 'disabled'}>${t('topbar.actions.share', {}, state.locale)}</button>
+        <button class="secondary-action" type="button" data-action="share" data-testid="share-project" ${canInteractWithCircuit() ? '' : 'disabled'}>${t('topbar.actions.share', {}, state.locale)}</button>
         <button class="primary-action" type="button" data-action="run" ${canRunCurrentSimulation() ? '' : 'disabled'}>${t('topbar.actions.run', {}, state.locale)}</button>
       </div>
     </div>
@@ -1516,10 +1525,12 @@ function canShowLoadedProjectScene() {
 }
 
 function canRunLoadedProject() {
-  if (!state.projectLoaded) {
+  // Derive from the single canInteractWithCircuit() gate so all circuit-action
+  // buttons have one consistent source of truth (Phase 2 consolidation).
+  if (!canInteractWithCircuit()) {
     return false;
   }
-  const circuit = activeCircuit();
+  const circuit = activeDraftOrProjectCircuit() || activeCircuit();
   if (circuit?.solverGateResult) {
     if (circuit.solverGateResult.controls || circuit.solverGateResult.buildReadyScope) {
       return solverGateRunEnabled(circuit.solverGateResult);
