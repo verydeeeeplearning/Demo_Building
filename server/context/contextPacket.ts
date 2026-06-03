@@ -2094,7 +2094,7 @@ function inferIntentHints(message: string, capabilityMatches: CapabilityGraphEnt
   const ambiguity = capabilityMatches.length === 0 && outputModalities.length === 0 && inputModalities.length === 0 && safetyConcerns.length === 0
     ? ['No concrete input or output hardware was identified yet.']
     : [];
-  if (needsSpecificTemperatureHumiditySensor(message)) {
+  if (needsSpecificTemperatureHumiditySensor(message) && !hasSupportedTemperatureHumiditySensor(capabilityMatches)) {
     ambiguity.push('Temperature/humidity readout needs a specific supported sensor such as DHT11.');
   }
 
@@ -2116,6 +2116,17 @@ function needsSpecificTemperatureHumiditySensor(message: string) {
     return false;
   }
   return !/dht11|dht22|bmp280|tmp36/i.test(message);
+}
+
+// A temp/humidity request is only ambiguous when no supported temp/humidity-sensor capability
+// has been resolved. Once the capability graph matches one (e.g. "온습도센서" → dht11), the sensor
+// is determined and the request should route to that capability instead of asking for clarification.
+function hasSupportedTemperatureHumiditySensor(capabilityMatches: CapabilityGraphEntry[]) {
+  return capabilityMatches.some(
+    (capability) =>
+      capability.supportLevel === 'supported' &&
+      capability.inputModalities.includes('temperature-humidity-sensor')
+  );
 }
 
 function extractIntentSignals({

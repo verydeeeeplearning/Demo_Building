@@ -767,7 +767,7 @@
     },
     {
       "routeId": "v2-dht11-temperature-humidity-display",
-      "priority": 33,
+      "priority": 29,
       "policyOnly": false,
       "when": {
         "capabilityIds": [
@@ -798,7 +798,7 @@
     },
     {
       "routeId": "v2-dht22-temperature-humidity-display",
-      "priority": 33,
+      "priority": 29,
       "policyOnly": false,
       "when": {
         "capabilityIds": [
