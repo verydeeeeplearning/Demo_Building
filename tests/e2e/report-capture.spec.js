@@ -24,8 +24,8 @@ const QUERIES = [
   { id: '10-vague', prompt: '뭔가 만들어줘' }
 ];
 
-test.describe.configure({ mode: 'serial' });
-
+// Run one query at a time (--workers=1) but NOT serial mode: a single query's timeout/failure must
+// not abort the remaining captures (each is independent and writes its own best-effort artifact).
 test.beforeAll(() => {
   test.skip(process.env.RUN_LIVE_E2E !== '1', 'set RUN_LIVE_E2E=1 to capture the live report');
   mkdirSync(OUT_DIR, { recursive: true });
@@ -42,7 +42,7 @@ async function dismissWelcome(page) {
 
 for (const query of QUERIES) {
   test(`capture ${query.id}`, async ({ page, request }) => {
-    test.setTimeout(180000);
+    test.setTimeout(240000);
     const health = await request.get('http://127.0.0.1:8787/api/agent/health');
     test.skip(!(health.ok() && (await health.json()).ok), 'requires a configured live agent');
 
