@@ -39,7 +39,9 @@ async function askWithMockedTutorServer(serverReply, options = {}) {
   const previousFetch = globalThis.fetch;
   const previousStorage = globalThis.localStorage;
   let requestBody = null;
-  globalThis.localStorage = { getItem: () => 'enabled' };
+  globalThis.localStorage = {
+    getItem: (key) => options.storage?.[key] ?? null
+  };
 
   try {
     globalThis.fetch = async (_url, init) => {
@@ -68,7 +70,7 @@ async function askWithMockedTutorServer(serverReply, options = {}) {
   }
 }
 
-test('valid tutor server response preserves live mode, suggestions, and grounding artifacts', async () => {
+test('valid tutor server response is used by default without browser opt-in', async () => {
   const { response, requestBody } = await askWithMockedTutorServer({
     sessionId: 'tutor-live-test',
     mode: 'live',
@@ -85,6 +87,36 @@ test('valid tutor server response preserves live mode, suggestions, and groundin
   assert.ok(requestBody.artifacts.contextCoverage);
   assert.ok(requestBody.artifacts.buildRunnableReport);
   assert.ok(requestBody.artifacts.solverGateResult);
+});
+
+test('explicit tutor server disabled override forces local response', async () => {
+  let fetchCalled = false;
+  const previousFetch = globalThis.fetch;
+  const previousStorage = globalThis.localStorage;
+  globalThis.localStorage = {
+    getItem: (key) => key === 'hEduwareTutorServer' ? 'disabled' : null
+  };
+
+  try {
+    globalThis.fetch = async () => {
+      fetchCalled = true;
+      throw new Error('fetch should not be called');
+    };
+    const response = await askCircuitTutor({
+      circuit: sampleCircuit(),
+      target: sampleTarget(),
+      question: 'How does this work?',
+      locale: 'en',
+      running: false
+    });
+
+    assert.equal(fetchCalled, false);
+    assert.equal(response.mode, 'local');
+    assert.equal(response.servingStatus, 'local_tutor_answer');
+  } finally {
+    globalThis.fetch = previousFetch;
+    globalThis.localStorage = previousStorage;
+  }
 });
 
 test('malformed tutor server response falls back with explicit mode', async () => {

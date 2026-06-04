@@ -16,7 +16,7 @@ import {
 import { runAgent, agentRuntimeHealth } from './agent/deepAgentRuntime.ts';
 import { mapAgentErrorToResponse } from './agent/errorResponse.ts';
 import { resolvePlacementLayout } from './agent/placementResolver.ts';
-import { runTutorAgent } from './agent/circuitTutor.ts';
+import { runTutorAgent, tutorRuntimeHealth } from './agent/circuitTutor.ts';
 import { AgentMessageRequestSchema, PlacementIntentSchema, TutorMessageRequestSchema } from './agent/schemas.ts';
 import { loadLocalAgentEnv } from './localEnv.ts';
 import { serverProcessHealth } from './serverHealth.ts';
@@ -41,6 +41,7 @@ const server = createServer(async (request, response) => {
     if (request.method === 'GET' && requestUrl.pathname === '/api/agent/health') {
       return sendJson(request, response, 200, {
         ...agentRuntimeHealth(),
+        ...tutorRuntimeHealth(),
         ...serverProcessHealth()
       });
     }
@@ -79,9 +80,26 @@ const server = createServer(async (request, response) => {
           traceId,
           ...tutorRequestLogSummary(parsed)
         });
-        const result = await runTutorAgent(parsed);
+        const startedAt = performance.now();
+        const result = await runTutorAgent(parsed, {
+          traceId,
+          runName: 'h-eduware-circuit-tutor',
+          tags: [
+            'workflow:tutor',
+            `target:${parsed.target.type}`,
+            parsed.target.signal ? `signal:${parsed.target.signal}` : 'signal:none'
+          ],
+          metadata: {
+            traceId,
+            workflow: 'tutor',
+            selectedTargetId: parsed.target.id,
+            targetType: parsed.target.type,
+            targetSignal: parsed.target.signal ?? null
+          }
+        });
         logAgentEvent('tutor.response.sent', {
           traceId,
+          latencyMs: Math.max(0, Math.round(performance.now() - startedAt)),
           ...tutorResultLogSummary(result)
         });
         return sendJson(request, response, 200, result);

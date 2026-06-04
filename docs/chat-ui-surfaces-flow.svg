@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1180" viewBox="0 0 1500 1180" role="img" aria-labelledby="title desc">
+  <title id="title">H-eduware Chat UI Surfaces</title>
+  <desc id="desc">H-eduware의 두 Chat UI인 Main Chat UI와 Inspector Tutor Chat UI의 역할과 처리 경로를 비교한다.</desc>
+  <defs>
+    <marker id="arrow-blue" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto">
+      <path d="M2 2 L12 7 L2 12 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto">
+      <path d="M2 2 L12 7 L2 12 Z" fill="#d97706"/>
+    </marker>
+    <style>
+      .bg { fill: #f8fafc; }
+      .title { font: 800 34px "Segoe UI","Malgun Gothic",Arial,sans-serif; fill: #0f172a; }
+      .subtitle { font: 16px "Segoe UI","Malgun Gothic",Arial,sans-serif; fill: #475569; }
+      .panel { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; rx: 14; }
+      .main { fill: #eff6ff; stroke: #3b82f6; stroke-width: 2; rx: 10; }
+      .tutor { fill: #fff7ed; stroke: #f59e0b; stroke-width: 2; rx: 10; }
+      .server { fill: #eef2ff; stroke: #6366f1; stroke-width: 2; rx: 10; }
+      .context { fill: #ecfdf5; stroke: #10b981; stroke-width: 2; rx: 10; }
+      .gate { fill: #fff1f2; stroke: #f43f5e; stroke-width: 2; rx: 10; }
+      .label { font: 800 21px "Segoe UI","Malgun Gothic",Arial,sans-serif; fill: #0f172a; }
+      .boxTitle { font: 800 17px "Segoe UI","Malgun Gothic",Arial,sans-serif; fill: #0f172a; }
+      .text { font: 14px "Segoe UI","Malgun Gothic",Arial,sans-serif; fill: #334155; }
+      .small { font: 13px "Segoe UI","Malgun Gothic",Arial,sans-serif; fill: #64748b; }
+      .code { font: 12px "Cascadia Mono",Consolas,monospace; fill: #475569; }
+      .lineBlue { stroke: #2563eb; stroke-width: 3; fill: none; marker-end: url(#arrow-blue); }
+      .lineOrange { stroke: #d97706; stroke-width: 3; fill: none; marker-end: url(#arrow-orange); }
+      .dash { stroke-dasharray: 8 7; }
+      .chip { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; rx: 8; }
+      .numBlue { fill: #2563eb; }
+      .numOrange { fill: #d97706; }
+      .numText { font: 800 14px "Segoe UI",Arial,sans-serif; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1500" height="1180"/>
+  <text x="56" y="64" class="title">H-eduware Chat UI는 두 개다</text>
+  <text x="56" y="98" class="subtitle">메인 Chat은 회로 생성을 담당하고, Inspector Tutor Chat은 현재 선택된 부품/전선/회로에 대한 근거 기반 QA를 담당한다.</text>
+
+  <rect class="panel" x="56" y="140" width="682" height="880"/>
+  <rect class="panel" x="762" y="140" width="682" height="880"/>
+
+  <text x="86" y="188" class="label">A. Main Chat UI</text>
+  <text x="792" y="188" class="label">B. Inspector Tutor Chat UI</text>
+
+  <rect class="main" x="86" y="230" width="288" height="114"/>
+  <text x="112" y="264" class="boxTitle">역할</text>
+  <text x="112" y="292" class="text">학생 요구사항을 회로 artifact로 변환</text>
+  <text x="112" y="316" class="code">submitAgentMessage()</text>
+
+  <rect class="main" x="86" y="398" width="288" height="114"/>
+  <text x="112" y="432" class="boxTitle">입력 데이터</text>
+  <text x="112" y="460" class="text">message, locale, sessionId</text>
+  <text x="112" y="484" class="text">resume, conversationContext</text>
+
+  <path class="lineBlue" d="M374 287 H454"/>
+  <rect class="server" x="454" y="230" width="288" height="114"/>
+  <text x="480" y="264" class="boxTitle">API</text>
+  <text x="480" y="292" class="code">POST /api/agent/message</text>
+  <text x="480" y="316" class="small">AgentMessageRequestSchema</text>
+
+  <path class="lineBlue" d="M598 344 V398"/>
+  <rect class="context" x="454" y="398" width="288" height="150"/>
+  <text x="480" y="432" class="boxTitle">Context + Deep Agent</text>
+  <text x="480" y="460" class="text">buildContextPacket()</text>
+  <text x="480" y="484" class="text">scoped tools + promptBlock</text>
+  <text x="480" y="508" class="text">LangGraph checkpointer</text>
+  <text x="480" y="530" class="code">thread_id = sessionId</text>
+
+  <path class="lineBlue" d="M598 548 V606"/>
+  <rect class="gate" x="454" y="606" width="288" height="140"/>
+  <text x="480" y="640" class="boxTitle">Finalization gate</text>
+  <text x="480" y="668" class="text">candidate part gate</text>
+  <text x="480" y="692" class="text">context coverage gate</text>
+  <text x="480" y="716" class="text">solver/build runnable gate</text>
+
+  <path class="lineBlue" d="M454 676 H374"/>
+  <rect class="main" x="86" y="606" width="288" height="140"/>
+  <text x="112" y="640" class="boxTitle">UI 출력</text>
+  <text x="112" y="668" class="text">Files: requirement markdown</text>
+  <text x="112" y="692" class="text">PCB: 3D breadboard scene</text>
+  <text x="112" y="716" class="text">Run: OLED text/current evidence</text>
+
+  <rect class="chip" x="86" y="790" width="656" height="130"/>
+  <text x="112" y="830" class="boxTitle">메인 Chat의 예외 경로</text>
+  <text x="112" y="856" class="text">이미 artifact가 있는 상태의 현재 회로 질문은</text>
+  <text x="112" y="880" class="code">answerCurrentArtifactQuestion() -> askCircuitTutor()</text>
+
+  <rect class="tutor" x="792" y="230" width="288" height="114"/>
+  <text x="818" y="264" class="boxTitle">역할</text>
+  <text x="818" y="292" class="text">선택된 target에 대한 짧은 설명</text>
+  <text x="818" y="316" class="code">renderCircuitChatDrawer()</text>
+
+  <rect class="tutor" x="792" y="398" width="288" height="144"/>
+  <text x="818" y="432" class="boxTitle">입력 데이터</text>
+  <text x="818" y="460" class="text">selected target</text>
+  <text x="818" y="484" class="text">circuitSpec, validationReport</text>
+  <text x="818" y="508" class="text">simulationPlan, contextCoverage</text>
+  <text x="818" y="530" class="small">buildRunnableReport, solverGate, trace</text>
+
+  <path class="lineOrange" d="M1080 287 H1160"/>
+  <rect class="server" x="1160" y="230" width="288" height="114"/>
+  <text x="1186" y="264" class="boxTitle">Client call</text>
+  <text x="1186" y="292" class="code">askCircuitTutor()</text>
+  <text x="1186" y="316" class="small">default: local deterministic answer</text>
+
+  <path class="lineOrange" d="M1304 344 V398"/>
+  <rect class="server" x="1160" y="398" width="288" height="150"/>
+  <text x="1186" y="432" class="boxTitle">Optional server mode</text>
+  <text x="1186" y="460" class="code">POST /api/agent/explain-target</text>
+  <text x="1186" y="484" class="text">runTutorAgent()</text>
+  <text x="1186" y="508" class="small">live mode만 stateless DeepAgent QA</text>
+  <text x="1186" y="530" class="small">checkpointer-backed tutor memory 아님</text>
+
+  <path class="lineOrange" d="M1304 548 V606"/>
+  <rect class="gate" x="1160" y="606" width="288" height="140"/>
+  <text x="1186" y="640" class="boxTitle">Grounding gate</text>
+  <text x="1186" y="668" class="text">target + 현재 artifact 근거만 사용</text>
+  <text x="1186" y="692" class="text">invalid simulation이면 flow claim 금지</text>
+  <text x="1186" y="716" class="text">malformed/live 실패는 local fallback</text>
+
+  <path class="lineOrange" d="M1160 676 H1080"/>
+  <rect class="tutor" x="792" y="606" width="288" height="140"/>
+  <text x="818" y="640" class="boxTitle">UI 출력</text>
+  <text x="818" y="668" class="text">message</text>
+  <text x="818" y="692" class="text">servingStatus badge</text>
+  <text x="818" y="716" class="text">suggestedQuestions refresh</text>
+
+  <rect class="chip" x="792" y="790" width="656" height="130"/>
+  <text x="818" y="830" class="boxTitle">핵심 차이</text>
+  <text x="818" y="856" class="text">Tutor Chat은 새 회로를 합성하지 않는다.</text>
+  <text x="818" y="880" class="text">현재 artifact와 selected target 근거로 답변하고</text>
+  <text x="818" y="904" class="text">다음 질문 chip만 갱신한다.</text>
+
+  <rect class="gate" x="56" y="1060" width="1388" height="82"/>
+  <text x="86" y="1092" class="boxTitle">한 줄 요약</text>
+  <text x="86" y="1120" class="text">Main Chat UI는 Context Layer와 Deep Agent를 통해 buildable simulation artifact를 만들고, Tutor Chat UI는 이미 만들어진 artifact와 선택 target을 근거로 설명만 반환한다.</text>
+</svg>

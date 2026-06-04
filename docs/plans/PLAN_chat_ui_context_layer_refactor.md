@@ -4,7 +4,7 @@
 
 **Goal:** Prevent unsupported or unknown hardware from being silently served as build-ready simulation while keeping the main synthesis chat and right-side tutor chat observable, contract-safe, and LangChain-ecosystem-native where live LLM paths are used.
 
-**Architecture:** Keep the approved hybrid architecture. The main requirement-to-simulation chat remains a stateful DeepAgents/LangGraph workflow. The right-side tutor remains deterministic-first with opt-in stateless typed DeepAgent QA until measured multi-turn value justifies checkpointer-backed tutor memory. The context layer becomes the authoritative request gate before any UI copy, tool call, or simulation output can imply build readiness.
+**Architecture:** Keep the approved hybrid architecture. The main requirement-to-simulation chat remains a stateful DeepAgents/LangGraph workflow. The right-side tutor is now live-first `auto` mode through the server when live configuration is present, with deterministic local evidence kept as explicit local mode or observable fallback until measured multi-turn value justifies checkpointer-backed tutor memory. The context layer becomes the authoritative request gate before any UI copy, tool call, or simulation output can imply build readiness.
 
 **Tech Stack:** Vanilla JS, Vite, three.js, Node test runner, TypeScript, Zod, LangChain JS, LangGraph, Deep Agents, LangSmith optional tracing.
 
@@ -26,6 +26,11 @@
 
 ## Baseline Serving Map Before Refactor
 
+This section records the historical baseline that motivated the refactor. The
+current right-side tutor serving contract is superseded by
+`docs/plans/PLAN_tutor_always_live_serving.md` and
+`docs/agent-tutor-serving-workflow.md`.
+
 ### Main Chat UI
 
 1. `src/main.js:1433` `submitAgentMessage()`.
@@ -42,17 +47,23 @@
 1. `src/main.js:1100` `renderCircuitChatDrawer()`.
 2. Drawer rendered selected part/connection/circuit target and static `target.questions`.
 3. `src/main.js:2208` `submitTutorQuestion()`.
-4. `src/circuitTutorClient.js:11` returns local deterministic `answerTutorQuestion()` by default.
-5. If `localStorage.hEduwareAgentServer === "enabled"`, client posts to `POST /api/agent/explain-target`.
-6. `server/agent/circuitTutor.ts:108` live mode uses `createDeepAgent + toolStrategy(LiveTutorDraftSchema)` without checkpointer/middleware.
-7. UI rendered only `response.message`; it did not consume `response.suggestedQuestions` or expose fallback mode.
+4. Previously, `src/circuitTutorClient.js` returned local deterministic
+   `answerTutorQuestion()` by default.
+5. Previously, `localStorage.hEduwareAgentServer === "enabled"` was required
+   before the client posted to `POST /api/agent/explain-target`.
+6. The server live path used `createDeepAgent + toolStrategy(LiveTutorDraftSchema)`
+   without checkpointer/middleware.
+7. Previously, the UI rendered only `response.message`; it did not consume
+   `response.suggestedQuestions` or expose fallback mode.
 
 ## ADR
 
 **Decision:** Keep Option A, the hybrid model.
 
 - Main synthesis chat: stateful DeepAgents/LangGraph workflow with checkpointer and `thread_id`.
-- Right tutor chat: deterministic fallback by default, opt-in stateless typed DeepAgent QA for live mode.
+- Right tutor chat: server-controlled live-first `auto` mode when configured,
+  deterministic fallback/local mode otherwise, and stateless typed DeepAgent QA
+  for live mode.
 - Tutor becomes checkpointer-backed stateful LangGraph only after tests or product evidence show multi-turn tutor memory materially improves learning outcomes.
 
 **Alternatives Considered:**
@@ -79,7 +90,7 @@ Last verified: 2026-06-04.
   composition proof.
 - Live agent tools are fail-closed unless they receive scoped `ContextPacket`
   candidates, allowed source ids, and support evidence.
-- Tutor chat remains deterministic-first, but live server mode now validates the
+- Tutor chat now calls the server by default; live server mode validates the
   response schema, exposes local/live/fallback status, sends artifact gates, and
   refreshes suggested questions from valid server responses.
 - `/api/agent/explain-target` now emits `tutor.request.received`,

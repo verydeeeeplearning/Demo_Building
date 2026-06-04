@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="900" viewBox="0 0 1280 900" role="img" aria-labelledby="title desc">
+  <title id="title">Query to ContextPacket Flow</title>
+  <desc id="desc">사용자 쿼리가 ContextPacket으로 변환되는 시각적 흐름.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2 2 L10 6 L2 10 Z" fill="#047857"/></marker>
+    <style>
+      .bg{fill:#f8fafc}.title{font:800 30px Segoe UI,Malgun Gothic,sans-serif;fill:#0f172a}
+      .lane{fill:#fff;stroke:#cbd5e1;stroke-width:2;rx:10}.front{fill:#eff6ff;stroke:#3b82f6}.server{fill:#eef2ff;stroke:#6366f1}
+      .ctx{fill:#ecfdf5;stroke:#10b981}.gate{fill:#fff1f2;stroke:#f43f5e}.node{stroke-width:2;rx:9}
+      .label{font:800 17px Segoe UI,Malgun Gothic,sans-serif;fill:#0f172a}.mini{font:13px Segoe UI,Malgun Gothic,sans-serif;fill:#475569}
+      .code{font:12px Cascadia Mono,Consolas,monospace;fill:#475569}.line{stroke:#047857;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="1280" height="900"/>
+  <text class="title" x="54" y="62">01. Query → ContextPacket</text>
+
+  <rect class="lane" x="55" y="105" width="320" height="760"/>
+  <rect class="lane" x="435" y="105" width="320" height="760"/>
+  <rect class="lane" x="815" y="105" width="410" height="760"/>
+  <text class="label" x="78" y="140">Frontend</text>
+  <text class="label" x="458" y="140">Server API</text>
+  <text class="label" x="838" y="140">Context Layer v2</text>
+
+  <rect class="node front" x="85" y="185" width="260" height="82"/>
+  <text class="label" x="114" y="218">submitAgentMessage</text>
+  <text class="mini" x="114" y="244">turn routing</text>
+  <path class="line" d="M345 226 H465"/>
+
+  <rect class="node server" x="465" y="185" width="260" height="82"/>
+  <text class="label" x="495" y="218">POST /api/agent/message</text>
+  <text class="mini" x="495" y="244">schema + trace</text>
+  <path class="line" d="M595 267 V330"/>
+
+  <rect class="node server" x="465" y="330" width="260" height="82"/>
+  <text class="label" x="520" y="363">runLiveAgent</text>
+  <text class="mini" x="505" y="389">sessionId + mode</text>
+  <path class="line" d="M725 371 H845"/>
+
+  <rect class="node ctx" x="845" y="165" width="340" height="72"/>
+  <text class="label" x="888" y="197">capability + intent</text>
+  <text class="code" x="888" y="220">matchCapabilities · inferIntentHints</text>
+  <path class="line" d="M1015 237 V285"/>
+
+  <rect class="node ctx" x="845" y="285" width="340" height="72"/>
+  <text class="label" x="910" y="317">v2 router</text>
+  <text class="code" x="888" y="340">selectContextRouteV2()</text>
+  <path class="line" d="M1015 357 V405"/>
+
+  <rect class="node ctx" x="845" y="405" width="340" height="72"/>
+  <text class="label" x="900" y="437">bundle + manifest</text>
+  <text class="code" x="888" y="460">BUNDLE.md · manifest.json</text>
+  <path class="line" d="M1015 477 V525"/>
+
+  <rect class="node ctx" x="845" y="525" width="340" height="86"/>
+  <text class="label" x="887" y="557">candidate + evidence</text>
+  <text class="mini" x="888" y="582">candidateParts · supportBundles</text>
+  <path class="line" d="M1015 611 V660"/>
+
+  <rect class="node gate" x="845" y="660" width="340" height="86"/>
+  <text class="label" x="910" y="693">coverage gate</text>
+  <text class="mini" x="888" y="718">eligible / ineligible</text>
+  <path class="line" d="M845 704 H725"/>
+
+  <rect class="node ctx" x="465" y="640" width="260" height="105"/>
+  <text class="label" x="515" y="680">ContextPacket</text>
+  <text class="mini" x="492" y="707">route · candidates · coverage</text>
+  <text class="mini" x="492" y="730">trace · promptBlock</text>
+
+  <rect class="node ctx" x="85" y="675" width="260" height="90"/>
+  <text class="label" x="112" y="710">example output</text>
+  <text class="code" x="112" y="735">v2-display-text-output</text>
+  <text class="code" x="112" y="758">arduino + breadboard + oled</text>
+</svg>

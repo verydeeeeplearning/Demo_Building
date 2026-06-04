@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Query to Simulation Overview</title>
+  <desc id="desc">H-eduware 사용자 쿼리에서 시뮬레이션까지의 전체 파이프라인 개요.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2 2 L10 6 L2 10 Z" fill="#2563eb"/>
+    </marker>
+    <style>
+      .bg{fill:#f8fafc}.title{font:800 34px Segoe UI,Malgun Gothic,sans-serif;fill:#0f172a}
+      .sub{font:16px Segoe UI,Malgun Gothic,sans-serif;fill:#475569}
+      .node{stroke-width:2;rx:10}.front{fill:#eff6ff;stroke:#3b82f6}.ctx{fill:#ecfdf5;stroke:#10b981}
+      .agent{fill:#f5f3ff;stroke:#8b5cf6}.gate{fill:#fff1f2;stroke:#f43f5e}.art{fill:#f0fdfa;stroke:#14b8a6}
+      .label{font:800 18px Segoe UI,Malgun Gothic,sans-serif;fill:#0f172a}.small{font:13px Cascadia Mono,Consolas,monospace;fill:#475569}
+      .line{stroke:#2563eb;stroke-width:3;fill:none;marker-end:url(#arrow)}.thin{stroke:#94a3b8;stroke-width:2;fill:none}
+    </style>
+  </defs>
+  <rect class="bg" width="1280" height="720"/>
+  <text class="title" x="56" y="70">H-eduware Query → Simulation</text>
+  <text class="sub" x="56" y="102">텍스트 설명이 아니라 처리 파이프라인만 압축한 overview. 상세는 3개 하위 SVG.</text>
+
+  <rect class="node front" x="70" y="230" width="150" height="90"/>
+  <text class="label" x="102" y="270">User</text>
+  <text class="small" x="92" y="298">query</text>
+
+  <path class="line" d="M220 275 H300"/>
+  <rect class="node front" x="300" y="230" width="150" height="90"/>
+  <text class="label" x="342" y="270">API</text>
+  <text class="small" x="322" y="298">schema + trace</text>
+
+  <path class="line" d="M450 275 H530"/>
+  <rect class="node ctx" x="530" y="210" width="170" height="130"/>
+  <text class="label" x="562" y="260">Context</text>
+  <text class="small" x="556" y="288">route/bundle</text>
+  <text class="small" x="552" y="312">candidates/gate</text>
+
+  <path class="line" d="M700 275 H780"/>
+  <rect class="node agent" x="780" y="210" width="170" height="130"/>
+  <text class="label" x="817" y="260">Agent</text>
+  <text class="small" x="806" y="288">LangGraph</text>
+  <text class="small" x="807" y="312">DeepAgents</text>
+
+  <path class="line" d="M950 275 H1030"/>
+  <rect class="node gate" x="1030" y="210" width="170" height="130"/>
+  <text class="label" x="1073" y="260">Gates</text>
+  <text class="small" x="1054" y="288">validate/finalize</text>
+  <text class="small" x="1057" y="312">solver/runnable</text>
+
+  <path class="line" d="M1115 340 V420 H615 V375"/>
+  <rect class="node art" x="490" y="430" width="250" height="115"/>
+  <text class="label" x="552" y="478">Simulation UI</text>
+  <text class="small" x="530" y="506">renderPlan + simulationPlan</text>
+
+  <path class="thin" d="M120 600 H1170"/>
+  <text class="small" x="90" y="635">01 query-to-context-flow.svg</text>
+  <text class="small" x="485" y="635">02 agent-tool-gate-flow.svg</text>
+  <text class="small" x="880" y="635">03 finalization-simulation-flow.svg</text>
+</svg>

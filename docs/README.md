@@ -16,6 +16,8 @@ These describe how the current system works and should be updated in place.
   Agents/LangGraph handoffs, and opt-in live category evaluation.
 - [`agent-tutor-serving-workflow.md`](agent-tutor-serving-workflow.md) -
   right-side tutor chat serving contract, fallback policy, and observability.
+- [`context-layer-architecture.md`](context-layer-architecture.md) -
+  Context Layer structure, packet data example, roles, and gate model.
 - [`deepagents-official-architecture-anchor.md`](deepagents-official-architecture-anchor.md) -
   anchors the Deepagents implementation to the official LangChain Deep Agents
   model.
@@ -33,6 +35,9 @@ These describe how the current system works and should be updated in place.
 - [`plans/PLAN_chat_ui_context_layer_refactor.md`](plans/PLAN_chat_ui_context_layer_refactor.md) -
   chat UI serving, context eligibility, tutor fallback, and logging refactor
   plan.
+- [`plans/PLAN_tutor_always_live_serving.md`](plans/PLAN_tutor_always_live_serving.md) -
+  approved Ralph/Ralplan follow-up for making the right-side tutor live-first
+  when the server is configured, with explicit local fallback.
 - [`plans/REVIEW_layered_context_architecture_2026-06-02.md`](plans/REVIEW_layered_context_architecture_2026-06-02.md) -
   adversarial review synthesis for the layered context architecture plan.
 

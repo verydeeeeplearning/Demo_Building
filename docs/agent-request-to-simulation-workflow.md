@@ -6,6 +6,11 @@ H-eduware's agent engine is built on the LangChain ecosystem: LangChain,
 LangGraph, Deep Agents, and LangSmith. Agent changes must consult the official
 JS/TS documentation before changing runtime behavior.
 
+Visualization:
+
+- [`user-query-to-simulation-swimlane.svg`](user-query-to-simulation-swimlane.svg): main Chat UI request-to-simulation flow
+- [`chat-ui-surfaces-flow.svg`](chat-ui-surfaces-flow.svg): main Chat UI and tutor Chat UI compared
+
 Official docs checked for this workflow:
 
 - Deep Agents `createDeepAgent`: https://docs.langchain.com/oss/javascript/deepagents/customization

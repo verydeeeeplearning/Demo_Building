@@ -1549,9 +1549,6 @@ test('LED draft follow-up keeps state, builds on natural confirmation, and answe
   const guards = attachGuards(page);
   const messageRequests = [];
 
-  await page.addInitScript(() => {
-    localStorage.setItem('hEduwareAgentServer', 'enabled');
-  });
   await page.route('http://127.0.0.1:8787/api/agent/health', async (route) => {
     await route.fulfill({
       status: 200,
@@ -2155,6 +2152,22 @@ test('PCB tab puts the circuit canvas in the initial viewport on narrow screens'
 
 test('browser verification protocol covers files, PCB, inspector tutor, and run output', async ({ page }) => {
   const guards = attachGuards(page);
+  await page.route('http://127.0.0.1:8787/api/agent/explain-target', async (route) => {
+    const body = route.request().postDataJSON();
+    const label = body?.target?.label ?? body?.selectedTarget?.label ?? 'selected circuit target';
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        sessionId: 'tutor-browser-verification',
+        mode: 'live',
+        servingStatus: 'live_tutor_answer',
+        message: `Live tutor answer grounded in ${label}.`,
+        grounding: [body?.target?.id ?? 'target'],
+        suggestedQuestions: []
+      })
+    });
+  });
   await dismissWelcome(page);
   await loadDemo(page);
 
@@ -2216,6 +2229,22 @@ test('browser verification protocol covers files, PCB, inspector tutor, and run 
 
 test('circuit inspector lets students discuss a selected simulated connection', async ({ page }) => {
   const guards = attachGuards(page);
+  await page.route('http://127.0.0.1:8787/api/agent/explain-target', async (route) => {
+    const body = route.request().postDataJSON();
+    const label = body?.target?.label ?? body?.selectedTarget?.label ?? 'selected circuit target';
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        sessionId: 'tutor-inspector-discussion',
+        mode: 'live',
+        servingStatus: 'live_tutor_answer',
+        message: `Live tutor answer grounded in ${label}.`,
+        grounding: [body?.target?.id ?? 'target'],
+        suggestedQuestions: []
+      })
+    });
+  });
   await dismissWelcome(page);
   await loadDemo(page);
   await page.locator('[data-tab="PCB"]').click();
@@ -2251,9 +2280,6 @@ test('circuit inspector lets students discuss a selected simulated connection', 
 test('circuit inspector renders live tutor suggested questions when server mode is enabled', async ({ page }) => {
   const guards = attachGuards(page);
   let tutorRequestBody = null;
-  await page.addInitScript(() => {
-    localStorage.setItem('hEduwareAgentServer', 'enabled');
-  });
   await page.route('http://127.0.0.1:8787/api/agent/explain-target', async (route) => {
     tutorRequestBody = route.request().postDataJSON();
     await route.fulfill({
@@ -2505,8 +2531,19 @@ test('hardware move resolves a dragged part through the placement API and replac
   expect(placementRequests[0]).not.toHaveProperty('accepted');
   expect(placementRequests[0]).not.toHaveProperty('blocked');
 
-  await expect.poll(async () => (await readStageDebugSnapshot(canvas)).partPositions['led-1']).not.toEqual(baselineLedPosition);
-  const resolvedDebug = await readStageDebugSnapshot(canvas);
+  let resolvedDebug = null;
+  await expect.poll(async () => {
+    const snapshot = await readStageDebugSnapshot(canvas);
+    const ledPosition = snapshot?.partPositions?.['led-1'];
+    if (!snapshot || !ledPosition) {
+      return false;
+    }
+    if (JSON.stringify(ledPosition) === JSON.stringify(baselineLedPosition)) {
+      return false;
+    }
+    resolvedDebug = snapshot;
+    return true;
+  }).toBe(true);
   expect(resolvedDebug.interactionMode).toBe('hardware_move');
   expect(resolvedDebug.buildReady).toBe(true);
   expect(resolvedDebug.circuitSpecHash).not.toBe(baselineCircuitSpecHash);

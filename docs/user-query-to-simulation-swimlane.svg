@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1860" viewBox="0 0 1500 1860" role="img" aria-labelledby="title desc">
+  <title id="title">H-eduware Main Chat UI Query to Simulation Swimlane</title>
+  <desc id="desc">메인 Chat UI의 실제 사용자 쿼리가 UI, 서버, Context Layer, Deep Agent, validation gate를 지나 시뮬레이션 화면이 되는 흐름.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto">
+      <path d="M2 2 L12 7 L2 12 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto">
+      <path d="M2 2 L12 7 L2 12 Z" fill="#e11d48"/>
+    </marker>
+    <style>
+      .bg { fill: #f8fafc; }
+      .title { font: 800 38px "Segoe UI","Malgun Gothic",Arial,sans-serif; fill: #0f172a; }
+      .subtitle { font: 17px "Segoe UI","Malgun Gothic",Arial,sans-serif; fill: #475569; }
+      .laneTitle { font: 800 20px "Segoe UI","Malgun Gothic",Arial,sans-serif; fill: #0f172a; }
+      .boxTitle { font: 800 18px "Segoe UI","Malgun Gothic",Arial,sans-serif; fill: #0f172a; }
+      .decisionTitle { font: 800 20px "Segoe UI","Malgun Gothic",Arial,sans-serif; fill: #0f172a; }
+      .text { font: 15px "Segoe UI","Malgun Gothic",Arial,sans-serif; fill: #334155; }
+      .small { font: 13px "Segoe UI","Malgun Gothic",Arial,sans-serif; fill: #64748b; }
+      .code { font: 12px "Cascadia Mono",Consolas,monospace; fill: #475569; }
+      .lane { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; rx: 12; }
+      .ui { fill: #eff6ff; stroke: #3b82f6; stroke-width: 2; rx: 10; }
+      .server { fill: #eef2ff; stroke: #6366f1; stroke-width: 2; rx: 10; }
+      .context { fill: #ecfdf5; stroke: #10b981; stroke-width: 2; rx: 10; }
+      .agent { fill: #f5f3ff; stroke: #8b5cf6; stroke-width: 2; rx: 10; }
+      .gate { fill: #fff1f2; stroke: #f43f5e; stroke-width: 2; rx: 10; }
+      .artifact { fill: #f0fdfa; stroke: #14b8a6; stroke-width: 2; rx: 10; }
+      .decision { fill: #fff7ed; stroke: #f59e0b; stroke-width: 2; }
+      .chip { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; rx: 8; }
+      .line { stroke: #2563eb; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .redLine { stroke: #e11d48; stroke-width: 3; fill: none; marker-end: url(#arrow-red); }
+      .dash { stroke-dasharray: 8 7; }
+      .num { fill: #2563eb; }
+      .numText { font: 800 15px "Segoe UI",Arial,sans-serif; fill: #ffffff; }
+      .branch { font: 800 14px "Segoe UI",Arial,sans-serif; fill: #0f172a; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1500" height="1860"/>
+
+  <text x="60" y="70" class="title">Main Chat UI: 사용자 쿼리에서 시뮬레이션까지</text>
+  <text x="60" y="105" class="subtitle">이 그림은 메인 Chat UI 전용이다. 파란 화살표는 buildable 흐름, 빨간 점선은 context gate에서 차단되는 흐름이다.</text>
+
+  <rect class="lane" x="55" y="150" width="390" height="1600"/>
+  <rect class="lane" x="555" y="150" width="390" height="1600"/>
+  <rect class="lane" x="1055" y="150" width="390" height="1600"/>
+  <text x="80" y="190" class="laneTitle">UI / Browser</text>
+  <text x="580" y="190" class="laneTitle">Server / Agent Runtime</text>
+  <text x="1080" y="190" class="laneTitle">Context Layer / Gates</text>
+
+  <circle class="num" cx="92" cy="245" r="17"/><text class="numText" x="87" y="251">1</text>
+  <rect class="ui" x="115" y="215" width="280" height="92"/>
+  <text x="140" y="249" class="boxTitle">학생이 요청 입력</text>
+  <text x="140" y="276" class="text">“OLED에 Hello 표시해줘”</text>
+  <text x="140" y="296" class="code">submitAgentMessage()</text>
+
+  <path class="line" d="M395 261 H585"/>
+  <circle class="num" cx="592" cy="245" r="17"/><text class="numText" x="587" y="251">2</text>
+  <rect class="server" x="615" y="215" width="280" height="92"/>
+  <text x="640" y="249" class="boxTitle">요청 검증</text>
+  <text x="640" y="276" class="text">API schema + traceId</text>
+  <text x="640" y="296" class="code">POST /api/agent/message</text>
+
+  <path class="line" d="M755 307 V360 H1085"/>
+  <circle class="num" cx="1092" cy="385" r="17"/><text class="numText" x="1087" y="391">3</text>
+  <rect class="context" x="1115" y="350" width="280" height="112"/>
+  <text x="1140" y="384" class="boxTitle">ContextPacket 생성</text>
+  <text x="1140" y="411" class="text">route, bundle, parts, evidence</text>
+  <text x="1140" y="435" class="code">buildContextPacket()</text>
+
+  <path class="line" d="M1255 462 V515"/>
+  <rect class="context" x="1085" y="515" width="340" height="220"/>
+  <text x="1110" y="550" class="boxTitle">이 쿼리에서 결정되는 값</text>
+  <rect class="chip" x="1110" y="575" width="290" height="28"/><text x="1122" y="594" class="code">route = v2-display-text-output</text>
+  <rect class="chip" x="1110" y="612" width="290" height="28"/><text x="1122" y="631" class="code">bundle = display-text-output</text>
+  <rect class="chip" x="1110" y="649" width="290" height="28"/><text x="1122" y="668" class="code">parts = Arduino + breadboard + OLED</text>
+  <rect class="chip" x="1110" y="686" width="290" height="28"/><text x="1122" y="705" class="code">eligible = true</text>
+
+  <path class="line" d="M1255 735 V790"/>
+  <circle class="num" cx="1092" cy="850" r="17"/><text class="numText" x="1087" y="856">4</text>
+  <polygon class="decision" points="1255,790 1390,850 1255,910 1120,850"/>
+  <text x="1206" y="845" class="decisionTitle">합성 가능?</text>
+  <text x="1219" y="870" class="small">context gate</text>
+
+  <path class="redLine dash" d="M1255 910 V1000"/>
+  <text x="1271" y="957" class="branch">No</text>
+  <rect class="gate" x="1115" y="1000" width="280" height="100"/>
+  <text x="1140" y="1035" class="boxTitle">불가능하면</text>
+  <text x="1140" y="1062" class="text">clarification / unsupported</text>
+  <text x="1140" y="1084" class="small">시뮬레이션 claim 없음</text>
+
+  <path class="line" d="M1120 850 H895 V830"/>
+  <text x="1005" y="835" class="branch">Yes</text>
+  <circle class="num" cx="592" cy="815" r="17"/><text class="numText" x="587" y="821">5</text>
+  <rect class="server" x="615" y="770" width="280" height="110"/>
+  <text x="640" y="805" class="boxTitle">도구 범위 고정</text>
+  <text x="640" y="832" class="text">ContextPacket으로</text>
+  <text x="640" y="856" class="text">tool scope 생성</text>
+
+  <path class="line" d="M755 880 V960"/>
+  <circle class="num" cx="592" cy="990" r="17"/><text class="numText" x="587" y="996">6</text>
+  <rect class="agent" x="615" y="960" width="280" height="122"/>
+  <text x="640" y="995" class="boxTitle">Deep Agent 실행</text>
+  <text x="640" y="1022" class="text">LangGraph memory</text>
+  <text x="640" y="1046" class="code">thread_id = sessionId</text>
+  <text x="640" y="1068" class="small">structured circuit draft 생성</text>
+
+  <path class="line dash" d="M895 1025 H1010 V1251 H1115"/>
+  <rect class="context" x="1115" y="1185" width="280" height="132"/>
+  <text x="1140" y="1219" class="boxTitle">Agent가 쓸 수 있는 도구</text>
+  <text x="1140" y="1246" class="text">선택된 문서만 읽기</text>
+  <text x="1140" y="1270" class="text">선택된 부품만 검색</text>
+  <text x="1140" y="1294" class="text">검증 도구로만 compile</text>
+
+  <path class="line" d="M755 1082 V1180"/>
+  <circle class="num" cx="592" cy="1210" r="17"/><text class="numText" x="587" y="1216">7</text>
+  <rect class="gate" x="615" y="1180" width="280" height="148"/>
+  <text x="640" y="1214" class="boxTitle">서버가 다시 검증</text>
+  <text x="640" y="1241" class="text">candidate part gate</text>
+  <text x="640" y="1265" class="text">intent gate</text>
+  <text x="640" y="1289" class="text">context coverage gate</text>
+  <text x="640" y="1311" class="small">LLM draft를 그대로 믿지 않음</text>
+
+  <path class="line" d="M755 1328 V1400"/>
+  <circle class="num" cx="592" cy="1430" r="17"/><text class="numText" x="587" y="1436">8</text>
+  <rect class="server" x="615" y="1400" width="280" height="130"/>
+  <text x="640" y="1434" class="boxTitle">시뮬레이션 artifact 생성</text>
+  <text x="640" y="1461" class="text">netlist + renderPlan</text>
+  <text x="640" y="1485" class="text">simulationPlan + solverGate</text>
+  <text x="640" y="1508" class="code">AgentRunResult</text>
+
+  <path class="line" d="M615 1465 H395"/>
+  <circle class="num" cx="92" cy="1465" r="17"/><text class="numText" x="87" y="1471">9</text>
+  <rect class="artifact" x="115" y="1395" width="280" height="180"/>
+  <text x="140" y="1429" class="boxTitle">UI가 렌더링</text>
+  <text x="140" y="1459" class="text">Files: 요구사항 문서</text>
+  <text x="140" y="1483" class="text">PCB: Arduino/OLED/wires</text>
+  <text x="140" y="1507" class="text">Run: OLED text + 상태</text>
+  <text x="140" y="1535" class="small">build/run은 servingStatus로 제한</text>
+
+  <rect class="gate" x="115" y="1610" width="1280" height="112"/>
+  <text x="145" y="1645" class="boxTitle">읽는 방법</text>
+  <text x="145" y="1681" class="text">조건 분기는 4번이다. Yes는 tool scope → Deep Agent → 서버 검증 → artifact 생성으로 간다.</text>
+  <text x="145" y="1711" class="text">No는 clarification/unsupported로 가며, 시뮬레이션 claim을 만들지 않는다.</text>
+
+  <text x="115" y="1815" class="small">관련 코드: src/main.js → src/aiClient.js → server/index.ts → server/context/contextPacket.ts → server/agent/deepAgentRuntime.ts → server/agent/circuitTools.ts</text>
+</svg>

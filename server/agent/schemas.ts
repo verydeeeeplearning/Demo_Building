@@ -1183,6 +1183,10 @@ export const TutorMessageResponseSchema = z.object({
   mode: z.enum(['local', 'live']),
   servingStatus: TutorServingStatusSchema.optional(),
   fallbackReason: z.string().max(240).optional(),
+  runtimeMode: z.enum(['auto', 'live', 'local']).optional(),
+  liveConfigured: z.boolean().optional(),
+  liveAttempted: z.boolean().optional(),
+  fallbackCategory: z.string().max(80).optional(),
   message: z.string().min(1),
   grounding: z.array(z.string()),
   suggestedQuestions: z.array(z.string())

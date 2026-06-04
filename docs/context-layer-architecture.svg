@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="860" viewBox="0 0 1280 860" role="img" aria-labelledby="title desc">
+  <title id="title">Context Layer Architecture</title>
+  <desc id="desc">H-eduware Context Layer의 L0-L4 구조와 ContextPacket 생성 흐름.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2 2 L10 6 L2 10 Z" fill="#047857"/>
+    </marker>
+    <style>
+      .bg{fill:#f8fafc}.title{font:800 30px Segoe UI,Malgun Gothic,sans-serif;fill:#0f172a}
+      .sub{font:15px Segoe UI,Malgun Gothic,sans-serif;fill:#475569}
+      .layer{stroke-width:2;rx:12}.l0{fill:#e0f2fe;stroke:#0284c7}.l1{fill:#fff1f2;stroke:#f43f5e}.l2{fill:#ecfdf5;stroke:#10b981}.l3{fill:#fff7ed;stroke:#f59e0b}.l4{fill:#f5f3ff;stroke:#8b5cf6}
+      .packet{fill:#f0fdfa;stroke:#14b8a6;stroke-width:2;rx:12}.gate{fill:#ffffff;stroke:#64748b;stroke-width:2;rx:12}
+      .label{font:800 18px Segoe UI,Malgun Gothic,sans-serif;fill:#0f172a}.mini{font:13px Segoe UI,Malgun Gothic,sans-serif;fill:#475569}
+      .code{font:12px Cascadia Mono,Consolas,monospace;fill:#475569}.line{stroke:#047857;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+
+  <rect class="bg" width="1280" height="860"/>
+  <text class="title" x="54" y="62">Context Layer Architecture</text>
+  <text class="sub" x="54" y="92">L0-L4는 prompt 자료 분류가 아니라 route, evidence, tool scope, synthesis gate를 만드는 runtime architecture다.</text>
+
+  <rect class="layer l0" x="70" y="145" width="220" height="105"/>
+  <text class="label" x="105" y="183">L0 Foundation</text>
+  <text class="mini" x="105" y="211">operating rules</text>
+  <text class="mini" x="105" y="234">shared canonical data</text>
+
+  <rect class="layer l1" x="70" y="285" width="220" height="105"/>
+  <text class="label" x="122" y="323">L1 Policy</text>
+  <text class="mini" x="105" y="351">safety / clarification</text>
+  <text class="mini" x="105" y="374">truthfulness / unsupported</text>
+
+  <rect class="layer l2" x="70" y="425" width="220" height="105"/>
+  <text class="label" x="100" y="463">L2 Bundles</text>
+  <text class="mini" x="105" y="491">BUNDLE.md</text>
+  <text class="mini" x="105" y="514">selected prompt surface</text>
+
+  <rect class="layer l3" x="70" y="565" width="220" height="105"/>
+  <text class="label" x="96" y="603">L3 Manifest</text>
+  <text class="mini" x="105" y="631">allowed parts / rules</text>
+  <text class="mini" x="105" y="654">source refs / topology</text>
+
+  <rect class="layer l4" x="70" y="705" width="220" height="105"/>
+  <text class="label" x="96" y="743">L4 Heavy Data</text>
+  <text class="mini" x="105" y="771">registry / primitives</text>
+  <text class="mini" x="105" y="794">footprints via tools</text>
+
+  <path class="line" d="M290 197 H410"/>
+  <path class="line" d="M290 337 H410"/>
+  <path class="line" d="M290 477 H410"/>
+  <path class="line" d="M290 617 H410"/>
+  <path class="line" d="M290 757 H410"/>
+
+  <rect class="gate" x="410" y="160" width="260" height="90"/>
+  <text class="label" x="455" y="197">Capability Match</text>
+  <text class="code" x="455" y="225">matchCapabilities()</text>
+
+  <rect class="gate" x="410" y="285" width="260" height="90"/>
+  <text class="label" x="475" y="322">v2 Router</text>
+  <text class="code" x="455" y="350">selectContextRouteV2()</text>
+
+  <rect class="gate" x="410" y="410" width="260" height="90"/>
+  <text class="label" x="452" y="447">Bundle Loader</text>
+  <text class="code" x="455" y="475">loadContextBundleV2()</text>
+
+  <rect class="gate" x="410" y="535" width="260" height="90"/>
+  <text class="label" x="454" y="572">Candidate + Evidence</text>
+  <text class="mini" x="455" y="600">parts · support bundles</text>
+
+  <rect class="gate" x="410" y="660" width="260" height="90"/>
+  <text class="label" x="465" y="697">Coverage Gate</text>
+  <text class="code" x="455" y="725">synthesisEligibility</text>
+
+  <path class="line" d="M670 205 H800"/>
+  <path class="line" d="M670 330 H800"/>
+  <path class="line" d="M670 455 H800"/>
+  <path class="line" d="M670 580 H800"/>
+  <path class="line" d="M670 705 H800"/>
+
+  <rect class="packet" x="800" y="240" width="360" height="300"/>
+  <text class="label" x="900" y="285">ContextPacket</text>
+  <text class="mini" x="855" y="325">contextRoute</text>
+  <text class="mini" x="855" y="352">retrievalPlan.sourceIds</text>
+  <text class="mini" x="855" y="379">candidateParts</text>
+  <text class="mini" x="855" y="406">supportBundles</text>
+  <text class="mini" x="855" y="433">contextTrace</text>
+  <text class="mini" x="855" y="460">contextCoverage</text>
+  <text class="mini" x="855" y="487">promptBlock + metadata</text>
+
+  <path class="line" d="M980 540 V610"/>
+  <rect class="gate" x="800" y="610" width="360" height="120"/>
+  <text class="label" x="870" y="650">Runtime Consumers</text>
+  <text class="mini" x="850" y="683">Deep Agent prompt · scoped tools</text>
+  <text class="mini" x="850" y="710">finalization gates · UI build/run gates</text>
+
+  <text class="code" x="820" y="190">routes: 43 · bundles: 39 · support bundles: 39</text>
+  <text class="code" x="820" y="215">heavy: part registry · simulation primitives · render footprints</text>
+</svg>

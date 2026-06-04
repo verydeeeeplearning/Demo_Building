@@ -84,8 +84,9 @@ Tutor logs use the same privacy boundary. `tutor.request.received` records the
 selected target id/type/signal, validation/simulation/runnable gate status,
 solver gate mode/build readiness, context source ids/types, current-path count,
 and a question preview. `tutor.response.sent` records local/live/fallback mode,
-`servingStatus`, redacted fallback preview, structured-output status, grounding
-count, suggested-question count, and tutor message hash/length.
+`servingStatus`, runtime mode, live configuration state, live attempt state,
+fallback category, latency, redacted fallback preview, structured-output status,
+grounding count, suggested-question count, and tutor message hash/length.
 
 ## LangSmith
 

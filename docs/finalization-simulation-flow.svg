@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="860" viewBox="0 0 1280 860" role="img" aria-labelledby="title desc">
+  <title id="title">Finalization Simulation Flow</title>
+  <desc id="desc">Deep Agent draft가 서버 finalization과 UI rendering을 거쳐 시뮬레이션이 되는 시각적 흐름.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2 2 L10 6 L2 10 Z" fill="#e11d48"/></marker>
+    <marker id="arrowB" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2 2 L10 6 L2 10 Z" fill="#2563eb"/></marker>
+    <style>
+      .bg{fill:#f8fafc}.title{font:800 30px Segoe UI,Malgun Gothic,sans-serif;fill:#0f172a}
+      .draft{fill:#f5f3ff;stroke:#8b5cf6}.gate{fill:#fff1f2;stroke:#f43f5e}.tool{fill:#fff7ed;stroke:#f59e0b}.art{fill:#f0fdfa;stroke:#14b8a6}.ui{fill:#eff6ff;stroke:#3b82f6}
+      .node{stroke-width:2;rx:10}.label{font:800 17px Segoe UI,Malgun Gothic,sans-serif;fill:#0f172a}.mini{font:13px Segoe UI,Malgun Gothic,sans-serif;fill:#475569}.code{font:12px Cascadia Mono,Consolas,monospace;fill:#475569}
+      .line{stroke:#e11d48;stroke-width:3;fill:none;marker-end:url(#arrow)}.blue{stroke:#2563eb;stroke-width:3;fill:none;marker-end:url(#arrowB)}
+    </style>
+  </defs>
+  <rect class="bg" width="1280" height="860"/>
+  <text class="title" x="54" y="62">03. Draft → Server Gates → Simulation UI</text>
+
+  <rect class="node draft" x="60" y="150" width="210" height="105"/>
+  <text class="label" x="95" y="190">Circuit Draft</text>
+  <text class="code" x="95" y="218">LiveAgentDraft</text>
+
+  <path class="line" d="M270 202 H345"/>
+  <rect class="node gate" x="345" y="150" width="210" height="105"/>
+  <text class="label" x="385" y="190">Schema</text>
+  <text class="mini" x="385" y="218">parse + normalize</text>
+
+  <path class="line" d="M555 202 H630"/>
+  <rect class="node gate" x="630" y="130" width="245" height="145"/>
+  <text class="label" x="670" y="170">Validation Gates</text>
+  <text class="mini" x="670" y="200">candidate part</text>
+  <text class="mini" x="670" y="224">intent fulfillment</text>
+  <text class="mini" x="670" y="248">context coverage</text>
+
+  <path class="line" d="M875 202 H950"/>
+  <rect class="node tool" x="950" y="130" width="245" height="145"/>
+  <text class="label" x="990" y="170">Compile</text>
+  <text class="mini" x="990" y="200">netlist</text>
+  <text class="mini" x="990" y="224">renderPlan</text>
+  <text class="mini" x="990" y="248">simulationPlan</text>
+
+  <path class="line" d="M1072 275 V360"/>
+  <rect class="node gate" x="880" y="360" width="325" height="115"/>
+  <text class="label" x="925" y="403">Runnable + Solver Gate</text>
+  <text class="mini" x="925" y="430">servingStatus 결정</text>
+  <text class="code" x="925" y="454">buildable / clarify / unsupported</text>
+
+  <path class="blue" d="M880 418 H720"/>
+  <rect class="node art" x="425" y="360" width="295" height="115"/>
+  <text class="label" x="470" y="403">AgentRunResult</text>
+  <text class="mini" x="470" y="430">requirement + spec + plans</text>
+  <text class="code" x="470" y="454">HTTP JSON</text>
+
+  <path class="blue" d="M572 475 V565"/>
+  <rect class="node ui" x="150" y="565" width="250" height="130"/>
+  <text class="label" x="205" y="608">Files</text>
+  <text class="mini" x="205" y="636">requirementMarkdown</text>
+
+  <rect class="node ui" x="490" y="565" width="250" height="130"/>
+  <text class="label" x="558" y="608">PCB</text>
+  <text class="mini" x="535" y="636">renderPlan → 3D</text>
+  <text class="mini" x="535" y="660">Arduino/OLED/wires</text>
+
+  <rect class="node ui" x="830" y="565" width="250" height="130"/>
+  <text class="label" x="900" y="608">Run</text>
+  <text class="mini" x="875" y="636">simulationPlan</text>
+  <text class="mini" x="875" y="660">currentPaths if valid</text>
+
+  <rect class="node gate" x="150" y="755" width="930" height="65"/>
+  <text class="label" x="180" y="795">UI gate: servingStatus + solverGateResult + buildRunnableReport가 build/run/current-flow claim을 마지막으로 제한한다.</text>
+</svg>

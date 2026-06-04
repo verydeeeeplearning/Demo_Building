@@ -1,52 +1,67 @@
 import { answerTutorQuestion } from './circuitInspector.js';
 
-const SERVER_OPT_IN_KEY = 'hEduwareAgentServer';
+const TUTOR_SERVER_DISABLED_KEY = 'hEduwareTutorServer';
 // Same-origin in the production build (served by the agent server); the local
 // standalone server only in dev.
 const TUTOR_PATH = '/api/agent/explain-target';
 const DEFAULT_ENDPOINT = import.meta.env?.PROD
   ? TUTOR_PATH
   : `http://127.0.0.1:8787${TUTOR_PATH}`;
+const SERVER_FAILURE_TTL_MS = 15_000;
+const serverReachability = new Map();
 
 export async function askCircuitTutor({ circuit, target, question, locale, running }) {
-  if (shouldUseAgentServer()) {
-    try {
-      const response = await fetch(DEFAULT_ENDPOINT, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          locale,
-          question,
-          running,
-          circuitTitle: circuit.title,
-          selectedTarget: target,
-          target,
-          artifacts: {
-            circuitSpec: circuit.circuitSpec,
-            validationReport: circuit.validationReport,
-            simulationPlan: circuit.simulationPlan,
-            contextCoverage: circuit.contextCoverage,
-            buildRunnableReport: circuit.buildRunnableReport,
-            solverGateResult: circuit.solverGateResult,
-            contextTrace: circuit.contextTrace || []
-          }
-        })
-      });
-
-      if (response.ok) {
-        return parseTutorResponse(await response.json());
-      }
-      throw new Error(`tutor server returned ${response.status}`);
-    } catch (error) {
-      return {
-        ...localTutorResponse({ circuit, target, question, locale, running }),
-        servingStatus: 'live_tutor_fallback',
-        fallbackReason: redactTutorFallbackReason(error)
-      };
-    }
+  if (!shouldUseTutorServer()) {
+    return localTutorResponse({ circuit, target, question, locale, running });
   }
 
-  return localTutorResponse({ circuit, target, question, locale, running });
+  if (hasCachedServerFailure()) {
+    return {
+      ...localTutorResponse({ circuit, target, question, locale, running }),
+      servingStatus: 'live_tutor_fallback',
+      fallbackReason: 'tutor server unavailable'
+    };
+  }
+
+  try {
+    const response = await fetch(DEFAULT_ENDPOINT, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        locale,
+        question,
+        running,
+        circuitTitle: circuit.title,
+        selectedTarget: target,
+        target,
+        artifacts: {
+          circuitSpec: circuit.circuitSpec,
+          validationReport: circuit.validationReport,
+          simulationPlan: circuit.simulationPlan,
+          contextCoverage: circuit.contextCoverage,
+          buildRunnableReport: circuit.buildRunnableReport,
+          solverGateResult: circuit.solverGateResult,
+          contextTrace: circuit.contextTrace || []
+        }
+      })
+    });
+
+    if (response.ok) {
+      const parsed = parseTutorResponse(await response.json());
+      markServerReachable();
+      return parsed;
+    }
+    throw new TutorServerTransportError(`tutor server returned ${response.status}`);
+  } catch (error) {
+    if (isTutorServerTransportError(error)) {
+      markServerFailure();
+    }
+    return {
+      ...localTutorResponse({ circuit, target, question, locale, running }),
+      servingStatus: 'live_tutor_fallback',
+      fallbackReason: redactTutorFallbackReason(error)
+    };
+  }
 }
 
 function localTutorResponse({ circuit, target, question, locale, running }) {
@@ -78,6 +93,18 @@ function parseTutorResponse(value) {
   }
   if (typeof value.fallbackReason === 'string' && value.fallbackReason.length > 240) {
     throw new Error('malformed tutor response fallback reason');
+  }
+  if (value.runtimeMode !== undefined && !['auto', 'live', 'local'].includes(value.runtimeMode)) {
+    throw new Error('malformed tutor response runtime mode');
+  }
+  if (value.liveConfigured !== undefined && typeof value.liveConfigured !== 'boolean') {
+    throw new Error('malformed tutor response live configuration');
+  }
+  if (value.liveAttempted !== undefined && typeof value.liveAttempted !== 'boolean') {
+    throw new Error('malformed tutor response live attempt');
+  }
+  if (value.fallbackCategory !== undefined && typeof value.fallbackCategory !== 'string') {
+    throw new Error('malformed tutor response fallback category');
   }
   if (value.suggestedQuestions !== undefined && !isStringArray(value.suggestedQuestions)) {
     throw new Error('malformed tutor response suggested questions');
@@ -121,10 +148,41 @@ function isStringArray(value) {
   return Array.isArray(value) && value.every((item) => typeof item === 'string');
 }
 
-function shouldUseAgentServer() {
+function shouldUseTutorServer() {
   try {
-    return globalThis.localStorage?.getItem(SERVER_OPT_IN_KEY) === 'enabled';
+    return globalThis.localStorage?.getItem(TUTOR_SERVER_DISABLED_KEY) !== 'disabled';
   } catch (error) {
-    return false;
+    return true;
   }
+}
+
+function hasCachedServerFailure() {
+  const entry = serverReachability.get(tutorServerCacheKey());
+  return Boolean(entry?.failedUntil && entry.failedUntil > Date.now());
+}
+
+function markServerReachable() {
+  serverReachability.set(tutorServerCacheKey(), {
+    failedUntil: 0,
+    lastSuccessAt: Date.now()
+  });
+}
+
+function markServerFailure() {
+  serverReachability.set(tutorServerCacheKey(), {
+    failedUntil: Date.now() + SERVER_FAILURE_TTL_MS,
+    lastFailureAt: Date.now()
+  });
+}
+
+function tutorServerCacheKey() {
+  return `${DEFAULT_ENDPOINT}|${globalThis.location?.origin ?? 'unknown-origin'}`;
+}
+
+class TutorServerTransportError extends Error {}
+
+function isTutorServerTransportError(error) {
+  return error instanceof TutorServerTransportError
+    || error instanceof TypeError
+    || /fetch|network|failed to fetch|server unavailable/i.test(error instanceof Error ? error.message : String(error));
 }

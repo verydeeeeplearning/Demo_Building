@@ -251,6 +251,10 @@ test('tutor log summaries expose serving state without raw tutor answers or secr
     sessionId: 'tutor-session',
     mode: 'live',
     servingStatus: 'live_tutor_fallback',
+    runtimeMode: 'auto',
+    liveConfigured: true,
+    liveAttempted: true,
+    fallbackCategory: 'live-failure',
     fallbackReason: 'OPENAI_API_KEY=sk-testsecret1234567890 failed',
     message: 'This is the full answer that should be hashed instead of logged.',
     grounding: ['validation-report', 'simulation-plan'],
@@ -258,6 +262,10 @@ test('tutor log summaries expose serving state without raw tutor answers or secr
   });
 
   assert.equal(responseSummary.structuredOutputStatus, 'fallback');
+  assert.equal(responseSummary.runtimeMode, 'auto');
+  assert.equal(responseSummary.liveConfigured, true);
+  assert.equal(responseSummary.liveAttempted, true);
+  assert.equal(responseSummary.fallbackCategory, 'live-failure');
   assert.equal(responseSummary.messageChars, 64);
   assert.match(responseSummary.messageHash, /^[0-9a-f]{64}$/);
   assert.equal(responseSummary.fallbackReasonPreview, 'OPENAI_API_KEY=[redacted] failed');

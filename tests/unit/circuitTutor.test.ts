@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { runTutorAgent } from '../../server/agent/circuitTutor.ts';
+import { resolveTutorRuntimeMode, runTutorAgent, tutorRuntimeHealth } from '../../server/agent/circuitTutor.ts';
 import { TutorMessageRequestSchema } from '../../server/agent/schemas.ts';
 
 const target = {
@@ -147,7 +147,11 @@ test('tutor agent recognizes Korean missing-wire questions and explains the sele
 
 test('tutor agent can use opt-in live mode without changing the default local path', async () => {
   const previousMode = process.env.H_EDUWARE_TUTOR_MODE;
+  const previousModel = process.env.H_EDUWARE_AGENT_MODEL;
+  const previousKey = process.env.OPENAI_API_KEY;
   process.env.H_EDUWARE_TUTOR_MODE = 'live';
+  process.env.H_EDUWARE_AGENT_MODEL = 'gpt-5.4-mini';
+  process.env.OPENAI_API_KEY = 'test-key';
 
   try {
     const response = await runTutorAgent(request, {
@@ -169,12 +173,112 @@ test('tutor agent can use opt-in live mode without changing the default local pa
     assert.deepEqual(response.suggestedQuestions, ['Why does the OLED need 5V?']);
   } finally {
     restoreEnv('H_EDUWARE_TUTOR_MODE', previousMode);
+    restoreEnv('H_EDUWARE_AGENT_MODEL', previousModel);
+    restoreEnv('OPENAI_API_KEY', previousKey);
+  }
+});
+
+test('tutor runtime auto mode attempts live when credentials are configured', async () => {
+  const previousMode = process.env.H_EDUWARE_TUTOR_MODE;
+  const previousModel = process.env.H_EDUWARE_AGENT_MODEL;
+  const previousKey = process.env.OPENAI_API_KEY;
+  delete process.env.H_EDUWARE_TUTOR_MODE;
+  process.env.H_EDUWARE_AGENT_MODEL = 'gpt-5.4-mini';
+  process.env.OPENAI_API_KEY = 'test-key';
+
+  try {
+    const resolution = resolveTutorRuntimeMode();
+    assert.equal(resolution.runtimeMode, 'auto');
+    assert.equal(resolution.liveConfigured, true);
+    assert.equal(resolution.liveDefault, true);
+
+    const response = await runTutorAgent(request, {
+      traceId: 'tutor-test-trace',
+      runName: 'h-eduware-circuit-tutor-test',
+      tags: ['workflow:tutor-test'],
+      metadata: { testCase: 'auto-live' },
+      liveDraftProvider: async ({ traceId, runName, tags, metadata }) => {
+        assert.equal(traceId, 'tutor-test-trace');
+        assert.equal(runName, 'h-eduware-circuit-tutor-test');
+        assert.deepEqual(tags, ['workflow:tutor-test']);
+        assert.deepEqual(metadata, { testCase: 'auto-live' });
+        return {
+          message: 'Auto live tutor answer grounded in the selected connection.',
+          suggestedQuestions: ['What confirms the return path?']
+        };
+      }
+    });
+
+    assert.equal(response.mode, 'live');
+    assert.equal(response.servingStatus, 'live_tutor_answer');
+    assert.equal(response.message, 'Auto live tutor answer grounded in the selected connection.');
+  } finally {
+    restoreEnv('H_EDUWARE_TUTOR_MODE', previousMode);
+    restoreEnv('H_EDUWARE_AGENT_MODEL', previousModel);
+    restoreEnv('OPENAI_API_KEY', previousKey);
+  }
+});
+
+test('tutor runtime auto mode stays local when credentials are absent', async () => {
+  const previousMode = process.env.H_EDUWARE_TUTOR_MODE;
+  const previousModel = process.env.H_EDUWARE_AGENT_MODEL;
+  const previousKey = process.env.OPENAI_API_KEY;
+  delete process.env.H_EDUWARE_TUTOR_MODE;
+  delete process.env.H_EDUWARE_AGENT_MODEL;
+  delete process.env.OPENAI_API_KEY;
+
+  try {
+    const resolution = resolveTutorRuntimeMode();
+    assert.equal(resolution.runtimeMode, 'auto');
+    assert.equal(resolution.liveConfigured, false);
+    assert.equal(resolution.liveDefault, false);
+
+    const response = await runTutorAgent(request, {
+      liveDraftProvider: async () => {
+        throw new Error('live should not be attempted without config');
+      }
+    });
+
+    assert.equal(response.mode, 'local');
+    assert.equal(response.servingStatus, 'local_tutor_answer');
+  } finally {
+    restoreEnv('H_EDUWARE_TUTOR_MODE', previousMode);
+    restoreEnv('H_EDUWARE_AGENT_MODEL', previousModel);
+    restoreEnv('OPENAI_API_KEY', previousKey);
+  }
+});
+
+test('tutor health metadata is derived from the same runtime resolver', () => {
+  const previousMode = process.env.H_EDUWARE_TUTOR_MODE;
+  const previousModel = process.env.H_EDUWARE_AGENT_MODEL;
+  const previousKey = process.env.OPENAI_API_KEY;
+  process.env.H_EDUWARE_TUTOR_MODE = 'auto';
+  process.env.H_EDUWARE_AGENT_MODEL = 'gpt-5.4-mini';
+  process.env.OPENAI_API_KEY = 'test-key';
+
+  try {
+    const resolution = resolveTutorRuntimeMode();
+    const health = tutorRuntimeHealth();
+
+    assert.equal(health.tutor.runtimeMode, resolution.runtimeMode);
+    assert.equal(health.tutor.liveConfigured, resolution.liveConfigured);
+    assert.equal(health.tutor.liveDefault, resolution.liveDefault);
+    assert.equal(health.tutor.liveRequired, resolution.liveRequired);
+    assert.equal(health.tutor.fallbackAllowed, resolution.fallbackAllowed);
+  } finally {
+    restoreEnv('H_EDUWARE_TUTOR_MODE', previousMode);
+    restoreEnv('H_EDUWARE_AGENT_MODEL', previousModel);
+    restoreEnv('OPENAI_API_KEY', previousKey);
   }
 });
 
 test('tutor agent falls back to local grounding when opt-in live tutor fails', async () => {
   const previousMode = process.env.H_EDUWARE_TUTOR_MODE;
+  const previousModel = process.env.H_EDUWARE_AGENT_MODEL;
+  const previousKey = process.env.OPENAI_API_KEY;
   process.env.H_EDUWARE_TUTOR_MODE = 'live';
+  process.env.H_EDUWARE_AGENT_MODEL = 'gpt-5.4-mini';
+  process.env.OPENAI_API_KEY = 'test-key';
 
   try {
     const response = await runTutorAgent(request, {
@@ -192,12 +296,18 @@ test('tutor agent falls back to local grounding when opt-in live tutor fails', a
     assert.equal(response.grounding.includes('live-deepagents-tutor'), false);
   } finally {
     restoreEnv('H_EDUWARE_TUTOR_MODE', previousMode);
+    restoreEnv('H_EDUWARE_AGENT_MODEL', previousModel);
+    restoreEnv('OPENAI_API_KEY', previousKey);
   }
 });
 
 test('tutor agent falls back when live tutor draft violates structured output', async () => {
   const previousMode = process.env.H_EDUWARE_TUTOR_MODE;
+  const previousModel = process.env.H_EDUWARE_AGENT_MODEL;
+  const previousKey = process.env.OPENAI_API_KEY;
   process.env.H_EDUWARE_TUTOR_MODE = 'live';
+  process.env.H_EDUWARE_AGENT_MODEL = 'gpt-5.4-mini';
+  process.env.OPENAI_API_KEY = 'test-key';
 
   try {
     const response = await runTutorAgent(request, {
@@ -214,12 +324,18 @@ test('tutor agent falls back when live tutor draft violates structured output', 
     assert.equal(response.grounding.includes('live-deepagents-tutor'), false);
   } finally {
     restoreEnv('H_EDUWARE_TUTOR_MODE', previousMode);
+    restoreEnv('H_EDUWARE_AGENT_MODEL', previousModel);
+    restoreEnv('OPENAI_API_KEY', previousKey);
   }
 });
 
 test('tutor agent redacts live failure details before returning fallback reason', async () => {
   const previousMode = process.env.H_EDUWARE_TUTOR_MODE;
+  const previousModel = process.env.H_EDUWARE_AGENT_MODEL;
+  const previousKey = process.env.OPENAI_API_KEY;
   process.env.H_EDUWARE_TUTOR_MODE = 'live';
+  process.env.H_EDUWARE_AGENT_MODEL = 'gpt-5.4-mini';
+  process.env.OPENAI_API_KEY = 'test-key';
 
   try {
     const response = await runTutorAgent(request, {
@@ -234,6 +350,8 @@ test('tutor agent redacts live failure details before returning fallback reason'
     assert.match(response.fallbackReason ?? '', /\[redacted\]/);
   } finally {
     restoreEnv('H_EDUWARE_TUTOR_MODE', previousMode);
+    restoreEnv('H_EDUWARE_AGENT_MODEL', previousModel);
+    restoreEnv('OPENAI_API_KEY', previousKey);
   }
 });
 

@@ -18,31 +18,104 @@ const LiveTutorDraftSchema = z.object({
 
 type LiveTutorDraft = z.infer<typeof LiveTutorDraftSchema>;
 type ReasoningEffort = 'none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
+type TutorRuntimeMode = 'auto' | 'live' | 'local';
+type TutorRuntimeResolution = {
+  runtimeMode: TutorRuntimeMode;
+  liveConfigured: boolean;
+  liveDefault: boolean;
+  liveRequired: boolean;
+  fallbackAllowed: boolean;
+};
 type TutorAgentOptions = {
   liveDraftProvider?: (input: {
     request: TutorMessageRequest;
     localResponse: TutorMessageResponse;
+    traceId?: string;
+    runName?: string;
+    tags?: string[];
+    metadata?: Record<string, unknown>;
   }) => Promise<LiveTutorDraft>;
+  traceId?: string;
+  runName?: string;
+  tags?: string[];
+  metadata?: Record<string, unknown>;
 };
+
+export function resolveTutorRuntimeMode(env: NodeJS.ProcessEnv = process.env): TutorRuntimeResolution {
+  const configuredMode = String(env.H_EDUWARE_TUTOR_MODE ?? 'auto').toLowerCase();
+  const runtimeMode: TutorRuntimeMode = configuredMode === 'local' || configuredMode === 'live'
+    ? configuredMode
+    : 'auto';
+  const liveConfigured = Boolean(env.OPENAI_API_KEY && env.H_EDUWARE_AGENT_MODEL);
+  const liveRequired = runtimeMode === 'live';
+  const liveDefault = runtimeMode === 'auto' ? liveConfigured : runtimeMode === 'live' && liveConfigured;
+
+  return {
+    runtimeMode,
+    liveConfigured,
+    liveDefault,
+    liveRequired,
+    fallbackAllowed: true
+  };
+}
+
+export function tutorRuntimeHealth() {
+  const resolution = resolveTutorRuntimeMode();
+  return {
+    tutor: {
+      serverAvailable: true,
+      runtimeMode: resolution.runtimeMode,
+      liveConfigured: resolution.liveConfigured,
+      liveDefault: resolution.liveDefault,
+      liveRequired: resolution.liveRequired,
+      fallbackAllowed: resolution.fallbackAllowed
+    }
+  };
+}
 
 export async function runTutorAgent(
   request: TutorMessageRequest,
   options: TutorAgentOptions = {}
 ): Promise<TutorMessageResponse> {
   const localResponse = buildLocalTutorResponse(request);
-  if (!shouldUseLiveTutor()) {
-    return localResponse;
+  const runtime = resolveTutorRuntimeMode();
+  if (runtime.runtimeMode === 'local') {
+    return withTutorRuntime(localResponse, runtime, { liveAttempted: false });
+  }
+  if (!runtime.liveConfigured) {
+    if (!runtime.liveRequired) {
+      return withTutorRuntime(localResponse, runtime, { liveAttempted: false });
+    }
+    return TutorMessageResponseSchema.parse({
+      ...localResponse,
+      servingStatus: 'live_tutor_fallback',
+      fallbackReason: 'live tutor configuration unavailable [redacted]',
+      runtimeMode: runtime.runtimeMode,
+      liveConfigured: runtime.liveConfigured,
+      liveAttempted: false,
+      fallbackCategory: 'configuration'
+    });
   }
 
   try {
     const draft = options.liveDraftProvider
-      ? await options.liveDraftProvider({ request, localResponse })
-      : await runLiveTutorDraft(request, localResponse);
+      ? await options.liveDraftProvider({
+        request,
+        localResponse,
+        traceId: options.traceId,
+        runName: options.runName,
+        tags: options.tags,
+        metadata: options.metadata
+      })
+      : await runLiveTutorDraft(request, localResponse, options);
     const parsed = LiveTutorDraftSchema.parse(draft);
     return TutorMessageResponseSchema.parse({
       ...localResponse,
       mode: 'live',
       servingStatus: 'live_tutor_answer',
+      runtimeMode: runtime.runtimeMode,
+      liveConfigured: runtime.liveConfigured,
+      liveAttempted: true,
       message: parsed.message,
       grounding: uniqueStrings([...localResponse.grounding, 'live-deepagents-tutor']),
       suggestedQuestions: parsed.suggestedQuestions.length > 0
@@ -53,9 +126,27 @@ export async function runTutorAgent(
     return TutorMessageResponseSchema.parse({
       ...localResponse,
       servingStatus: 'live_tutor_fallback',
-      fallbackReason: redactTutorFallbackReason(error)
+      fallbackReason: redactTutorFallbackReason(error),
+      runtimeMode: runtime.runtimeMode,
+      liveConfigured: runtime.liveConfigured,
+      liveAttempted: true,
+      fallbackCategory: error instanceof z.ZodError ? 'structured-output' : 'live-failure'
     });
   }
+}
+
+function withTutorRuntime(
+  response: TutorMessageResponse,
+  runtime: TutorRuntimeResolution,
+  options: { liveAttempted: boolean; fallbackCategory?: string }
+) {
+  return TutorMessageResponseSchema.parse({
+    ...response,
+    runtimeMode: runtime.runtimeMode,
+    liveConfigured: runtime.liveConfigured,
+    liveAttempted: options.liveAttempted,
+    fallbackCategory: options.fallbackCategory
+  });
 }
 
 function buildLocalTutorResponse(request: TutorMessageRequest): TutorMessageResponse {
@@ -91,13 +182,10 @@ function classifyTutorQuestion(question: string) {
   };
 }
 
-function shouldUseLiveTutor() {
-  return process.env.H_EDUWARE_TUTOR_MODE === 'live';
-}
-
 async function runLiveTutorDraft(
   request: TutorMessageRequest,
-  localResponse: TutorMessageResponse
+  localResponse: TutorMessageResponse,
+  options: TutorAgentOptions = {}
 ): Promise<LiveTutorDraft> {
   const apiKey = process.env.OPENAI_API_KEY;
   const modelName = process.env.H_EDUWARE_AGENT_MODEL;
@@ -125,6 +213,16 @@ async function runLiveTutorDraft(
       content: buildLiveTutorUserPrompt(request, localResponse)
     }]
   }, {
+    runName: options.runName ?? 'h-eduware-circuit-tutor',
+    tags: options.tags ?? ['workflow:tutor'],
+    metadata: {
+      ...(options.metadata ?? {}),
+      traceId: options.traceId,
+      workflow: 'tutor',
+      targetType: request.target.type,
+      targetSignal: request.target.signal ?? null,
+      selectedTargetId: request.target.id
+    },
     configurable: {
       thread_id: request.sessionId ?? `tutor-${randomUUID()}`
     }

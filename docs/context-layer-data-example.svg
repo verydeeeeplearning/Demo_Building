@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1320" viewBox="0 0 1500 1320" role="img" aria-labelledby="title desc">
+  <title id="title">H-eduware Context Layer Data Example</title>
+  <desc id="desc">OLED 텍스트 출력 요청이 Context Layer에서 어떤 데이터로 표현되고 어떤 runtime 역할을 하는지 보여준다.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto">
+      <path d="M2 2 L12 7 L2 12 Z" fill="#0f766e"/>
+    </marker>
+    <style>
+      .bg { fill: #f8fafc; }
+      .title { font: 800 34px "Segoe UI","Malgun Gothic",Arial,sans-serif; fill: #0f172a; }
+      .subtitle { font: 16px "Segoe UI","Malgun Gothic",Arial,sans-serif; fill: #475569; }
+      .lane { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; rx: 14; }
+      .source { fill: #eff6ff; stroke: #3b82f6; stroke-width: 2; rx: 10; }
+      .packet { fill: #ecfdf5; stroke: #10b981; stroke-width: 2; rx: 10; }
+      .role { fill: #fff7ed; stroke: #f59e0b; stroke-width: 2; rx: 10; }
+      .gate { fill: #fff1f2; stroke: #f43f5e; stroke-width: 2; rx: 10; }
+      .label { font: 800 20px "Segoe UI","Malgun Gothic",Arial,sans-serif; fill: #0f172a; }
+      .boxTitle { font: 800 17px "Segoe UI","Malgun Gothic",Arial,sans-serif; fill: #0f172a; }
+      .text { font: 14px "Segoe UI","Malgun Gothic",Arial,sans-serif; fill: #334155; }
+      .small { font: 13px "Segoe UI","Malgun Gothic",Arial,sans-serif; fill: #64748b; }
+      .code { font: 12px "Cascadia Mono",Consolas,monospace; fill: #334155; }
+      .chip { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; rx: 8; }
+      .line { stroke: #0f766e; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .dash { stroke-dasharray: 8 7; }
+      .num { fill: #0f766e; }
+      .numText { font: 800 14px "Segoe UI",Arial,sans-serif; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1500" height="1320"/>
+  <text x="56" y="64" class="title">Context Layer: 실제 데이터 표현 예시</text>
+  <text x="56" y="98" class="subtitle">예시 요청 하나를 기준으로, source 파일이 ContextPacket 필드가 되고 그 필드가 prompt, tools, gates, UI 권한으로 소비되는 흐름이다.</text>
+
+  <rect class="lane" x="56" y="138" width="402" height="1030"/>
+  <rect class="lane" x="548" y="138" width="404" height="1030"/>
+  <rect class="lane" x="1042" y="138" width="402" height="1030"/>
+  <text x="86" y="183" class="label">1. Source Data</text>
+  <text x="578" y="183" class="label">2. ContextPacket</text>
+  <text x="1072" y="183" class="label">3. Runtime Roles</text>
+
+  <rect class="source" x="86" y="225" width="342" height="92"/>
+  <text x="112" y="259" class="boxTitle">사용자 요청</text>
+  <text x="112" y="287" class="text">OLED에 Hello를 표시해줘</text>
+  <text x="112" y="309" class="code">message + locale</text>
+
+  <path class="line" d="M257 317 V358"/>
+  <rect class="source" x="86" y="358" width="342" height="130"/>
+  <text x="112" y="392" class="boxTitle">v2 route entry</text>
+  <text x="112" y="420" class="code">routeId: v2-display-text-output</text>
+  <text x="112" y="444" class="code">bundleIds: [display-text-output]</text>
+  <text x="112" y="468" class="code">alwaysInclude: safety, truthfulness</text>
+
+  <path class="line" d="M257 488 V528"/>
+  <rect class="source" x="86" y="528" width="342" height="132"/>
+  <text x="112" y="562" class="boxTitle">BUNDLE.md</text>
+  <text x="112" y="590" class="text">agent가 읽는 짧은 capability 요약</text>
+  <text x="112" y="614" class="text">I2C OLED, static text, 전류 경로</text>
+  <text x="112" y="638" class="small">prompt surface</text>
+
+  <path class="line" d="M257 660 V700"/>
+  <rect class="source" x="86" y="700" width="342" height="170"/>
+  <text x="112" y="734" class="boxTitle">manifest.json</text>
+  <text x="112" y="762" class="code">requiredParts: Arduino, breadboard, OLED</text>
+  <text x="112" y="786" class="code">allowedParts: + jumper, LCD variants</text>
+  <text x="112" y="810" class="code">rules: i2c-pin, common-ground</text>
+  <text x="112" y="834" class="code">primitives: display_static_text</text>
+  <text x="112" y="858" class="code">footprints: arduino, breadboard, oled</text>
+
+  <path class="line" d="M428 585 H575"/>
+  <path class="line" d="M428 785 H575"/>
+
+  <rect class="packet" x="578" y="225" width="344" height="790"/>
+  <text x="606" y="262" class="boxTitle">축약 ContextPacket 예시</text>
+
+  <rect class="chip" x="606" y="295" width="288" height="42"/>
+  <text x="620" y="320" class="code">routeId = v2-display-text-output</text>
+
+  <rect class="chip" x="606" y="352" width="288" height="64"/>
+  <text x="620" y="377" class="code">sourceIds =</text>
+  <text x="620" y="399" class="code">bundle + safety + truthfulness</text>
+
+  <rect class="chip" x="606" y="431" width="288" height="86"/>
+  <text x="620" y="456" class="code">retrievalPlan.sourceIds =</text>
+  <text x="620" y="478" class="code">bundle:display-text-output</text>
+  <text x="620" y="500" class="code">policy:safety-policy</text>
+
+  <rect class="chip" x="606" y="532" width="288" height="108"/>
+  <text x="620" y="557" class="code">candidateParts =</text>
+  <text x="620" y="579" class="code">arduino-uno</text>
+  <text x="620" y="601" class="code">breadboard-half</text>
+  <text x="620" y="623" class="code">oled-i2c-096, jumper-wire</text>
+
+  <rect class="chip" x="606" y="655" width="288" height="72"/>
+  <text x="620" y="680" class="code">supportBundle = complete</text>
+  <text x="620" y="702" class="code">supportLevel = supported</text>
+
+  <rect class="chip" x="606" y="742" width="288" height="86"/>
+  <text x="620" y="767" class="code">contextCoverage.status = sufficient</text>
+  <text x="620" y="789" class="code">sufficientFor = valid synthesis</text>
+  <text x="620" y="811" class="code">eligibility = eligible</text>
+
+  <rect class="chip" x="606" y="843" width="288" height="82"/>
+  <text x="620" y="868" class="code">promptBlock =</text>
+  <text x="620" y="890" class="code">compact text for Deep Agent</text>
+  <text x="620" y="912" class="small">전체 catalog가 아님</text>
+
+  <rect class="chip" x="606" y="940" width="288" height="50"/>
+  <text x="620" y="970" class="code">metadata.selectedBundleIds = [display]</text>
+
+  <path class="line" d="M922 320 H1065"/>
+  <rect class="role" x="1072" y="248" width="342" height="112"/>
+  <text x="1098" y="282" class="boxTitle">Prompt grounding</text>
+  <text x="1098" y="310" class="text">Deep Agent는 선택 bundle 요약과</text>
+  <text x="1098" y="334" class="text">candidate registry summary만 본다.</text>
+
+  <path class="line" d="M922 585 H1065"/>
+  <rect class="role" x="1072" y="430" width="342" height="142"/>
+  <text x="1098" y="464" class="boxTitle">Scoped tools</text>
+  <text x="1098" y="492" class="text">문서 읽기: retrievalPlan 안에서만</text>
+  <text x="1098" y="516" class="text">부품 검색: candidateParts 안에서만</text>
+  <text x="1098" y="540" class="text">compile: validation gate 통과 후</text>
+
+  <path class="line" d="M922 775 H1065"/>
+  <rect class="gate" x="1072" y="650" width="342" height="142"/>
+  <text x="1098" y="684" class="boxTitle">Synthesis gate</text>
+  <text x="1098" y="712" class="text">eligible이면 build-ready draft 허용</text>
+  <text x="1098" y="736" class="text">insufficient이면 clarify 또는 diagnostic</text>
+  <text x="1098" y="760" class="small">LLM보다 server gate가 우선</text>
+
+  <path class="line" d="M922 884 H1065"/>
+  <rect class="role" x="1072" y="870" width="342" height="142"/>
+  <text x="1098" y="904" class="boxTitle">Final UI authority</text>
+  <text x="1098" y="932" class="text">finalization이 candidate/context gate 재적용</text>
+  <text x="1098" y="956" class="text">UI는 servingStatus와 solverGate로</text>
+  <text x="1098" y="980" class="text">Build, Run, current-flow 표시를 제한</text>
+
+  <rect class="gate" x="86" y="1210" width="1328" height="74"/>
+  <text x="112" y="1242" class="boxTitle">핵심 역할</text>
+  <text x="112" y="1270" class="text">Context Layer는 자료를 많이 넣는 계층이 아니라, route · source · part · evidence · eligibility를 좁혀서 agent와 tool의 권한을 결정하는 계층이다.</text>
+</svg>

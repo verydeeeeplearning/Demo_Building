@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="900" viewBox="0 0 1280 900" role="img" aria-labelledby="title desc">
+  <title id="title">Agent Tool Gate Flow</title>
+  <desc id="desc">ContextPacket 이후 Deep Agent가 scoped tools와 HITL gate를 거치는 시각적 흐름.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2 2 L10 6 L2 10 Z" fill="#7c3aed"/></marker>
+    <marker id="arrowA" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2 2 L10 6 L2 10 Z" fill="#b45309"/></marker>
+    <style>
+      .bg{fill:#f8fafc}.title{font:800 30px Segoe UI,Malgun Gothic,sans-serif;fill:#0f172a}
+      .ctx{fill:#ecfdf5;stroke:#10b981}.agent{fill:#f5f3ff;stroke:#8b5cf6}.tool{fill:#fff7ed;stroke:#f59e0b}.gate{fill:#fff1f2;stroke:#f43f5e}.out{fill:#f0fdfa;stroke:#14b8a6}
+      .node{stroke-width:2;rx:10}.label{font:800 17px Segoe UI,Malgun Gothic,sans-serif;fill:#0f172a}.mini{font:13px Segoe UI,Malgun Gothic,sans-serif;fill:#475569}.code{font:12px Cascadia Mono,Consolas,monospace;fill:#475569}
+      .line{stroke:#7c3aed;stroke-width:3;fill:none;marker-end:url(#arrow)}.amber{stroke:#b45309;stroke-width:3;fill:none;marker-end:url(#arrowA)}.dash{stroke-dasharray:8 7}
+    </style>
+  </defs>
+  <rect class="bg" width="1280" height="900"/>
+  <text class="title" x="54" y="62">02. ContextPacket → DeepAgents + Scoped Tools</text>
+
+  <rect class="node ctx" x="70" y="170" width="235" height="120"/>
+  <text class="label" x="105" y="215">ContextPacket</text>
+  <text class="mini" x="105" y="242">coverage</text>
+  <text class="mini" x="105" y="265">candidates</text>
+
+  <path class="line" d="M305 230 H385"/>
+  <rect class="node gate" x="385" y="170" width="235" height="120"/>
+  <text class="label" x="430" y="215">requestScope</text>
+  <text class="mini" x="425" y="242">synthesize / clarify / gap</text>
+  <text class="code" x="425" y="266">assessRequestScope()</text>
+
+  <path class="line" d="M620 230 H700"/>
+  <rect class="node tool" x="700" y="155" width="280" height="150"/>
+  <text class="label" x="735" y="205">Tool Scope</text>
+  <text class="mini" x="735" y="232">allowedContextSourceIds</text>
+  <text class="mini" x="735" y="256">candidateParts only</text>
+  <text class="mini" x="735" y="280">supportBundles only</text>
+
+  <path class="line" d="M840 305 V390"/>
+  <rect class="node agent" x="520" y="390" width="360" height="165"/>
+  <text class="label" x="580" y="435">Deep Agent</text>
+  <text class="mini" x="570" y="463">createDeepAgent + toolStrategy</text>
+  <text class="mini" x="570" y="488">MemorySaver checkpointer</text>
+  <text class="code" x="570" y="514">thread_id = sessionId</text>
+
+  <path class="amber dash" d="M700 555 V635 H325"/>
+  <rect class="node gate" x="90" y="625" width="235" height="120"/>
+  <text class="label" x="135" y="670">HITL</text>
+  <text class="mini" x="125" y="697">interrupt()</text>
+  <text class="code" x="125" y="721">Command({ resume })</text>
+
+  <path class="line" d="M880 473 H995"/>
+  <rect class="node tool" x="995" y="390" width="235" height="165"/>
+  <text class="label" x="1030" y="430">Tools</text>
+  <text class="mini" x="1030" y="457">read/search scoped</text>
+  <text class="mini" x="1030" y="482">validate/netlist</text>
+  <text class="mini" x="1030" y="507">render/sim compile</text>
+  <text class="code" x="1030" y="532">fail closed</text>
+
+  <path class="line" d="M700 555 V660"/>
+  <rect class="node out" x="520" y="660" width="360" height="120"/>
+  <text class="label" x="585" y="705">LiveAgentDraft</text>
+  <text class="mini" x="590" y="732">chat · awaiting_input · circuit</text>
+  <text class="code" x="590" y="756">structuredResponse</text>
+</svg>
