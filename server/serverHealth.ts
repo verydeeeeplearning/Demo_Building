@@ -8,7 +8,11 @@ const DEFAULT_SOURCE_FILES = [
   { id: 'agent:deep-agent-runtime', path: fileURLToPath(new URL('./agent/deepAgentRuntime.ts', import.meta.url)) },
   { id: 'agent:circuit-tools', path: fileURLToPath(new URL('./agent/circuitTools.ts', import.meta.url)) },
   { id: 'context:context-packet', path: fileURLToPath(new URL('./context/contextPacket.ts', import.meta.url)) },
-  { id: 'agent:circuit-tutor', path: fileURLToPath(new URL('./agent/circuitTutor.ts', import.meta.url)) }
+  { id: 'agent:circuit-tutor', path: fileURLToPath(new URL('./agent/circuitTutor.ts', import.meta.url)) },
+  { id: 'agent:tutor-thread-scope', path: fileURLToPath(new URL('./agent/tutorThreadScope.ts', import.meta.url)) },
+  { id: 'agent:tutor-context-tools', path: fileURLToPath(new URL('./agent/tutorContextTools.ts', import.meta.url)) },
+  { id: 'context:scoped-context-reader', path: fileURLToPath(new URL('./context/scopedContextReader.ts', import.meta.url)) },
+  { id: 'shared:tutor-thread-scope', path: fileURLToPath(new URL('../shared/tutorThreadScope.js', import.meta.url)) }
 ];
 
 type SourceFileProbe = {
@@ -29,6 +33,10 @@ export function serverProcessHealth() {
     serverUptimeMs: Math.round(process.uptime() * 1000),
     sourceStatus: sourceFreshnessStatus({ startedAtMs: SERVER_STARTED_AT_MS })
   };
+}
+
+export function serverSourceFileProbeIds() {
+  return DEFAULT_SOURCE_FILES.map((file) => file.id);
 }
 
 export function sourceFreshnessStatus(options: SourceStatusOptions = {}) {

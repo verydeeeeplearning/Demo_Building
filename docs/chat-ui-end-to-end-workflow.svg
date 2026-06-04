@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1450" viewBox="0 0 1900 1450" role="img" aria-labelledby="title desc">
+  <title id="title">H-eduware Chat UI End-to-End Workflow</title>
+  <desc id="desc">End-to-end simulation flow for the main H-eduware Chat UI, from user query capture through frontend state, backend context building, DeepAgents runtime, scoped tools, validation gates, non-streaming response delivery, and UI rendering.</desc>
+  <defs>
+    <marker id="arrow-main" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto" markerUnits="strokeWidth">
+      <path d="M2 2 L12 7 L2 12 Z" fill="#1d4ed8"/>
+    </marker>
+    <marker id="arrow-soft" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto" markerUnits="strokeWidth">
+      <path d="M2 2 L12 7 L2 12 Z" fill="#64748b"/>
+    </marker>
+    <marker id="arrow-gate" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto" markerUnits="strokeWidth">
+      <path d="M2 2 L12 7 L2 12 Z" fill="#e11d48"/>
+    </marker>
+    <style>
+      .bg { fill: #f8fafc; }
+      .title { font: 800 34px "Segoe UI", Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 15px "Segoe UI", Arial, sans-serif; fill: #475569; }
+      .lane { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; }
+      .laneTitle { font: 800 18px "Segoe UI", Arial, sans-serif; fill: #334155; }
+      .boxTitle { font: 800 16px "Segoe UI", Arial, sans-serif; fill: #0f172a; }
+      .text { font: 13px "Segoe UI", Arial, sans-serif; fill: #334155; }
+      .small { font: 12px "Segoe UI", Arial, sans-serif; fill: #64748b; }
+      .code { font: 12px "Cascadia Mono", Consolas, monospace; fill: #475569; }
+      .tiny { font: 11px "Cascadia Mono", Consolas, monospace; fill: #475569; }
+      .ui { fill: #eff6ff; stroke: #2563eb; stroke-width: 2; }
+      .backend { fill: #eef2ff; stroke: #4f46e5; stroke-width: 2; }
+      .context { fill: #fff7ed; stroke: #d97706; stroke-width: 2; }
+      .agent { fill: #ecfdf5; stroke: #059669; stroke-width: 2; }
+      .tool { fill: #f5f3ff; stroke: #7c3aed; stroke-width: 2; }
+      .gate { fill: #fff1f2; stroke: #e11d48; stroke-width: 2; }
+      .final { fill: #f0fdfa; stroke: #0f766e; stroke-width: 2; }
+      .branch { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; }
+      .note { fill: #f8fafc; stroke: #94a3b8; stroke-width: 1.5; }
+      .chip { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.4; }
+      .mainLine { stroke: #1d4ed8; stroke-width: 3; fill: none; marker-end: url(#arrow-main); }
+      .softLine { stroke: #64748b; stroke-width: 2.5; fill: none; marker-end: url(#arrow-soft); }
+      .gateLine { stroke: #e11d48; stroke-width: 2.5; fill: none; marker-end: url(#arrow-gate); }
+      .dash { stroke-dasharray: 8 7; }
+      .legendLabel { font: 12px "Segoe UI", Arial, sans-serif; fill: #334155; }
+      .badge { fill: #1d4ed8; }
+      .badgeText { font: 800 12px "Segoe UI", Arial, sans-serif; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1900" height="1450"/>
+
+  <text x="56" y="55" class="title">H-eduware Chat UI End-to-End Workflow</text>
+  <text x="56" y="84" class="subtitle">Actual implementation map: browser state, non-streaming agent API, ContextPacket authority, DeepAgents internal LangGraph runtime, scoped tools, deterministic gates, and final UI rendering.</text>
+
+  <g transform="translate(56 106)">
+    <rect x="0" y="0" width="166" height="28" rx="8" class="ui"/>
+    <text x="12" y="19" class="legendLabel">Frontend / UI state</text>
+    <rect x="182" y="0" width="154" height="28" rx="8" class="backend"/>
+    <text x="194" y="19" class="legendLabel">Backend endpoint</text>
+    <rect x="352" y="0" width="142" height="28" rx="8" class="context"/>
+    <text x="364" y="19" class="legendLabel">Context Layer</text>
+    <rect x="510" y="0" width="154" height="28" rx="8" class="agent"/>
+    <text x="522" y="19" class="legendLabel">DeepAgents</text>
+    <rect x="680" y="0" width="118" height="28" rx="8" class="tool"/>
+    <text x="692" y="19" class="legendLabel">Tools</text>
+    <rect x="814" y="0" width="164" height="28" rx="8" class="gate"/>
+    <text x="826" y="19" class="legendLabel">Gate / guardrail</text>
+    <line x1="1010" y1="14" x2="1075" y2="14" class="mainLine"/>
+    <text x="1085" y="19" class="legendLabel">main path</text>
+    <line x1="1190" y1="14" x2="1255" y2="14" class="softLine dash"/>
+    <text x="1265" y="19" class="legendLabel">optional / branch</text>
+  </g>
+
+  <rect x="50" y="155" width="450" height="820" rx="14" class="lane"/>
+  <rect x="530" y="155" width="590" height="820" rx="14" class="lane"/>
+  <rect x="1150" y="155" width="700" height="820" rx="14" class="lane"/>
+  <text x="78" y="190" class="laneTitle">Frontend: Chat UI and Browser State</text>
+  <text x="558" y="190" class="laneTitle">Backend: Endpoint, Runtime, Context Builder</text>
+  <text x="1178" y="190" class="laneTitle">LangGraph / DeepAgents / Scoped Tools</text>
+
+  <g id="frontend-flow">
+    <rect x="82" y="220" width="370" height="78" rx="10" class="ui"/>
+    <text x="105" y="249" class="boxTitle">User Query</text>
+    <text x="105" y="271" class="text">Student types a request into the main chat panel.</text>
+    <text x="105" y="289" class="small">Input source: textarea#idea-input</text>
+
+    <rect x="82" y="338" width="370" height="118" rx="10" class="ui"/>
+    <text x="105" y="368" class="boxTitle">Chat UI Collection</text>
+    <text x="105" y="391" class="code">renderAiPanel()</text>
+    <text x="105" y="411" class="code">form[data-action=send-idea]</text>
+    <text x="105" y="431" class="code">submitIdeaForm()</text>
+    <text x="105" y="449" class="small">Enter key submits unless Shift or IME composing.</text>
+
+    <rect x="82" y="502" width="370" height="152" rx="10" class="ui"/>
+    <text x="105" y="532" class="boxTitle">Frontend State and Routing</text>
+    <text x="105" y="555" class="code">submitAgentMessageRobust()</text>
+    <text x="105" y="575" class="code">classifyStudentTurn()</text>
+    <text x="105" y="595" class="code">classifyAgentRequestKind()</text>
+    <text x="105" y="617" class="small">Updates state.interview.messages and state.thinking.</text>
+    <text x="105" y="635" class="small">Creates pendingAgentTurn with taskId, turnId, abort.</text>
+
+    <rect x="82" y="706" width="370" height="148" rx="10" class="ui"/>
+    <text x="105" y="736" class="boxTitle">Request Payload</text>
+    <text x="105" y="759" class="code">sendAgentMessage()</text>
+    <text x="105" y="779" class="small">message, locale, mode=&quot;live&quot;</text>
+    <text x="105" y="797" class="small">sessionId, taskId, turnId, requestKind</text>
+    <text x="105" y="815" class="small">resumeInteractionId, resume, conversationContext</text>
+    <text x="105" y="837" class="small">Transport: fetchJson, 90s timeout, full JSON body.</text>
+  </g>
+
+  <g id="backend-flow">
+    <rect x="565" y="235" width="510" height="112" rx="10" class="backend"/>
+    <text x="590" y="266" class="boxTitle">API / Backend Endpoint</text>
+    <text x="590" y="289" class="code">POST /api/agent/message</text>
+    <text x="590" y="309" class="code">AgentMessageRequestSchema.parse(body)</text>
+    <text x="590" y="331" class="small">Creates traceId, logs request, calls runAgent(parsed).</text>
+
+    <rect x="565" y="394" width="510" height="116" rx="10" class="backend"/>
+    <text x="590" y="425" class="boxTitle">Agent Runtime Envelope</text>
+    <text x="590" y="448" class="code">runAgent() -&gt; runLiveAgent()</text>
+    <text x="590" y="468" class="small">Normalizes taskId, requestKind, sessionId.</text>
+    <text x="590" y="486" class="small">Locks thread and validates stale clarification resumes.</text>
+
+    <rect x="565" y="558" width="510" height="158" rx="10" class="context"/>
+    <text x="590" y="589" class="boxTitle">Context Builder</text>
+    <text x="590" y="612" class="code">buildContextPacket()</text>
+    <text x="590" y="632" class="small">Builds ContextPacket before any synthesis call.</text>
+    <text x="590" y="654" class="small">Route, selectedBundles, candidateParts, supportBundles</text>
+    <text x="590" y="672" class="small">contextTrace, contextCoverage, retrievalPlan, promptBlock</text>
+    <text x="590" y="696" class="tiny">Note: conversationContext is scoped to revise/resume turns.</text>
+
+    <rect x="565" y="764" width="510" height="126" rx="10" class="gate"/>
+    <text x="590" y="795" class="boxTitle">Router / Pre-Agent Gate</text>
+    <text x="590" y="818" class="code">assessRequestScope(contextPacket)</text>
+    <text x="590" y="838" class="small">synthesize_circuit, clarify_requirements, unsupported_or_gap</text>
+    <text x="590" y="858" class="small">Unsupported / unsafe can short-circuit before synthesis.</text>
+    <text x="590" y="876" class="small">Eligible requests continue into DeepAgents.</text>
+  </g>
+
+  <g id="agent-flow">
+    <rect x="1185" y="220" width="300" height="134" rx="10" class="agent"/>
+    <text x="1210" y="250" class="boxTitle">LangGraph Workflow</text>
+    <text x="1210" y="273" class="code">createDeepAgent()</text>
+    <text x="1210" y="293" class="small">Graph is internal to DeepAgents.</text>
+    <text x="1210" y="311" class="small">Repo has no explicit StateGraph node file.</text>
+    <text x="1210" y="333" class="code">MemorySaver + thread_id</text>
+
+    <rect x="1512" y="220" width="300" height="134" rx="10" class="agent"/>
+    <text x="1537" y="250" class="boxTitle">DeepAgents Runtime</text>
+    <text x="1537" y="273" class="small">legacy: requirement-analysis agent</text>
+    <text x="1537" y="291" class="small">synthesis: h-eduware-deepagent</text>
+    <text x="1537" y="313" class="code">toolStrategy(LiveAgentDraftSchema)</text>
+    <text x="1537" y="333" class="small">Can return chat, circuit, or interrupt.</text>
+
+    <rect x="1185" y="405" width="300" height="142" rx="10" class="tool"/>
+    <text x="1210" y="436" class="boxTitle">Tool Registry</text>
+    <text x="1210" y="459" class="code">createHeduwareAgentTools()</text>
+    <text x="1210" y="479" class="small">ask_to_narrow, assess_request_scope</text>
+    <text x="1210" y="497" class="small">read_context_doc, search_part_capabilities</text>
+    <text x="1210" y="515" class="small">validate, netlist, render, simulate, markdown</text>
+
+    <rect x="1512" y="405" width="300" height="142" rx="10" class="gate"/>
+    <text x="1537" y="436" class="boxTitle">Scoped Tool Boundary</text>
+    <text x="1537" y="459" class="small">candidateParts limit part search and validation.</text>
+    <text x="1537" y="477" class="small">allowedContextSourceIds limit doc reads.</text>
+    <text x="1537" y="495" class="small">supportBundles limit source evidence.</text>
+    <text x="1537" y="517" class="code">contextCoverage is reapplied.</text>
+
+    <rect x="1185" y="596" width="300" height="136" rx="10" class="tool"/>
+    <text x="1210" y="626" class="boxTitle">Tool Execution</text>
+    <text x="1210" y="649" class="small">Agent may call tools or answer conversationally.</text>
+    <text x="1210" y="667" class="small">Tool calls return observations to DeepAgents state.</text>
+    <text x="1210" y="689" class="code">interrupt() pauses for HITL.</text>
+    <text x="1210" y="709" class="small">Command({ resume }) continues the thread.</text>
+
+    <rect x="1512" y="596" width="300" height="136" rx="10" class="context"/>
+    <text x="1537" y="626" class="boxTitle">Retrieved / Tool Context</text>
+    <text x="1537" y="649" class="small">Context docs, support evidence, part facts</text>
+    <text x="1537" y="667" class="small">Validation report, netlist, current paths</text>
+    <text x="1537" y="685" class="small">Render plan, simulation plan, markdown</text>
+    <text x="1537" y="709" class="tiny">No general feedback/RAG store is implemented.</text>
+
+    <rect x="1185" y="782" width="627" height="132" rx="10" class="gate"/>
+    <text x="1210" y="813" class="boxTitle">Validation / Guardrail</text>
+    <text x="1210" y="836" class="code">finalizeAgentResult()</text>
+    <text x="1210" y="856" class="small">applyCandidatePartGate, applyIntentFulfillmentGate, applyContextCoverageGate</text>
+    <text x="1210" y="874" class="small">buildNetlist, estimateCurrentPaths, compileRenderPlan, compileSimulationPlan</text>
+    <text x="1210" y="894" class="small">buildRunnableReport and solverGateResult control build/run claims.</text>
+  </g>
+
+  <g id="final-flow">
+    <rect x="565" y="1018" width="360" height="110" rx="10" class="final"/>
+    <text x="590" y="1048" class="boxTitle">Final Response Builder</text>
+    <text x="590" y="1071" class="code">AgentRunResultSchema</text>
+    <text x="590" y="1091" class="small">assistantMessages, contextTrace, coverage</text>
+    <text x="590" y="1109" class="small">requirementMarkdown, specs, plans, gates</text>
+
+    <rect x="970" y="1018" width="330" height="110" rx="10" class="final"/>
+    <text x="995" y="1048" class="boxTitle">Response Delivery</text>
+    <text x="995" y="1071" class="code">sendJson(... JSON.stringify(result))</text>
+    <text x="995" y="1091" class="small">Non-streaming HTTP JSON response.</text>
+    <text x="995" y="1109" class="small">Typing indicator is frontend timing only.</text>
+
+    <rect x="1345" y="1018" width="420" height="110" rx="10" class="ui"/>
+    <text x="1370" y="1048" class="boxTitle">Chat UI Rendering</text>
+    <text x="1370" y="1071" class="code">renderMessage()</text>
+    <text x="1370" y="1091" class="small">assistant text appears in thread.</text>
+    <text x="1370" y="1109" class="small">Files/PCB/Run render only when gate allows a scene.</text>
+  </g>
+
+  <path d="M267 298 L267 338" class="mainLine"/>
+  <path d="M267 456 L267 502" class="mainLine"/>
+  <path d="M267 654 L267 706" class="mainLine"/>
+  <path d="M452 780 C510 780 510 291 565 291" class="mainLine"/>
+  <path d="M820 347 L820 394" class="mainLine"/>
+  <path d="M820 510 L820 558" class="mainLine"/>
+  <path d="M820 716 L820 764" class="mainLine"/>
+  <path d="M1075 827 C1120 827 1120 287 1185 287" class="mainLine"/>
+  <path d="M1485 287 L1512 287" class="mainLine"/>
+  <path d="M1662 354 L1662 405" class="mainLine"/>
+  <path d="M1512 476 L1485 476" class="softLine dash"/>
+  <path d="M1335 547 L1335 596" class="mainLine"/>
+  <path d="M1485 664 L1512 664" class="softLine dash"/>
+  <path d="M1662 732 C1662 758 1570 758 1498 782" class="mainLine"/>
+  <path d="M1498 914 C1498 978 745 962 745 1018" class="mainLine"/>
+  <path d="M925 1073 L970 1073" class="mainLine"/>
+  <path d="M1300 1073 L1345 1073" class="mainLine"/>
+
+  <g id="payload-labels">
+    <rect x="383" y="186" width="172" height="34" rx="8" class="note"/>
+    <text x="397" y="208" class="tiny">payload: message, locale</text>
+    <rect x="1006" y="522" width="210" height="34" rx="8" class="note"/>
+    <text x="1020" y="544" class="tiny">inject ContextPacket into prompt/tools</text>
+    <rect x="1385" y="742" width="170" height="34" rx="8" class="note"/>
+    <text x="1398" y="764" class="tiny">tool observations return</text>
+  </g>
+
+  <rect x="50" y="1170" width="1800" height="240" rx="14" class="branch"/>
+  <text x="78" y="1205" class="laneTitle">Branches and Edge Cases</text>
+
+  <rect x="82" y="1230" width="330" height="142" rx="10" class="ui"/>
+  <text x="105" y="1260" class="boxTitle">Chat-only Branch</text>
+  <text x="105" y="1283" class="code">responseKind=&quot;chat&quot;</text>
+  <text x="105" y="1303" class="small">No circuit scene is rendered.</text>
+  <text x="105" y="1321" class="small">Placeholder artifacts satisfy schema only.</text>
+  <text x="105" y="1343" class="small">UI appends assistantMessages to thread.</text>
+
+  <rect x="440" y="1230" width="330" height="142" rx="10" class="context"/>
+  <text x="463" y="1260" class="boxTitle">Clarification / HITL</text>
+  <text x="463" y="1283" class="code">ask_to_narrow() -&gt; interrupt()</text>
+  <text x="463" y="1303" class="small">Server returns responseKind=&quot;awaiting_input&quot;.</text>
+  <text x="463" y="1321" class="small">Client sends resume + resumeInteractionId.</text>
+  <text x="463" y="1343" class="code">Command({ resume })</text>
+
+  <rect x="798" y="1230" width="330" height="142" rx="10" class="gate"/>
+  <text x="821" y="1260" class="boxTitle">Error / Retry Surface</text>
+  <text x="821" y="1283" class="small">Thread busy, stale resume, config, prompt budget</text>
+  <text x="821" y="1301" class="small">or network timeout map to JSON errors.</text>
+  <text x="821" y="1321" class="small">Frontend formats a student-facing message.</text>
+  <text x="821" y="1343" class="small">Retry is a new user send, not a stream replay.</text>
+
+  <rect x="1156" y="1230" width="330" height="142" rx="10" class="tool"/>
+  <text x="1179" y="1260" class="boxTitle">Tutor Drawer Branch</text>
+  <text x="1179" y="1283" class="code">POST /api/agent/explain-target</text>
+  <text x="1179" y="1303" class="small">Selected target plus current artifacts.</text>
+  <text x="1179" y="1321" class="small">Live tutor uses typed DeepAgent.</text>
+  <text x="1179" y="1343" class="small">Transport/schema/live failure falls back local.</text>
+
+  <rect x="1514" y="1230" width="300" height="142" rx="10" class="note"/>
+  <text x="1537" y="1260" class="boxTitle">Example Query Result</text>
+  <text x="1537" y="1283" class="small">Recent user feedback query probe:</text>
+  <text x="1537" y="1303" class="code">route=v2-ambiguous-minimal</text>
+  <text x="1537" y="1323" class="code">candidateParts=[]</text>
+  <text x="1537" y="1343" class="small">No feedback retrieval tool/store exists.</text>
+
+  <path d="M960 1128 C960 1160 247 1160 247 1230" class="softLine dash"/>
+  <path d="M1325 596 C1120 596 605 1160 605 1230" class="softLine dash"/>
+  <path d="M1140 1073 C1140 1160 963 1160 963 1230" class="gateLine dash"/>
+  <path d="M1495 1128 C1495 1160 1321 1160 1321 1230" class="softLine dash"/>
+
+  <g id="implementation-notes">
+    <rect x="60" y="920" width="180" height="34" rx="8" class="chip"/>
+    <text x="73" y="942" class="tiny">src/main.js</text>
+    <rect x="565" y="920" width="230" height="34" rx="8" class="chip"/>
+    <text x="578" y="942" class="tiny">server/index.ts + schemas.ts</text>
+    <rect x="815" y="920" width="240" height="34" rx="8" class="chip"/>
+    <text x="828" y="942" class="tiny">server/context/contextPacket.ts</text>
+    <rect x="1185" y="938" width="300" height="34" rx="8" class="chip"/>
+    <text x="1198" y="960" class="tiny">server/agent/deepAgentRuntime.ts</text>
+    <rect x="1512" y="938" width="300" height="34" rx="8" class="chip"/>
+    <text x="1525" y="960" class="tiny">server/agent/deepAgentTools.ts</text>
+  </g>
+</svg>

@@ -35,6 +35,8 @@ type AgentLogEvent =
   | 'agent.response.sent'
   | 'agent.request.failed'
   | 'tutor.request.received'
+  | 'tutor.llm.completed'
+  | 'tutor.live.failed'
   | 'tutor.response.sent'
   | 'tutor.request.failed';
 
@@ -137,9 +139,12 @@ export function tutorRequestLogSummary(request: TutorMessageRequest) {
   const artifacts = request.artifacts;
   return {
     sessionId: request.sessionId ?? null,
+    artifactFingerprint: request.artifactFingerprint ?? null,
+    targetScopeId: request.targetScopeId ?? null,
     locale: request.locale ?? 'ko',
     running: request.running,
-    questionPreview: preview(request.question),
+    questionChars: request.question.length,
+    questionHash: stableHash(request.question),
     targetId: request.target.id,
     targetType: request.target.type,
     targetPartId: request.target.partId ?? null,
@@ -170,7 +175,10 @@ export function tutorResultLogSummary(result: TutorMessageResponse) {
     liveAttempted: result.liveAttempted ?? null,
     fallbackCategory: result.fallbackCategory ?? null,
     fallbackReasonPreview: preview(redactSensitiveLogText(result.fallbackReason)),
-    structuredOutputStatus: tutorStructuredOutputStatus(result),
+    structuredOutputStatus: result.structuredOutputStatus ?? tutorStructuredOutputStatus(result),
+    tutorThreadIdHash: result.tutorThreadId ? stableHash(result.tutorThreadId) : null,
+    artifactFingerprint: result.artifactFingerprint ?? null,
+    targetScopeId: result.targetScopeId ?? null,
     groundingCount: result.grounding.length,
     groundingPreview: result.grounding.slice(0, 8),
     suggestedQuestionCount: result.suggestedQuestions.length,

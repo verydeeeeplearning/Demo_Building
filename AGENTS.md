@@ -116,7 +116,7 @@ depends on ecosystem behavior. See `CLAUDE.md`.
 - Treat `Spec/H-eduware_master_statement.md` as binding product scope.
 - Treat `Spec/H-eduware_design_system.md` as binding visual and interaction language.
 - Treat `Spec/flux_ai_ui_ux_analysis.md` as the layout reference only.
-- For the current Context Layer architecture (single v2 router, L0 part bundles → L2 topology composition → L3 capability bundles, v1 removed), use `docs/plans/PLAN_layered_context_architecture.md` and its adversarial review `docs/plans/REVIEW_layered_context_architecture_2026-06-02.md`.
+- For the current Context Layer architecture (single v2 router, L0 part bundles → L2 topology composition → L3 capability bundles, v1 removed), use `docs/plans/PLAN_layered_context_architecture.md`. For tutor memory/context lookup changes, also use `docs/plans/PLAN_tutor_context_layer_memory_robustness.md`.
 - Keep the hackathon boundary: one polished Arduino + I2C OLED breadboard demo, not a general circuit simulator.
 
 ## Documentation map

@@ -61,10 +61,9 @@ current right-side tutor serving contract is superseded by
 **Decision:** Keep Option A, the hybrid model.
 
 - Main synthesis chat: stateful DeepAgents/LangGraph workflow with checkpointer and `thread_id`.
-- Right tutor chat: server-controlled live-first `auto` mode when configured,
-  deterministic fallback/local mode otherwise, and stateless typed DeepAgent QA
-  for live mode.
-- Tutor becomes checkpointer-backed stateful LangGraph only after tests or product evidence show multi-turn tutor memory materially improves learning outcomes.
+- Right tutor chat: this older decision is superseded by
+  `docs/plans/PLAN_tutor_context_layer_memory_robustness.md`, which makes live
+  tutor mode a scoped checkpointer-backed Deep Agent QA path when configured.
 
 **Alternatives Considered:**
 
@@ -1339,7 +1338,7 @@ The right-side tutor chat is a selected-target QA surface, not the main synthesi
 1. `renderCircuitChatDrawer()` renders the current selected part, connection, or circuit.
 2. `submitTutorQuestion()` sends selected target, question, run state, and circuit artifacts.
 3. `askCircuitTutor()` uses local deterministic evidence by default.
-4. Server mode is opt-in. `/api/agent/explain-target` may run stateless typed DeepAgent QA when `H_EDUWARE_TUTOR_MODE=live`.
+4. Server mode is live-first when configured. `/api/agent/explain-target` may run scoped checkpointer-backed Deep Agent QA when `H_EDUWARE_TUTOR_MODE=live`.
 5. The UI renders tutor `message`, `servingStatus`, and dynamic `suggestedQuestions`.
 6. Live failures return local fallback with a redacted `fallbackReason`.
 

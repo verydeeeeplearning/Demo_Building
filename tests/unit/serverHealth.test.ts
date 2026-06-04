@@ -4,7 +4,16 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
-import { sourceFreshnessStatus } from '../../server/serverHealth.ts';
+import { serverSourceFileProbeIds, sourceFreshnessStatus } from '../../server/serverHealth.ts';
+
+test('default source freshness probes include tutor scope and scoped context reader files', () => {
+  const ids = serverSourceFileProbeIds();
+
+  assert.ok(ids.includes('agent:tutor-thread-scope'));
+  assert.ok(ids.includes('agent:tutor-context-tools'));
+  assert.ok(ids.includes('context:scoped-context-reader'));
+  assert.ok(ids.includes('shared:tutor-thread-scope'));
+});
 
 test('source freshness marks files modified after server start as stale', () => {
   const dir = mkdtempSync(join(tmpdir(), 'h-eduware-health-'));

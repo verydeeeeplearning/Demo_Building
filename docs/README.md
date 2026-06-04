@@ -16,6 +16,12 @@ These describe how the current system works and should be updated in place.
   Agents/LangGraph handoffs, and opt-in live category evaluation.
 - [`agent-tutor-serving-workflow.md`](agent-tutor-serving-workflow.md) -
   right-side tutor chat serving contract, fallback policy, and observability.
+- [`chat-ui-end-to-end-workflow.svg`](chat-ui-end-to-end-workflow.svg) -
+  visual map of the main Chat UI query-to-response path, Context Layer,
+  Deep Agents runtime, scoped tools, validation gates, and UI rendering.
+- [`tutor-chat-ui-end-to-end-workflow.svg`](tutor-chat-ui-end-to-end-workflow.svg) -
+  visual map of the right-side Tutor Chat UI selected-target QA path, live/local
+  fallback, scoped context tools, freshness guard, and drawer rendering.
 - [`context-layer-architecture.md`](context-layer-architecture.md) -
   Context Layer structure, packet data example, roles, and gate model.
 - [`deepagents-official-architecture-anchor.md`](deepagents-official-architecture-anchor.md) -
@@ -32,6 +38,9 @@ These describe how the current system works and should be updated in place.
 - [`plans/PLAN_layered_context_architecture.md`](plans/PLAN_layered_context_architecture.md) -
   the current Context Layer architecture: single v2 router, L0 part bundles to
   L2 topology composition to L3 capability bundles, v1 removed.
+- [`plans/PLAN_tutor_context_layer_memory_robustness.md`](plans/PLAN_tutor_context_layer_memory_robustness.md) -
+  tutor chat robustness plan for scoped LangGraph memory, framework-native
+  structured output, and projection-scoped context-layer reads.
 - [`plans/PLAN_chat_ui_context_layer_refactor.md`](plans/PLAN_chat_ui_context_layer_refactor.md) -
   chat UI serving, context eligibility, tutor fallback, and logging refactor
   plan.
@@ -46,9 +55,6 @@ These describe how the current system works and should be updated in place.
 - [`plans/PLAN_tutor_always_live_serving.md`](plans/PLAN_tutor_always_live_serving.md) -
   approved Ralph/Ralplan follow-up for making the right-side tutor live-first
   when the server is configured, with explicit local fallback.
-- [`plans/REVIEW_layered_context_architecture_2026-06-02.md`](plans/REVIEW_layered_context_architecture_2026-06-02.md) -
-  adversarial review synthesis for the layered context architecture plan.
-
 ## Generated
 
 - [`visual_part_simulation_coverage_report.md`](visual_part_simulation_coverage_report.md) -

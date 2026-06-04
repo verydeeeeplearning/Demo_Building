@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { askCircuitTutor } from '../../src/circuitTutorClient.js';
+import { askCircuitTutor, parseTutorResponse } from '../../src/circuitTutorClient.js';
+
+const scopedTutorRequest = {
+  sessionId: 'session-main',
+  artifactFingerprint: 'afp-client',
+  targetScopeId: 'connection-x'
+};
 
 function sampleCircuit() {
   return {
@@ -20,6 +26,17 @@ function sampleCircuit() {
     solverGateResult: { status: 'pass' },
     contextTrace: []
   };
+}
+
+function assertClientScopeEcho(response, structuredOutputStatus = 'failed') {
+  assert.equal(response.sessionId, scopedTutorRequest.sessionId);
+  assert.equal(response.artifactFingerprint, scopedTutorRequest.artifactFingerprint);
+  assert.equal(response.targetScopeId, scopedTutorRequest.targetScopeId);
+  assert.equal(response.structuredOutputStatus, structuredOutputStatus);
+  assert.equal(
+    response.tutorThreadId,
+    'tutor.session.session-main.artifact.afp-client.target.connection-x.locale.en'
+  );
 }
 
 function sampleTarget() {
@@ -75,7 +92,8 @@ async function askWithMockedTutorServer(serverReply, options = {}) {
       target: sampleTarget(),
       question: 'How does this work?',
       locale: 'en',
-      running: false
+      running: false,
+      ...(options.request ?? {})
     });
     return { response, requestBody, requestUrl };
   } finally {
@@ -90,19 +108,48 @@ test('valid tutor server response is used by default without browser opt-in', as
     sessionId: 'tutor-live-test',
     mode: 'live',
     servingStatus: 'live_tutor_answer',
+    tutorThreadId: 'tutor.session.session-main.artifact.afp-client.target.part-led-1.locale.ko',
+    artifactFingerprint: 'afp-client',
+    targetScopeId: 'part-led-1',
+    structuredOutputStatus: 'native',
     message: 'Live answer for the selected connection.',
     grounding: ['connection:x'],
     suggestedQuestions: ['Why does this need 5V?']
+  }, {
+    request: {
+      ...scopedTutorRequest,
+      targetScopeId: 'part-led-1'
+    }
   });
 
   assert.equal(response.mode, 'live');
   assert.equal(response.servingStatus, 'live_tutor_answer');
+  assert.equal(response.tutorThreadId, 'tutor.session.session-main.artifact.afp-client.target.part-led-1.locale.ko');
+  assert.equal(response.artifactFingerprint, 'afp-client');
+  assert.equal(response.targetScopeId, 'part-led-1');
+  assert.equal(response.structuredOutputStatus, 'native');
   assert.deepEqual(response.suggestedQuestions, ['Why does this need 5V?']);
   assert.deepEqual(response.grounding, ['connection:x']);
+  assert.equal(requestBody.sessionId, 'session-main');
+  assert.equal(requestBody.artifactFingerprint, 'afp-client');
+  assert.equal(requestBody.targetScopeId, 'part-led-1');
   assert.ok(requestBody.artifacts.contextCoverage);
   assert.ok(requestBody.artifacts.buildRunnableReport);
   assert.ok(requestBody.artifacts.solverGateResult);
+  assert.ok(requestBody.artifacts.renderPlan);
   assert.equal(requestUrl, 'http://127.0.0.1:8787/api/agent/explain-target');
+});
+
+test('tutor parser rejects malformed structured output status', () => {
+  assert.throws(() => parseTutorResponse({
+    sessionId: 'tutor-live-test',
+    mode: 'live',
+    servingStatus: 'live_tutor_answer',
+    message: 'Live answer.',
+    grounding: [],
+    suggestedQuestions: [],
+    structuredOutputStatus: 'raw-text'
+  }), /structured output status/i);
 });
 
 test('tutor requests use the configured agent API base', async () => {
@@ -164,7 +211,8 @@ test('changing configured agent API base bypasses cached tutor server failures',
       target: sampleTarget(),
       question: 'How does this work?',
       locale: 'en',
-      running: false
+      running: false,
+      ...scopedTutorRequest
     });
     configuredBase = 'http://agent-b.example.test';
     const second = await askCircuitTutor({
@@ -206,12 +254,14 @@ test('explicit tutor server disabled override forces local response', async () =
       target: sampleTarget(),
       question: 'How does this work?',
       locale: 'en',
-      running: false
+      running: false,
+      ...scopedTutorRequest
     });
 
     assert.equal(fetchCalled, false);
     assert.equal(response.mode, 'local');
     assert.equal(response.servingStatus, 'local_tutor_answer');
+    assertClientScopeEcho(response, 'not_used');
   } finally {
     globalThis.fetch = previousFetch;
     globalThis.localStorage = previousStorage;
@@ -219,36 +269,43 @@ test('explicit tutor server disabled override forces local response', async () =
 });
 
 test('malformed tutor server response falls back with explicit mode', async () => {
-  const { response } = await askWithMockedTutorServer({ mode: 'live', message: '' });
+  const { response } = await askWithMockedTutorServer({ mode: 'live', message: '' }, {
+    request: scopedTutorRequest
+  });
 
   assert.equal(response.mode, 'local');
   assert.equal(response.servingStatus, 'live_tutor_fallback');
   assert.equal(response.fallbackCategory, 'schema');
   assert.match(response.fallbackReason, /malformed|schema/i);
+  assertClientScopeEcho(response);
 });
 
 test('failed tutor server HTTP responses report an HTTP fallback category', async () => {
   const { response } = await askWithMockedTutorServer({}, {
     ok: false,
     status: 503,
-    locationOrigin: 'http://http-fallback.test'
+    locationOrigin: 'http://http-fallback.test',
+    request: scopedTutorRequest
   });
 
   assert.equal(response.mode, 'local');
   assert.equal(response.servingStatus, 'live_tutor_fallback');
   assert.equal(response.fallbackCategory, 'http');
   assert.match(response.fallbackReason, /503/);
+  assertClientScopeEcho(response);
 });
 
 test('tutor transport failures report a transport fallback category', async () => {
   const { response } = await askWithMockedTutorServer({}, {
     throwFetch: 'Failed to fetch',
-    locationOrigin: 'http://transport-fallback.test'
+    locationOrigin: 'http://transport-fallback.test',
+    request: scopedTutorRequest
   });
 
   assert.equal(response.mode, 'local');
   assert.equal(response.servingStatus, 'live_tutor_fallback');
   assert.equal(response.fallbackCategory, 'transport');
+  assertClientScopeEcho(response);
 });
 
 test('invalid tutor serving status falls back before rendering', async () => {

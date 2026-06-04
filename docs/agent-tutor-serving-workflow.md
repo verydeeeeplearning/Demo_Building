@@ -1,6 +1,6 @@
 # Agent Tutor Serving Workflow
 
-Last checked: 2026-06-04
+Last checked: 2026-06-05
 
 The right-side tutor chat is a selected-target QA surface, not the main
 requirement-to-simulation synthesis workflow. It is live-first when the server
@@ -27,24 +27,27 @@ Visualization:
    text through the main chat synthesis path instead of asking the tutor to
    mutate artifacts.
 5. Before posting, the client creates a freshness key from selected target,
-   artifact version, locale, and request sequence. Only the response for the
-   current key may append tutor text or clear the current thinking state.
+   artifact fingerprint, locale, and request sequence. Response handling
+   recomputes the current artifact fingerprint from the visible circuit; only
+   the response for the current key may append tutor text or clear the current
+   thinking state.
 6. `askCircuitTutor()` posts to `POST /api/agent/explain-target` by default.
    The old `localStorage.hEduwareAgentServer === "enabled"` opt-in is removed
    from the normal path. For local debugging only,
    `localStorage.hEduwareTutorServer = "disabled"` forces local evidence.
 7. The client validates server responses before rendering. Transport failures
    and malformed responses return a local answer with explicit fallback status.
-8. The tutor request includes `circuitSpec`, `validationReport`,
-   `simulationPlan`, `contextCoverage`, `buildRunnableReport`,
-   `solverGateResult`, and `contextTrace`.
+8. The tutor request includes `sessionId`, server-verified scope hints,
+   `circuitSpec`, `validationReport`, `simulationPlan`, `contextCoverage`,
+   `buildRunnableReport`, `solverGateResult`, and `contextTrace`.
 9. `runTutorAgent()` uses the shared `resolveTutorRuntimeMode()` resolver:
    `local` never calls live, `live` requires live configuration, and `auto`
    calls live when `OPENAI_API_KEY` and `H_EDUWARE_AGENT_MODEL` are available.
-10. Live tutor mode uses a stateless typed DeepAgent QA run with
-   `toolStrategy(LiveTutorDraftSchema)`. It receives the route `tutor-*`
-   trace id as LangSmith metadata. It is not a checkpointer-backed LangGraph
-   conversation today.
+10. Live tutor mode is a scoped stateful Deep Agent QA run. It uses LangChain
+   structured output, a LangGraph checkpointer, and a `thread_id` scoped by
+   session, artifact fingerprint, selected target, and locale. The server
+   recomputes artifact fingerprint and target scope; client-supplied values are
+   hints only.
 11. Missing live configuration, malformed structured output, model failure, or
    transport failure returns a local answer with `servingStatus:
    "live_tutor_fallback"` and a redacted `fallbackReason`.
@@ -64,13 +67,18 @@ Visualization:
 - `response.suggestedQuestions` replaces the chips only for the current target.
   Target changes, locale changes, or inspector reset clear dynamic suggestions.
 - Stale tutor responses are discarded when the selected target, artifact
-  version, locale, or request sequence has changed since the request was sent.
+  fingerprint, locale, or request sequence has changed since the request was
+  sent.
+- The checkpointer owns short-term tutor conversation continuity only. Current
+  circuit facts come from the current request authority snapshot and scoped
+  context tools.
+- Tutor context-layer access is read-only and projection-scoped. Item-level
+  source ids such as `registry:part-capabilities:<id>` and
+  `data:simulation-primitives:<id>` return only that selected item. Tutor must
+  not read aggregate context documents as authority for one item-level trace id.
 - Tutor mode never owns artifact mutation. Modification text is promoted to the
   main chat path so task/thread identity, context packet routing, validation,
   and stale-response guards remain centralized.
-- Do not add LangGraph checkpointer memory to tutor mode until tutor-specific
-  evals show that stateful multi-turn tutoring improves answers enough to justify
-  latency, persistence, privacy, and evaluation cost.
 
 ## Observability
 
@@ -80,11 +88,13 @@ Visualization:
 - `tutor.response.sent`
 - `tutor.request.failed`
 
-Tutor logs store target metadata, artifact gate status, solver gate
-mode/build-readiness, context source ids/types, runtime mode, live configured
-state, live attempt state, mode/status, fallback category, latency, grounding
-counts, suggested-question counts, and answer hash/length. They do not store
-full tutor answers, raw prompts, API keys, or full artifact payloads.
+Tutor logs store target metadata, artifact fingerprint, target scope id,
+hashed tutor thread id, artifact gate status, solver gate mode/build-readiness,
+context source ids/types, runtime mode, live configured state, live attempt
+state, structured-output status, mode/status, fallback category, latency,
+grounding counts, suggested-question counts, and answer hash/length. They do
+not store full tutor answers, raw prompts, API keys, raw thread ids, or full
+artifact payloads.
 
 ## Verification
 
@@ -92,6 +102,7 @@ full tutor answers, raw prompts, API keys, or full artifact payloads.
 node --test tests/unit/circuitTutorClient.test.js
 node --test tests/unit/tutorRequestFreshness.test.js
 npm exec tsx -- --test tests/unit/circuitTutor.test.ts
+npm exec tsx -- --test tests/unit/tutorContextTools.test.ts tests/unit/scopedContextReader.test.ts
 npm exec tsx -- --test tests/unit/agentLogger.test.ts
 npm run test:e2e -- tests/e2e/features.spec.js --grep "live tutor suggested"
 ```

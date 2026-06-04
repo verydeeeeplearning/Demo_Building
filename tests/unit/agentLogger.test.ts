@@ -245,7 +245,9 @@ test('tutor log summaries expose serving state without raw tutor answers or secr
   assert.equal(requestSummary.validationStatus, 'valid');
   assert.equal(requestSummary.solverGateMode, 'verified_build_simulation');
   assert.equal(requestSummary.synthesisEligibility, 'eligible');
-  assert.ok(String(requestSummary.questionPreview).length <= 160);
+  assert.equal(requestSummary.questionChars, 300);
+  assert.match(String(requestSummary.questionHash), /^[0-9a-f]{64}$/);
+  assert.equal(Object.hasOwn(requestSummary, 'questionPreview'), false);
 
   const responseSummary = tutorResultLogSummary({
     sessionId: 'tutor-session',
@@ -256,19 +258,26 @@ test('tutor log summaries expose serving state without raw tutor answers or secr
     liveAttempted: true,
     fallbackCategory: 'live-failure',
     fallbackReason: 'OPENAI_API_KEY=sk-testsecret1234567890 failed',
+    tutorThreadId: 'tutor.session.session-main.artifact.afp-test.target.conn.locale.ko',
+    artifactFingerprint: 'afp-test',
+    targetScopeId: 'conn',
+    structuredOutputStatus: 'failed',
     message: 'This is the full answer that should be hashed instead of logged.',
     grounding: ['validation-report', 'simulation-plan'],
     suggestedQuestions: ['What flows here?']
   });
 
-  assert.equal(responseSummary.structuredOutputStatus, 'fallback');
+  assert.equal(responseSummary.structuredOutputStatus, 'failed');
+  assert.match(String(responseSummary.tutorThreadIdHash), /^[0-9a-f]{64}$/);
+  assert.equal(responseSummary.artifactFingerprint, 'afp-test');
+  assert.equal(responseSummary.targetScopeId, 'conn');
   assert.equal(responseSummary.runtimeMode, 'auto');
   assert.equal(responseSummary.liveConfigured, true);
   assert.equal(responseSummary.liveAttempted, true);
   assert.equal(responseSummary.fallbackCategory, 'live-failure');
   assert.equal(responseSummary.messageChars, 64);
   assert.match(responseSummary.messageHash, /^[0-9a-f]{64}$/);
-  assert.equal(responseSummary.fallbackReasonPreview, 'OPENAI_API_KEY=[redacted] failed');
+  assert.equal(responseSummary.fallbackReasonPreview, '[redacted-config]=[redacted] failed');
 });
 
 test('error log summary redacts API-key shaped values', () => {

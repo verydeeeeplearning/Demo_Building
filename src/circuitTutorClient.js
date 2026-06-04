@@ -1,23 +1,64 @@
 import { agentApiUrl } from './agentApiBase.js';
 import { answerTutorQuestion } from './circuitInspector.js';
+import {
+  buildTutorThreadId,
+  normalizeTutorSessionId,
+  targetScopeId as buildTargetScopeId
+} from '../shared/tutorThreadScope.js';
 
 const TUTOR_SERVER_DISABLED_KEY = 'hEduwareTutorServer';
 const TUTOR_PATH = '/api/agent/explain-target';
 const SERVER_FAILURE_TTL_MS = 15_000;
+const STRUCTURED_OUTPUT_STATUSES = new Set([
+  'native',
+  'recovered_tool_call',
+  'recovered_json_text',
+  'recovered_assistant_text',
+  'not_used',
+  'failed'
+]);
 const serverReachability = new Map();
 
-export async function askCircuitTutor({ circuit, target, question, locale, running }) {
+export async function askCircuitTutor({
+  circuit,
+  target,
+  question,
+  locale,
+  running,
+  sessionId,
+  artifactFingerprint,
+  targetScopeId
+}) {
   if (!shouldUseTutorServer()) {
-    return localTutorResponse({ circuit, target, question, locale, running });
+    return localTutorResponse({
+      circuit,
+      target,
+      question,
+      locale,
+      running,
+      sessionId,
+      artifactFingerprint,
+      targetScopeId
+    });
   }
 
   const endpoint = tutorEndpoint();
   if (hasCachedServerFailure(endpoint)) {
     return {
-      ...localTutorResponse({ circuit, target, question, locale, running }),
+      ...localTutorResponse({
+        circuit,
+        target,
+        question,
+        locale,
+        running,
+        sessionId,
+        artifactFingerprint,
+        targetScopeId
+      }),
       servingStatus: 'live_tutor_fallback',
       fallbackCategory: 'transport',
-      fallbackReason: 'tutor server unavailable'
+      fallbackReason: 'tutor server unavailable',
+      structuredOutputStatus: 'failed'
     };
   }
 
@@ -26,21 +67,16 @@ export async function askCircuitTutor({ circuit, target, question, locale, runni
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
+        sessionId,
+        artifactFingerprint,
+        targetScopeId,
         locale,
         question,
         running,
         circuitTitle: circuit.title,
         selectedTarget: target,
         target,
-        artifacts: {
-          circuitSpec: circuit.circuitSpec,
-          validationReport: circuit.validationReport,
-          simulationPlan: circuit.simulationPlan,
-          contextCoverage: circuit.contextCoverage,
-          buildRunnableReport: circuit.buildRunnableReport,
-          solverGateResult: circuit.solverGateResult,
-          contextTrace: circuit.contextTrace || []
-        }
+        artifacts: tutorArtifactsFromCircuit(circuit)
       })
     });
 
@@ -55,23 +91,86 @@ export async function askCircuitTutor({ circuit, target, question, locale, runni
       markServerFailure(endpoint);
     }
     return {
-      ...localTutorResponse({ circuit, target, question, locale, running }),
+      ...localTutorResponse({
+        circuit,
+        target,
+        question,
+        locale,
+        running,
+        sessionId,
+        artifactFingerprint,
+        targetScopeId
+      }),
       servingStatus: 'live_tutor_fallback',
       fallbackCategory: tutorFallbackCategory(error),
-      fallbackReason: redactTutorFallbackReason(error)
+      fallbackReason: redactTutorFallbackReason(error),
+      structuredOutputStatus: 'failed'
     };
   }
 }
 
-function localTutorResponse({ circuit, target, question, locale, running }) {
+function tutorArtifactsFromCircuit(circuit) {
+  return {
+    circuitSpec: circuit.circuitSpec,
+    validationReport: circuit.validationReport,
+    simulationPlan: circuit.simulationPlan,
+    contextCoverage: circuit.contextCoverage,
+    buildRunnableReport: circuit.buildRunnableReport,
+    solverGateResult: circuit.solverGateResult,
+    renderPlan: circuit.renderPlan || (circuit.circuitSpec && circuit.simulationPlan ? {
+      title: circuit.title || circuit.circuitSpec.title || 'Current circuit',
+      runText: circuit.runText || circuit.simulationPlan.runText || 'READY',
+      parts: circuit.parts || [],
+      connections: circuit.connections || [],
+      floatingCards: circuit.floatingCards || [],
+      layout: circuit.layout,
+      warnings: circuit.renderWarnings || []
+    } : undefined),
+    contextTrace: circuit.contextTrace || []
+  };
+}
+
+function localTutorResponse({
+  circuit,
+  target,
+  question,
+  locale,
+  running,
+  sessionId,
+  artifactFingerprint,
+  targetScopeId
+}) {
+  const scope = buildClientTutorScope({ sessionId, artifactFingerprint, targetScopeId, target, locale });
   return {
     ...answerTutorQuestion({ circuit, target, question, locale, running }),
+    sessionId: scope.sessionId,
+    tutorThreadId: scope.tutorThreadId,
+    artifactFingerprint: scope.artifactFingerprint,
+    targetScopeId: scope.targetScopeId,
+    structuredOutputStatus: 'not_used',
     mode: 'local',
     servingStatus: 'local_tutor_answer'
   };
 }
 
-function parseTutorResponse(value) {
+function buildClientTutorScope({ sessionId, artifactFingerprint, targetScopeId, target, locale }) {
+  const normalizedSessionId = normalizeTutorSessionId(sessionId, 'session-client-local');
+  const resolvedArtifactFingerprint = artifactFingerprint || 'afp-client-local';
+  const resolvedTargetScopeId = targetScopeId || buildTargetScopeId(target);
+  return {
+    sessionId: normalizedSessionId,
+    artifactFingerprint: resolvedArtifactFingerprint,
+    targetScopeId: resolvedTargetScopeId,
+    tutorThreadId: buildTutorThreadId({
+      sessionId: normalizedSessionId,
+      artifactFingerprint: resolvedArtifactFingerprint,
+      targetId: resolvedTargetScopeId,
+      locale
+    })
+  };
+}
+
+export function parseTutorResponse(value) {
   if (!value || typeof value !== 'object') {
     throw new Error('malformed tutor response');
   }
@@ -104,6 +203,21 @@ function parseTutorResponse(value) {
   }
   if (value.fallbackCategory !== undefined && typeof value.fallbackCategory !== 'string') {
     throw new Error('malformed tutor response fallback category');
+  }
+  if (value.tutorThreadId !== undefined && !isBoundedString(value.tutorThreadId, 1, 520)) {
+    throw new Error('malformed tutor response tutor thread id');
+  }
+  if (value.artifactFingerprint !== undefined && !isBoundedString(value.artifactFingerprint, 1, 160)) {
+    throw new Error('malformed tutor response artifact fingerprint');
+  }
+  if (value.targetScopeId !== undefined && !isBoundedString(value.targetScopeId, 1, 160)) {
+    throw new Error('malformed tutor response target scope id');
+  }
+  if (
+    value.structuredOutputStatus !== undefined
+    && !STRUCTURED_OUTPUT_STATUSES.has(value.structuredOutputStatus)
+  ) {
+    throw new Error('malformed tutor response structured output status');
   }
   if (value.suggestedQuestions !== undefined && !isStringArray(value.suggestedQuestions)) {
     throw new Error('malformed tutor response suggested questions');
@@ -145,6 +259,10 @@ function redactTutorFallbackReason(error) {
 
 function isStringArray(value) {
   return Array.isArray(value) && value.every((item) => typeof item === 'string');
+}
+
+function isBoundedString(value, min, max) {
+  return typeof value === 'string' && value.length >= min && value.length <= max;
 }
 
 function shouldUseTutorServer() {

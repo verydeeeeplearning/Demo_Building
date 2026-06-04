@@ -2274,17 +2274,25 @@ test('circuit inspector lets students discuss a selected simulated connection', 
 
 test('circuit inspector renders live tutor suggested questions when server mode is enabled', async ({ page }) => {
   const guards = attachGuards(page);
-  let tutorRequestBody = null;
+  const tutorRequests = [];
   await page.route('http://127.0.0.1:8787/api/agent/explain-target', async (route) => {
-    tutorRequestBody = route.request().postDataJSON();
+    const tutorRequestBody = route.request().postDataJSON();
+    tutorRequests.push(tutorRequestBody);
+    const isFollowUp = /really/i.test(tutorRequestBody.question || '');
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
-        sessionId: 'tutor-live-e2e',
+        sessionId: tutorRequestBody.sessionId || 'tutor-live-e2e',
         mode: 'live',
         servingStatus: 'live_tutor_answer',
-        message: 'Live tutor answer grounded in the selected I2C SDA connection.',
+        tutorThreadId: `tutor.${tutorRequestBody.sessionId || 'session'}.${tutorRequestBody.artifactFingerprint || 'afp'}.${tutorRequestBody.targetScopeId || 'target'}`,
+        artifactFingerprint: tutorRequestBody.artifactFingerprint,
+        targetScopeId: tutorRequestBody.targetScopeId,
+        structuredOutputStatus: 'native',
+        message: isFollowUp
+          ? 'Follow-up live tutor answer uses the same selected I2C SDA context.'
+          : 'Live tutor answer grounded in the selected I2C SDA connection.',
         grounding: ['connection:oled-sda', 'live-deepagents-tutor'],
         suggestedQuestions: ['Why is SDA paired with SCL?', 'How can I verify this signal?']
       })
@@ -2302,9 +2310,21 @@ test('circuit inspector renders live tutor suggested questions when server mode 
   await expect(page.getByTestId('tutor-status')).toHaveAttribute('data-status', 'live_tutor_answer');
   await expect(page.getByTestId('inspector-suggestions')).toContainText('Why is SDA paired with SCL?');
   await expect(page.getByTestId('inspector-suggestions')).toContainText('How can I verify this signal?');
-  await expect.poll(() => tutorRequestBody?.artifacts?.contextCoverage?.synthesisEligibility?.status).toBe('eligible');
-  await expect.poll(() => tutorRequestBody?.artifacts?.buildRunnableReport?.runnable).toBe(true);
-  await expect.poll(() => tutorRequestBody?.artifacts?.solverGateResult?.buildReady).toBe(true);
+  await expect.poll(() => tutorRequests[0]?.artifacts?.contextCoverage?.synthesisEligibility?.status).toBe('eligible');
+  await expect.poll(() => tutorRequests[0]?.artifacts?.buildRunnableReport?.runnable).toBe(true);
+  await expect.poll(() => tutorRequests[0]?.artifacts?.solverGateResult?.buildReady).toBe(true);
+  expect(tutorRequests[0].sessionId).toBeTruthy();
+  expect(tutorRequests[0].artifactFingerprint).toMatch(/^afp-[a-f0-9]{16}$/);
+  expect(tutorRequests[0].targetScopeId).toBeTruthy();
+
+  await page.locator('[data-action="ask-tutor"] input').fill('Really?');
+  await page.locator('[data-action="ask-tutor"]').getByRole('button').click();
+  await expect(page.getByTestId('tutor-thread')).toContainText('Follow-up live tutor answer');
+  await expect.poll(() => tutorRequests.length).toBe(2);
+  expect(tutorRequests[1].question.length).toBeLessThan(20);
+  expect(tutorRequests[1].sessionId).toBe(tutorRequests[0].sessionId);
+  expect(tutorRequests[1].artifactFingerprint).toBe(tutorRequests[0].artifactFingerprint);
+  expect(tutorRequests[1].targetScopeId).toBe(tutorRequests[0].targetScopeId);
 
   assertClean(guards);
 });

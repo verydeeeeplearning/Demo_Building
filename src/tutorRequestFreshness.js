@@ -1,7 +1,7 @@
-export function buildTutorRequestKey({ target, artifactVersion, locale, sequence }) {
+export function buildTutorRequestKey({ target, targetId, artifactVersion, artifactFingerprint, locale, sequence }) {
   return [
-    target?.id || 'target:none',
-    Number.isFinite(artifactVersion) ? artifactVersion : 0,
+    targetId || target?.id || 'target:none',
+    artifactFingerprint || `version:${Number.isFinite(artifactVersion) ? artifactVersion : 0}`,
     locale || 'ko',
     Number.isFinite(sequence) ? sequence : 0
   ].join('|');

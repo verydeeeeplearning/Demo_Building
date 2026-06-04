@@ -24,6 +24,11 @@ import {
 } from './agentTurnEnvelope.js';
 import { buildTutorRequestKey, isFreshTutorResponse } from './tutorRequestFreshness.js';
 import {
+  buildTutorArtifactFingerprint,
+  normalizeTutorSessionId,
+  targetScopeId
+} from '../shared/tutorThreadScope.js';
+import {
   clarificationOptionsForDisplay,
   renderClarificationOptions,
   resumeValueForOption
@@ -1658,6 +1663,16 @@ async function submitAgentMessageRobust(message, { resume, resumeInteractionId }
 async function answerCurrentArtifactQuestion(message) {
   const circuit = activeArtifactCircuit();
   const target = describeCircuitTarget(circuit, null, state.locale);
+  state.agentSessionId = normalizeTutorSessionId(state.agentSessionId, createClientId('session'));
+  persistAgentSession();
+  const artifactFingerprint = await buildTutorArtifactFingerprint(currentTutorArtifacts(circuit));
+  const selectedTargetScopeId = targetScopeId({ id: 'main-artifact-question', type: 'circuit' });
+  const requestKey = buildTutorRequestKey({
+    targetId: selectedTargetScopeId,
+    artifactFingerprint,
+    locale: state.locale,
+    sequence: 0
+  });
   state.interview = {
     ...state.interview,
     status: state.awaitingConfirmation || visibleAgentResult() ? 'ready' : state.interview.status,
@@ -1673,10 +1688,26 @@ async function answerCurrentArtifactQuestion(message) {
         target,
         question: message,
         locale: state.locale,
-        running: state.running
+        running: state.running,
+        sessionId: state.agentSessionId,
+        artifactFingerprint,
+        targetScopeId: selectedTargetScopeId
       }),
       wait(TYPING_REVEAL_MS)
     ]);
+
+    const currentCircuit = activeArtifactCircuit();
+    const currentFingerprint = currentCircuit
+      ? await buildTutorArtifactFingerprint(currentTutorArtifacts(currentCircuit))
+      : 'afp-none';
+    if (!isFreshTutorResponse(requestKey, {
+      targetId: selectedTargetScopeId,
+      artifactFingerprint: currentFingerprint,
+      locale: state.locale,
+      sequence: 0
+    })) {
+      return;
+    }
 
     state.interview = {
       ...state.interview,
@@ -2153,6 +2184,30 @@ function activeArtifactCircuit() {
   return state.projectLoaded ? activeCircuit() : null;
 }
 
+function currentTutorArtifacts(circuit) {
+  if (!circuit) {
+    return {};
+  }
+  return {
+    circuitSpec: circuit.circuitSpec,
+    validationReport: circuit.validationReport,
+    simulationPlan: circuit.simulationPlan,
+    contextCoverage: circuit.contextCoverage,
+    buildRunnableReport: circuit.buildRunnableReport,
+    solverGateResult: circuit.solverGateResult,
+    renderPlan: circuit.renderPlan || (circuit.circuitSpec && circuit.simulationPlan ? {
+      title: circuit.title || circuit.circuitSpec.title || 'Current circuit',
+      runText: circuit.runText || circuit.simulationPlan.runText || 'READY',
+      parts: circuit.parts || [],
+      connections: circuit.connections || [],
+      floatingCards: circuit.floatingCards || [],
+      layout: circuit.layout,
+      warnings: circuit.renderWarnings || []
+    } : undefined),
+    contextTrace: circuit.contextTrace || []
+  };
+}
+
 function buildConversationContext() {
   const visibleResult = visibleAgentResult();
   const buildableAgentResult = visibleResult && canBuildAgentResult(visibleResult) ? visibleResult : null;
@@ -2346,6 +2401,8 @@ function stepCurrentFlow() {
   state.inspector.hoveredRawTarget = state.inspector.selectedRawTarget;
   state.inspector.chatMessages = [];
   state.inspector.suggestedQuestions = null;
+  state.inspector.tutorThinking = false;
+  state.inspector.tutorRequestSequence += 1;
   state.simulationPlaying = true;
   state.running = true;
   state.activeTab = 'PCB';
@@ -2361,6 +2418,10 @@ async function submitTutorQuestion(question) {
 
   const circuit = activeDraftOrProjectCircuit() || activeCircuit();
   const target = currentInspectorTarget();
+  state.agentSessionId = normalizeTutorSessionId(state.agentSessionId, createClientId('session'));
+  persistAgentSession();
+  const artifactFingerprint = await buildTutorArtifactFingerprint(currentTutorArtifacts(circuit));
+  const selectedTargetScopeId = targetScopeId(target);
   state.inspector.selectedRawTarget ||= rawTargetFromTarget(target);
   state.inspector.chatOpen = true;
   state.inspector.chatMessages = state.inspector.chatMessages.concat({
@@ -2371,8 +2432,8 @@ async function submitTutorQuestion(question) {
   state.inspector.tutorRequestSequence += 1;
   const sequence = state.inspector.tutorRequestSequence;
   const requestKey = buildTutorRequestKey({
-    target,
-    artifactVersion: state.artifactVersion,
+    targetId: selectedTargetScopeId,
+    artifactFingerprint,
     locale: state.locale,
     sequence
   });
@@ -2383,15 +2444,24 @@ async function submitTutorQuestion(question) {
     target,
     question,
     locale: state.locale,
-    running: state.running
+    running: state.running,
+    sessionId: state.agentSessionId,
+    artifactFingerprint,
+    targetScopeId: selectedTargetScopeId
   });
 
+  const currentCircuit = activeDraftOrProjectCircuit() || activeCircuit();
+  const currentFingerprint = currentCircuit
+    ? await buildTutorArtifactFingerprint(currentTutorArtifacts(currentCircuit))
+    : 'afp-none';
   if (!isFreshTutorResponse(requestKey, {
-    target: currentInspectorTarget(),
-    artifactVersion: state.artifactVersion,
+    targetId: targetScopeId(currentInspectorTarget()),
+    artifactFingerprint: currentFingerprint,
     locale: state.locale,
     sequence: state.inspector.tutorRequestSequence
   })) {
+    state.inspector.tutorThinking = false;
+    refreshInspectorRail();
     return;
   }
 

@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { resolveTutorRuntimeMode, runTutorAgent, tutorRuntimeHealth } from '../../server/agent/circuitTutor.ts';
+import {
+  parseLiveTutorDraft,
+  parseLiveTutorDraftWithStatus,
+  resolveTutorRuntimeMode,
+  runTutorAgent,
+  tutorRuntimeHealth
+} from '../../server/agent/circuitTutor.ts';
+import { resolveTutorThreadScope } from '../../server/agent/tutorThreadScope.ts';
 import { TutorMessageRequestSchema } from '../../server/agent/schemas.ts';
 
 const target = {
@@ -189,12 +196,31 @@ test('tutor request requires selected target and active circuit artifacts', () =
   assert.equal(request.artifacts.simulationPlan.currentPaths[0].primitiveId, 'display_static_text');
 });
 
+test('server tutor thread scope recomputes client artifact and target hints', async () => {
+  const scoped = await resolveTutorThreadScope(TutorMessageRequestSchema.parse({
+    ...request,
+    sessionId: 'session-main',
+    artifactFingerprint: 'afp-client-stale',
+    targetScopeId: 'spoofed-target'
+  }));
+
+  assert.equal(scoped.clientArtifactFingerprintMismatch, true);
+  assert.equal(scoped.clientTargetScopeIdMismatch, true);
+  assert.notEqual(scoped.artifactFingerprint, 'afp-client-stale');
+  assert.notEqual(scoped.targetScopeId, 'spoofed-target');
+  assert.match(scoped.tutorThreadId, /^tutor\.session\.session-main\.artifact\.afp-[a-f0-9]{16}\.target\./);
+});
+
 test('tutor agent returns deterministic grounded explanations for selected circuit targets', async () => {
   const response = await runTutorAgent(request);
 
   assert.equal(response.mode, 'local');
   assert.equal(response.servingStatus, 'local_tutor_answer');
-  assert.match(response.sessionId, /^tutor-/);
+  assert.match(response.sessionId, /^session-[a-f0-9-]{36}$/);
+  assert.match(response.tutorThreadId ?? '', /^tutor\.session\.session-[a-f0-9-]{36}\.artifact\.afp-[a-f0-9]{16}\.target\./);
+  assert.match(response.artifactFingerprint ?? '', /^afp-[a-f0-9]{16}$/);
+  assert.equal(response.targetScopeId, 'connection-oled-power');
+  assert.equal(response.structuredOutputStatus, 'not_used');
   assert.match(response.message, /current/i);
   assert.ok(response.grounding.includes('connection:oled-power'));
   assert.ok(response.grounding.includes('Arduino Uno 5V'));
@@ -259,10 +285,97 @@ test('tutor agent can use opt-in live mode without changing the default local pa
 
     assert.equal(response.mode, 'live');
     assert.equal(response.servingStatus, 'live_tutor_answer');
+    assert.match(response.sessionId, /^session-[a-f0-9-]{36}$/);
+    assert.match(response.tutorThreadId ?? '', /^tutor\.session\.session-[a-f0-9-]{36}\.artifact\.afp-[a-f0-9]{16}\.target\./);
+    assert.equal(response.structuredOutputStatus, 'native');
     assert.equal(response.message, 'Live tutor answer grounded in the selected OLED power connection.');
     assert.ok(response.grounding.includes('live-deepagents-tutor'));
     assert.ok(response.grounding.includes('current-path:oled-module-current'));
     assert.deepEqual(response.suggestedQuestions, ['Why does the OLED need 5V?']);
+  } finally {
+    restoreEnv('H_EDUWARE_TUTOR_MODE', previousMode);
+    restoreEnv('H_EDUWARE_AGENT_MODEL', previousModel);
+    restoreEnv('OPENAI_API_KEY', previousKey);
+  }
+});
+
+test('live tutor passes checkpointer scoped tools and scoped thread id to DeepAgent', async () => {
+  const previousMode = process.env.H_EDUWARE_TUTOR_MODE;
+  const previousModel = process.env.H_EDUWARE_AGENT_MODEL;
+  const previousKey = process.env.OPENAI_API_KEY;
+  process.env.H_EDUWARE_TUTOR_MODE = 'live';
+  process.env.H_EDUWARE_AGENT_MODEL = 'gpt-5.4-mini';
+  process.env.OPENAI_API_KEY = 'test-key';
+  const checkpointer = { marker: 'test-checkpointer' };
+  const invocations: Array<{ configurable?: { thread_id?: string } }> = [];
+
+  try {
+    const response = await runTutorAgent(TutorMessageRequestSchema.parse({
+      ...request,
+      sessionId: 'session-main'
+    }), {
+      deps: {
+        checkpointer,
+        deepAgentFactory: ((config: {
+          checkpointer?: unknown;
+          tools?: Array<{ name: string }>;
+          responseFormat?: unknown;
+        }) => {
+          assert.equal(config.checkpointer, checkpointer);
+          assert.ok(config.responseFormat);
+          assert.equal(config.tools?.some((tool) => tool.name === 'list_tutor_context_sources'), true);
+          assert.equal(config.tools?.some((tool) => tool.name === 'read_tutor_context_doc'), true);
+          return {
+            invoke: async (_input: unknown, invokeConfig: { configurable?: { thread_id?: string } }) => {
+              invocations.push(invokeConfig);
+              return {
+                structuredResponse: {
+                  message: 'Live scoped answer.',
+                  suggestedQuestions: []
+                },
+                messages: []
+              };
+            }
+          };
+        }) as never
+      }
+    });
+
+    assert.equal(response.mode, 'live');
+    assert.equal(response.servingStatus, 'live_tutor_answer');
+    assert.match(response.tutorThreadId ?? '', /^tutor\.session\.session-main\./);
+    assert.equal(invocations[0].configurable?.thread_id, response.tutorThreadId);
+  } finally {
+    restoreEnv('H_EDUWARE_TUTOR_MODE', previousMode);
+    restoreEnv('H_EDUWARE_AGENT_MODEL', previousModel);
+    restoreEnv('OPENAI_API_KEY', previousKey);
+  }
+});
+
+test('live tutor falls back without attaching tools for unknown model capabilities', async () => {
+  const previousMode = process.env.H_EDUWARE_TUTOR_MODE;
+  const previousModel = process.env.H_EDUWARE_AGENT_MODEL;
+  const previousKey = process.env.OPENAI_API_KEY;
+  process.env.H_EDUWARE_TUTOR_MODE = 'live';
+  process.env.H_EDUWARE_AGENT_MODEL = 'custom-unknown-model';
+  process.env.OPENAI_API_KEY = 'test-key';
+  let factoryCalled = false;
+
+  try {
+    const response = await runTutorAgent(TutorMessageRequestSchema.parse(request), {
+      deps: {
+        deepAgentFactory: (() => {
+          factoryCalled = true;
+          throw new Error('factory should not be called for unknown model capabilities');
+        }) as never
+      }
+    });
+
+    assert.equal(factoryCalled, false);
+    assert.equal(response.mode, 'local');
+    assert.equal(response.servingStatus, 'live_tutor_fallback');
+    assert.equal(response.fallbackCategory, 'capability-unknown');
+    assert.equal(response.structuredOutputStatus, 'failed');
   } finally {
     restoreEnv('H_EDUWARE_TUTOR_MODE', previousMode);
     restoreEnv('H_EDUWARE_AGENT_MODEL', previousModel);
@@ -364,6 +477,81 @@ test('tutor health metadata is derived from the same runtime resolver', () => {
   }
 });
 
+test('parseLiveTutorDraft recovers plain assistant text when Deepagents omits structuredResponse', () => {
+  const draft = parseLiveTutorDraft({
+    messages: [{
+      kwargs: {
+        content: 'The LED current is limited by the resistor before returning to GND.',
+        tool_calls: []
+      }
+    }]
+  });
+
+  assert.equal(draft.message, 'The LED current is limited by the resistor before returning to GND.');
+  assert.deepEqual(draft.suggestedQuestions, []);
+});
+
+test('parseLiveTutorDraftWithStatus distinguishes native and recovered outputs', () => {
+  assert.equal(parseLiveTutorDraftWithStatus({
+    structuredResponse: {
+      message: 'Native structured answer.',
+      suggestedQuestions: []
+    }
+  }).structuredOutputStatus, 'native');
+
+  assert.equal(parseLiveTutorDraftWithStatus({
+    messages: [{
+      kwargs: {
+        content: '{"message":"JSON recovered answer.","suggestedQuestions":[]}',
+        tool_calls: []
+      }
+    }]
+  }).structuredOutputStatus, 'recovered_json_text');
+
+  assert.equal(parseLiveTutorDraftWithStatus({
+    messages: [{
+      kwargs: {
+        content: 'Plain recovered answer.',
+        tool_calls: []
+      }
+    }]
+  }).structuredOutputStatus, 'recovered_assistant_text');
+});
+
+test('parseLiveTutorDraft unwraps JSON assistant text when Deepagents omits structuredResponse', () => {
+  const draft = parseLiveTutorDraft({
+    messages: [{
+      kwargs: {
+        content: '{"message":"Use the resistor to limit LED current.","suggestedQuestions":["Why 220 ohms?"]}',
+        tool_calls: []
+      }
+    }]
+  });
+
+  assert.equal(draft.message, 'Use the resistor to limit LED current.');
+  assert.deepEqual(draft.suggestedQuestions, ['Why 220 ohms?']);
+});
+
+test('parseLiveTutorDraft recovers structured tool-call args when final state omits structuredResponse', () => {
+  const draft = parseLiveTutorDraft({
+    messages: [{
+      kwargs: {
+        content: '',
+        tool_calls: [{
+          name: 'extract-1',
+          args: {
+            message: 'The OLED VCC wire provides module power.',
+            suggestedQuestions: ['What happens without ground?']
+          }
+        }]
+      }
+    }]
+  });
+
+  assert.equal(draft.message, 'The OLED VCC wire provides module power.');
+  assert.deepEqual(draft.suggestedQuestions, ['What happens without ground?']);
+});
+
 test('tutor agent falls back to local grounding when opt-in live tutor fails', async () => {
   const previousMode = process.env.H_EDUWARE_TUTOR_MODE;
   const previousModel = process.env.H_EDUWARE_AGENT_MODEL;
@@ -382,6 +570,9 @@ test('tutor agent falls back to local grounding when opt-in live tutor fails', a
     assert.equal(response.mode, 'local');
     assert.equal(response.servingStatus, 'live_tutor_fallback');
     assert.equal(response.fallbackReason, 'live tutor failed');
+    assert.match(response.sessionId, /^session-[a-f0-9-]{36}$/);
+    assert.match(response.tutorThreadId ?? '', /^tutor\.session\.session-[a-f0-9-]{36}\.artifact\.afp-[a-f0-9]{16}\.target\./);
+    assert.equal(response.structuredOutputStatus, 'failed');
     assert.match(response.message, /current/i);
     assert.ok(response.grounding.includes('connection:oled-power'));
     assert.ok(response.grounding.includes('current-path:oled-module-current'));
@@ -390,6 +581,48 @@ test('tutor agent falls back to local grounding when opt-in live tutor fails', a
     restoreEnv('H_EDUWARE_TUTOR_MODE', previousMode);
     restoreEnv('H_EDUWARE_AGENT_MODEL', previousModel);
     restoreEnv('OPENAI_API_KEY', previousKey);
+  }
+});
+
+test('tutor live failures emit redacted diagnostic log events', async () => {
+  const previousMode = process.env.H_EDUWARE_TUTOR_MODE;
+  const previousModel = process.env.H_EDUWARE_AGENT_MODEL;
+  const previousKey = process.env.OPENAI_API_KEY;
+  const previousLevel = process.env.H_EDUWARE_AGENT_LOG_LEVEL;
+  const previousFile = process.env.H_EDUWARE_AGENT_LOG_FILE;
+  const originalLog = console.log;
+  const lines: string[] = [];
+  process.env.H_EDUWARE_TUTOR_MODE = 'live';
+  process.env.H_EDUWARE_AGENT_MODEL = 'gpt-5.4-mini';
+  process.env.OPENAI_API_KEY = 'test-key';
+  process.env.H_EDUWARE_AGENT_LOG_LEVEL = 'debug';
+  process.env.H_EDUWARE_AGENT_LOG_FILE = 'false';
+  console.log = (line?: unknown) => {
+    lines.push(String(line));
+  };
+
+  try {
+    await runTutorAgent(request, {
+      traceId: 'tutor-log-test',
+      liveDraftProvider: async () => {
+        throw new Error('OPENAI_API_KEY sk-test-secret provider rejected tutor request');
+      }
+    });
+
+    const event = lines.map((line) => JSON.parse(line))
+      .find((record) => record.event === 'tutor.live.failed');
+    assert.equal(event.traceId, 'tutor-log-test');
+    assert.equal(event.fallbackCategory, 'live-failure');
+    assert.equal(event.errorName, 'Error');
+    assert.doesNotMatch(event.errorMessage, /OPENAI_API_KEY|sk-test-secret/);
+    assert.match(event.errorMessage, /\[redacted/);
+  } finally {
+    console.log = originalLog;
+    restoreEnv('H_EDUWARE_TUTOR_MODE', previousMode);
+    restoreEnv('H_EDUWARE_AGENT_MODEL', previousModel);
+    restoreEnv('OPENAI_API_KEY', previousKey);
+    restoreEnv('H_EDUWARE_AGENT_LOG_LEVEL', previousLevel);
+    restoreEnv('H_EDUWARE_AGENT_LOG_FILE', previousFile);
   }
 });
 

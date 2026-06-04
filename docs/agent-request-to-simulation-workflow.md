@@ -97,6 +97,10 @@ Official docs checked for this workflow:
   complete bundle evidence or a valid topology composition proof.
 - LangGraph checkpointer + `thread_id` owns conversation continuity.
   `conversationContext` is bounded artifact and UI grounding only.
+- Tutor memory follows the same framework ownership rule: LangGraph
+  checkpointer plus scoped `thread_id`. Tutor scope additionally includes
+  artifact fingerprint and selected target id so answers from one visual
+  artifact or target cannot bleed into another.
 - Client `recentTurns` and client-supplied running summaries are never folded
   into synthesis prompts. They are not a source of parts, pins, protocols, or
   request routing authority.
@@ -108,6 +112,9 @@ Official docs checked for this workflow:
   the server and echoed by the client as `resumeInteractionId`.
 - Live tools are scoped by the current `ContextPacket`; missing candidate parts,
   allowed source ids, or support bundle scope blocks tool access.
+- Tutor context reads are projection-scoped. Item-level context trace ids return
+  only the selected item projection, not the aggregate registry or primitive
+  document.
 - An empty scoped candidate-part set blocks validation, netlist, fault,
   rendering, and simulation artifact tools.
 - UI serving state must distinguish buildable originals, clarification,

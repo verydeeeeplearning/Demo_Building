@@ -4,15 +4,11 @@ import { z } from 'zod';
 
 import { narrowOptions } from './slotPolicy.ts';
 
+import { searchPartCapabilities } from '../context/contextLayer.ts';
 import {
-  loadContextBundleV2,
-  loadContextIndex,
-  readContextDoc,
-  resolveContextSourceId,
-  searchPartCapabilities,
-  type ContextEntry,
-  type ContextIndex
-} from '../context/contextLayer.ts';
+  loadScopedContextIndex,
+  readScopedContextSource
+} from '../context/scopedContextReader.ts';
 import {
   applyCandidatePartGate,
   applyContextCoverageGate,
@@ -154,7 +150,7 @@ function createTools(options: InternalToolOptions) {
       }
     ),
     tool(
-      async () => asJson(await loadContextIndexBounded(options)),
+      async () => asJson(await loadScopedContextIndex(options)),
       {
         name: 'load_context_index',
         description: 'Load the H-eduware context-layer index. Use this before reading detailed context docs.',
@@ -162,7 +158,10 @@ function createTools(options: InternalToolOptions) {
       }
     ),
     tool(
-      async ({ id }) => await readContextDocBounded(id, options),
+      async ({ id }) => await readScopedContextSource(id, {
+        ...options,
+        scopeErrorCode: 'CONTEXT_DOC_NOT_IN_RETRIEVAL_PLAN'
+      }),
       {
         name: 'read_context_doc',
         description: 'Read one context-layer document only when it is selected by the current retrieval plan, such as safety-policy, validation-rules, or simulation-recipes.',
@@ -338,120 +337,6 @@ function loadSupportBundleEvidenceBounded(capabilityId: string, options: Interna
   }
 
   return evidence;
-}
-
-async function loadContextIndexBounded(options: InternalToolOptions) {
-  const index = await loadContextIndex();
-  if (options.allowUnscopedContext) {
-    return index;
-  }
-
-  const allowedEntries = options.allowedContextSourceIds
-    .map((sourceId) => findContextEntry(index, sourceId))
-    .filter((entry): entry is ContextEntry => Boolean(entry));
-  const allowedKeys = new Set(allowedEntries.flatMap((entry) => entryKeys(entry)));
-  const filterEntries = (entries: ContextEntry[]) => entries.filter((entry) =>
-    entryKeys(entry).some((key) => allowedKeys.has(key))
-  );
-
-  return {
-    ...index,
-    memory: filterEntries(index.memory),
-    skills: filterEntries(index.skills),
-    references: filterEntries(index.references),
-    data: filterEntries(index.data),
-    routing: filterEntries(index.routing)
-  };
-}
-
-async function readContextDocBounded(id: string, options: InternalToolOptions) {
-  if (id.startsWith('bundle:')) {
-    return readContextBundleDocBounded(id, options);
-  }
-
-  if (options.allowUnscopedContext) {
-    return readContextDoc(id);
-  }
-
-  if (options.allowedContextSourceIds.length === 0) {
-    return asJson({
-      error: 'CONTEXT_SCOPE_EMPTY',
-      requestedId: id,
-      allowedSourceIds: []
-    });
-  }
-
-  const index = await loadContextIndex();
-  const requestedEntry = findContextEntry(index, id);
-  const allowedEntries = options.allowedContextSourceIds
-    .map((sourceId) => findContextEntry(index, sourceId))
-    .filter((entry): entry is ContextEntry => Boolean(entry));
-  const allowedKeys = new Set(allowedEntries.flatMap((entry) => entryKeys(entry)));
-  const requestedAllowed = requestedEntry
-    ? entryKeys(requestedEntry).some((key) => allowedKeys.has(key))
-    : options.allowedContextSourceIds.includes(id);
-
-  if (!requestedAllowed || !requestedEntry) {
-    return asJson({
-      error: 'CONTEXT_DOC_NOT_IN_RETRIEVAL_PLAN',
-      requestedId: id,
-      allowedSourceIds: options.allowedContextSourceIds
-    });
-  }
-
-  return readContextDoc(requestedEntry.id);
-}
-
-async function readContextBundleDocBounded(id: string, options: InternalToolOptions) {
-  if (options.allowUnscopedContext) {
-    const bundleId = id.slice('bundle:'.length);
-    const bundle = await loadContextBundleV2(bundleId);
-    return renderContextBundleDoc(bundle);
-  }
-
-  if (options.allowedContextSourceIds.length === 0) {
-    return asJson({
-      error: 'CONTEXT_SCOPE_EMPTY',
-      requestedId: id,
-      allowedSourceIds: []
-    });
-  }
-
-  const allowed = options.allowedContextSourceIds.includes(id);
-  if (!allowed) {
-    return asJson({
-      error: 'CONTEXT_DOC_NOT_IN_RETRIEVAL_PLAN',
-      requestedId: id,
-      allowedSourceIds: options.allowedContextSourceIds
-    });
-  }
-
-  const bundleId = id.slice('bundle:'.length);
-  const bundle = await loadContextBundleV2(bundleId);
-  return renderContextBundleDoc(bundle);
-}
-
-function renderContextBundleDoc(bundle: Awaited<ReturnType<typeof loadContextBundleV2>>) {
-  return [
-    bundle.summary,
-    '',
-    `supportLevel=${bundle.manifest.supportLevel}`,
-    `allowedParts=${bundle.manifest.allowedParts.join(', ')}`,
-    `validationRules=${bundle.manifest.validationRules.join(', ')}`,
-    `simulationPrimitives=${bundle.manifest.simulationPrimitives.join(', ')}`
-  ].join('\n');
-}
-
-function findContextEntry(index: ContextIndex, id: string): ContextEntry | null {
-  return allContextEntries(index).find((entry) => entry.id === id) ?? resolveContextSourceId(id, index);
-}
-
-function allContextEntries(index: ContextIndex): ContextEntry[] {
-  return [...index.memory, ...index.skills, ...index.references, ...index.data, ...index.routing];
-}
-
-function entryKeys(entry: ContextEntry) {
-  return [entry.id, entry.sourceId, ...entry.aliases];
 }
 
 async function searchContextBoundPartCapabilities(query: string, options: InternalToolOptions) {

@@ -1,20 +1,28 @@
-import { randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 
 import { ChatOpenAI } from '@langchain/openai';
+import { MemorySaver } from '@langchain/langgraph';
 import { createDeepAgent } from 'deepagents';
-import { toolStrategy } from 'langchain';
+import { providerStrategy, toolStrategy } from 'langchain';
 import { z } from 'zod';
 
+import { errorLogSummary, llmOutputLogSummary, logAgentEvent } from './agentLogger.ts';
+import { createTutorContextTools } from './tutorContextTools.ts';
 import {
   classifyTutorQuestionIntent,
   isLedVoltageSafetyIntent,
   ledVoltageSafetyAnswer
 } from '../../src/tutorQuestionIntent.js';
+import { buildTutorAuthoritySnapshot } from '../../shared/tutorThreadScope.js';
 import {
   TutorMessageResponseSchema,
   type TutorMessageRequest,
   type TutorMessageResponse
 } from './schemas.ts';
+import {
+  resolveTutorThreadScope,
+  type ResolvedTutorThreadScope
+} from './tutorThreadScope.ts';
 
 const LiveTutorDraftSchema = z.object({
   message: z.string().min(1),
@@ -24,6 +32,13 @@ const LiveTutorDraftSchema = z.object({
 type LiveTutorDraft = z.infer<typeof LiveTutorDraftSchema>;
 type ReasoningEffort = 'none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
 type TutorRuntimeMode = 'auto' | 'live' | 'local';
+type TutorStructuredOutputStatus =
+  | 'native'
+  | 'recovered_tool_call'
+  | 'recovered_json_text'
+  | 'recovered_assistant_text'
+  | 'not_used'
+  | 'failed';
 type TutorRuntimeResolution = {
   runtimeMode: TutorRuntimeMode;
   liveConfigured: boolean;
@@ -44,7 +59,13 @@ type TutorAgentOptions = {
   runName?: string;
   tags?: string[];
   metadata?: Record<string, unknown>;
+  deps?: {
+    checkpointer?: unknown;
+    deepAgentFactory?: typeof createDeepAgent;
+  };
 };
+
+const tutorConversationCheckpointer = new MemorySaver();
 
 export function resolveTutorRuntimeMode(env: NodeJS.ProcessEnv = process.env): TutorRuntimeResolution {
   const configuredMode = String(env.H_EDUWARE_TUTOR_MODE ?? 'auto').toLowerCase();
@@ -82,7 +103,8 @@ export async function runTutorAgent(
   request: TutorMessageRequest,
   options: TutorAgentOptions = {}
 ): Promise<TutorMessageResponse> {
-  const localResponse = buildLocalTutorResponse(request);
+  const tutorScope = await resolveTutorThreadScope(request);
+  const localResponse = buildLocalTutorResponse(request, tutorScope);
   const runtime = resolveTutorRuntimeMode();
   if (runtime.runtimeMode === 'local') {
     return withTutorRuntime(localResponse, runtime, { liveAttempted: false });
@@ -98,22 +120,26 @@ export async function runTutorAgent(
       runtimeMode: runtime.runtimeMode,
       liveConfigured: runtime.liveConfigured,
       liveAttempted: false,
-      fallbackCategory: 'configuration'
+      fallbackCategory: 'configuration',
+      structuredOutputStatus: 'failed'
     });
   }
 
   try {
-    const draft = options.liveDraftProvider
-      ? await options.liveDraftProvider({
+    const draftResult = options.liveDraftProvider
+      ? {
+        draft: await options.liveDraftProvider({
         request,
         localResponse,
         traceId: options.traceId,
         runName: options.runName,
         tags: options.tags,
         metadata: options.metadata
-      })
-      : await runLiveTutorDraft(request, localResponse, options);
-    const parsed = LiveTutorDraftSchema.parse(draft);
+      }),
+        structuredOutputStatus: 'native' as TutorStructuredOutputStatus
+      }
+      : await runLiveTutorDraft(request, localResponse, tutorScope, options);
+    const parsed = LiveTutorDraftSchema.parse(draftResult.draft);
     return TutorMessageResponseSchema.parse({
       ...localResponse,
       mode: 'live',
@@ -121,6 +147,7 @@ export async function runTutorAgent(
       runtimeMode: runtime.runtimeMode,
       liveConfigured: runtime.liveConfigured,
       liveAttempted: true,
+      structuredOutputStatus: draftResult.structuredOutputStatus,
       message: parsed.message,
       grounding: uniqueStrings([...localResponse.grounding, 'live-deepagents-tutor']),
       suggestedQuestions: parsed.suggestedQuestions.length > 0
@@ -128,6 +155,22 @@ export async function runTutorAgent(
         : localResponse.suggestedQuestions
     });
   } catch (error) {
+    logAgentEvent('tutor.live.failed', {
+      traceId: options.traceId ?? null,
+      sessionId: request.sessionId ?? null,
+      tutorThreadIdHash: stableHash(tutorScope.tutorThreadId),
+      artifactFingerprint: tutorScope.artifactFingerprint,
+      targetScopeId: tutorScope.targetScopeId,
+      clientArtifactFingerprintMismatch: tutorScope.clientArtifactFingerprintMismatch,
+      clientTargetScopeIdMismatch: tutorScope.clientTargetScopeIdMismatch,
+      runtimeMode: runtime.runtimeMode,
+      liveConfigured: runtime.liveConfigured,
+      liveAttempted: true,
+      targetId: request.target.id,
+      targetType: request.target.type,
+      fallbackCategory: tutorLiveFallbackCategory(error),
+      ...errorLogSummary(error)
+    });
     return TutorMessageResponseSchema.parse({
       ...localResponse,
       servingStatus: 'live_tutor_fallback',
@@ -135,7 +178,8 @@ export async function runTutorAgent(
       runtimeMode: runtime.runtimeMode,
       liveConfigured: runtime.liveConfigured,
       liveAttempted: true,
-      fallbackCategory: error instanceof z.ZodError ? 'structured-output' : 'live-failure'
+      fallbackCategory: tutorLiveFallbackCategory(error),
+      structuredOutputStatus: 'failed'
     });
   }
 }
@@ -150,11 +194,15 @@ function withTutorRuntime(
     runtimeMode: runtime.runtimeMode,
     liveConfigured: runtime.liveConfigured,
     liveAttempted: options.liveAttempted,
-    fallbackCategory: options.fallbackCategory
+    fallbackCategory: options.fallbackCategory,
+    structuredOutputStatus: response.structuredOutputStatus ?? 'not_used'
   });
 }
 
-function buildLocalTutorResponse(request: TutorMessageRequest): TutorMessageResponse {
+function buildLocalTutorResponse(
+  request: TutorMessageRequest,
+  tutorScope: ResolvedTutorThreadScope
+): TutorMessageResponse {
   const locale = request.locale === 'en' ? 'en' : 'ko';
   const target = request.target;
   const artifacts = request.artifacts;
@@ -176,7 +224,11 @@ function buildLocalTutorResponse(request: TutorMessageRequest): TutorMessageResp
   ].filter((value): value is string => Boolean(value));
 
   return TutorMessageResponseSchema.parse({
-    sessionId: request.sessionId ?? `tutor-${randomUUID()}`,
+    sessionId: tutorScope.sessionId,
+    tutorThreadId: tutorScope.tutorThreadId,
+    artifactFingerprint: tutorScope.artifactFingerprint,
+    targetScopeId: tutorScope.targetScopeId,
+    structuredOutputStatus: 'not_used',
     mode: 'local',
     servingStatus: 'local_tutor_answer',
     message,
@@ -197,8 +249,9 @@ function classifyTutorQuestion(question: string) {
 async function runLiveTutorDraft(
   request: TutorMessageRequest,
   localResponse: TutorMessageResponse,
+  tutorScope: ResolvedTutorThreadScope,
   options: TutorAgentOptions = {}
-): Promise<LiveTutorDraft> {
+): Promise<{ draft: LiveTutorDraft; structuredOutputStatus: TutorStructuredOutputStatus }> {
   const apiKey = process.env.OPENAI_API_KEY;
   const modelName = process.env.H_EDUWARE_AGENT_MODEL;
   if (!apiKey || !modelName) {
@@ -211,13 +264,35 @@ async function runLiveTutorDraft(
     ...modelGenerationOptions(modelName)
   });
 
-  const agent = createDeepAgent({
+  const capabilities = tutorModelCapabilities(modelName);
+  if (!capabilities.providerStructuredOutput && !capabilities.toolCalling) {
+    throw new Error(`TUTOR_MODEL_CAPABILITY_UNKNOWN: ${modelName} is not in the tutor structured-output/tool-calling capability table.`);
+  }
+
+  const tutorTools = capabilities.toolCalling
+    ? createTutorContextTools({
+      allowedSourceIds: uniqueStrings(request.artifacts.contextTrace.map((entry) => entry.sourceId)),
+      componentPartIds: uniqueStrings(request.artifacts.circuitSpec.components
+        .map((component) => component.partId)
+        .filter((partId): partId is string => Boolean(partId))),
+      simulationPrimitiveIds: uniqueStrings(request.artifacts.simulationPlan.currentPaths
+        .map((path) => path.primitiveId)
+        .filter((primitiveId): primitiveId is string => Boolean(primitiveId)))
+    })
+    : [];
+  const responseStrategy = tutorResponseFormatStrategy(tutorTools.length > 0, capabilities);
+  const agentFactory = options.deps?.deepAgentFactory ?? createDeepAgent;
+
+  // The system prompt includes current artifact authority. Do not cache agent instances across
+  // different tutor scopes/current artifacts, otherwise this prompt and tool allowlist can go stale.
+  const agent = agentFactory({
     model,
-    tools: [],
-    responseFormat: toolStrategy(LiveTutorDraftSchema),
+    tools: tutorTools,
+    responseFormat: responseStrategy.responseFormat,
     systemPrompt: buildLiveTutorSystemPrompt(request),
+    checkpointer: options.deps?.checkpointer ?? tutorConversationCheckpointer,
     name: 'h-eduware-tutor-deepagent'
-  });
+  } as never);
 
   const output = await agent.invoke({
     messages: [{
@@ -231,26 +306,168 @@ async function runLiveTutorDraft(
       ...(options.metadata ?? {}),
       traceId: options.traceId,
       workflow: 'tutor',
+      structuredOutputStrategy: responseStrategy.strategy,
+      tutorThreadId: tutorScope.tutorThreadId,
+      artifactFingerprint: tutorScope.artifactFingerprint,
+      targetScopeId: tutorScope.targetScopeId,
       targetType: request.target.type,
       targetSignal: request.target.signal ?? null,
       selectedTargetId: request.target.id
     },
     configurable: {
-      thread_id: request.sessionId ?? `tutor-${randomUUID()}`
+      thread_id: tutorScope.tutorThreadId
     }
   });
+  const parsedOutput = parseLiveTutorDraftWithStatus(output);
+  logAgentEvent('tutor.llm.completed', {
+    traceId: options.traceId ?? null,
+    sessionId: request.sessionId ?? null,
+    tutorThreadIdHash: stableHash(tutorScope.tutorThreadId),
+    artifactFingerprint: tutorScope.artifactFingerprint,
+    targetScopeId: tutorScope.targetScopeId,
+    structuredOutputStatus: parsedOutput.structuredOutputStatus,
+    ...llmOutputLogSummary(output)
+  });
 
-  return parseLiveTutorDraft(output);
+  return parsedOutput;
 }
 
-function parseLiveTutorDraft(output: unknown): LiveTutorDraft {
+export function parseLiveTutorDraft(output: unknown): LiveTutorDraft {
+  return parseLiveTutorDraftWithStatus(output).draft;
+}
+
+export function parseLiveTutorDraftWithStatus(output: unknown): {
+  draft: LiveTutorDraft;
+  structuredOutputStatus: TutorStructuredOutputStatus;
+} {
   const candidate = output && typeof output === 'object'
     ? (output as Record<string, unknown>).structuredResponse ?? (output as Record<string, unknown>).structured_response
     : null;
-  if (!candidate) {
+
+  if (candidate) {
+    return {
+      draft: LiveTutorDraftSchema.parse(candidate),
+      structuredOutputStatus: 'native'
+    };
+  }
+
+  const recovered = recoverTutorDraftFromAgentMessages(output);
+  if (!recovered) {
     throw new Error('Deepagents tutor did not return structured output.');
   }
-  return LiveTutorDraftSchema.parse(candidate);
+  return {
+    draft: LiveTutorDraftSchema.parse(recovered.draft),
+    structuredOutputStatus: recovered.structuredOutputStatus
+  };
+}
+
+function recoverTutorDraftFromAgentMessages(output: unknown) {
+  const messages = output && typeof output === 'object' && Array.isArray((output as Record<string, unknown>).messages)
+    ? (output as Record<string, unknown>).messages as unknown[]
+    : [];
+  if (messages.length === 0) {
+    return null;
+  }
+
+  const toolDraft = latestTutorDraftFromToolCalls(messages);
+  if (toolDraft) {
+    return {
+      draft: toolDraft,
+      structuredOutputStatus: 'recovered_tool_call' as TutorStructuredOutputStatus
+    };
+  }
+
+  const assistantText = latestAssistantText(messages);
+  if (!assistantText) {
+    return null;
+  }
+
+  const jsonDraft = tryParseTutorDraftText(assistantText);
+  if (jsonDraft) {
+    return {
+      draft: jsonDraft,
+      structuredOutputStatus: 'recovered_json_text' as TutorStructuredOutputStatus
+    };
+  }
+
+  return {
+    draft: {
+      message: assistantText,
+      suggestedQuestions: []
+    },
+    structuredOutputStatus: 'recovered_assistant_text' as TutorStructuredOutputStatus
+  };
+}
+
+function latestTutorDraftFromToolCalls(messages: unknown[]) {
+  for (const message of [...messages].reverse()) {
+    for (const call of [...toolCallsForMessage(message)].reverse()) {
+      const parsed = LiveTutorDraftSchema.safeParse(call.args);
+      if (parsed.success) {
+        return parsed.data;
+      }
+    }
+  }
+  return null;
+}
+
+function tryParseTutorDraftText(text: string) {
+  const trimmed = unwrapJsonFence(text);
+  if (!trimmed.startsWith('{')) {
+    return null;
+  }
+  try {
+    const parsed = LiveTutorDraftSchema.safeParse(JSON.parse(trimmed));
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
+}
+
+function unwrapJsonFence(text: string) {
+  const trimmed = text.trim();
+  const match = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(trimmed);
+  return match ? match[1].trim() : trimmed;
+}
+
+function latestAssistantText(messages: unknown[]) {
+  for (const message of [...messages].reverse()) {
+    if (toolCallsForMessage(message).length > 0) {
+      continue;
+    }
+    const text = messageContentText(message);
+    if (text) {
+      return text;
+    }
+  }
+  return null;
+}
+
+function toolCallsForMessage(message: unknown): Array<{ name?: string; args?: unknown }> {
+  const record = message && typeof message === 'object' ? message as Record<string, unknown> : {};
+  const kwargs = record.kwargs && typeof record.kwargs === 'object' ? record.kwargs as Record<string, unknown> : {};
+  const calls = record.tool_calls ?? kwargs.tool_calls;
+  return Array.isArray(calls) ? calls as Array<{ name?: string; args?: unknown }> : [];
+}
+
+function messageContentText(message: unknown) {
+  const record = message && typeof message === 'object' ? message as Record<string, unknown> : {};
+  const kwargs = record.kwargs && typeof record.kwargs === 'object' ? record.kwargs as Record<string, unknown> : {};
+  const content = record.content ?? kwargs.content;
+
+  if (typeof content === 'string') {
+    return content.trim() || null;
+  }
+  if (Array.isArray(content)) {
+    const text = content
+      .map((part) => part && typeof part === 'object' && typeof (part as Record<string, unknown>).text === 'string'
+        ? (part as Record<string, string>).text
+        : '')
+      .join('\n')
+      .trim();
+    return text || null;
+  }
+  return null;
 }
 
 function buildLiveTutorSystemPrompt(request: TutorMessageRequest) {
@@ -258,10 +475,13 @@ function buildLiveTutorSystemPrompt(request: TutorMessageRequest) {
   return [
     'You are the H-eduware circuit tutor for a student inspecting a simulated circuit.',
     `Answer in ${language}.`,
-    'Use only the selected target, circuit artifacts, validation report, simulation plan, and context trace in the user message.',
+    'Use only the selected target, current artifact authority snapshot, validation report, simulation plan, context trace, and scoped tutor context tools.',
     'Do not invent wiring, pins, current paths, supported hardware, or simulation behavior.',
     'If validation or simulation is not valid, explain the blocker instead of describing current as flowing.',
-    'Keep the answer short, concrete, and student-facing. Avoid internal terms such as canonical context, trace, artifact, structured output, or tool call.'
+    'Keep the answer short, concrete, and student-facing. Avoid internal terms such as canonical context, trace, artifact, structured output, or tool call.',
+    '',
+    'Current artifact authority snapshot:',
+    JSON.stringify(buildTutorAuthoritySnapshot(request.artifacts), null, 2)
   ].join('\n');
 }
 
@@ -273,15 +493,6 @@ function buildLiveTutorUserPrompt(
     question: request.question,
     running: request.running,
     selectedTarget: request.target,
-    artifacts: {
-      circuitSpec: request.artifacts.circuitSpec,
-      validationReport: request.artifacts.validationReport,
-      simulationPlan: request.artifacts.simulationPlan,
-      contextCoverage: request.artifacts.contextCoverage,
-      buildRunnableReport: request.artifacts.buildRunnableReport,
-      solverGateResult: request.artifacts.solverGateResult,
-      contextTrace: request.artifacts.contextTrace
-    },
     deterministicBaseline: {
       message: localResponse.message,
       grounding: localResponse.grounding,
@@ -294,6 +505,40 @@ function buildLiveTutorUserPrompt(
   });
 }
 
+function tutorResponseFormatStrategy(
+  hasTools: boolean,
+  capabilities: ReturnType<typeof tutorModelCapabilities>
+) {
+  if (!hasTools && capabilities.providerStructuredOutput) {
+    return {
+      strategy: 'provider_without_tools',
+      responseFormat: providerStrategy(LiveTutorDraftSchema)
+    };
+  }
+  if (hasTools && capabilities.providerStructuredOutput) {
+    return {
+      strategy: 'provider_with_tools',
+      responseFormat: providerStrategy(LiveTutorDraftSchema)
+    };
+  }
+  return {
+    strategy: 'tool_strategy_with_tools',
+    responseFormat: toolStrategy(LiveTutorDraftSchema)
+  };
+}
+
+function tutorModelCapabilities(modelName: string) {
+  const supportsOpenAiStructuredTools = /^(gpt-5|gpt-4\.1|gpt-4o)/i.test(modelName);
+  return {
+    providerStructuredOutput: supportsOpenAiStructuredTools,
+    toolCalling: supportsOpenAiStructuredTools
+  };
+}
+
+function stableHash(value: string) {
+  return createHash('sha256').update(value).digest('hex');
+}
+
 function redactTutorFallbackReason(error: unknown) {
   const raw = error instanceof Error ? error.message : 'live tutor failed';
   if (error instanceof z.ZodError) {
@@ -303,6 +548,19 @@ function redactTutorFallbackReason(error: unknown) {
     return 'live tutor configuration unavailable [redacted]';
   }
   return 'live tutor failed';
+}
+
+function tutorLiveFallbackCategory(error: unknown) {
+  if (error instanceof z.ZodError) {
+    return 'structured-output';
+  }
+  if (
+    error instanceof Error
+    && error.message.startsWith('TUTOR_MODEL_CAPABILITY_UNKNOWN:')
+  ) {
+    return 'capability-unknown';
+  }
+  return 'live-failure';
 }
 
 function modelGenerationOptions(modelName: string) {

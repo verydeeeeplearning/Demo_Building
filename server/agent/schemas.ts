@@ -1174,6 +1174,7 @@ export const TutorArtifactsSchema = z.object({
   contextCoverage: ContextCoverageReportSchema.optional(),
   buildRunnableReport: BuildRunnableReportSchema.optional(),
   solverGateResult: SolverGateResultSchema.optional(),
+  renderPlan: RenderPlanSchema.optional(),
   contextTrace: z.array(ContextTraceEntrySchema).default([])
 });
 
@@ -1191,6 +1192,8 @@ export const TutorMessageRequestSchema = z.preprocess((value) => {
   return value;
 }, z.object({
   sessionId: z.string().optional(),
+  artifactFingerprint: z.string().min(1).max(160).optional(),
+  targetScopeId: z.string().min(1).max(160).optional(),
   locale: z.enum(['ko', 'en']).default('ko'),
   question: z.string().min(1),
   running: z.boolean().default(false),
@@ -1209,6 +1212,17 @@ export const TutorMessageResponseSchema = z.object({
   liveConfigured: z.boolean().optional(),
   liveAttempted: z.boolean().optional(),
   fallbackCategory: z.string().max(80).optional(),
+  tutorThreadId: z.string().min(1).max(520).optional(),
+  artifactFingerprint: z.string().min(1).max(160).optional(),
+  targetScopeId: z.string().min(1).max(160).optional(),
+  structuredOutputStatus: z.enum([
+    'native',
+    'recovered_tool_call',
+    'recovered_json_text',
+    'recovered_assistant_text',
+    'not_used',
+    'failed'
+  ]).optional(),
   message: z.string().min(1),
   grounding: z.array(z.string()),
   suggestedQuestions: z.array(z.string())
