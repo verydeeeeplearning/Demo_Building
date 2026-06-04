@@ -90,6 +90,35 @@ function makeOledCircuit(locale = 'ko') {
   };
 }
 
+function makeLedBlinkCircuit() {
+  return {
+    title: 'Arduino Uno LED blink',
+    runText: 'LED BLINK',
+    parts: [
+      { id: 'breadboard', type: 'breadboard', label: 'Half-size breadboard', pins: [] },
+      { id: 'uno', type: 'arduino', label: 'Arduino Uno', pins: [] },
+      { id: 'r1', type: 'resistor', label: '220 ohm resistor', pins: [] },
+      { id: 'led', type: 'led', label: '5 mm LED', pins: [] }
+    ],
+    connections: [
+      {
+        id: 'c1',
+        from: { partId: 'uno', pin: 'D8' },
+        to: { partId: 'r1', pin: '1' },
+        signal: 'gpio',
+        education: { label: 'D8', title: 'D8', what: 'D8 to resistor', why: 'series path', missing: 'LED current path opens.' }
+      },
+      {
+        id: 'c2',
+        from: { partId: 'r1', pin: '2' },
+        to: { partId: 'led', pin: 'A' },
+        signal: 'gpio',
+        education: { label: 'LED A', title: 'LED A', what: 'resistor to LED', why: 'current limited LED input', missing: 'LED path opens.' }
+      }
+    ]
+  };
+}
+
 test('circuit inspector describes a selected connection with simulation grounding', () => {
   const circuit = makeOledCircuit('ko');
   const target = describeCircuitTarget(circuit, { type: 'connection', connectionId: 'oled-sda' }, 'ko');
@@ -150,6 +179,52 @@ test('whole-circuit tutor copy stays grounded to LED circuits instead of OLED di
   assert.match(answer.message, /닫힌 경로|GND|전류 흐름/);
   assert.doesNotMatch(answer.message, /화면|표시 장치|OLED/);
   assert.doesNotMatch(answer.message, /깜빡이기이 빠질 때/);
+});
+
+test('breadboard target plus LED voltage question returns LED current-limiting guidance', () => {
+  const circuit = makeLedBlinkCircuit();
+  const target = describeCircuitTarget(circuit, { type: 'part', partId: 'breadboard' }, 'en');
+  const answer = answerTutorQuestion({
+    circuit,
+    target,
+    question: 'Can the LED handle a higher voltage?',
+    locale: 'en'
+  });
+
+  assert.match(answer.message, /LED/i);
+  assert.match(answer.message, /current[- ]limiting resistor|limits current|resistor/i);
+  assert.match(answer.message, /higher voltage|5V|3\.3V|driver|MOSFET|transistor/i);
+  assert.doesNotMatch(answer.message, /solderless practice board|visible, editable layout/i);
+});
+
+test('breadboard target plus Korean LED voltage question returns current-limiting guidance', () => {
+  const circuit = makeLedBlinkCircuit();
+  const target = describeCircuitTarget(circuit, { type: 'part', partId: 'breadboard' }, 'ko');
+  const answer = answerTutorQuestion({
+    circuit,
+    target,
+    question: 'led\uB294 \uC800\uAC83\uBCF4\uB2E4 \uB192\uC740 \uBCFC\uD2F0\uC9C0\uB3C4 serving \uD560 \uC218 \uC788\uC5B4?',
+    locale: 'ko'
+  });
+
+  assert.match(answer.message, /LED/i);
+  assert.match(answer.message, /\uC804\uB958|\uC800\uD56D|current-limiting/i);
+  assert.match(answer.message, /5V|3\.3V|MOSFET|transistor/i);
+  assert.doesNotMatch(answer.message, /breadboard|solderless practice board/i);
+});
+
+test('breadboard target plus generic question stays breadboard-focused', () => {
+  const circuit = makeLedBlinkCircuit();
+  const target = describeCircuitTarget(circuit, { type: 'part', partId: 'breadboard' }, 'en');
+  const answer = answerTutorQuestion({
+    circuit,
+    target,
+    question: 'What does this part do?',
+    locale: 'en'
+  });
+
+  assert.match(answer.message, /breadboard|solderless practice board|layout/i);
+  assert.doesNotMatch(answer.message, /MOSFET|higher voltage|3\.3V/i);
 });
 
 test('whole-circuit run guidance uses generic simulation output copy', () => {

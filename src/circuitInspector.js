@@ -1,4 +1,9 @@
 import { t } from './i18n.js';
+import {
+  classifyTutorQuestionIntent,
+  isLedVoltageSafetyIntent,
+  ledVoltageSafetyAnswer
+} from './tutorQuestionIntent.js';
 
 const QUESTION_PRESETS = {
   ko: {
@@ -74,6 +79,19 @@ export function answerTutorQuestion({ circuit, target, question, locale = 'ko', 
   const wantsCurrent = /전류|current|flow|흐|경로/.test(lower);
   const wantsCheck = /확인|check|test|검사|검증/.test(lower);
   const wantsRun = /실행|run|simulate|시뮬/.test(lower);
+
+  const intent = classifyTutorQuestionIntent(prompt, { target: selected });
+
+  if (isLedVoltageSafetyIntent(intent)) {
+    return {
+      message: ledVoltageSafetyAnswer(normalizedLocale),
+      grounding: uniqueStrings([
+        ...groundingFor(selected),
+        ...ledGroundingForCircuit(circuit)
+      ]),
+      suggestedQuestions: selected.questions
+    };
+  }
 
   if ((wantsCurrent || wantsRun) && hasBlockedSimulation(selected)) {
     return {
@@ -531,6 +549,16 @@ function groundingFor(target) {
       ? `simulation-warning:${target.simulationContext.warning.split(':')[0].trim()}`
       : ''
   ].filter(Boolean);
+}
+
+function ledGroundingForCircuit(circuit) {
+  return (circuit?.parts ?? [])
+    .filter((part) => /\bled\b|led-/i.test(`${part.id} ${part.type} ${part.label}`))
+    .map((part) => `part:${part.id}`);
+}
+
+function uniqueStrings(values) {
+  return [...new Set(values.filter(Boolean))];
 }
 
 function normalizeLocale(locale) {

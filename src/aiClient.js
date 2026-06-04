@@ -1,4 +1,4 @@
-const DEFAULT_AGENT_API_BASE = 'http://127.0.0.1:8787';
+import { agentApiUrl } from './agentApiBase.js';
 
 export class AgentApiError extends Error {
   constructor(message, details = {}) {
@@ -116,7 +116,7 @@ async function fetchJson(path, { method, body, timeoutMs, signal }) {
   }
 
   try {
-    const response = await fetch(`${agentApiBase()}${path}`, {
+    const response = await fetch(agentApiUrl(path), {
       method,
       headers: body ? { 'content-type': 'application/json' } : undefined,
       body: body ? JSON.stringify(body) : undefined,
@@ -144,19 +144,4 @@ async function fetchJson(path, { method, body, timeoutMs, signal }) {
     clearTimeout(timeout);
     signal?.removeEventListener?.('abort', abortListener);
   }
-}
-
-function agentApiBase() {
-  const storage = globalThis.localStorage;
-  const override =
-    typeof storage?.getItem === 'function' ? storage.getItem('hEduwareAgentApiBase') : null;
-  if (override) {
-    return override;
-  }
-  // Production build is served same-origin by the agent server, so call the API
-  // via relative `/api/...` paths. Only local dev talks to the standalone server.
-  if (import.meta.env?.PROD) {
-    return '';
-  }
-  return DEFAULT_AGENT_API_BASE;
 }

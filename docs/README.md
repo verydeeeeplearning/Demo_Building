@@ -39,6 +39,10 @@ These describe how the current system works and should be updated in place.
   main chat and tutor chat trajectory robustness plan: task/thread identity,
   artifact preservation, stale response guards, clarification identity, and
   tutor freshness.
+- [`plans/PLAN_tutor_chat_railway_fallback.md`](plans/PLAN_tutor_chat_railway_fallback.md) -
+  Railway tutor fallback repair plan: shared agent API base, fallback
+  diagnostics, and LED voltage/safety retargeting across client and server
+  fallback paths.
 - [`plans/PLAN_tutor_always_live_serving.md`](plans/PLAN_tutor_always_live_serving.md) -
   approved Ralph/Ralplan follow-up for making the right-side tutor live-first
   when the server is configured, with explicit local fallback.

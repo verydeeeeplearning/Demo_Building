@@ -6,6 +6,11 @@ import { toolStrategy } from 'langchain';
 import { z } from 'zod';
 
 import {
+  classifyTutorQuestionIntent,
+  isLedVoltageSafetyIntent,
+  ledVoltageSafetyAnswer
+} from '../../src/tutorQuestionIntent.js';
+import {
   TutorMessageResponseSchema,
   type TutorMessageRequest,
   type TutorMessageResponse
@@ -154,21 +159,28 @@ function buildLocalTutorResponse(request: TutorMessageRequest): TutorMessageResp
   const target = request.target;
   const artifacts = request.artifacts;
   const flags = classifyTutorQuestion(request.question);
+  const intent = classifyTutorQuestionIntent(request.question, { target });
+  const useLedVoltageSafetyAnswer = isLedVoltageSafetyIntent(intent);
+  const message = useLedVoltageSafetyAnswer
+    ? ledVoltageSafetyAnswer(locale)
+    : locale === 'ko'
+      ? koreanResponse(target, artifacts, flags)
+      : englishResponse(target, artifacts, flags);
+  const grounding = [
+    target.id,
+    target.type,
+    target.signal,
+    ...(target.endpoints ?? []),
+    ...artifactGrounding(artifacts),
+    ...(useLedVoltageSafetyAnswer ? ledGroundingForArtifacts(artifacts) : [])
+  ].filter((value): value is string => Boolean(value));
 
   return TutorMessageResponseSchema.parse({
     sessionId: request.sessionId ?? `tutor-${randomUUID()}`,
     mode: 'local',
     servingStatus: 'local_tutor_answer',
-    message: locale === 'ko'
-      ? koreanResponse(target, artifacts, flags)
-      : englishResponse(target, artifacts, flags),
-    grounding: [
-      target.id,
-      target.type,
-      target.signal,
-      ...(target.endpoints ?? []),
-      ...artifactGrounding(artifacts)
-    ].filter((value): value is string => Boolean(value)),
+    message,
+    grounding: uniqueStrings(grounding),
     suggestedQuestions: target.questions
   });
 }
@@ -413,6 +425,17 @@ function artifactGrounding(artifacts: TutorMessageRequest['artifacts']) {
     ...simulationWarningGrounding(artifacts.simulationPlan.warnings),
     ...artifacts.contextTrace.map((entry) => entry.sourceId)
   ];
+}
+
+function ledGroundingForArtifacts(artifacts: TutorMessageRequest['artifacts']) {
+  const componentGrounding = artifacts.circuitSpec.components
+    .filter((component) => /\bled\b|led-/i.test(`${component.id} ${component.partId} ${component.label}`))
+    .map((component) => `component:${component.id}`);
+  const currentPathGrounding = artifacts.simulationPlan.currentPaths
+    .filter((path) => /\bled\b|led-/i.test(`${path.id} ${path.label} ${path.through.join(' ')}`))
+    .map((path) => `current-path:${path.id}`);
+
+  return uniqueStrings([...componentGrounding, ...currentPathGrounding]);
 }
 
 function simulationWarningGrounding(warnings: string[]) {

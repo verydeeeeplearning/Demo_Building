@@ -1203,8 +1203,11 @@ function renderTutorStatus(message) {
     return '';
   }
   const label = t(`servingStatus.${message.servingStatus}`, {}, state.locale);
+  const fallbackCategoryAttribute = message.fallbackCategory
+    ? ` data-fallback-category="${escapeHtml(message.fallbackCategory)}"`
+    : '';
   return `
-    <small class="tutor-status" data-testid="tutor-status" data-status="${escapeHtml(message.servingStatus)}">
+    <small class="tutor-status" data-testid="tutor-status" data-status="${escapeHtml(message.servingStatus)}"${fallbackCategoryAttribute}>
       ${escapeHtml(label)}
     </small>
   `;
@@ -1682,6 +1685,7 @@ async function answerCurrentArtifactQuestion(message) {
         text: response.message,
         mode: response.mode,
         servingStatus: response.servingStatus,
+        fallbackCategory: response.fallbackCategory,
         fallbackReason: response.fallbackReason
       })
     };
@@ -2396,6 +2400,7 @@ async function submitTutorQuestion(question) {
     text: response.message,
     mode: response.mode,
     servingStatus: response.servingStatus,
+    fallbackCategory: response.fallbackCategory,
     fallbackReason: response.fallbackReason
   });
   state.inspector.suggestedQuestions = response.suggestedQuestions?.length

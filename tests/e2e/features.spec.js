@@ -81,6 +81,7 @@ function attachGuards(page) {
     const requestUrl = new URL(route.request().url());
     const isLocalApp = requestUrl.hostname === '127.0.0.1' && requestUrl.port === '4173';
     const isLocalAgent = requestUrl.hostname === '127.0.0.1' && requestUrl.port === '8787';
+    const isConfiguredAgent = requestUrl.hostname === '127.0.0.1' && requestUrl.port === '8798';
     const isLocalOfflineAgent = requestUrl.hostname === '127.0.0.1' && requestUrl.port === '8799';
     if (isLocalOfflineAgent) {
       await new Promise((resolve) => setTimeout(resolve, 800));
@@ -98,7 +99,7 @@ function attachGuards(page) {
       });
       return;
     }
-    if (isLocalApp || isLocalAgent) {
+    if (isLocalApp || isLocalAgent || isConfiguredAgent) {
       await route.continue();
       return;
     }
@@ -2306,6 +2307,130 @@ test('circuit inspector renders live tutor suggested questions when server mode 
   await expect.poll(() => tutorRequestBody?.artifacts?.solverGateResult?.buildReady).toBe(true);
 
   assertClean(guards);
+});
+
+test('configured Railway agent base powers simulation and tutor without calling old tutor endpoint', async ({ page }) => {
+  const guards = attachGuards(page);
+  const oldTutorRequests = [];
+  const tutorUrls = [];
+
+  await page.addInitScript(() => {
+    localStorage.setItem('hEduwareAgentApiBase', 'http://127.0.0.1:8798');
+  });
+  await page.route('http://127.0.0.1:8787/api/agent/explain-target', async (route) => {
+    oldTutorRequests.push(route.request().url());
+    await route.fulfill({
+      status: 599,
+      contentType: 'text/plain',
+      body: 'old tutor endpoint should not be used'
+    });
+  });
+  await page.route('http://127.0.0.1:8798/api/agent/health', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true, defaultMode: 'deepagents-live', provider: 'openai', model: 'test-model', hasServerKey: true })
+    });
+  });
+  await page.route('http://127.0.0.1:8798/api/agent/message', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(validLedBlinkAgentResultFixture())
+    });
+  });
+  await page.route('http://127.0.0.1:8798/api/agent/explain-target', async (route) => {
+    tutorUrls.push(route.request().url());
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        sessionId: 'railway-tutor-live',
+        mode: 'live',
+        servingStatus: 'live_tutor_answer',
+        message: 'Live tutor answer from configured Railway base.',
+        grounding: ['part:breadboard', 'live-deepagents-tutor'],
+        suggestedQuestions: []
+      })
+    });
+  });
+
+  await dismissWelcome(page);
+  await page.locator('#idea-input').fill('LED blink circuit');
+  await page.locator('[data-action="send-idea"]').getByRole('button').click();
+  await expect(page.locator('[data-action="confirm"]')).toBeVisible();
+  await page.locator('[data-action="confirm"]').click();
+  await expect(page.getByTestId('build-progress')).toBeVisible();
+  await page.getByTestId('build-progress-skip').click();
+  await page.locator('[data-tab="PCB"]').click();
+  await expectVisibleNonBlankStage(page);
+  await page.locator('[data-inspect-type="part"][data-inspect-id="breadboard"]').click();
+  await page.getByTestId('circuit-chat-toggle').click();
+  await page.locator('[data-action="ask-tutor"] input').fill('Can the LED handle a higher voltage?');
+  await page.locator('[data-action="ask-tutor"]').getByRole('button').click();
+
+  await expect(page.getByTestId('tutor-thread')).toContainText('Live tutor answer from configured Railway base.');
+  await expect(page.getByTestId('tutor-status').last()).toHaveAttribute('data-status', 'live_tutor_answer');
+  expect(tutorUrls[0]).toMatch(/^http:\/\/127\.0\.0\.1:8798\/api\/agent\/explain-target/);
+  expect(oldTutorRequests).toEqual([]);
+
+  assertClean(guards);
+});
+
+test('configured Railway agent base shows fallback category when tutor fails but simulation succeeds', async ({ page }) => {
+  const guards = attachGuards(page);
+  const tutorUrls = [];
+
+  await page.addInitScript(() => {
+    localStorage.setItem('hEduwareAgentApiBase', 'http://127.0.0.1:8798');
+  });
+  await page.route('http://127.0.0.1:8798/api/agent/health', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true, defaultMode: 'deepagents-live', provider: 'openai', model: 'test-model', hasServerKey: true })
+    });
+  });
+  await page.route('http://127.0.0.1:8798/api/agent/message', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(validLedBlinkAgentResultFixture())
+    });
+  });
+  await page.route('http://127.0.0.1:8798/api/agent/explain-target', async (route) => {
+    tutorUrls.push(route.request().url());
+    await route.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'tutor unavailable' })
+    });
+  });
+
+  await dismissWelcome(page);
+  await page.locator('#idea-input').fill('LED blink circuit');
+  await page.locator('[data-action="send-idea"]').getByRole('button').click();
+  await expect(page.locator('[data-action="confirm"]')).toBeVisible();
+  await page.locator('[data-action="confirm"]').click();
+  await expect(page.getByTestId('build-progress')).toBeVisible();
+  await page.getByTestId('build-progress-skip').click();
+  await page.locator('[data-tab="PCB"]').click();
+  await expectVisibleNonBlankStage(page);
+  await page.locator('[data-inspect-type="part"][data-inspect-id="breadboard"]').click();
+  await page.getByTestId('circuit-chat-toggle').click();
+  await page.locator('[data-action="ask-tutor"] input').fill('Can the LED handle a higher voltage?');
+  await page.locator('[data-action="ask-tutor"]').getByRole('button').click();
+
+  await expect(page.getByTestId('tutor-status').last()).toHaveAttribute('data-status', 'live_tutor_fallback');
+  await expect(page.getByTestId('tutor-status').last()).toHaveAttribute('data-fallback-category', 'http');
+  await expect(page.getByTestId('tutor-thread')).toContainText(/LED|resistor|current|voltage/i);
+  expect(tutorUrls[0]).toMatch(/^http:\/\/127\.0\.0\.1:8798\/api\/agent\/explain-target/);
+
+  expect(guards.blockedRequests).toEqual([]);
+  expect(guards.pageErrors).toEqual([]);
+  expect(guards.consoleErrors).toEqual([
+    expect.stringMatching(/503|Service Unavailable/)
+  ]);
 });
 
 test('keyboard user can select an inspector target without canvas picking', async ({ page }) => {

@@ -38,16 +38,30 @@ function sampleTarget() {
 async function askWithMockedTutorServer(serverReply, options = {}) {
   const previousFetch = globalThis.fetch;
   const previousStorage = globalThis.localStorage;
+  const previousLocation = globalThis.location;
   let requestBody = null;
+  let requestUrl = null;
   globalThis.localStorage = {
     getItem: (key) => options.storage?.[key] ?? null
   };
+  if (options.locationOrigin) {
+    globalThis.location = { origin: options.locationOrigin };
+  }
 
   try {
-    globalThis.fetch = async (_url, init) => {
+    globalThis.fetch = async (url, init) => {
+      requestUrl = String(url);
       requestBody = JSON.parse(init.body);
       if (options.throwFetch) {
         throw new Error(options.throwFetch);
+      }
+      if (options.ok === false) {
+        return {
+          ok: false,
+          json: async () => options.errorPayload ?? {},
+          headers: new Headers(),
+          status: options.status ?? 503
+        };
       }
       return {
         ok: true,
@@ -63,15 +77,16 @@ async function askWithMockedTutorServer(serverReply, options = {}) {
       locale: 'en',
       running: false
     });
-    return { response, requestBody };
+    return { response, requestBody, requestUrl };
   } finally {
     globalThis.fetch = previousFetch;
     globalThis.localStorage = previousStorage;
+    globalThis.location = previousLocation;
   }
 }
 
 test('valid tutor server response is used by default without browser opt-in', async () => {
-  const { response, requestBody } = await askWithMockedTutorServer({
+  const { response, requestBody, requestUrl } = await askWithMockedTutorServer({
     sessionId: 'tutor-live-test',
     mode: 'live',
     servingStatus: 'live_tutor_answer',
@@ -87,6 +102,90 @@ test('valid tutor server response is used by default without browser opt-in', as
   assert.ok(requestBody.artifacts.contextCoverage);
   assert.ok(requestBody.artifacts.buildRunnableReport);
   assert.ok(requestBody.artifacts.solverGateResult);
+  assert.equal(requestUrl, 'http://127.0.0.1:8787/api/agent/explain-target');
+});
+
+test('tutor requests use the configured agent API base', async () => {
+  const { response, requestUrl } = await askWithMockedTutorServer({
+    sessionId: 'tutor-live-test',
+    mode: 'live',
+    servingStatus: 'live_tutor_answer',
+    message: 'Live answer through configured Railway-style base.',
+    grounding: ['connection:x'],
+    suggestedQuestions: []
+  }, {
+    storage: {
+      hEduwareAgentApiBase: 'https://agent.example.test'
+    }
+  });
+
+  assert.equal(response.servingStatus, 'live_tutor_answer');
+  assert.equal(requestUrl, 'https://agent.example.test/api/agent/explain-target');
+});
+
+test('changing configured agent API base bypasses cached tutor server failures', async () => {
+  const previousFetch = globalThis.fetch;
+  const previousStorage = globalThis.localStorage;
+  const previousLocation = globalThis.location;
+  const requestUrls = [];
+  let configuredBase = 'http://agent-a.example.test';
+
+  globalThis.localStorage = {
+    getItem(key) {
+      return key === 'hEduwareAgentApiBase' ? configuredBase : null;
+    }
+  };
+  globalThis.location = { origin: 'http://cache-key-test.local' };
+
+  try {
+    globalThis.fetch = async (url, init) => {
+      requestUrls.push(String(url));
+      JSON.parse(init.body);
+      if (String(url).startsWith('http://agent-a.example.test')) {
+        throw new TypeError('Failed to fetch');
+      }
+      return {
+        ok: true,
+        status: 200,
+        headers: new Headers(),
+        json: async () => ({
+          sessionId: 'tutor-live-cache-bypass',
+          mode: 'live',
+          servingStatus: 'live_tutor_answer',
+          message: 'Live answer after switching configured base.',
+          grounding: ['connection:x'],
+          suggestedQuestions: []
+        })
+      };
+    };
+
+    const first = await askCircuitTutor({
+      circuit: sampleCircuit(),
+      target: sampleTarget(),
+      question: 'How does this work?',
+      locale: 'en',
+      running: false
+    });
+    configuredBase = 'http://agent-b.example.test';
+    const second = await askCircuitTutor({
+      circuit: sampleCircuit(),
+      target: sampleTarget(),
+      question: 'How does this work?',
+      locale: 'en',
+      running: false
+    });
+
+    assert.equal(first.servingStatus, 'live_tutor_fallback');
+    assert.equal(second.servingStatus, 'live_tutor_answer');
+    assert.deepEqual(requestUrls, [
+      'http://agent-a.example.test/api/agent/explain-target',
+      'http://agent-b.example.test/api/agent/explain-target'
+    ]);
+  } finally {
+    globalThis.fetch = previousFetch;
+    globalThis.localStorage = previousStorage;
+    globalThis.location = previousLocation;
+  }
 });
 
 test('explicit tutor server disabled override forces local response', async () => {
@@ -124,7 +223,32 @@ test('malformed tutor server response falls back with explicit mode', async () =
 
   assert.equal(response.mode, 'local');
   assert.equal(response.servingStatus, 'live_tutor_fallback');
+  assert.equal(response.fallbackCategory, 'schema');
   assert.match(response.fallbackReason, /malformed|schema/i);
+});
+
+test('failed tutor server HTTP responses report an HTTP fallback category', async () => {
+  const { response } = await askWithMockedTutorServer({}, {
+    ok: false,
+    status: 503,
+    locationOrigin: 'http://http-fallback.test'
+  });
+
+  assert.equal(response.mode, 'local');
+  assert.equal(response.servingStatus, 'live_tutor_fallback');
+  assert.equal(response.fallbackCategory, 'http');
+  assert.match(response.fallbackReason, /503/);
+});
+
+test('tutor transport failures report a transport fallback category', async () => {
+  const { response } = await askWithMockedTutorServer({}, {
+    throwFetch: 'Failed to fetch',
+    locationOrigin: 'http://transport-fallback.test'
+  });
+
+  assert.equal(response.mode, 'local');
+  assert.equal(response.servingStatus, 'live_tutor_fallback');
+  assert.equal(response.fallbackCategory, 'transport');
 });
 
 test('invalid tutor serving status falls back before rendering', async () => {

@@ -84,6 +84,98 @@ const request = TutorMessageRequestSchema.parse({
   artifacts
 });
 
+const ledBreadboardTarget = {
+  id: 'part:breadboard',
+  type: 'part',
+  partId: 'breadboard',
+  label: 'Half-size breadboard',
+  title: 'Half-size breadboard',
+  summary: 'A solderless practice board for arranging parts and jumper wires.',
+  detail: 'The breadboard holds Arduino, resistor, LED, and jumper wire placement.',
+  why: 'It gives beginners a visible wiring layout.',
+  missing: 'If the breadboard is missing, the layout is harder to inspect.',
+  questions: ['What does this part do?']
+};
+
+const ledArtifacts = {
+  circuitSpec: {
+    id: 'led-blinker',
+    title: 'LED blinker',
+    intent: { primaryGoal: 'blink an LED', output: 'led', controller: 'arduino-uno' },
+    components: [
+      { id: 'breadboard', partId: 'breadboard-half', label: 'Half-size breadboard' },
+      { id: 'arduino-uno', partId: 'arduino-uno', label: 'Arduino Uno' },
+      { id: 'resistor-1', partId: 'resistor-220', label: '220 ohm resistor' },
+      { id: 'led-1', partId: 'led-5mm', label: 'LED' }
+    ],
+    connections: [
+      {
+        id: 'd9-to-resistor',
+        from: { componentId: 'arduino-uno', pin: 'D9' },
+        to: { componentId: 'resistor-1', pin: '1' },
+        signal: 'gpio'
+      },
+      {
+        id: 'resistor-to-led',
+        from: { componentId: 'resistor-1', pin: '2' },
+        to: { componentId: 'led-1', pin: 'A' },
+        signal: 'gpio'
+      },
+      {
+        id: 'led-to-ground',
+        from: { componentId: 'led-1', pin: 'K' },
+        to: { componentId: 'arduino-uno', pin: 'GND' },
+        signal: 'ground'
+      }
+    ],
+    behavior: { runText: 'LED BLINK' },
+    assumptions: ['A 220 ohm resistor limits LED current.'],
+    unsupportedItems: [],
+    clarificationNeeds: []
+  },
+  validationReport: {
+    status: 'valid',
+    errors: [],
+    warnings: [],
+    validatedCurrentPathIds: ['led-forward-current']
+  },
+  simulationPlan: {
+    status: 'valid',
+    runText: 'LED BLINK',
+    currentPaths: [
+      {
+        id: 'led-forward-current',
+        kind: 'load-current',
+        primitiveId: 'digital_on_off',
+        label: 'LED forward current',
+        from: 'arduino-uno:D9',
+        through: ['resistor-1', 'led-1'],
+        to: 'arduino-uno:GND',
+        expectedCurrentMa: 13.6,
+        animation: { color: '#ff4d3d', speed: 0.8 }
+      }
+    ],
+    expectedStates: [{ componentId: 'led-1', state: 'blinking', primitiveId: 'digital_on_off' }],
+    warnings: []
+  },
+  contextTrace: [
+    {
+      sourceId: 'registry:part-capabilities:led-5mm',
+      sourceType: 'registry',
+      reason: 'Matched LED output.',
+      usedFields: ['pins', 'requiredPassives']
+    }
+  ]
+};
+
+const ledBreadboardVoltageRequest = TutorMessageRequestSchema.parse({
+  locale: 'en',
+  question: 'Can the LED handle a higher voltage?',
+  running: false,
+  selectedTarget: ledBreadboardTarget,
+  artifacts: ledArtifacts
+});
+
 test('tutor request requires selected target and active circuit artifacts', () => {
   assert.throws(() => TutorMessageRequestSchema.parse({
     locale: 'en',
@@ -294,6 +386,56 @@ test('tutor agent falls back to local grounding when opt-in live tutor fails', a
     assert.ok(response.grounding.includes('connection:oled-power'));
     assert.ok(response.grounding.includes('current-path:oled-module-current'));
     assert.equal(response.grounding.includes('live-deepagents-tutor'), false);
+  } finally {
+    restoreEnv('H_EDUWARE_TUTOR_MODE', previousMode);
+    restoreEnv('H_EDUWARE_AGENT_MODEL', previousModel);
+    restoreEnv('OPENAI_API_KEY', previousKey);
+  }
+});
+
+test('server local tutor retargets breadboard LED voltage questions to LED current limiting', async () => {
+  const previousMode = process.env.H_EDUWARE_TUTOR_MODE;
+  process.env.H_EDUWARE_TUTOR_MODE = 'local';
+
+  try {
+    const response = await runTutorAgent(ledBreadboardVoltageRequest);
+
+    assert.equal(response.mode, 'local');
+    assert.equal(response.servingStatus, 'local_tutor_answer');
+    assert.match(response.message, /LED/i);
+    assert.match(response.message, /current[- ]limiting resistor|limits current|resistor/i);
+    assert.match(response.message, /higher voltage|5V|3\.3V|driver|MOSFET|transistor/i);
+    assert.doesNotMatch(response.message, /solderless practice board|visible wiring layout/i);
+    assert.ok(response.grounding.includes('part:breadboard'));
+    assert.ok(response.grounding.includes('component:led-1'));
+  } finally {
+    restoreEnv('H_EDUWARE_TUTOR_MODE', previousMode);
+  }
+});
+
+test('server live fallback retargets breadboard LED voltage questions while preserving fallback status', async () => {
+  const previousMode = process.env.H_EDUWARE_TUTOR_MODE;
+  const previousModel = process.env.H_EDUWARE_AGENT_MODEL;
+  const previousKey = process.env.OPENAI_API_KEY;
+  process.env.H_EDUWARE_TUTOR_MODE = 'live';
+  process.env.H_EDUWARE_AGENT_MODEL = 'gpt-5.4-mini';
+  process.env.OPENAI_API_KEY = 'test-key';
+
+  try {
+    const response = await runTutorAgent(ledBreadboardVoltageRequest, {
+      liveDraftProvider: async () => {
+        throw new Error('simulated live tutor failure');
+      }
+    });
+
+    assert.equal(response.mode, 'local');
+    assert.equal(response.servingStatus, 'live_tutor_fallback');
+    assert.equal(response.fallbackCategory, 'live-failure');
+    assert.match(response.message, /LED/i);
+    assert.match(response.message, /current[- ]limiting resistor|limits current|resistor/i);
+    assert.match(response.message, /higher voltage|5V|3\.3V|driver|MOSFET|transistor/i);
+    assert.doesNotMatch(response.message, /solderless practice board|visible wiring layout/i);
+    assert.ok(response.grounding.includes('component:led-1'));
   } finally {
     restoreEnv('H_EDUWARE_TUTOR_MODE', previousMode);
     restoreEnv('H_EDUWARE_AGENT_MODEL', previousModel);

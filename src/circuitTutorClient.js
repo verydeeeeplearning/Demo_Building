@@ -1,12 +1,8 @@
+import { agentApiUrl } from './agentApiBase.js';
 import { answerTutorQuestion } from './circuitInspector.js';
 
 const TUTOR_SERVER_DISABLED_KEY = 'hEduwareTutorServer';
-// Same-origin in the production build (served by the agent server); the local
-// standalone server only in dev.
 const TUTOR_PATH = '/api/agent/explain-target';
-const DEFAULT_ENDPOINT = import.meta.env?.PROD
-  ? TUTOR_PATH
-  : `http://127.0.0.1:8787${TUTOR_PATH}`;
 const SERVER_FAILURE_TTL_MS = 15_000;
 const serverReachability = new Map();
 
@@ -15,16 +11,18 @@ export async function askCircuitTutor({ circuit, target, question, locale, runni
     return localTutorResponse({ circuit, target, question, locale, running });
   }
 
-  if (hasCachedServerFailure()) {
+  const endpoint = tutorEndpoint();
+  if (hasCachedServerFailure(endpoint)) {
     return {
       ...localTutorResponse({ circuit, target, question, locale, running }),
       servingStatus: 'live_tutor_fallback',
+      fallbackCategory: 'transport',
       fallbackReason: 'tutor server unavailable'
     };
   }
 
   try {
-    const response = await fetch(DEFAULT_ENDPOINT, {
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
@@ -48,17 +46,18 @@ export async function askCircuitTutor({ circuit, target, question, locale, runni
 
     if (response.ok) {
       const parsed = parseTutorResponse(await response.json());
-      markServerReachable();
+      markServerReachable(endpoint);
       return parsed;
     }
-    throw new TutorServerTransportError(`tutor server returned ${response.status}`);
+    throw new TutorServerTransportError(`tutor server returned ${response.status}`, 'http');
   } catch (error) {
     if (isTutorServerTransportError(error)) {
-      markServerFailure();
+      markServerFailure(endpoint);
     }
     return {
       ...localTutorResponse({ circuit, target, question, locale, running }),
       servingStatus: 'live_tutor_fallback',
+      fallbackCategory: tutorFallbackCategory(error),
       fallbackReason: redactTutorFallbackReason(error)
     };
   }
@@ -156,30 +155,49 @@ function shouldUseTutorServer() {
   }
 }
 
-function hasCachedServerFailure() {
-  const entry = serverReachability.get(tutorServerCacheKey());
+function hasCachedServerFailure(endpoint) {
+  const entry = serverReachability.get(tutorServerCacheKey(endpoint));
   return Boolean(entry?.failedUntil && entry.failedUntil > Date.now());
 }
 
-function markServerReachable() {
-  serverReachability.set(tutorServerCacheKey(), {
+function markServerReachable(endpoint) {
+  serverReachability.set(tutorServerCacheKey(endpoint), {
     failedUntil: 0,
     lastSuccessAt: Date.now()
   });
 }
 
-function markServerFailure() {
-  serverReachability.set(tutorServerCacheKey(), {
+function markServerFailure(endpoint) {
+  serverReachability.set(tutorServerCacheKey(endpoint), {
     failedUntil: Date.now() + SERVER_FAILURE_TTL_MS,
     lastFailureAt: Date.now()
   });
 }
 
-function tutorServerCacheKey() {
-  return `${DEFAULT_ENDPOINT}|${globalThis.location?.origin ?? 'unknown-origin'}`;
+function tutorEndpoint() {
+  return agentApiUrl(TUTOR_PATH);
 }
 
-class TutorServerTransportError extends Error {}
+function tutorServerCacheKey(endpoint) {
+  return `${endpoint}|${globalThis.location?.origin ?? 'unknown-origin'}`;
+}
+
+class TutorServerTransportError extends Error {
+  constructor(message, fallbackCategory = 'transport') {
+    super(message);
+    this.fallbackCategory = fallbackCategory;
+  }
+}
+
+function tutorFallbackCategory(error) {
+  if (error instanceof TutorServerTransportError) {
+    return error.fallbackCategory;
+  }
+  if (error instanceof TypeError || isTutorServerTransportError(error)) {
+    return 'transport';
+  }
+  return 'schema';
+}
 
 function isTutorServerTransportError(error) {
   return error instanceof TutorServerTransportError
