@@ -31,6 +31,7 @@
     "audit:visual-coverage": "tsx server/context/visualPartCoverageReportCli.ts",
     "qa:context-artifacts": "tsx server/qa/contextQaArtifactBundleCli.ts",
     "test:e2e": "playwright test",
+    "report:e2e:build": "node scripts/buildE2eReport.mjs",
     "typecheck": "tsc --noEmit",
     "check": "npm run test:unit && npm run typecheck && npm run build && npm run test:e2e",
     "check:live": "H_EDUWARE_AGENT_MODE=live tsx --test tests/unit/*.live.test.ts"
@@ -47,6 +48,7 @@
   "devDependencies": {
     "@playwright/test": "^1.60.0",
     "@types/node": "^25.9.1",
+    "docx": "^9.7.1",
     "pngjs": "^7.0.0",
     "tsx": "^4.22.3",
     "typescript": "^6.0.3",
