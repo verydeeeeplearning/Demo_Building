@@ -31,6 +31,74 @@ function awaiting(sessionId, level, question, options) {
   return { ...baseResult(sessionId, 'awaiting_input', question), clarificationRequest: { level, question, options } };
 }
 
+function diagnosticContextGapResult(sessionId) {
+  return {
+    ...baseResult(sessionId, 'circuit', 'That fan circuit is not build-ready yet. Use a supported low-voltage output instead.'),
+    servingStatus: 'needs_clarification',
+    supportedAlternatives: [{
+      id: 'safe-low-voltage-led',
+      goal: 'Build a safe Arduino LED circuit',
+      label: 'Safe LED circuit',
+      reason: 'This uses verified low-voltage parts.',
+      source: 'context-support-gap',
+      partIds: ['arduino-uno', 'breadboard-half', 'led-5mm', 'resistor-220', 'jumper-wire'],
+      capabilityIds: ['digital-light-output']
+    }],
+    contextCoverage: {
+      status: 'insufficient',
+      score: 0.5,
+      sufficientFor: ['clarification_response', 'unsupported_response'],
+      synthesisEligibility: { status: 'ineligible', reason: 'Fan output is not build-ready.' },
+      missingSourceTypes: ['validation'],
+      warnings: ['fan output support gap']
+    },
+    circuitSpec: {
+      id: 'fan-context-gap',
+      title: 'Fan support gap',
+      intent: { primaryGoal: 'Turn on a fan based on temperature', output: 'fan', controller: 'arduino-uno' },
+      components: [{ id: 'arduino-uno', partId: 'arduino-uno', label: 'Arduino Uno' }],
+      connections: [],
+      behavior: { runText: 'CONTEXT GAP' },
+      assumptions: ['Diagnostic only.'],
+      unsupportedItems: ['fan output support gap'],
+      clarificationNeeds: ['Choose a supported output.']
+    },
+    validationReport: {
+      status: 'unsupported',
+      errors: ['CONTEXT_SUPPORT_GAP: fan output is not build-ready.'],
+      warnings: [],
+      validatedCurrentPathIds: []
+    },
+    renderPlan: {
+      title: 'Fan support gap',
+      runText: 'CONTEXT GAP',
+      parts: [{ id: 'arduino-uno', type: 'arduino', label: 'Arduino Uno' }],
+      connections: [],
+      floatingCards: [],
+      warnings: []
+    },
+    simulationPlan: {
+      status: 'unsupported',
+      runText: 'CONTEXT GAP',
+      currentPaths: [],
+      expectedStates: [],
+      warnings: []
+    },
+    buildRunnableReport: {
+      status: 'blocked',
+      runnable: false,
+      reasons: ['fan output support gap'],
+      validationStatus: 'unsupported',
+      simulationStatus: 'unsupported',
+      renderWarningCount: 0,
+      renderBlockingWarningCount: 0,
+      renderPartCount: 1,
+      currentPathCount: 0,
+      expectedStateCount: 0
+    }
+  };
+}
+
 async function mockAgent(page) {
   const posts = [];
   await page.route('**/api/agent/health', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(HEALTH) }));
@@ -70,6 +138,29 @@ test('vague request -> category chips -> drill-down -> capability selection resu
   const chips = page.getByTestId('clarify-options');
   await expect(chips).toBeVisible();
   await expect(chips.locator('[data-action="clarify-option"]')).toHaveCount(2);
+  await expect.poll(() =>
+    page.getByTestId('ai-panel').evaluate((panel) => panel.getBoundingClientRect().width)
+  ).toBeGreaterThanOrEqual(315);
+  const chipLayout = await chips.evaluate((container) => {
+    const containerBox = container.getBoundingClientRect();
+    return {
+      left: containerBox.left,
+      right: containerBox.right,
+      buttons: [...container.querySelectorAll('[data-action="clarify-option"]')].map((button) => {
+        const box = button.getBoundingClientRect();
+        return {
+          left: box.left,
+          right: box.right,
+          height: box.height
+        };
+      })
+    };
+  });
+  expect(chipLayout.buttons.every((button) =>
+    button.left >= chipLayout.left - 0.5
+    && button.right <= chipLayout.right + 0.5
+    && button.height <= 52
+  )).toBe(true);
   await chips.getByRole('button', { name: '소리' }).click();
 
   // Drill-down chips after the category resume.
@@ -96,4 +187,31 @@ test('reload keeps the thread and reuses the session id mid-clarification', asyn
   await page.locator('#idea-input').fill('소리');
   await page.locator('[data-action="send-idea"]').getByRole('button').click();
   await expect.poll(() => agent.posts.at(-1)?.sessionId).toBe('session-clarify');
+});
+
+test('diagnostic support-gap follow-up sends diagnostic draft and pending alternative context', async ({ page }) => {
+  const posts = [];
+  await page.route('**/api/agent/health', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(HEALTH) }));
+  await page.route('**/api/agent/message', async (route) => {
+    const body = JSON.parse(route.request().postData() || '{}');
+    posts.push(body);
+    const result = posts.length === 1
+      ? diagnosticContextGapResult(body.sessionId || 'session-diagnostic')
+      : baseResult(body.sessionId || 'session-diagnostic', 'chat', 'Choose LED or buzzer and I will build that supported output.');
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(result) });
+  });
+  await dismissWelcome(page);
+
+  await page.locator('#idea-input').fill('Turn on a fan based on temperature');
+  await page.locator('[data-action="send-idea"]').getByRole('button').click();
+  await expect(page.locator('.message.assistant').last()).toContainText('fan circuit is not build-ready');
+
+  await page.locator('#idea-input').fill('Use a supported output instead');
+  await page.locator('[data-action="send-idea"]').getByRole('button').click();
+  await expect.poll(() => posts.length).toBe(2);
+
+  expect(posts[1].conversationContext.currentArtifact.source).toBe('diagnostic-draft');
+  expect(posts[1].conversationContext.currentArtifact.validationReport.status).toBe('unsupported');
+  expect(posts[1].conversationContext.pendingSupportedAlternative.id).toBe('safe-low-voltage-led');
+  expect(posts[1].conversationContext.awaitingBuildConfirmation).toBe(false);
 });

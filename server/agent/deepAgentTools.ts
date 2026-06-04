@@ -30,6 +30,7 @@ import {
   CircuitSpecSchema,
   NetlistSchema,
   ValidationReportSchema,
+  type AgentConversationContext,
   type CircuitSpec,
   type ContextCoverageReport,
   type PartCapability,
@@ -64,6 +65,7 @@ export type ScopedHeduwareAgentToolOptions = {
   supportBundles: SupportBundleEvidence[];
   requestScope?: RequestScope;
   locale?: 'ko' | 'en';
+  conversationContext?: AgentConversationContext;
 };
 
 type InternalToolOptions = ScopedHeduwareAgentToolOptions & {
@@ -110,17 +112,27 @@ function createTools(options: InternalToolOptions) {
     const validationReport = applyScopedCandidatePartGate(await validateCircuitSpec(spec), spec, options);
     return applyContextCoverageGate(validationReport, options.contextCoverage);
   };
+  const buildEligible = options.requestScope?.buildEligible
+    ?? options.contextCoverage.synthesisEligibility.status === 'eligible';
 
   return [
     tool(
       async ({ level }) => {
+        if (buildEligible) {
+          return asJson({
+            error: 'CLARIFICATION_BLOCKED_BUILD_ELIGIBLE',
+            route: options.requestScope?.route ?? 'synthesize_circuit',
+            supportedCapabilities: options.requestScope?.supportedCapabilities ?? [],
+            reason: 'The current request is already build-eligible. Build the scoped circuit instead of asking a generic narrowing question.'
+          });
+        }
         const narrowed = await narrowOptions(level ?? 'output', options.locale ?? 'ko');
         // LangGraph human-in-the-loop: pause the graph and surface grounded options. The resume value
         // (a category id or a capabilityId the student tapped) flows back as this tool's result.
         const selected = interrupt({
           kind: 'clarification',
           level: narrowed.level,
-          question: narrowed.question,
+          question: contextualNarrowQuestion(narrowed.question, narrowed.level, options),
           options: narrowed.options
         });
         return asJson({ selected });
@@ -256,6 +268,27 @@ function createTools(options: InternalToolOptions) {
       }
     )
   ];
+}
+
+export function contextualNarrowQuestion(
+  question: string,
+  level: string,
+  options: Pick<ScopedHeduwareAgentToolOptions, 'conversationContext' | 'locale'>
+) {
+  if (level !== 'output') {
+    return question;
+  }
+
+  const context = options.conversationContext;
+  const hasDiagnosticAlternative = context?.currentArtifact?.source === 'diagnostic-draft'
+    || Boolean(context?.pendingSupportedAlternative);
+  if (!hasDiagnosticAlternative) {
+    return question;
+  }
+
+  return options.locale === 'en'
+    ? 'Let’s replace the unsupported fan or motor-style output with a supported output. Pick one below.'
+    : '팬이나 모터처럼 아직 검증되지 않은 출력 대신, 지금 지원되는 출력으로 바꿔볼게요. 아래에서 하나를 골라주세요.';
 }
 
 function applyScopedCandidatePartGate(

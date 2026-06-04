@@ -3,7 +3,8 @@ import test from 'node:test';
 
 import {
   createHeduwareAgentTools,
-  createUnscopedHeduwareAgentToolsForTests
+  createUnscopedHeduwareAgentToolsForTests,
+  contextualNarrowQuestion
 } from '../../server/agent/deepAgentTools.ts';
 import { CircuitSpecSchema, type CircuitSpec, type ContextCoverageReport } from '../../server/agent/schemas.ts';
 
@@ -112,6 +113,66 @@ test('scoped context index hides unselected context sources', async () => {
   const index = JSON.parse(String(await indexTool.invoke({})));
   assert.match(JSON.stringify(index), /safety-policy/);
   assert.doesNotMatch(JSON.stringify(index), /rendering-footprints/);
+});
+
+test('ask_to_narrow is blocked for an already build-eligible scoped request', async () => {
+  const tools = createHeduwareAgentTools({
+    candidateParts: [
+      { id: 'photoresistor-ldr', label: 'Photoresistor LDR', kind: 'sensor' } as any,
+      { id: 'led-5mm', label: '5mm LED', kind: 'led' } as any
+    ],
+    allowedContextSourceIds: ['bundle:light-sensor-triggered-output'],
+    supportBundles: [],
+    contextCoverage: sufficientCoverage(),
+    requestScope: {
+      route: 'synthesize_circuit',
+      buildEligible: true,
+      unsupported: false,
+      unsafe: false,
+      candidateParts: [
+        { id: 'photoresistor-ldr', label: 'Photoresistor LDR', kind: 'sensor' },
+        { id: 'led-5mm', label: '5mm LED', kind: 'led' }
+      ],
+      supportedCapabilities: ['light-sensor-triggered-output'],
+      reason: 'Context coverage is sufficient for circuit synthesis.'
+    }
+  });
+  const narrowTool = tools.find((tool) => tool.name === 'ask_to_narrow');
+  assert.ok(narrowTool);
+
+  const result = JSON.parse(String(await narrowTool.invoke({ level: 'output' })));
+  assert.equal(result.error, 'CLARIFICATION_BLOCKED_BUILD_ELIGIBLE');
+  assert.equal(result.route, 'synthesize_circuit');
+  assert.deepEqual(result.supportedCapabilities, ['light-sensor-triggered-output']);
+});
+
+test('output narrowing question reflects diagnostic alternative context', () => {
+  const generic = 'What would you like to build? Pick one below.';
+  assert.equal(
+    contextualNarrowQuestion(generic, 'output', { locale: 'en' }),
+    generic
+  );
+  assert.match(
+    contextualNarrowQuestion(generic, 'output', {
+      locale: 'en',
+      conversationContext: {
+        recentTurns: [],
+        currentArtifact: {
+          source: 'diagnostic-draft',
+          title: 'Fan support gap'
+        },
+        pendingSupportedAlternative: {
+          id: 'safe-low-voltage-led',
+          goal: 'Build a safe Arduino LED circuit',
+          source: 'context-support-gap',
+          partIds: ['arduino-uno', 'breadboard-half', 'led-5mm', 'resistor-220', 'jumper-wire'],
+          capabilityIds: ['digital-light-output']
+        },
+        awaitingBuildConfirmation: false
+      }
+    }),
+    /replace the unsupported fan or motor-style output/i
+  );
 });
 
 test('test-only unscoped factory keeps legacy isolated diagnostics explicit', async () => {

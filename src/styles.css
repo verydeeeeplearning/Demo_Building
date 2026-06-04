@@ -192,7 +192,7 @@ a:focus-visible {
 
 .workbench {
   display: grid;
-  grid-template-columns: clamp(270px, 22vw, 330px) minmax(0, 1fr) clamp(260px, 21vw, 320px);
+  grid-template-columns: clamp(320px, 26vw, 400px) minmax(0, 1fr) clamp(260px, 20vw, 320px);
   height: calc(100vh - var(--shell-top));
   min-height: 650px;
   overflow: hidden;
@@ -1562,6 +1562,7 @@ body.has-modal {
 
 .quick-replies {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -1576,6 +1577,22 @@ body.has-modal {
 
 .reply-chip:hover {
   background: rgba(255, 255, 255, 0.16);
+}
+
+.clarify-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  align-items: stretch;
+}
+
+.clarify-chip {
+  min-height: 36px;
+  border-radius: 8px;
+  padding: 7px 10px;
+  text-align: center;
+  line-height: 1.25;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 /* Library browser */
@@ -1913,7 +1930,7 @@ body.has-modal {
 
 @media (max-width: 1100px) {
   .workbench {
-    grid-template-columns: minmax(250px, 300px) minmax(0, 1fr);
+    grid-template-columns: minmax(270px, 320px) minmax(0, 1fr);
     height: auto;
     min-height: calc(100vh - var(--shell-top));
     overflow: visible;
@@ -1960,7 +1977,7 @@ body.has-modal {
   }
 
   .workbench.is-pcb {
-    grid-template-columns: minmax(250px, 300px) minmax(360px, 1fr) minmax(220px, 280px);
+    grid-template-columns: minmax(270px, 320px) minmax(360px, 1fr) minmax(220px, 280px);
     height: calc(100vh - var(--shell-top));
     min-height: 650px;
     overflow: hidden;

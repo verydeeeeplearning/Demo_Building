@@ -427,7 +427,8 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
     allowedContextSourceIds: contextPacket.retrievalPlan.sourceIds,
     supportBundles: contextPacket.supportBundles,
     requestScope,
-    locale: request.locale ?? 'ko'
+    locale: request.locale ?? 'ko',
+    conversationContext: request.conversationContext
   };
   // Phase 3 single-run: in shadow|next, derive the requirement route deterministically instead of
   // running a second deep agent — collapsing the two createDeepAgent runs into the one synthesis
@@ -2492,8 +2493,10 @@ export function buildSystemPrompt({
     'DECIDE this turn first, then act:',
     '- Greeting, small talk, or a GENERAL question (a concept, "what is X", or "recommend a circuit" with no concrete build target): answer warmly in the student\'s language. For a recommendation, suggest 2-3 concrete buildable circuits from the supported parts and invite the student to pick one to build. Set responseKind="chat" and circuitSpec=null. Never fabricate a circuit just to have one.',
     '- The request is too vague to build — no clear output device (e.g. "뭔가 만들어줘", "회로 추천"), or a required sensor/detail is missing: call the ask_to_narrow tool to offer grounded options the student can tap (level="output" for categories; a category id like "sensor-readout"/"motion" to drill down). Prefer ask_to_narrow over a free-text question whenever concrete options exist. After the student picks a capability, build it.',
+    '- If the conversation context contains currentArtifact.source="diagnostic-draft" or a pendingSupportedAlternative and the student asks to replace an unsupported output, call ask_to_narrow(level="output") so the UI shows grounded buttons. Do not answer with prose-only alternatives.',
     '- A concrete, buildable circuit goal: build it. Set responseKind="circuit" and return a full CircuitSpec.',
     'When unsure whether a request is buildable or within the supported scope, call assess_request_scope and respect its verdict.',
+    'Before calling ask_to_narrow, verify the current scope. If assess_request_scope says route="synthesize_circuit" or buildEligible=true, ask_to_narrow is forbidden: build the scoped circuit instead. Do not show generic category choices for a concrete request such as a light-sensor brightness detector.',
     '',
     'When building a circuit:',
     'Build only safe, low-voltage educational Arduino/breadboard circuits.',

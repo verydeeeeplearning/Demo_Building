@@ -1746,6 +1746,18 @@ test('unsafe requests show a safe equivalent simulation without building the ori
       body: JSON.stringify(unsupportedUnsafeAgentResultFixture())
     });
   });
+  await page.route('http://127.0.0.1:8787/api/agent/explain-target', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        message: 'The verified safe-equivalent circuit has the LED, resistor, and GND return path connected; the original 220V wiring is not built.',
+        mode: 'live',
+        servingStatus: 'live_tutor_answer',
+        suggestedQuestions: []
+      })
+    });
+  });
 
   await dismissWelcome(page);
   await page.locator('#idea-input').fill('220V 콘센트에 직접 연결해서 LED 켜고 싶어');

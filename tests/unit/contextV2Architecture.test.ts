@@ -181,6 +181,19 @@ test('v2 light sensor bundle wins over generic LED routing and loads analog thre
   assert.match(packet.promptBlock, /Light Sensor Triggered Output/);
 });
 
+test('v2 Korean unspaced light-sensor brightness request is build eligible', async () => {
+  const packet = await buildContextPacket({
+    message: '\uC870\uB3C4\uC13C\uC11C\uB85C \uC790\uB3D9 \uBC1D\uAE30 \uAC10\uC9C0',
+    locale: 'ko'
+  });
+
+  assert.equal(packet.contextRoute.routeId, 'v2-light-sensor-triggered-output');
+  assert.ok(packet.capabilityMatches.some((capability) => capability.id === 'light-sensor-triggered-output'));
+  assert.equal(packet.contextCoverage.synthesisEligibility.status, 'eligible');
+  assert.ok(packet.candidateParts.some((part) => part.id === 'photoresistor-ldr'));
+  assert.ok(packet.candidateParts.some((part) => part.id === 'led-5mm'));
+});
+
 test('v2 distance sensor bundle wins over generic display routing and loads ultrasonic context', async () => {
   const packet = await buildContextPacket({
     message: 'Show distance from an ultrasonic sensor on the OLED display.',

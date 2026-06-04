@@ -1091,7 +1091,7 @@ export const ConversationTurnSchema = z.object({
 });
 
 export const AgentArtifactSnapshotSchema = z.object({
-  source: z.enum(['draft', 'built-project']),
+  source: z.enum(['draft', 'diagnostic-draft', 'built-project']),
   title: z.string().min(1),
   requirementMarkdown: z.string().max(12000).optional(),
   circuitSpec: CircuitSpecSchema.optional(),

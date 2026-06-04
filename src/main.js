@@ -2057,7 +2057,7 @@ function activeArtifactCircuit() {
 function buildConversationContext() {
   const visibleAgentResult = canShowAgentScene(state.agentResult) ? state.agentResult : null;
   const buildableAgentResult = visibleAgentResult && canBuildAgentResult(visibleAgentResult) ? visibleAgentResult : null;
-  const pendingSupportedAlternative = visibleAgentResult
+  const pendingSupportedAlternative = buildableAgentResult
     ? undefined
     : firstSupportedAlternativeFromResult(state.agentResult);
   const currentArtifact = state.projectLoaded

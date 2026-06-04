@@ -674,6 +674,40 @@ test('agent message request accepts bounded conversation and current artifact co
   assert.equal(parsed.conversationContext?.awaitingBuildConfirmation, true);
 });
 
+test('agent message request accepts diagnostic draft context from unsupported follow-ups', () => {
+  const parsed = AgentMessageRequestSchema.parse({
+    message: 'Use a supported output instead.',
+    locale: 'en',
+    conversationContext: {
+      recentTurns: [
+        { role: 'student', text: 'Turn on a fan based on temperature' },
+        { role: 'assistant', text: 'That fan circuit is not build-ready yet; use a supported LED alternative.' }
+      ],
+      currentArtifact: {
+        source: 'diagnostic-draft',
+        title: 'Hardware Support Gap Diagnostic Scene',
+        validationReport: {
+          status: 'unsupported',
+          errors: ['CONTEXT_SUPPORT_GAP: fan output is not build-ready.'],
+          warnings: [],
+          validatedCurrentPathIds: []
+        }
+      },
+      pendingSupportedAlternative: {
+        id: 'safe-low-voltage-led',
+        goal: 'Build a safe Arduino LED circuit',
+        source: 'context-support-gap',
+        partIds: ['arduino-uno', 'breadboard-half', 'led-5mm', 'resistor-220', 'jumper-wire'],
+        capabilityIds: ['digital-light-output']
+      },
+      awaitingBuildConfirmation: false
+    }
+  });
+
+  assert.equal(parsed.conversationContext?.currentArtifact?.source, 'diagnostic-draft');
+  assert.equal(parsed.conversationContext?.pendingSupportedAlternative?.id, 'safe-low-voltage-led');
+});
+
 test('conversation context rejects unbounded recent turn history', () => {
   assert.throws(() => {
     AgentConversationContextSchema.parse({

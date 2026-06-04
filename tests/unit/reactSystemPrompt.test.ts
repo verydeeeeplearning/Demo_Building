@@ -28,6 +28,18 @@ void test('the prompt points the agent at the assess_request_scope authority too
   assert.match(prompt, /assess_request_scope/);
 });
 
+void test('the prompt forbids generic narrowing for build-eligible requests', () => {
+  assert.match(prompt, /ask_to_narrow is forbidden/);
+  assert.match(prompt, /buildEligible=true/);
+  assert.match(prompt, /light-sensor brightness detector/);
+});
+
+void test('the prompt requires button narrowing after diagnostic replacement requests', () => {
+  assert.match(prompt, /currentArtifact\.source="diagnostic-draft"/);
+  assert.match(prompt, /pendingSupportedAlternative/);
+  assert.match(prompt, /Do not answer with prose-only alternatives/);
+});
+
 void test('the prompt preserves the safety + grounding rules', () => {
   assert.match(prompt, /safe, low-voltage/i);
   assert.match(prompt, /Do not invent parts, pins, protocols/i);
