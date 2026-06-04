@@ -54,45 +54,50 @@ for (const query of QUERIES) {
     });
 
     // Trigger an agent turn and block until it actually responds + the typing indicator clears.
+    // Best-effort: a slow/failed turn never throws, so one bad query can't abort the serial run.
     const turn = async (action) => {
-      const waitResponse = page.waitForResponse((r) => r.url().includes('/api/agent/message'), { timeout: 120000 });
-      await action();
+      const waitResponse = page.waitForResponse((r) => r.url().includes('/api/agent/message'), { timeout: 120000 }).catch(() => null);
+      await action().catch(() => {});
       await waitResponse;
       await expect(page.getByTestId('ai-typing')).toHaveCount(0, { timeout: 120000 }).catch(() => {});
       await page.waitForTimeout(300);
     };
 
-    await dismissWelcome(page);
-    await turn(() => Promise.all([
-      page.locator('#idea-input').fill(query.prompt),
-      page.locator('[data-action="send-idea"]').getByRole('button').click()
-    ]).then(() => {}));
-
-    // Narrowing flow: tap the first option until the agent stops asking (max 3 levels).
-    for (let step = 0; step < 3; step += 1) {
-      const chips = page.getByTestId('clarify-options');
-      if (await chips.count() === 0) break;
-      await turn(() => chips.locator('[data-action="clarify-option"]').first().click());
-    }
-
-    // Build + simulate if the agent produced a buildable draft.
     let sceneCaptured = false;
-    if (await page.locator('[data-action="confirm"]').count() > 0) {
-      await page.locator('[data-action="confirm"]').click();
-      if (await page.getByTestId('build-progress-skip').count() > 0) {
-        await page.getByTestId('build-progress-skip').click();
+    try {
+      await dismissWelcome(page);
+      await turn(() => Promise.all([
+        page.locator('#idea-input').fill(query.prompt),
+        page.locator('[data-action="send-idea"]').getByRole('button').click()
+      ]).then(() => {}));
+
+      // Narrowing flow: tap the first option until the agent stops asking (max 3 levels).
+      for (let step = 0; step < 3; step += 1) {
+        const chips = page.getByTestId('clarify-options');
+        if (await chips.count() === 0) break;
+        await turn(() => chips.locator('[data-action="clarify-option"]').first().click());
       }
-      await page.locator('[data-tab="PCB"]').click();
-      const canvas = page.getByTestId('stage-canvas');
-      if (await canvas.count() > 0) {
-        await expect(canvas).toHaveAttribute('data-render-ready', 'true', { timeout: 30000 }).catch(() => {});
-        if (await page.locator('[data-action="run"]').count() > 0) {
-          await page.locator('[data-action="run"]').click().catch(() => {});
-          await page.waitForTimeout(2000);
+
+      // Build + simulate if the agent produced a buildable draft.
+      if (await page.locator('[data-action="confirm"]').count() > 0) {
+        await page.locator('[data-action="confirm"]').click();
+        if (await page.getByTestId('build-progress-skip').count() > 0) {
+          await page.getByTestId('build-progress-skip').click();
         }
-        writeFileSync(path.join(OUT_DIR, `${query.id}.png`), await canvas.screenshot());
-        sceneCaptured = true;
+        await page.locator('[data-tab="PCB"]').click();
+        const canvas = page.getByTestId('stage-canvas');
+        if (await canvas.count() > 0) {
+          await expect(canvas).toHaveAttribute('data-render-ready', 'true', { timeout: 30000 }).catch(() => {});
+          if (await page.locator('[data-action="run"]').count() > 0) {
+            await page.locator('[data-action="run"]').click().catch(() => {});
+            await page.waitForTimeout(2000);
+          }
+          writeFileSync(path.join(OUT_DIR, `${query.id}.png`), await canvas.screenshot());
+          sceneCaptured = true;
+        }
       }
+    } catch {
+      // Keep whatever was captured; never abort the rest of the run.
     }
 
     const result = responses.at(-1) ?? {};
