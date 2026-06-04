@@ -148,28 +148,39 @@ test('ask_to_narrow is blocked for an already build-eligible scoped request', as
 
 test('output narrowing question reflects diagnostic alternative context', () => {
   const generic = 'What would you like to build? Pick one below.';
+  const diagnosticContext = {
+    recentTurns: [],
+    currentArtifact: {
+      source: 'diagnostic-draft' as const,
+      title: 'Fan support gap'
+    },
+    pendingSupportedAlternative: {
+      id: 'safe-low-voltage-led',
+      goal: 'Build a safe Arduino LED circuit',
+      source: 'context-support-gap' as const,
+      partIds: ['arduino-uno', 'breadboard-half', 'led-5mm', 'resistor-220', 'jumper-wire'],
+      capabilityIds: ['digital-light-output']
+    },
+    awaitingBuildConfirmation: false
+  };
+
   assert.equal(
     contextualNarrowQuestion(generic, 'output', { locale: 'en' }),
+    generic
+  );
+  assert.equal(
+    contextualNarrowQuestion(generic, 'output', {
+      locale: 'en',
+      requestKind: 'new_task',
+      conversationContext: diagnosticContext
+    }),
     generic
   );
   assert.match(
     contextualNarrowQuestion(generic, 'output', {
       locale: 'en',
-      conversationContext: {
-        recentTurns: [],
-        currentArtifact: {
-          source: 'diagnostic-draft',
-          title: 'Fan support gap'
-        },
-        pendingSupportedAlternative: {
-          id: 'safe-low-voltage-led',
-          goal: 'Build a safe Arduino LED circuit',
-          source: 'context-support-gap',
-          partIds: ['arduino-uno', 'breadboard-half', 'led-5mm', 'resistor-220', 'jumper-wire'],
-          capabilityIds: ['digital-light-output']
-        },
-        awaitingBuildConfirmation: false
-      }
+      requestKind: 'resume_clarification',
+      conversationContext: diagnosticContext
     }),
     /replace the unsupported fan or motor-style output/i
   );

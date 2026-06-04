@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   classifyStudentTurn,
   isCurrentArtifactQuestion,
+  isGeneralChat,
   isNaturalConfirmation,
   isRevisionRequest
 } from '../../src/conversationRouting.js';
@@ -61,5 +62,27 @@ test('ambiguous first turn stays on synthesize-or-clarify route', () => {
       hasCurrentArtifact: false
     }),
     { route: 'synthesize-or-clarify', reason: 'new-or-ambiguous-design' }
+  );
+});
+
+test('social turns route to general chat without clearing the current artifact', () => {
+  assert.equal(isGeneralChat('thanks'), true);
+  assert.deepEqual(
+    classifyStudentTurn('thanks', {
+      hasBuildableDraft: false,
+      hasCurrentArtifact: true
+    }),
+    { route: 'general-chat', reason: 'social-or-meta-chat' }
+  );
+});
+
+test('social prefix does not swallow a revision request', () => {
+  assert.equal(isGeneralChat('thanks, add a buzzer'), false);
+  assert.deepEqual(
+    classifyStudentTurn('thanks, add a buzzer', {
+      hasBuildableDraft: false,
+      hasCurrentArtifact: true
+    }),
+    { route: 'revise-current-draft', reason: 'artifact-revision' }
   );
 });

@@ -16,6 +16,18 @@ export function agentErrorMessage(error, locale = 'ko', context = {}) {
       : 'I could not verify the circuit plan. Please try again with the circuit behavior or missing connection you want me to check.';
   }
 
+  if (code === 'AGENT_THREAD_BUSY') {
+    return isKorean
+      ? '이 회로 요청은 아직 처리 중입니다. 현재 보이는 회로는 그대로 두고, 잠시 뒤 다시 시도해 주세요.'
+      : 'That circuit request is still processing. I kept the current circuit visible; please try again shortly.';
+  }
+
+  if (code === 'STALE_AGENT_RESUME') {
+    return isKorean
+      ? '이 선택지는 이전 회로 작업에 속해 더 이상 사용할 수 없습니다. 현재 요청 기준으로 다시 선택해 주세요.'
+      : 'That clarification belonged to an older task. Please choose again for the current request.';
+  }
+
   if (/OPENAI_API_KEY|H_EDUWARE_AGENT_MODEL|configured|configuration|not configured/i.test(raw)) {
     return isKorean
       ? '실제 에이전트 서버 설정이 필요합니다. 서버 환경변수를 확인한 뒤 다시 요청해 주세요.'

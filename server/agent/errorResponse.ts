@@ -3,8 +3,23 @@ import {
   AgentPromptBudgetError,
   AgentStructuredOutputError
 } from './deepAgentRuntime.ts';
+import {
+  AgentThreadBusyError,
+  StaleAgentResumeError
+} from './agentThreadSession.ts';
 
 export function mapAgentErrorToResponse(error: unknown) {
+  if (error instanceof AgentThreadBusyError || error instanceof StaleAgentResumeError) {
+    return {
+      status: error.status,
+      body: {
+        errorCode: error.errorCode,
+        error: error.message,
+        retryable: true
+      }
+    };
+  }
+
   if (error instanceof AgentStructuredOutputError) {
     return {
       status: 502,

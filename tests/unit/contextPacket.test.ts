@@ -91,6 +91,7 @@ test('context packet uses current draft context to route natural confirmation fo
   const packet = await buildContextPacket({
     message: '좋아 구현 부탁해',
     locale: 'ko',
+    requestKind: 'revise_current_artifact',
     conversationContext: {
       recentTurns: [
         { role: 'student', text: 'LED 깜빡이기' },
@@ -120,6 +121,7 @@ test('context packet resolves referential confirmations from structured supporte
   const packet = await buildContextPacket({
     message: '그래 너가 제안해준대로 진행해보자',
     locale: 'ko',
+    requestKind: 'resume_clarification',
     conversationContext: {
       recentTurns: [
         { role: 'student', text: '온도랑 습도를 기반으로 값이 변하는 걸로 해보자' },
@@ -147,6 +149,33 @@ test('context packet resolves referential confirmations from structured supporte
   assert.equal(packet.capabilityMatches.some((capability) => capability.id === 'analog-led-dimmer'), false);
   assert.equal(packet.contextCoverage.synthesisEligibility.status, 'eligible');
   assert.ok(packet.contextCoverage.sufficientFor.includes('valid_circuit_synthesis'));
+});
+
+test('recentTurns alone cannot route a new independent task back to the previous artifact', async () => {
+  const packet = await buildContextPacket({
+    message: 'Make a buzzer beep from Arduino.',
+    locale: 'en',
+    requestKind: 'new_task',
+    conversationContext: {
+      recentTurns: [
+        { role: 'student', text: 'Build an LED blinker.' },
+        { role: 'assistant', text: 'Use Arduino D9, a 220 ohm resistor, and an LED.' }
+      ],
+      lastSupportedGoal: 'blink an LED with Arduino',
+      awaitingBuildConfirmation: false
+    }
+  });
+
+  const capabilityIds = packet.capabilityMatches.map((capability) => capability.id);
+  const partIds = packet.candidateParts.map((part) => part.id);
+
+  assert.equal(packet.contextRoute.routeId, 'v2-sound-alert-output');
+  assert.ok(capabilityIds.includes('sound-alert-output'), capabilityIds.join(', '));
+  assert.equal(capabilityIds.includes('digital-light-output'), false, capabilityIds.join(', '));
+  assert.ok(partIds.includes('piezo-buzzer'), partIds.join(', '));
+  assert.equal(partIds.includes('led-5mm'), false, partIds.join(', '));
+  assert.equal(packet.contextTrace.some((entry) => entry.sourceId === 'conversation:current-artifact'), false);
+  assert.doesNotMatch(packet.promptBlock, /Build an LED blinker|Last supported goal|blink an LED/i);
 });
 
 test('context packet drops cancelled unsupported goals when the student switches to a supported circuit', async () => {

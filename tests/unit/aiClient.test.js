@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { getAiRuntimeMode, sendAgentMessage } from '../../src/aiClient.js';
+import { AgentApiError, getAiRuntimeMode, sendAgentMessage } from '../../src/aiClient.js';
 
-test('sendAgentMessage forwards bounded conversation context to the agent API', async () => {
+test('sendAgentMessage forwards the turn envelope and bounded conversation context to the agent API', async () => {
   const originalFetch = globalThis.fetch;
   const requests = [];
 
@@ -18,10 +18,15 @@ test('sendAgentMessage forwards bounded conversation context to the agent API', 
   try {
     await sendAgentMessage({
       sessionId: 'session-test',
-      message: '좋아 구현 부탁해',
+      taskId: 'task-test',
+      turnId: 'turn-test',
+      requestKind: 'revise_current_artifact',
+      resumeInteractionId: 'clarify-test',
+      resume: 'light',
+      message: 'Build it.',
       locale: 'ko',
       conversationContext: {
-        recentTurns: [{ role: 'student', text: 'LED 깜빡이기' }],
+        recentTurns: [{ role: 'student', text: 'Blink an LED' }],
         currentArtifact: { source: 'draft', title: 'LED blinker' },
         lastSupportedGoal: 'blink an LED',
         awaitingBuildConfirmation: true
@@ -34,6 +39,35 @@ test('sendAgentMessage forwards bounded conversation context to the agent API', 
     assert.equal(body.conversationContext.currentArtifact.title, 'LED blinker');
     assert.equal(body.conversationContext.awaitingBuildConfirmation, true);
     assert.equal(body.conversationContext.recentTurns.length, 1);
+    assert.equal(body.taskId, 'task-test');
+    assert.equal(body.turnId, 'turn-test');
+    assert.equal(body.requestKind, 'revise_current_artifact');
+    assert.equal(body.resumeInteractionId, 'clarify-test');
+    assert.equal(body.resume, 'light');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('sendAgentMessage distinguishes caller cancellation from timeout', async () => {
+  const originalFetch = globalThis.fetch;
+  const controller = new AbortController();
+
+  globalThis.fetch = async (_url, options = {}) => {
+    options.signal?.throwIfAborted?.();
+    await new Promise((_resolve, reject) => {
+      options.signal?.addEventListener('abort', () => reject(new DOMException('cancelled', 'AbortError')), { once: true });
+    });
+  };
+
+  try {
+    const promise = sendAgentMessage({ message: 'hello', locale: 'en', signal: controller.signal });
+    controller.abort();
+    await assert.rejects(promise, (error) => {
+      assert.ok(error instanceof AgentApiError);
+      assert.equal(error.code, 'AGENT_REQUEST_CANCELLED');
+      return true;
+    });
   } finally {
     globalThis.fetch = originalFetch;
   }

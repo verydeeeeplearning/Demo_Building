@@ -38,7 +38,7 @@
   <text class="label" x="580" y="435">Deep Agent</text>
   <text class="mini" x="570" y="463">createDeepAgent + toolStrategy</text>
   <text class="mini" x="570" y="488">MemorySaver checkpointer</text>
-  <text class="code" x="570" y="514">thread_id = sessionId</text>
+  <text class="code" x="570" y="514">thread_id = encoded session/task</text>
 
   <path class="amber dash" d="M700 555 V635 H325"/>
   <rect class="node gate" x="90" y="625" width="235" height="120"/>

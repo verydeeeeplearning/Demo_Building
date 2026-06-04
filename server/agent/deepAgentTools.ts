@@ -30,6 +30,7 @@ import {
   CircuitSpecSchema,
   NetlistSchema,
   ValidationReportSchema,
+  type AgentMessageRequest,
   type AgentConversationContext,
   type CircuitSpec,
   type ContextCoverageReport,
@@ -64,6 +65,7 @@ export type ScopedHeduwareAgentToolOptions = {
   allowedContextSourceIds: string[];
   supportBundles: SupportBundleEvidence[];
   requestScope?: RequestScope;
+  requestKind?: AgentMessageRequest['requestKind'];
   locale?: 'ko' | 'en';
   conversationContext?: AgentConversationContext;
 };
@@ -273,9 +275,14 @@ function createTools(options: InternalToolOptions) {
 export function contextualNarrowQuestion(
   question: string,
   level: string,
-  options: Pick<ScopedHeduwareAgentToolOptions, 'conversationContext' | 'locale'>
+  options: Pick<ScopedHeduwareAgentToolOptions, 'conversationContext' | 'locale' | 'requestKind'>
 ) {
   if (level !== 'output') {
+    return question;
+  }
+
+  const requestKind = options.requestKind;
+  if (requestKind && requestKind !== 'revise_current_artifact' && requestKind !== 'resume_clarification') {
     return question;
   }
 

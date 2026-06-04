@@ -15,7 +15,14 @@ import { agentErrorMessage as formatAgentErrorMessage } from './agentErrorMessag
 import { groundAgentResultArtifacts } from './agentArtifactGrounding.js';
 import { canShowAgentSceneFromResult } from './agentSceneVisibility.js';
 import { decisionsForResult } from './agentDecisions.js';
-import { classifyStudentTurn } from './conversationRouting.js';
+import { classifyStudentTurn, isCircuitModificationRequest } from './conversationRouting.js';
+import {
+  classifyAgentRequestKind,
+  createClientId,
+  isStaleAgentTurnResult,
+  normalizeClientId
+} from './agentTurnEnvelope.js';
+import { buildTutorRequestKey, isFreshTutorResponse } from './tutorRequestFreshness.js';
 import {
   clarificationOptionsForDisplay,
   renderClarificationOptions,
@@ -58,6 +65,11 @@ const state = {
   aiRuntimeMode: { mode: 'agent-server-offline', ok: false, hasServerKey: false },
   agentSessionId: null,
   agentResult: null,
+  visibleAgentResult: null,
+  agentTaskId: createClientId('task'),
+  pendingAgentTurn: null,
+  pendingClarification: null,
+  artifactVersion: 0,
   shareView: null,
   interview: createInterview(getLocale()),
   thinking: false,
@@ -67,6 +79,7 @@ const state = {
     chatMessages: [],
     suggestedQuestions: null,
     tutorThinking: false,
+    tutorRequestSequence: 0,
     chatOpen: false
   }
 };
@@ -89,6 +102,9 @@ function agentSessionStorage() {
     return;
   }
   state.agentSessionId = restored.sessionId;
+  state.agentTaskId = normalizeClientId(restored.activeTaskId, 'task');
+  state.pendingClarification = restored.pendingClarification;
+  state.artifactVersion = Number.isFinite(restored.artifactVersion) ? restored.artifactVersion : 0;
   if (restored.messages.length > 0) {
     state.interview = { ...state.interview, messages: restored.messages };
   }
@@ -97,6 +113,9 @@ function agentSessionStorage() {
 function persistAgentSession() {
   saveAgentSession(agentSessionStorage(), {
     sessionId: state.agentSessionId,
+    activeTaskId: state.agentTaskId,
+    pendingClarification: state.pendingClarification,
+    artifactVersion: state.artifactVersion,
     messages: state.interview.messages
   });
 }
@@ -121,6 +140,16 @@ function activeCircuit() {
   return state.project.circuit;
 }
 
+function visibleAgentResult() {
+  return canShowAgentScene(state.visibleAgentResult) ? state.visibleAgentResult : null;
+}
+
+function latestClarificationResult() {
+  return state.pendingClarification?.request
+    ? { responseKind: 'awaiting_input', clarificationRequest: state.pendingClarification.request }
+    : state.agentResult;
+}
+
 function createEmptyVisualArrangement(revision = 0) {
   return {
     transforms: {},
@@ -143,8 +172,9 @@ function projectDisplayTitle() {
 }
 
 function activeDraftOrProjectCircuit() {
-  if (state.agentResult && canShowAgentScene(state.agentResult)) {
-    return createProjectFromAgentResult(state.agentResult).circuit;
+  const visibleResult = visibleAgentResult();
+  if (visibleResult) {
+    return createProjectFromAgentResult(visibleResult).circuit;
   }
   return state.projectLoaded ? activeCircuit() : null;
 }
@@ -256,7 +286,7 @@ function render() {
 
   bindEvents();
 
-  if (state.activeTab === 'PCB' && circuit && (state.projectLoaded || canShowAgentScene(state.agentResult))) {
+  if (state.activeTab === 'PCB' && circuit && (state.projectLoaded || visibleAgentResult())) {
     const host = app.querySelector('[data-stage-host]');
     stageController = createStageScene(host, circuit, {
       running: state.running && !state.visualArrangement.dirty,
@@ -285,7 +315,7 @@ function renderLanguageToggle() {
 }
 
 function renderCenterStage() {
-  if (!state.projectLoaded && !(state.activeTab === 'PCB' && canShowAgentScene(state.agentResult))) {
+  if (!state.projectLoaded && !(state.activeTab === 'PCB' && visibleAgentResult())) {
     return renderNewProjectLanding();
   }
 
@@ -349,7 +379,7 @@ function renderAiPanel() {
         </div>
       ` : ''}
       ${!state.thinking
-        ? renderClarificationOptions(clarificationOptionsForDisplay(state.agentResult), { escapeHtml })
+        ? renderClarificationOptions(clarificationOptionsForDisplay(latestClarificationResult()), { escapeHtml })
         : ''}
       <div class="plan">
         <div class="panel-kicker">${t('aiPanel.planKicker', {}, state.locale)}</div>
@@ -364,7 +394,7 @@ function renderAiPanel() {
         <span>${t('aiPanel.runtimeLabel', {}, state.locale)}</span>
         <strong>${formatRuntimeModeForDisplay()}</strong>
       </div>
-      ${renderServingStatusBadge(state.agentResult)}
+      ${renderServingStatusBadge(state.agentResult || visibleAgentResult())}
       ${renderRuntimeWarning()}
       <form class="idea-form" data-action="send-idea">
         <label for="idea-input">${interview.status === 'interviewing' ? t('aiPanel.replyLabel', {}, state.locale) : t('aiPanel.ideaLabel', {}, state.locale)}</label>
@@ -947,7 +977,7 @@ function studentFacingRenderWarningLabel(warning, locale) {
 }
 
 function renderRightRail() {
-  if (state.activeTab === 'PCB' && (state.projectLoaded || canShowAgentScene(state.agentResult))) {
+  if (state.activeTab === 'PCB' && (state.projectLoaded || visibleAgentResult())) {
     return `
       <aside class="right-rail simulation-rail" data-testid="circuit-inspector">
         ${renderHardwarePanel()}
@@ -1338,7 +1368,7 @@ function submitIdeaForm(form) {
     return;
   }
 
-  submitAgentMessage(input);
+  submitAgentMessageRobust(input);
 }
 
 // A narrowing chip was tapped: send the option label as the visible turn and resume the paused server
@@ -1347,12 +1377,15 @@ function selectClarificationOption(index) {
   if (state.thinking) {
     return;
   }
-  const option = clarificationOptionsForDisplay(state.agentResult)[index];
+  const option = clarificationOptionsForDisplay(latestClarificationResult())[index];
   const resume = resumeValueForOption(option);
   if (!resume) {
     return;
   }
-  submitAgentMessage(option.label, { resume });
+  submitAgentMessageRobust(option.label, {
+    resume,
+    resumeInteractionId: state.pendingClarification?.request?.interactionId
+  });
 }
 
 function bindShareViewEvents() {
@@ -1459,21 +1492,21 @@ function submitInterviewAnswer(answer) {
   beginThinking();
 }
 
-async function submitAgentMessage(message, { resume } = {}) {
-  if (state.thinking) {
+async function submitAgentMessageRobust(message, { resume, resumeInteractionId } = {}) {
+  const visibleResult = visibleAgentResult();
+  if (state.thinking && !state.pendingAgentTurn) {
     return;
   }
 
-  // A clarification answer (resume) always sends straight through; it is never a confirm/artifact turn.
   const turnRoute = resume
     ? { route: 'send-resume' }
     : classifyStudentTurn(message, {
-        hasBuildableDraft: Boolean(state.awaitingConfirmation && canShowAgentScene(state.agentResult)),
-        hasCurrentArtifact: Boolean(state.projectLoaded || canShowAgentScene(state.agentResult))
+        hasBuildableDraft: Boolean(state.awaitingConfirmation && visibleResult),
+        hasCurrentArtifact: Boolean(state.projectLoaded || visibleResult)
       });
 
-  if (turnRoute.route === 'confirm-current-draft') {
-    const buildReady = canBuildAgentResult(state.agentResult);
+  if (!state.pendingAgentTurn && turnRoute.route === 'confirm-current-draft') {
+    const buildReady = canBuildAgentResult(visibleResult);
     state.interview = {
       ...state.interview,
       status: 'ready',
@@ -1492,12 +1525,39 @@ async function submitAgentMessage(message, { resume } = {}) {
     return;
   }
 
-  if (turnRoute.route === 'current-artifact-question') {
+  if (!state.pendingAgentTurn && turnRoute.route === 'current-artifact-question') {
     await answerCurrentArtifactQuestion(message);
     return;
   }
 
+  const requestKind = classifyAgentRequestKind(turnRoute.route, {
+    resume,
+    hasCurrentArtifact: Boolean(state.projectLoaded || visibleResult),
+    hasPendingSynthesisTurn: Boolean(state.pendingAgentTurn)
+  });
+  const envelope = {
+    taskId: requestKind === 'new_task' ? createClientId('task') : normalizeClientId(state.agentTaskId, 'task'),
+    turnId: createClientId('turn'),
+    requestKind
+  };
+
+  state.pendingAgentTurn?.abortController?.abort?.();
+  const abortController = new AbortController();
+  state.agentTaskId = envelope.taskId;
+  state.pendingAgentTurn = {
+    ...envelope,
+    abortController,
+    startedAtMs: Date.now()
+  };
+
   const conversationContext = buildConversationContext();
+  const preserveConfirmation = requestKind === 'general_chat';
+  if (!preserveConfirmation) {
+    state.awaitingConfirmation = false;
+  }
+  if (requestKind !== 'general_chat' && requestKind !== 'resume_clarification') {
+    state.pendingClarification = null;
+  }
 
   state.interview = {
     ...createInterview(state.locale),
@@ -1507,13 +1567,6 @@ async function submitAgentMessage(message, { resume } = {}) {
     decisions: [],
     messages: nextAgentThreadMessages(message)
   };
-  state.awaitingConfirmation = false;
-  state.agentResult = null;
-  state.built = false;
-  state.running = false;
-  state.projectLoaded = false;
-  state.activeTab = 'Files';
-  resetInspectorState();
   state.thinking = true;
   render();
 
@@ -1521,22 +1574,53 @@ async function submitAgentMessage(message, { resume } = {}) {
     const [result] = await Promise.all([
       sendAgentMessage({
         sessionId: state.agentSessionId,
+        taskId: envelope.taskId,
+        turnId: envelope.turnId,
+        requestKind,
+        resumeInteractionId,
         message,
         resume,
         locale: state.locale,
-        conversationContext
+        conversationContext,
+        signal: abortController.signal
       }),
       wait(TYPING_REVEAL_MS)
     ]);
 
     const groundedResult = groundAgentResultArtifacts(result);
+    if (isStaleAgentTurnResult(state.pendingAgentTurn, envelope, groundedResult)) {
+      return;
+    }
+
     state.agentSessionId = groundedResult.sessionId;
     state.agentResult = groundedResult;
     const canShowScene = canShowAgentScene(groundedResult);
+    const awaitingInput = groundedResult.responseKind === 'awaiting_input' && groundedResult.clarificationRequest;
+
+    if (canShowScene) {
+      state.visibleAgentResult = groundedResult;
+      state.artifactVersion += 1;
+      state.projectLoaded = false;
+      state.built = false;
+      state.running = false;
+      state.simulationPlaying = false;
+      state.activeTab = 'Files';
+      resetInspectorState();
+      state.pendingClarification = null;
+    } else if (awaitingInput) {
+      state.pendingClarification = {
+        taskId: envelope.taskId,
+        turnId: envelope.turnId,
+        request: groundedResult.clarificationRequest
+      };
+    } else if (requestKind !== 'general_chat') {
+      state.pendingClarification = null;
+    }
+
     state.interview = {
       ...state.interview,
-      status: canShowScene ? 'ready' : 'interviewing',
-      decisions: decisionsForResult(groundedResult, state.locale),
+      status: canShowScene || visibleAgentResult() ? 'ready' : 'interviewing',
+      decisions: canShowScene ? decisionsForResult(groundedResult, state.locale) : state.interview.decisions,
       messages: state.interview.messages.concat(
         (groundedResult.assistantMessages?.length ? groundedResult.assistantMessages : [fallbackAgentMessage(groundedResult)])
           .map((text) => ({ role: 'assistant', text }))
@@ -1544,19 +1628,27 @@ async function submitAgentMessage(message, { resume } = {}) {
     };
     state.awaitingConfirmation = canShowScene && (!groundedResult.servingStatus || isBuildableServingStatus(groundedResult));
   } catch (error) {
+    if (isStaleAgentTurnResult(state.pendingAgentTurn, envelope)) {
+      return;
+    }
     const messageText = formatAgentErrorMessage(error, state.locale, { studentMessage: message });
     state.interview = {
       ...state.interview,
-      status: 'interviewing',
+      status: visibleAgentResult() || state.projectLoaded ? 'ready' : 'interviewing',
       decisions: [],
       messages: state.interview.messages.concat({ role: 'assistant', text: messageText })
     };
-    state.awaitingConfirmation = false;
+    if (!preserveConfirmation) {
+      state.awaitingConfirmation = false;
+    }
     state.aiRuntimeMode = await getAiRuntimeMode();
   } finally {
-    state.thinking = false;
-    persistAgentSession();
-    render();
+    if (!isStaleAgentTurnResult(state.pendingAgentTurn, envelope)) {
+      state.pendingAgentTurn = null;
+      state.thinking = false;
+      persistAgentSession();
+      render();
+    }
   }
 }
 
@@ -1565,7 +1657,7 @@ async function answerCurrentArtifactQuestion(message) {
   const target = describeCircuitTarget(circuit, null, state.locale);
   state.interview = {
     ...state.interview,
-    status: state.awaitingConfirmation || state.agentResult ? 'ready' : state.interview.status,
+    status: state.awaitingConfirmation || visibleAgentResult() ? 'ready' : state.interview.status,
     messages: nextAgentThreadMessages(message)
   };
   state.thinking = true;
@@ -1682,14 +1774,14 @@ function canRunCurrentSimulation() {
 
 function canUseVisualMove() {
   const circuit = activeDraftOrProjectCircuit() || activeCircuit();
-  if (!circuit || !(state.projectLoaded || canShowAgentScene(state.agentResult))) {
+  if (!circuit || !(state.projectLoaded || visibleAgentResult())) {
     return false;
   }
   const gateControls = circuit.solverGateResult?.controls;
   if (gateControls && gateControls.visualMoveEnabled === false) {
     return false;
   }
-  return canShowLoadedProjectScene() || canShowAgentScene(state.agentResult);
+  return canShowLoadedProjectScene() || Boolean(visibleAgentResult());
 }
 
 function canUseHardwareMove() {
@@ -1797,6 +1889,7 @@ function placementBaseArtifact(circuit) {
 function applyPlacementResolution(resolution) {
   const previousCircuit = activeCircuit();
   state.agentResult = null;
+  state.visibleAgentResult = null;
   state.project = {
     ...state.project,
     circuit: {
@@ -1932,10 +2025,11 @@ function solverGateVisibleScene(gate) {
 }
 
 function confirmCurrentAgentResult() {
-  const buildReady = canBuildAgentResult(state.agentResult);
-  const visibleScene = canShowAgentScene(state.agentResult);
-  if (state.agentResult && visibleScene) {
-    state.project = createProjectFromAgentResult(state.agentResult);
+  const result = visibleAgentResult();
+  const buildReady = canBuildAgentResult(result);
+  const visibleScene = Boolean(result);
+  if (result && visibleScene) {
+    state.project = createProjectFromAgentResult(result);
     state.selectedFileId = state.project.files[0]?.id || 'deepagent-requirements';
   } else {
     state.interview = createInterview(state.locale);
@@ -1954,7 +2048,7 @@ function confirmCurrentAgentResult() {
     return;
   }
 
-  if (state.agentResult && visibleScene) {
+  if (result && visibleScene) {
     state.projectLoaded = true;
     state.built = false;
     state.running = false;
@@ -2048,24 +2142,25 @@ function createProjectFromAgentResult(result) {
 }
 
 function activeArtifactCircuit() {
-  if (state.agentResult && canShowAgentScene(state.agentResult)) {
-    return createProjectFromAgentResult(state.agentResult).circuit;
+  const result = visibleAgentResult();
+  if (result) {
+    return createProjectFromAgentResult(result).circuit;
   }
   return state.projectLoaded ? activeCircuit() : null;
 }
 
 function buildConversationContext() {
-  const visibleAgentResult = canShowAgentScene(state.agentResult) ? state.agentResult : null;
-  const buildableAgentResult = visibleAgentResult && canBuildAgentResult(visibleAgentResult) ? visibleAgentResult : null;
+  const visibleResult = visibleAgentResult();
+  const buildableAgentResult = visibleResult && canBuildAgentResult(visibleResult) ? visibleResult : null;
   const pendingSupportedAlternative = buildableAgentResult
     ? undefined
     : firstSupportedAlternativeFromResult(state.agentResult);
   const currentArtifact = state.projectLoaded
     ? artifactSnapshotFromProject(state.project, 'built-project')
-    : visibleAgentResult
-      ? artifactSnapshotFromAgentResult(visibleAgentResult, buildableAgentResult ? 'draft' : 'diagnostic-draft')
+    : visibleResult
+      ? artifactSnapshotFromAgentResult(visibleResult, buildableAgentResult ? 'draft' : 'diagnostic-draft')
       : undefined;
-  const lastSupportedGoal = visibleAgentResult?.circuitSpec?.intent?.primaryGoal
+  const lastSupportedGoal = visibleResult?.circuitSpec?.intent?.primaryGoal
     || state.project?.circuit?.circuitSpec?.intent?.primaryGoal
     || pendingSupportedAlternative?.goal
     || undefined;
@@ -2223,6 +2318,8 @@ function selectCircuitTarget(rawTarget) {
   if (previousKey !== nextKey) {
     state.inspector.chatMessages = [];
     state.inspector.suggestedQuestions = null;
+    state.inspector.tutorThinking = false;
+    state.inspector.tutorRequestSequence += 1;
   }
   refreshInspectorRail();
   syncSelectedTargetPresentation();
@@ -2252,6 +2349,13 @@ function stepCurrentFlow() {
 }
 
 async function submitTutorQuestion(question) {
+  if (isCircuitModificationRequest(question)) {
+    state.inspector.chatOpen = false;
+    await submitAgentMessageRobust(question);
+    return;
+  }
+
+  const circuit = activeDraftOrProjectCircuit() || activeCircuit();
   const target = currentInspectorTarget();
   state.inspector.selectedRawTarget ||= rawTargetFromTarget(target);
   state.inspector.chatOpen = true;
@@ -2260,15 +2364,32 @@ async function submitTutorQuestion(question) {
     text: question
   });
   state.inspector.tutorThinking = true;
+  state.inspector.tutorRequestSequence += 1;
+  const sequence = state.inspector.tutorRequestSequence;
+  const requestKey = buildTutorRequestKey({
+    target,
+    artifactVersion: state.artifactVersion,
+    locale: state.locale,
+    sequence
+  });
   refreshInspectorRail();
 
   const response = await askCircuitTutor({
-    circuit: activeCircuit(),
+    circuit,
     target,
     question,
     locale: state.locale,
     running: state.running
   });
+
+  if (!isFreshTutorResponse(requestKey, {
+    target: currentInspectorTarget(),
+    artifactVersion: state.artifactVersion,
+    locale: state.locale,
+    sequence: state.inspector.tutorRequestSequence
+  })) {
+    return;
+  }
 
   state.inspector.chatMessages = state.inspector.chatMessages.concat({
     role: 'assistant',
@@ -2365,12 +2486,14 @@ function switchLocale(locale) {
 
   state.locale = nextLocale;
   document.documentElement.lang = nextLocale;
-  state.project = state.agentResult && state.projectLoaded
-    ? createProjectFromAgentResult(state.agentResult)
+  const result = visibleAgentResult();
+  state.project = result && state.projectLoaded
+    ? createProjectFromAgentResult(result)
     : createLocalizedProject(nextLocale);
   state.inspector.chatMessages = [];
   state.inspector.suggestedQuestions = null;
   state.inspector.tutorThinking = false;
+  state.inspector.tutorRequestSequence += 1;
   state.inspector.chatOpen = false;
   state.interactionMode = 'orbit';
   state.visualArrangement = createEmptyVisualArrangement();
@@ -2379,7 +2502,7 @@ function switchLocale(locale) {
 
   if (state.interview.status === 'idle') {
     state.interview = createInterview(nextLocale);
-  } else if (!state.agentResult && (state.projectLoaded || state.interview.status === 'ready')) {
+  } else if (!result && (state.projectLoaded || state.interview.status === 'ready')) {
     // Leave the interview as-is (already in 'ready' or loaded state).
   }
 
@@ -2454,7 +2577,7 @@ function openShareModal() {
     title: projectDisplayTitle(),
     markdown: requirementFile?.markdown,
     project: state.project,
-    source: state.agentResult ? 'agent' : 'manual',
+    source: visibleAgentResult() ? 'agent' : 'manual',
     onClose() {
       shareController = null;
     }
@@ -2471,7 +2594,13 @@ function importSharedSnapshot() {
 
   cancelThinking();
   state.agentResult = null;
+  state.visibleAgentResult = null;
   state.agentSessionId = null;
+  state.agentTaskId = createClientId('task');
+  state.pendingAgentTurn?.abortController?.abort?.();
+  state.pendingAgentTurn = null;
+  state.pendingClarification = null;
+  state.artifactVersion = 0;
   clearAgentSession(agentSessionStorage());
   state.project = projectFromShareSnapshot(snapshot, state.locale);
   state.projectLoaded = true;
@@ -2496,7 +2625,13 @@ function importSharedSnapshot() {
 function startNewProjectFromShareView() {
   cancelThinking();
   state.agentResult = null;
+  state.visibleAgentResult = null;
   state.agentSessionId = null;
+  state.agentTaskId = createClientId('task');
+  state.pendingAgentTurn?.abortController?.abort?.();
+  state.pendingAgentTurn = null;
+  state.pendingClarification = null;
+  state.artifactVersion = 0;
   clearAgentSession(agentSessionStorage());
   state.project = createLocalizedProject();
   state.projectLoaded = false;
@@ -2522,6 +2657,7 @@ function resetInspectorState() {
   state.inspector.chatMessages = [];
   state.inspector.suggestedQuestions = null;
   state.inspector.tutorThinking = false;
+  state.inspector.tutorRequestSequence += 1;
   state.inspector.chatOpen = false;
   state.simulationPlaying = false;
   state.simulationStepIndex = 0;

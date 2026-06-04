@@ -5,6 +5,7 @@ import { MessagesAnnotation, MemorySaver, StateGraph, START, END } from '@langch
 
 import { runAgent } from '../../server/agent/deepAgentRuntime.ts';
 import { RecordedCassetteModel } from '../../server/agent/modelCassette.ts';
+import { resolveAgentThreadId } from '../../server/agent/agentThreadSession.ts';
 import type { DeepAgentFactory, ModelPort } from '../../server/agent/agentRuntimePorts.ts';
 import type { AgentMessageRequest } from '../../server/agent/schemas.ts';
 
@@ -47,8 +48,8 @@ void test('a shared checkpointer recalls prior turns across fresh graph instance
 });
 
 // WIRING: the synthesis ('h-eduware-deepagent') agent is constructed WITH a checkpointer and invoked
-// with thread_id = sessionId, so the conversation thread is keyed by the session.
-void test('the synthesis agent is built with a checkpointer and invoked on thread_id = sessionId', async () => {
+// with a safe encoded thread_id.
+void test('the synthesis agent is built with a checkpointer and invoked on encoded session thread_id', async () => {
   const modelPort: ModelPort = { createModel: () => new RecordedCassetteModel([]) };
 
   let synthesisHadCheckpointer = false;
@@ -86,7 +87,11 @@ void test('the synthesis agent is built with a checkpointer and invoked on threa
   await runAgent(request, { deps: { modelPort, deepAgentFactory } });
 
   assert.equal(synthesisHadCheckpointer, true, 'synthesis agent constructed with a checkpointer');
-  assert.equal(synthesisThreadId, 'session-mem-1', 'synthesis invoked on thread_id = sessionId');
+  assert.equal(
+    synthesisThreadId,
+    resolveAgentThreadId({ sessionId: 'session-mem-1' }),
+    'synthesis invoked on the encoded session thread_id'
+  );
 });
 
 // An injected checkpointer (the deps seam used by tests / a future durable saver) overrides the

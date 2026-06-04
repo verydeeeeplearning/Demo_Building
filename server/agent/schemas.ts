@@ -302,9 +302,9 @@ export const CircuitSpecSchema = z.object({
   behavior: z.object({
     runText: z.string().min(1)
   }),
-  assumptions: z.array(z.string()),
-  unsupportedItems: z.array(z.string()),
-  clarificationNeeds: z.array(z.string())
+  assumptions: z.array(z.string()).default([]),
+  unsupportedItems: z.array(z.string()).default([]),
+  clarificationNeeds: z.array(z.string()).default([])
 }).superRefine((spec, context) => {
   const componentIds = new Set(spec.components.map((component) => component.id));
   for (const connection of spec.connections) {
@@ -1036,6 +1036,7 @@ export const ClarificationOptionSchema = z.object({
 // Surfaced on an 'awaiting_input' turn: the agent paused via interrupt() and is waiting for the student
 // to pick one option (or type), which the client returns as `resume` on the next request.
 export const ClarificationRequestSchema = z.object({
+  interactionId: z.string().min(1).optional(),
   level: z.string().min(1),
   question: z.string().min(1),
   options: z.array(ClarificationOptionSchema).default([])
@@ -1061,6 +1062,15 @@ export const TutorServingStatusSchema = z.enum([
 export const AgentRunResultSchema = z.object({
   traceId: z.string().min(1).optional(),
   sessionId: z.string().min(1),
+  taskId: z.string().min(1).optional(),
+  turnId: z.string().min(1).optional(),
+  effectiveRequestKind: z.enum([
+    'initial_task',
+    'new_task',
+    'revise_current_artifact',
+    'resume_clarification',
+    'general_chat'
+  ]).optional(),
   mode: z.literal('live'),
   // Discriminates a normal circuit answer from a front-intent-gate conversational reply. Defaults to
   // 'circuit' so every existing synthesis/finalize path stays valid unchanged. 'chat' results carry a
@@ -1116,8 +1126,20 @@ export const AgentConversationContextSchema = z.object({
   runningSummary: z.string().max(500).optional()
 });
 
+export const AgentRequestKindSchema = z.enum([
+  'initial_task',
+  'new_task',
+  'revise_current_artifact',
+  'resume_clarification',
+  'general_chat'
+]);
+
 export const AgentMessageRequestSchema = z.object({
   sessionId: z.string().optional(),
+  taskId: z.string().min(1).max(160).optional(),
+  turnId: z.string().min(1).max(160).optional(),
+  requestKind: AgentRequestKindSchema.optional(),
+  resumeInteractionId: z.string().min(1).max(220).optional(),
   message: z.string().min(1),
   // A clarification answer also sets `resume` (the chosen option's value — a category id or capabilityId).
   // When present, the runtime resumes the paused thread via Command instead of grounding a new message;

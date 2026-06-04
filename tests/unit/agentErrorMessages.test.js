@@ -60,3 +60,23 @@ test('English error mapping also hides structured-output implementation details'
   assert.match(message, /circuit draft|try again/i);
   assert.doesNotMatch(message, /Deepagents did not return|structured circuit draft/i);
 });
+
+test('busy thread errors keep the current circuit visible guidance', () => {
+  const error = new Error('busy');
+  error.payload = { errorCode: 'AGENT_THREAD_BUSY' };
+
+  const message = agentErrorMessage(error, 'en');
+
+  assert.match(message, /still processing/i);
+  assert.match(message, /current circuit visible/i);
+});
+
+test('stale resume errors explain that the old clarification expired', () => {
+  const error = new Error('stale');
+  error.payload = { errorCode: 'STALE_AGENT_RESUME' };
+
+  const message = agentErrorMessage(error, 'en');
+
+  assert.match(message, /older task/i);
+  assert.match(message, /choose again/i);
+});

@@ -67,6 +67,24 @@ test('circuit specs reject connections to missing components', () => {
   }, /missing component/i);
 });
 
+test('circuit specs default optional metadata arrays for live tool-call recovery', () => {
+  const parsed = CircuitSpecSchema.parse({
+    id: 'metadata-defaults',
+    title: 'Metadata defaults',
+    intent: { primaryGoal: 'show text', output: 'oled', controller: 'arduino-uno' },
+    components: [
+      { id: 'arduino-uno', partId: 'arduino-uno', label: 'Arduino Uno' },
+      { id: 'oled', partId: 'oled-i2c-096', label: 'I2C OLED' }
+    ],
+    connections: [],
+    behavior: { runText: 'HELLO STEM' }
+  });
+
+  assert.deepEqual(parsed.assumptions, []);
+  assert.deepEqual(parsed.unsupportedItems, []);
+  assert.deepEqual(parsed.clarificationNeeds, []);
+});
+
 test('IntentSpecV2 captures behavior, modality, ambiguity, and safety signals', () => {
   const parsed = IntentSpecV2Schema.parse({
     studentGoal: 'Turn on an LED when the room becomes dark.',

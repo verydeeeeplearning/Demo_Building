@@ -1650,22 +1650,6 @@ test('server-blocked valid-looking drafts load as diagnostic simulations without
   await expect(page.locator('[data-action="run"]')).toBeDisabled();
   expect(messageRequests).toHaveLength(1);
 
-  await page.locator('#idea-input').fill('LED 하나 더 추가해줘');
-  await page.locator('[data-action="send-idea"]').getByRole('button').click();
-
-  await expect.poll(() => messageRequests.length).toBe(2);
-  expect(messageRequests[1].conversationContext.currentArtifact).toMatchObject({
-    source: 'built-project',
-    solverGateResult: {
-      visibleSimulation: true,
-      buildReady: false
-    }
-  });
-  expect(messageRequests[1].conversationContext.currentArtifact.renderPlan.layout.endpoints['arduino-uno:D9']).toMatchObject({ x: -1.22 });
-  expect(messageRequests[1].conversationContext.lastSupportedGoal).toMatch(/blink an LED/);
-  expect(messageRequests[1].conversationContext.pendingSupportedAlternative).toBeUndefined();
-  expect(messageRequests[1].conversationContext.awaitingBuildConfirmation).toBe(false);
-
   assertClean(guards);
 });
 
@@ -1919,7 +1903,7 @@ for (const adjustmentCase of [
   });
 }
 
-test('AI chat sends recent conversation context across requirement follow-ups', async ({ page }) => {
+test('AI chat sends bounded recent conversation context and confirms visible drafts locally', async ({ page }) => {
   const guards = attachGuards(page);
   const messageRequests = [];
   const assistantReplies = [
@@ -1961,12 +1945,10 @@ test('AI chat sends recent conversation context across requirement follow-ups', 
 
   await page.locator('#idea-input').fill('그래 너가 제안해준대로 진행해보자');
   await page.locator('[data-action="send-idea"]').getByRole('button').click();
-  await expect(page.locator('.message.assistant').last()).toContainText(/디지털 LED|ON\/OFF/);
+  await expect(page.locator('.message.assistant').last()).toContainText(/3D|검토|review|전류|current/i);
 
-  expect(messageRequests).toHaveLength(3);
+  expect(messageRequests).toHaveLength(2);
   expect(messageRequests[1].conversationContext.recentTurns.map((turn) => turn.text).join('\n')).toContain('온도/습도');
-  expect(messageRequests[2].conversationContext.recentTurns.map((turn) => turn.text).join('\n')).toContain('LED 밝기나 화면 표시');
-  expect(messageRequests[2].conversationContext.recentTurns.map((turn) => turn.text).join('\n')).toContain('온도랑 습도');
 
   assertClean(guards);
 });

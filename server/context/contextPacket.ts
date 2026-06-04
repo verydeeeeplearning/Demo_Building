@@ -51,7 +51,7 @@ import {
 import type { AgentPipelineMode } from '../agent/agentPipelineMode.ts';
 import { selectContextByComposition } from './compositionSelection.ts';
 
-type BuildContextPacketInput = Pick<AgentMessageRequest, 'message' | 'locale' | 'conversationContext'> & {
+type BuildContextPacketInput = Pick<AgentMessageRequest, 'message' | 'locale' | 'conversationContext' | 'requestKind'> & {
   // Re-grounding seam: when the student narrows to a specific capability (HITL clarification), force it
   // to the top of the matches so route/bundle/candidateParts/coverage ground to that capability rather
   // than the fuzzy match of the original (often vague) message. Unknown/unsupported ids are ignored.
@@ -1371,7 +1371,7 @@ export async function buildContextPacket(
   const pipelineMode = deps.pipelineMode ?? 'legacy';
   const locale = input.locale ?? 'ko';
   const message = input.message;
-  const conversationContext = input.conversationContext;
+  const conversationContext = scopedConversationContextForRequest(input.requestKind, input.conversationContext);
   const contextualMessage = buildContextualRoutingMessage(input);
   const [index, rawCapabilityMatches, contextV2Index, visualLibraryMentions] = await Promise.all([
     loadContextIndex(),
@@ -1555,6 +1555,7 @@ export async function buildContextPacket(
     index,
     selectedBundles,
     supportBundles,
+    requestKind: input.requestKind,
     conversationContext
   });
   const contextCoverage = buildContextCoverage({
@@ -1730,6 +1731,10 @@ function selectedBundleIdsForPart(partId: string, selectedBundles: ContextBundle
 
 function buildContextualRoutingMessage(input: BuildContextPacketInput) {
   const context = input.conversationContext;
+  const requestKind = input.requestKind ?? 'initial_task';
+  const mayUseArtifactContext = requestKind === 'revise_current_artifact' || requestKind === 'resume_clarification';
+  const mayUsePendingAlternative = requestKind === 'resume_clarification'
+    || (requestKind === 'revise_current_artifact' && Boolean(context?.pendingSupportedAlternative));
   const replacementTarget = extractExplicitReplacementTarget(input.message);
   if (replacementTarget) {
     return [
@@ -1742,9 +1747,9 @@ function buildContextualRoutingMessage(input: BuildContextPacketInput) {
     return input.message;
   }
 
-  const currentArtifact = context.currentArtifact;
-  const confirmedProposal = isReferentialConfirmation(input.message)
-    ? context.pendingSupportedAlternative?.goal ?? extractConfirmedAssistantProposal(context.recentTurns)
+  const currentArtifact = mayUseArtifactContext ? context.currentArtifact : undefined;
+  const confirmedProposal = mayUsePendingAlternative && isReferentialConfirmation(input.message)
+    ? context.pendingSupportedAlternative?.goal ?? null
     : null;
   if (confirmedProposal) {
     return [
@@ -1762,7 +1767,7 @@ function buildContextualRoutingMessage(input: BuildContextPacketInput) {
 
   const lines = [
     input.message,
-    context.lastSupportedGoal ? `Last supported goal: ${context.lastSupportedGoal}` : '',
+    mayUseArtifactContext && context.lastSupportedGoal ? `Last supported goal: ${context.lastSupportedGoal}` : '',
     currentArtifact?.title ? `Current artifact: ${currentArtifact.title}` : '',
     currentArtifact?.circuitSpec?.intent?.primaryGoal ? `Current artifact goal: ${currentArtifact.circuitSpec.intent.primaryGoal}` : '',
     currentArtifact?.circuitSpec?.intent?.input ? `Current artifact input: ${currentArtifact.circuitSpec.intent.input}` : '',
@@ -1770,15 +1775,26 @@ function buildContextualRoutingMessage(input: BuildContextPacketInput) {
     currentArtifact?.circuitSpec?.components?.length
       ? `Current artifact parts: ${currentArtifact.circuitSpec.components.map((component) => component.partId).join(', ')}`
       : '',
-    context.awaitingBuildConfirmation ? 'The student may be confirming the current draft.' : '',
-    context.recentTurns?.length
-      ? `Recent conversation: ${context.recentTurns.map((turn) => `${turn.role}: ${turn.text}`).join(' | ')}`
-      : ''
+    mayUseArtifactContext && context.awaitingBuildConfirmation ? 'The student may be confirming the current draft.' : ''
   ].filter(Boolean);
 
   return lines.join('\n');
 }
 
+function scopedConversationContextForRequest(
+  requestKind: AgentMessageRequest['requestKind'] | undefined,
+  context: AgentConversationContext | undefined
+) {
+  if (!context) {
+    return undefined;
+  }
+
+  if (requestKind === 'revise_current_artifact' || requestKind === 'resume_clarification') {
+    return context;
+  }
+
+  return undefined;
+}
 function extractExplicitReplacementTarget(message: string) {
   const text = message.trim();
   if (!text || !hasCancellationIntent(text)) {
@@ -1843,29 +1859,6 @@ function isReferentialConfirmation(message: string) {
   return /^(그래|좋아|응|네|오케이|ok|okay|yes)\b/i.test(text) ||
     /(제안|그대로|그걸로|그 방향|너가|네가|말한|추천).*(진행|하자|해보자|할게|좋아|따를게)/i.test(text) ||
     /(진행|해보자|하자).*(제안|그대로|그걸로|그 방향)/i.test(text);
-}
-
-function extractConfirmedAssistantProposal(turns: Array<{ role: 'student' | 'assistant'; text: string }>) {
-  const lastAssistant = [...turns].reverse().find((turn) => turn.role === 'assistant')?.text;
-  if (!lastAssistant) {
-    return null;
-  }
-
-  const sentences = lastAssistant
-    .split(/(?<=[.!?。！？])\s+|\n+/)
-    .map((sentence) => sentence.trim())
-    .filter(Boolean);
-  const proposal = [...sentences].reverse().find((sentence) =>
-    /(지원되는|대신|대안|진행할까요|진행하면|다음 회로|추천)/i.test(sentence) &&
-    /(arduino|led|저항|버튼|button|buzzer|부저|servo|서보|oled|lcd|깜박|깜빡|on\/off|켜기|끄기)/i.test(sentence)
-  ) ?? sentences[sentences.length - 1] ?? lastAssistant;
-
-  return proposal
-    .replace(/^.*?(제외하고|빼고|대신)\s*,?\s*/i, '')
-    .replace(/^(지원되는\s+대안으로\s+진행하려면|지원되는\s+대안은)\s*/i, '')
-    .replace(/\*\*/g, '')
-    .slice(0, 500)
-    .trim() || null;
 }
 
 function buildIntentSignals({
@@ -2753,6 +2746,7 @@ function buildContextTrace({
   index,
   selectedBundles,
   supportBundles,
+  requestKind,
   conversationContext
 }: {
   capabilityMatches: CapabilityGraphEntry[];
@@ -2769,6 +2763,7 @@ function buildContextTrace({
   index: ContextIndex;
   selectedBundles: ContextBundleV2[];
   supportBundles: SupportBundleEvidence[];
+  requestKind?: AgentMessageRequest['requestKind'];
   conversationContext?: AgentConversationContext;
 }): ContextTraceEntry[] {
   const trace: ContextTraceEntry[] = [
@@ -2781,10 +2776,16 @@ function buildContextTrace({
     }
   ];
 
+  const mayUseConversationContext = requestKind === 'revise_current_artifact'
+    || requestKind === 'resume_clarification';
+
   if (
-    conversationContext?.currentArtifact
-    || conversationContext?.lastSupportedGoal
-    || conversationContext?.pendingSupportedAlternative
+    mayUseConversationContext
+    && (
+      conversationContext?.currentArtifact
+      || conversationContext?.lastSupportedGoal
+      || conversationContext?.pendingSupportedAlternative
+    )
   ) {
     trace.push({
       sourceId: 'conversation:current-artifact',
@@ -3278,7 +3279,9 @@ function renderConversationContextForPrompt(context?: AgentConversationContext) 
       simulationStatus: artifact.simulationPlan?.status,
       componentPartIds: artifact.circuitSpec?.components?.map((component) => component.partId) ?? []
     } : null,
-    recentTurns: (context.recentTurns ?? []).slice(-4)
+    recentTurns: context.awaitingBuildConfirmation
+      ? (context.recentTurns ?? []).slice(-2)
+      : []
   }, null, 2);
 }
 

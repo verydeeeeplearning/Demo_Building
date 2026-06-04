@@ -28,7 +28,10 @@ function baseResult(sessionId, responseKind, reply) {
 }
 
 function awaiting(sessionId, level, question, options) {
-  return { ...baseResult(sessionId, 'awaiting_input', question), clarificationRequest: { level, question, options } };
+  return {
+    ...baseResult(sessionId, 'awaiting_input', question),
+    clarificationRequest: { interactionId: `clarify-${level}`, level, question, options }
+  };
 }
 
 function diagnosticContextGapResult(sessionId) {
@@ -165,12 +168,14 @@ test('vague request -> category chips -> drill-down -> capability selection resu
 
   // Drill-down chips after the category resume.
   await expect.poll(() => agent.posts.map((p) => p.resume)).toContain('sound');
+  expect(agent.posts.find((post) => post.resume === 'sound')?.resumeInteractionId).toBe('clarify-output');
   await expect(page.getByTestId('clarify-options').getByRole('button', { name: '부저' })).toBeVisible();
 
   await page.getByTestId('clarify-options').getByRole('button', { name: '부저' }).click();
 
   // Final selection resumes with the capabilityId and the ack shows; chips clear.
   await expect.poll(() => agent.posts.map((p) => p.resume)).toContain('sound-alert-output');
+  expect(agent.posts.find((post) => post.resume === 'sound-alert-output')?.resumeInteractionId).toBe('clarify-sound');
   await expect(page.locator('.message.assistant').last()).toContainText('부저 회로');
   await expect(page.getByTestId('clarify-options')).toHaveCount(0);
 });

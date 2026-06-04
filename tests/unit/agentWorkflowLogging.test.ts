@@ -3,6 +3,7 @@ import { test } from 'node:test';
 
 import { runAgent } from '../../server/agent/deepAgentRuntime.ts';
 import { RecordedCassetteModel } from '../../server/agent/modelCassette.ts';
+import { resolveAgentThreadId } from '../../server/agent/agentThreadSession.ts';
 import type { DeepAgentFactory, ModelPort } from '../../server/agent/agentRuntimePorts.ts';
 import type { AgentMessageRequest, CircuitSpec } from '../../server/agent/schemas.ts';
 
@@ -110,7 +111,7 @@ test('agent workflow logs safe LLM handoffs, parsed drafts, and final simulation
       'requirement and synthesis LLM handoffs must be logged in order'
     );
     assert.equal(handoffs[0].threadId, 'session-logging-test:requirement-analysis');
-    assert.equal(handoffs[1].threadId, 'session-logging-test');
+    assert.equal(handoffs[1].threadId, resolveAgentThreadId({ sessionId: 'session-logging-test' }));
     assert.equal(handoffs[1].requirementRoute, 'synthesize_circuit');
     assert.match(String(handoffs[1].prompt.systemHash), /^[0-9a-f]{64}$/);
     assert.match(String(handoffs[1].prompt.userHash), /^[0-9a-f]{64}$/);

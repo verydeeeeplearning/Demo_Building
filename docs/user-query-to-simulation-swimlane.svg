@@ -53,7 +53,7 @@
   <rect class="ui" x="115" y="215" width="280" height="92"/>
   <text x="140" y="249" class="boxTitle">학생이 요청 입력</text>
   <text x="140" y="276" class="text">“OLED에 Hello 표시해줘”</text>
-  <text x="140" y="296" class="code">submitAgentMessage()</text>
+  <text x="140" y="296" class="code">submitAgentMessageRobust()</text>
 
   <path class="line" d="M395 261 H585"/>
   <circle class="num" cx="592" cy="245" r="17"/><text class="numText" x="587" y="251">2</text>
@@ -103,7 +103,7 @@
   <rect class="agent" x="615" y="960" width="280" height="122"/>
   <text x="640" y="995" class="boxTitle">Deep Agent 실행</text>
   <text x="640" y="1022" class="text">LangGraph memory</text>
-  <text x="640" y="1046" class="code">thread_id = sessionId</text>
+  <text x="640" y="1046" class="code">thread_id = encoded session/task</text>
   <text x="640" y="1068" class="small">structured circuit draft 생성</text>
 
   <path class="line dash" d="M895 1025 H1010 V1251 H1115"/>

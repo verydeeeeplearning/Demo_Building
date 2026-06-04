@@ -448,7 +448,9 @@ export function renderConversationContextForPrompt(context?: AgentConversationCo
               artifact.circuitSpec?.components?.map((component) => component.partId) ?? []
           }
         : null,
-      recentTurns: (context.recentTurns ?? []).slice(-4)
+      recentTurns: context.awaitingBuildConfirmation
+        ? (context.recentTurns ?? []).slice(-2)
+        : []
     },
     null,
     2

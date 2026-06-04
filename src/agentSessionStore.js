@@ -7,6 +7,7 @@
 const STORAGE_KEY = 'hEduwareAgentSession';
 const MAX_TURNS = 12;
 const MAX_TURN_CHARS = 2000;
+const MAX_PENDING_OPTIONS = 12;
 
 function isTurn(value) {
   return Boolean(value) && typeof value.text === 'string'
@@ -24,13 +25,19 @@ export function loadAgentSession(storage) {
       return null;
     }
     const messages = Array.isArray(data.messages) ? data.messages.filter(isTurn) : [];
-    return { sessionId: data.sessionId, messages };
+    return {
+      sessionId: data.sessionId,
+      activeTaskId: typeof data.activeTaskId === 'string' ? data.activeTaskId : null,
+      pendingClarification: normalizePendingClarification(data.pendingClarification),
+      artifactVersion: Number.isFinite(data.artifactVersion) ? data.artifactVersion : 0,
+      messages
+    };
   } catch {
     return null;
   }
 }
 
-export function saveAgentSession(storage, { sessionId, messages } = {}) {
+export function saveAgentSession(storage, { sessionId, activeTaskId, pendingClarification, artifactVersion, messages } = {}) {
   if (!storage || !sessionId) {
     return;
   }
@@ -39,7 +46,13 @@ export function saveAgentSession(storage, { sessionId, messages } = {}) {
       .filter(isTurn)
       .slice(-MAX_TURNS)
       .map((message) => ({ role: message.role, text: String(message.text).slice(0, MAX_TURN_CHARS) }));
-    storage.setItem(STORAGE_KEY, JSON.stringify({ sessionId, messages: trimmed }));
+    storage.setItem(STORAGE_KEY, JSON.stringify({
+      sessionId,
+      activeTaskId: typeof activeTaskId === 'string' ? activeTaskId : undefined,
+      pendingClarification: normalizePendingClarification(pendingClarification),
+      artifactVersion: Number.isFinite(artifactVersion) ? artifactVersion : 0,
+      messages: trimmed
+    }));
   } catch {
     // Best-effort cache; losing it only means no cross-reload continuity this time.
   }
@@ -51,4 +64,34 @@ export function clearAgentSession(storage) {
   } catch {
     // ignore
   }
+}
+
+function normalizePendingClarification(value) {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const request = value.request;
+  if (!request || typeof request !== 'object' || typeof request.interactionId !== 'string') {
+    return null;
+  }
+  const options = Array.isArray(request.options)
+    ? request.options
+      .filter((option) => option && typeof option.id === 'string' && typeof option.label === 'string')
+      .slice(0, MAX_PENDING_OPTIONS)
+      .map((option) => ({
+        id: option.id.slice(0, 200),
+        label: option.label.slice(0, 200),
+        ...(typeof option.capabilityId === 'string' ? { capabilityId: option.capabilityId.slice(0, 200) } : {})
+      }))
+    : [];
+  return {
+    taskId: typeof value.taskId === 'string' ? value.taskId : null,
+    turnId: typeof value.turnId === 'string' ? value.turnId : null,
+    request: {
+      interactionId: request.interactionId.slice(0, 200),
+      level: typeof request.level === 'string' ? request.level.slice(0, 100) : '',
+      question: typeof request.question === 'string' ? request.question.slice(0, 500) : '',
+      options
+    }
+  };
 }

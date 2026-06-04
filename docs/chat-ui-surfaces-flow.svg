@@ -47,7 +47,7 @@
   <rect class="main" x="86" y="230" width="288" height="114"/>
   <text x="112" y="264" class="boxTitle">역할</text>
   <text x="112" y="292" class="text">학생 요구사항을 회로 artifact로 변환</text>
-  <text x="112" y="316" class="code">submitAgentMessage()</text>
+  <text x="112" y="316" class="code">submitAgentMessageRobust()</text>
 
   <rect class="main" x="86" y="398" width="288" height="114"/>
   <text x="112" y="432" class="boxTitle">입력 데이터</text>
@@ -66,7 +66,7 @@
   <text x="480" y="460" class="text">buildContextPacket()</text>
   <text x="480" y="484" class="text">scoped tools + promptBlock</text>
   <text x="480" y="508" class="text">LangGraph checkpointer</text>
-  <text x="480" y="530" class="code">thread_id = sessionId</text>
+  <text x="480" y="530" class="code">thread_id = encoded session/task</text>
 
   <path class="lineBlue" d="M598 548 V606"/>
   <rect class="gate" x="454" y="606" width="288" height="140"/>

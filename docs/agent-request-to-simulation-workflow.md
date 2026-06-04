@@ -28,44 +28,53 @@ Official docs checked for this workflow:
 2. `runAgent()` delegates to `runLiveAgent()` in `server/agent/deepAgentRuntime.ts`.
    The runtime resolves `sessionId`, pipeline mode, model port, Deep Agent factory,
    and LangSmith metadata.
-3. `buildContextPacket()` in `server/context/contextPacket.ts` routes the student
+3. `runLiveAgent()` normalizes the client turn envelope (`taskId`, `turnId`,
+   client request-kind hint) into an effective server request kind, encoded
+   `thread_id = session.<session>.task.<task>`, and a per-thread mutation lock
+   before invoking any framework/model work.
+4. `buildContextPacket()` in `server/context/contextPacket.ts` routes the student
    message through the context layer. On clarification resume, `forceCapabilityId`
    re-grounds the packet to the selected capability.
-4. The context layer loads capability matches, v2 routes, v2 bundles, source-backed
+5. The context layer loads capability matches, v2 routes, v2 bundles, source-backed
    support bundles, candidate parts, render footprints, simulation primitives, and
    validation coverage. It returns structured `ContextPacket` data plus the
    model-facing `promptBlock`.
-5. `runLiveAgent()` turns the packet into scoped `toolOptions`: context coverage,
+6. `runLiveAgent()` turns the packet into scoped `toolOptions`: context coverage,
    candidate parts, allowed context source ids, support bundle evidence, request
    scope, and locale.
-6. Requirement routing is either a legacy requirement-analysis Deep Agent run or
+7. Requirement routing is either a legacy requirement-analysis Deep Agent run or
    deterministic derivation in `shadow|next`. The route is logged as
    `requirement.analysis.completed`.
-7. The synthesis prompt is assembled from compact operating memory, context index,
+8. The synthesis prompt is assembled from compact operating memory, context index,
    candidate registry summary, and `contextPacket.promptBlock`. Prompt budget is
    enforced before invocation.
-8. The synthesis Deep Agent is created with `createDeepAgent`, scoped H-eduware
+9. The synthesis Deep Agent is created with `createDeepAgent`, scoped H-eduware
    tools, `toolStrategy(LiveAgentDraftSchema)`, LangGraph checkpointer, and
-   `thread_id = sessionId`.
-9. If the student is resuming a LangGraph interrupt, the runtime invokes with
-   `new Command({ resume })`; otherwise it invokes with the user prompt message.
-10. During the Deep Agent run, tools can read only route-selected context docs,
+   the encoded session/task `thread_id`.
+10. If the student is resuming a LangGraph interrupt, the runtime validates and
+    consumes the one-time `resumeInteractionId`, then invokes with
+    `new Command({ resume })`; otherwise it invokes with the user prompt message.
+11. During the Deep Agent run, tools can read only route-selected context docs,
     search only candidate parts, load only in-packet support bundles, and call
     deterministic validation/render/simulation tools.
-11. The runtime parses `structuredResponse`/`structured_response` into
+12. The runtime parses `structuredResponse`/`structured_response` into
     `LiveAgentDraft`. Plain-message recovery remains a fallback for model behavior
     that does not populate structured output.
-12. Chat drafts return inert chat results. `interrupt()` payloads return
+13. Chat drafts return inert chat results. `interrupt()` payloads return
     `awaiting_input`. Circuit drafts enter deterministic finalization.
-13. `finalizeAgentResult()` validates the model `CircuitSpec`, applies candidate
+14. `finalizeAgentResult()` validates the model `CircuitSpec`, applies candidate
     part, intent fulfillment, and context coverage gates, then builds netlist,
     current paths, render plan, simulation plan, runnable report, solver gate
     result, and requirement markdown.
-14. `AgentRunResultSchema` crosses the HTTP boundary with `contextTrace`,
+15. `AgentRunResultSchema` crosses the HTTP boundary with `contextTrace`,
     `contextCoverage`, `requirementMarkdown`, `circuitSpec`, `validationReport`,
     `renderPlan`, `simulationPlan`, `buildRunnableReport`, and optional
-    `solverGateResult`.
-15. The frontend renders parts from `renderPlan` and shows run output/current-flow
+    `solverGateResult`, plus echoed `taskId`, `turnId`, and
+    `effectiveRequestKind` when available.
+16. The frontend ignores stale responses whose echoed ids do not match the latest
+    pending turn, preserves the last visible artifact while non-renderable chat or
+    clarification turns complete, and renders parts from `renderPlan`.
+17. The frontend shows run output/current-flow
     evidence from `simulationPlan`.
 
 ## Context Layer Role
@@ -88,6 +97,15 @@ Official docs checked for this workflow:
   complete bundle evidence or a valid topology composition proof.
 - LangGraph checkpointer + `thread_id` owns conversation continuity.
   `conversationContext` is bounded artifact and UI grounding only.
+- Client `recentTurns` and client-supplied running summaries are never folded
+  into synthesis prompts. They are not a source of parts, pins, protocols, or
+  request routing authority.
+- Structured `conversationContext.currentArtifact`, `lastSupportedGoal`, and
+  `pendingSupportedAlternative` are used only for revision or clarification
+  resume turns. New independent tasks route from the current message and context
+  packet, not old visible chat text.
+- Clarification resumes require a random one-time `interactionId` generated by
+  the server and echoed by the client as `resumeInteractionId`.
 - Live tools are scoped by the current `ContextPacket`; missing candidate parts,
   allowed source ids, or support bundle scope blocks tool access.
 - An empty scoped candidate-part set blocks validation, netlist, fault,

@@ -3,13 +3,13 @@ import { randomUUID } from 'node:crypto';
 import { ChatOpenAI } from '@langchain/openai';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { createDeepAgent, type SubAgent } from 'deepagents';
-import { toolStrategy } from 'langchain';
+import { toolRetryMiddleware, toolStrategy } from 'langchain';
 import { MemorySaver, Command } from '@langchain/langgraph';
 import { z } from 'zod';
 
 // Short-term conversation memory (LangGraph "Add Short-Term Memory" pattern): one shared in-process
-// saver, keyed by thread_id = sessionId. The saver is the state store, so re-constructing the agent
-// per request is fine — the same thread accumulates across requests. Production durability (a saver
+// saver, keyed by the encoded synthesis thread id. The saver is the state store, so re-constructing
+// per request is fine for the same task thread. Production durability (a saver
 // that survives restarts) is Phase 4; injectable via AgentRuntimeDeps.checkpointer.
 const conversationCheckpointer = new MemorySaver();
 
@@ -31,6 +31,7 @@ import {
   logAgentEvent,
   resultLogSummary
 } from './agentLogger.ts';
+import { redactSensitiveLogText } from './logRedaction.ts';
 import {
   applyCandidatePartGate,
   buildNetlist,
@@ -45,11 +46,20 @@ import {
   validateCircuitSpec
 } from './circuitTools.ts';
 import { createHeduwareAgentTools } from './deepAgentTools.ts';
+import {
+  assertActiveTaskEpoch,
+  beginAgentThreadTurn,
+  clearPendingAgentInteraction,
+  effectiveAgentRequestKind,
+  normalizeClientTaskId,
+  registerPendingAgentInteraction,
+  resolveAgentThreadId,
+  validateAndConsumePendingAgentInteraction
+} from './agentThreadSession.ts';
 
 type HeduwareAgentToolsOptions = NonNullable<Parameters<typeof createHeduwareAgentTools>[0]>;
 import {
   compactBlocksWithinAssembledBudget,
-  foldRunningSummary,
   type SystemContextBlocks
 } from './contextCompaction.ts';
 import {
@@ -129,6 +139,31 @@ type AgentRunOptions = {
   // Injectable seams (Phase 0.5). Production passes nothing -> real ChatOpenAI + createDeepAgent.
   deps?: AgentRuntimeDeps;
 };
+
+const RECOVERABLE_HEDUWARE_TOOL_NAMES = [
+  'assess_request_scope',
+  'load_context_index',
+  'read_context_doc',
+  'search_part_capabilities',
+  'load_support_bundle_evidence',
+  'validate_circuit_spec',
+  'build_netlist',
+  'estimate_current_paths',
+  'detect_faults',
+  'compile_render_plan',
+  'compile_simulation_plan',
+  'compile_requirement_markdown'
+];
+
+function formatRecoverableToolCallError(error: Error) {
+  const message = (redactSensitiveLogText(error.message) ?? '').slice(0, 2400);
+  return [
+    'Tool input was rejected by the authoritative H-eduware schema or validator.',
+    'Correct the tool arguments and call the same tool again before producing the final circuit draft.',
+    'Preserve the student request, use only context-packet candidate parts, and keep metadata arrays present even when empty.',
+    `Error: ${message}`
+  ].join('\n');
+}
 
 export class AgentConfigurationError extends Error {
   constructor(message: string) {
@@ -388,6 +423,28 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
   const pipelineMode = getAgentPipelineMode();
   const sessionId = request.sessionId ?? `session-${randomUUID()}`;
   const traceId = options.traceId ?? createAgentTraceId();
+  const taskId = normalizeClientTaskId(request.taskId);
+  const effectiveRequestKind = effectiveAgentRequestKind(request);
+  const agentThreadId = resolveAgentThreadId({ sessionId, taskId });
+  const turnScope = beginAgentThreadTurn({
+    sessionId,
+    taskId,
+    turnId: request.turnId,
+    threadId: agentThreadId,
+    requestKind: effectiveRequestKind
+  });
+  try {
+  if (effectiveRequestKind === 'resume_clarification') {
+    validateAndConsumePendingAgentInteraction({
+      sessionId,
+      taskId,
+      threadId: agentThreadId,
+      resumeInteractionId: request.resumeInteractionId,
+      resumeValue: request.resume
+    });
+    assertActiveTaskEpoch({ sessionId, taskId, epoch: turnScope.epoch });
+  }
+  request = { ...request, taskId, requestKind: effectiveRequestKind };
   // On a clarification resume, ground the packet to the chosen capability (forceCapabilityId ignores a
   // category-id resume, so an intermediate narrowing step still re-asks rather than mis-building).
   const contextPacket = await buildContextPacket(
@@ -420,6 +477,10 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
   // is NOT agent-discretionary is safety: an unsupported_or_gap route is short-circuited before
   // synthesis by buildPreflightDraftFromAnalysis (a hard, server-enforced guardrail; Invariant 6).
   const requestScope = assessRequestScope(contextPacket);
+  const toolConversationContext = request.requestKind === 'revise_current_artifact'
+    || request.requestKind === 'resume_clarification'
+    ? request.conversationContext
+    : undefined;
 
   const toolOptions = {
     contextCoverage: contextPacket.contextCoverage,
@@ -427,8 +488,9 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
     allowedContextSourceIds: contextPacket.retrievalPlan.sourceIds,
     supportBundles: contextPacket.supportBundles,
     requestScope,
+    requestKind: request.requestKind,
     locale: request.locale ?? 'ko',
-    conversationContext: request.conversationContext
+    conversationContext: toolConversationContext
   };
   // Phase 3 single-run: in shadow|next, derive the requirement route deterministically instead of
   // running a second deep agent — collapsing the two createDeepAgent runs into the one synthesis
@@ -532,35 +594,41 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
   const agentTools = createHeduwareAgentTools(toolOptions);
   const agentName = 'h-eduware-deepagent';
   const agentRunName = 'h-eduware-circuit-synthesis';
-  const agentThreadId = sessionId;
   const agent = deepAgentFactory({
     model,
     tools: agentTools,
     subagents,
     responseFormat: toolStrategy(LiveAgentDraftSchema),
     systemPrompt: synthesisSystemPrompt,
-    // Conversation memory: the thread (thread_id = sessionId) carries prior turns so the agent no
+    // Conversation memory: the encoded thread id carries prior turns so the agent no
     // longer depends on the client re-sending history. See conversationCheckpointer above.
     checkpointer: options.deps?.checkpointer ?? conversationCheckpointer,
     name: agentName,
-    middleware: [createObservabilityMiddleware((event) => {
-      logAgentEvent('agent.tool.call', {
-        traceId,
-        sessionId,
-        tool: event.tool,
-        status: event.status,
-        durationMs: event.durationMs,
-        inputHash: event.inputHash,
-        inputChars: event.inputChars,
-        ...(event.outputHash !== undefined ? { outputHash: event.outputHash } : {}),
-        ...(event.outputChars !== undefined ? { outputChars: event.outputChars } : {}),
-        ...(event.error !== undefined ? { error: event.error } : {})
-      });
-    })]
+    middleware: [
+      toolRetryMiddleware({
+        maxRetries: 0,
+        tools: RECOVERABLE_HEDUWARE_TOOL_NAMES,
+        onFailure: formatRecoverableToolCallError
+      }),
+      createObservabilityMiddleware((event) => {
+        logAgentEvent('agent.tool.call', {
+          traceId,
+          sessionId,
+          tool: event.tool,
+          status: event.status,
+          durationMs: event.durationMs,
+          inputHash: event.inputHash,
+          inputChars: event.inputChars,
+          ...(event.outputHash !== undefined ? { outputHash: event.outputHash } : {}),
+          ...(event.outputChars !== undefined ? { outputChars: event.outputChars } : {}),
+          ...(event.error !== undefined ? { error: event.error } : {})
+        });
+      })
+    ]
   });
 
   try {
-    return await runAgentDraftRepairLoop({
+    const result = await runAgentDraftRepairLoop({
     traceId,
     sessionId,
     request,
@@ -651,11 +719,35 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
       return draft;
     }
     });
+    clearPendingAgentInteraction(agentThreadId);
+    return result;
   } catch (error) {
     if (error instanceof AgentInterruptSignal) {
-      return buildAwaitingInputResult({ traceId, sessionId, request, contextPacket, payload: error.payload });
+      assertActiveTaskEpoch({ sessionId, taskId, epoch: turnScope.epoch });
+      const pending = registerPendingAgentInteraction({
+        sessionId,
+        taskId,
+        threadId: agentThreadId,
+        level: error.payload.level,
+        optionIds: error.payload.options.map((option) => option.id)
+      });
+      return buildAwaitingInputResult({
+        traceId,
+        sessionId,
+        taskId,
+        effectiveRequestKind,
+        request,
+        contextPacket,
+        payload: {
+          ...error.payload,
+          interactionId: pending.interactionId
+        }
+      });
     }
     throw error;
+  }
+  } finally {
+    turnScope.release();
   }
 }
 
@@ -1309,6 +1401,9 @@ async function finalizeAgentResult({
   return AgentRunResultSchema.parse({
     traceId,
     sessionId,
+    taskId: request.taskId,
+    turnId: request.turnId,
+    effectiveRequestKind: request.requestKind,
     mode: 'live',
     servingStatus,
     assistantMessages: [studentMessage],
@@ -1369,6 +1464,9 @@ export function buildCasualChatResult({
   return AgentRunResultSchema.parse({
     traceId,
     sessionId,
+    taskId: request.taskId,
+    turnId: request.turnId,
+    effectiveRequestKind: request.requestKind,
     mode: 'live',
     responseKind: 'chat',
     servingStatus: deriveServingStatus({
@@ -1444,12 +1542,16 @@ function extractInterruptPayload(output: unknown): ClarificationRequest | null {
 function buildAwaitingInputResult({
   traceId,
   sessionId,
+  taskId,
+  effectiveRequestKind,
   request,
   contextPacket,
   payload
 }: {
   traceId?: string;
   sessionId: string;
+  taskId?: string;
+  effectiveRequestKind?: ReturnType<typeof effectiveAgentRequestKind>;
   request: AgentMessageRequest;
   contextPacket: Awaited<ReturnType<typeof buildContextPacket>>;
   payload: ClarificationRequest;
@@ -1464,6 +1566,9 @@ function buildAwaitingInputResult({
   });
   return AgentRunResultSchema.parse({
     ...base,
+    taskId,
+    turnId: request.turnId,
+    effectiveRequestKind,
     responseKind: 'awaiting_input',
     clarificationRequest: payload
   });
@@ -2554,6 +2659,14 @@ function renderConversationContextForPrompt(request: AgentMessageRequest) {
     return '';
   }
 
+  const requestKind = request.requestKind;
+  const mayUseArtifactContext = requestKind
+    ? requestKind === 'revise_current_artifact' || requestKind === 'resume_clarification'
+    : Boolean(context.currentArtifact || context.pendingSupportedAlternative || context.awaitingBuildConfirmation);
+  if (!mayUseArtifactContext) {
+    return '';
+  }
+
   const artifact = context.currentArtifact;
   const lines = [
     'Conversation grounding:',
@@ -2567,32 +2680,6 @@ function renderConversationContextForPrompt(request: AgentMessageRequest) {
     artifact?.buildRunnableReport?.status ? `- buildRunnableStatus=${artifact.buildRunnableReport.status}; runnable=${artifact.buildRunnableReport.runnable ? 'yes' : 'no'}` : '',
     artifact?.buildRunnableReport?.reasons?.length ? `- buildRunnableReasons=${artifact.buildRunnableReport.reasons.slice(0, 3).join('; ')}` : ''
   ].filter(Boolean);
-
-  if (context.recentTurns.length > 0) {
-    lines.push(
-      'Recent conversation:',
-      ...context.recentTurns.slice(-6).map((turn) => `- ${turn.role}: ${turn.text}`)
-    );
-  }
-
-  // Phase 5b — advisory running summary injection.
-  // The server RE-COMPUTES the summary from the server-validated recentTurns each request.
-  // Any client-supplied runningSummary is UNTRUSTED/advisory: it is never echoed into an
-  // authority-bearing block.  The clearly-delimited block below is excluded from the
-  // canonical authority chain (consistent with the "never invent parts/pins/protocols" posture).
-  const serverDerivedSummary = foldRunningSummary(
-    context.recentTurns,
-    // locale is not accessible here; the summary is locale-agnostic (role prefixes only)
-    'en'
-  );
-  if (serverDerivedSummary) {
-    lines.push(
-      '',
-      '--- EARLIER CONTEXT (advisory, non-authoritative — never a source of parts/pins/protocols) ---',
-      serverDerivedSummary,
-      '--- END EARLIER CONTEXT ---'
-    );
-  }
 
   return lines.join('\n');
 }

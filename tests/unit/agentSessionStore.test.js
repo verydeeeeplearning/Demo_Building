@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { loadAgentSession, saveAgentSession, clearAgentSession } from '../../src/agentSessionStore.js';
+import { clearAgentSession, loadAgentSession, saveAgentSession } from '../../src/agentSessionStore.js';
 
 function memoryStorage(initial = {}) {
   const map = new Map(Object.entries(initial));
@@ -13,20 +13,35 @@ function memoryStorage(initial = {}) {
   };
 }
 
-void test('save then load round-trips the session id and turns', () => {
+void test('save then load round-trips session, task, pending clarification, artifact version, and turns', () => {
   const storage = memoryStorage();
   saveAgentSession(storage, {
     sessionId: 'session-abc',
+    activeTaskId: 'task-abc',
+    artifactVersion: 2,
+    pendingClarification: {
+      taskId: 'task-abc',
+      turnId: 'turn-1',
+      request: {
+        interactionId: 'clarify-1',
+        level: 'output',
+        question: 'Choose one.',
+        options: [{ id: 'light', label: 'Light' }]
+      }
+    },
     messages: [
-      { role: 'student', text: '온습도센서 OLED에 표시' },
-      { role: 'assistant', text: '온습도 회로를 만들어 드릴게요.' }
+      { role: 'student', text: 'Build an OLED display.' },
+      { role: 'assistant', text: 'I made an OLED draft.' }
     ]
   });
 
   const restored = loadAgentSession(storage);
   assert.equal(restored.sessionId, 'session-abc');
+  assert.equal(restored.activeTaskId, 'task-abc');
+  assert.equal(restored.artifactVersion, 2);
+  assert.equal(restored.pendingClarification.request.interactionId, 'clarify-1');
   assert.equal(restored.messages.length, 2);
-  assert.deepEqual(restored.messages[0], { role: 'student', text: '온습도센서 OLED에 표시' });
+  assert.deepEqual(restored.messages[0], { role: 'student', text: 'Build an OLED display.' });
 });
 
 void test('save keeps only the last 12 turns and caps turn length', () => {
@@ -64,6 +79,20 @@ void test('load drops malformed turns but keeps the session id', () => {
   assert.deepEqual(restored.messages, [{ role: 'student', text: 'ok' }]);
 });
 
+void test('load drops malformed pending clarification metadata', () => {
+  const storage = memoryStorage({
+    hEduwareAgentSession: JSON.stringify({
+      sessionId: 's1',
+      activeTaskId: 'task-a',
+      pendingClarification: { request: { question: 'missing id' } },
+      messages: []
+    })
+  });
+  const restored = loadAgentSession(storage);
+  assert.equal(restored.sessionId, 's1');
+  assert.equal(restored.pendingClarification, null);
+});
+
 void test('clearAgentSession removes the persisted thread', () => {
   const storage = memoryStorage();
   saveAgentSession(storage, { sessionId: 's', messages: [{ role: 'student', text: 'hi' }] });
@@ -71,7 +100,7 @@ void test('clearAgentSession removes the persisted thread', () => {
   assert.equal(loadAgentSession(storage), null);
 });
 
-void test('storage failures are swallowed (graceful degradation)', () => {
+void test('storage failures are swallowed with graceful degradation', () => {
   const throwing = {
     getItem: () => { throw new Error('blocked'); },
     setItem: () => { throw new Error('quota'); },

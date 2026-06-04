@@ -6,6 +6,7 @@ import {
   AgentPromptBudgetError,
   AgentStructuredOutputError
 } from '../../server/agent/deepAgentRuntime.ts';
+import { AgentThreadBusyError, StaleAgentResumeError } from '../../server/agent/agentThreadSession.ts';
 import { mapAgentErrorToResponse } from '../../server/agent/errorResponse.ts';
 
 test('structured output errors return a safe retryable response contract', () => {
@@ -35,4 +36,20 @@ test('prompt budget errors expose route budget metadata without retrying', () =>
   assert.equal(mapped.body.actualChars, 12001);
   assert.equal(mapped.body.maxChars, 12000);
   assert.equal(mapped.body.retryable, false);
+});
+
+test('thread busy errors map to retryable 409 responses', () => {
+  const mapped = mapAgentErrorToResponse(new AgentThreadBusyError('thread-a'));
+
+  assert.equal(mapped.status, 409);
+  assert.equal(mapped.body.errorCode, 'AGENT_THREAD_BUSY');
+  assert.equal(mapped.body.retryable, true);
+});
+
+test('stale resume errors map to retryable 409 responses', () => {
+  const mapped = mapAgentErrorToResponse(new StaleAgentResumeError());
+
+  assert.equal(mapped.status, 409);
+  assert.equal(mapped.body.errorCode, 'STALE_AGENT_RESUME');
+  assert.equal(mapped.body.retryable, true);
 });

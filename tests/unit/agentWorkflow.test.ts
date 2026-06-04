@@ -1348,10 +1348,11 @@ test('Korean unsafe preflight returns readable safety copy without mojibake', as
   assert.doesNotMatch(message, /This request|unsupported for a student breadboard simulation/i);
 });
 
-test('agent user prompt carries recent turns and current artifact grounding', () => {
+test('agent user prompt carries artifact grounding without recent-turn text', () => {
   const prompt = buildAgentUserPrompt({
     message: '전선 연결이 안되도 상관없니?',
     locale: 'ko',
+    requestKind: 'revise_current_artifact',
     conversationContext: {
       recentTurns: [
         { role: 'student', text: 'LED 깜빡이기' },
@@ -1395,7 +1396,8 @@ test('agent user prompt carries recent turns and current artifact grounding', ()
   });
 
   assert.match(prompt, /Student message: 전선 연결이 안되도 상관없니/);
-  assert.match(prompt, /Recent conversation/i);
+  assert.doesNotMatch(prompt, /Recent conversation/i);
+  assert.doesNotMatch(prompt, /EARLIER CONTEXT/i);
   assert.match(prompt, /LED blinker/);
   assert.match(prompt, /blink an LED with Arduino/);
   assert.match(prompt, /validationStatus=valid/);

@@ -6,6 +6,8 @@ export class AgentApiError extends Error {
     this.name = 'AgentApiError';
     this.status = details.status;
     this.payload = details.payload;
+    this.code = details.code;
+    this.cause = details.cause;
   }
 }
 
@@ -39,8 +41,20 @@ export async function getAiRuntimeMode() {
   }
 }
 
-export async function sendAgentMessage({ sessionId, message, resume, confirmation, locale, conversationContext }) {
-  const health = await getAgentHealth();
+export async function sendAgentMessage({
+  sessionId,
+  taskId,
+  turnId,
+  requestKind,
+  resumeInteractionId,
+  message,
+  resume,
+  confirmation,
+  locale,
+  conversationContext,
+  signal
+}) {
+  const health = await getAgentHealth({ signal });
   if (!health.ok) {
     throw new AgentApiError(
       `Deepagents live server is not configured. Missing: ${(health.requiredEnv || []).join(', ') || 'server configuration'}`
@@ -53,6 +67,10 @@ export async function sendAgentMessage({ sessionId, message, resume, confirmatio
     mode: 'live'
   };
   if (sessionId) body.sessionId = sessionId;
+  if (taskId) body.taskId = taskId;
+  if (turnId) body.turnId = turnId;
+  if (requestKind) body.requestKind = requestKind;
+  if (resumeInteractionId) body.resumeInteractionId = resumeInteractionId;
   if (resume) body.resume = resume;
   if (confirmation) body.confirmation = confirmation;
   if (conversationContext) body.conversationContext = conversationContext;
@@ -60,7 +78,8 @@ export async function sendAgentMessage({ sessionId, message, resume, confirmatio
   return fetchJson('/api/agent/message', {
     method: 'POST',
     body,
-    timeoutMs: 90000
+    timeoutMs: 90000,
+    signal
   });
 }
 
@@ -72,16 +91,29 @@ export async function resolvePlacementIntent(intent) {
   });
 }
 
-async function getAgentHealth() {
+async function getAgentHealth({ signal } = {}) {
   return fetchJson('/api/agent/health', {
     method: 'GET',
-    timeoutMs: 1200
+    timeoutMs: 1200,
+    signal
   });
 }
 
-async function fetchJson(path, { method, body, timeoutMs }) {
+async function fetchJson(path, { method, body, timeoutMs, signal }) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  let timedOut = false;
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
+  const abortListener = () => controller.abort(signal.reason);
+  if (signal) {
+    if (signal.aborted) {
+      controller.abort(signal.reason);
+    } else {
+      signal.addEventListener('abort', abortListener, { once: true });
+    }
+  }
 
   try {
     const response = await fetch(`${agentApiBase()}${path}`, {
@@ -102,11 +134,15 @@ async function fetchJson(path, { method, body, timeoutMs }) {
     return payload;
   } catch (error) {
     if (error.name === 'AbortError') {
-      throw new AgentApiError('Agent API request timed out.');
+      throw new AgentApiError(timedOut ? 'Agent API request timed out.' : 'Agent API request was cancelled.', {
+        code: timedOut ? 'AGENT_REQUEST_TIMEOUT' : 'AGENT_REQUEST_CANCELLED',
+        cause: error
+      });
     }
     throw error;
   } finally {
     clearTimeout(timeout);
+    signal?.removeEventListener?.('abort', abortListener);
   }
 }
 
