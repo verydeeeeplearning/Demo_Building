@@ -227,7 +227,7 @@ function createTools(options: InternalToolOptions) {
     tool(
       async ({ spec }) => {
         const validationReport = await validateWithContext(spec);
-        return asJson(await compileRenderPlan(spec, validationReport));
+        return asJson(await compileRenderPlan(spec, validationReport, { locale: options.locale ?? 'ko' }));
       },
       {
         name: 'compile_render_plan',
@@ -444,7 +444,7 @@ async function compileSimulationArtifacts(spec: CircuitSpec, options: InternalTo
   const validationReport = applyContextCoverageGate(rawValidationReport, options.contextCoverage);
   const netlist = await buildNetlist(spec);
   const currentPaths = await estimateCurrentPaths(spec, netlist, validationReport);
-  const renderPlan = await compileRenderPlan(spec, validationReport);
+  const renderPlan = await compileRenderPlan(spec, validationReport, { locale: options.locale ?? 'ko' });
   const simulationPlan = await compileSimulationPlan(spec, validationReport, currentPaths, renderPlan);
   const runnableReport = buildRunnableReport(validationReport, renderPlan, simulationPlan);
   const solverGateResult = buildSolverGateResult(validationReport, renderPlan, simulationPlan, runnableReport);

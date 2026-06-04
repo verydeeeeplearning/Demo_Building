@@ -291,7 +291,7 @@ function validLedBlinkAgentResultFixture() {
           to: { partId: 'resistor-1', pin: '1' },
           signal: 'gpio',
           color: '#2f7df6',
-          education: { label: 'D9', title: 'Arduino output to resistor', what: 'This wire starts the LED current path.', why: 'The resistor must be in series.', missing: 'If missing, LED cannot turn on.' }
+          education: { label: 'D9', title: 'Arduino 출력에서 저항으로', what: '이 선은 LED 전류 경로를 시작합니다.', why: '저항이 LED와 직렬로 들어가야 전류를 제한할 수 있습니다.', missing: '이 선이 빠지면 LED가 켜지지 않습니다.' }
         },
         {
           id: 'resistor-to-led',
@@ -299,7 +299,7 @@ function validLedBlinkAgentResultFixture() {
           to: { partId: 'led-1', pin: 'A' },
           signal: 'gpio',
           color: '#2f7df6',
-          education: { label: 'LED A', title: 'Resistor to LED anode', what: 'This wire feeds the protected LED anode.', why: 'The LED needs current after the resistor.', missing: 'If missing, the LED path is open.' }
+          education: { label: 'LED A', title: '저항에서 LED 애노드로', what: '이 선은 전류가 제한된 LED 애노드에 신호를 보냅니다.', why: 'LED는 저항 뒤에서 안전하게 전류를 받아야 합니다.', missing: '이 선이 빠지면 LED 전류 경로가 열립니다.' }
         },
         {
           id: 'led-to-ground',
@@ -307,7 +307,7 @@ function validLedBlinkAgentResultFixture() {
           to: { partId: 'arduino-uno', pin: 'GND' },
           signal: 'ground',
           color: '#20242a',
-          education: { label: 'GND', title: 'LED cathode return', what: 'This wire returns current to Arduino GND.', why: 'Current needs a closed loop.', missing: 'If missing, the LED cannot light.' }
+          education: { label: 'GND', title: 'LED 캐소드 GND 복귀', what: '이 선은 전류를 Arduino GND로 돌려보냅니다.', why: '전류는 닫힌 경로가 있어야 흐를 수 있습니다.', missing: '이 선이 빠지면 LED가 켜지지 않습니다.' }
         }
       ],
       floatingCards: [],
@@ -1173,6 +1173,8 @@ test('language toggle preserves a built circuit artifact without mojibake', asyn
   await expect(page.locator('[data-action="run"]')).toBeEnabled();
   await expect(page.getByTestId('stage-canvas')).toBeVisible();
   await expect(page.getByTestId('inspector-selected')).toContainText('왜 필요한가');
+  await expect(page.getByTestId('inspector-selected')).not.toContainText(/This wire|If missing|Current needs|Arduino output to resistor/i);
+  await expect(page.getByTestId('connection-list')).not.toContainText(/This wire|Arduino output to resistor/i);
   const bodyText = await page.locator('body').innerText();
   expect(bodyText).not.toMatch(/�|쨌/);
 

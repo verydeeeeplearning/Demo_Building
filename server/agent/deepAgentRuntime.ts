@@ -1236,7 +1236,7 @@ async function finalizeAgentResult({
     : applyContextCoverageGate(intentFulfillmentReport, contextPacket.contextCoverage);
   const netlist = await buildNetlist(circuitSpec);
   const currentPaths = await estimateCurrentPaths(circuitSpec, netlist, effectiveValidationReport);
-  const renderPlan = await compileRenderPlan(circuitSpec, effectiveValidationReport);
+  const renderPlan = await compileRenderPlan(circuitSpec, effectiveValidationReport, { locale: request.locale ?? 'ko' });
   const simulationPlan = await compileSimulationPlan(circuitSpec, effectiveValidationReport, currentPaths, renderPlan);
   const runnableReport = buildRunnableReport(effectiveValidationReport, renderPlan, simulationPlan);
   const solverGateResult = buildSolverGateResult(

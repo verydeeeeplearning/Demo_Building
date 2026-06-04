@@ -67,6 +67,11 @@ type RenderWarning = {
   message: string;
 };
 
+type RenderPlanLocale = 'ko' | 'en';
+type CompileRenderPlanOptions = {
+  locale?: RenderPlanLocale;
+};
+
 const SIMULATION_BLOCKING_RENDER_WARNING_CODES = new Set([
   'MISSING_RENDER_FOOTPRINT',
   'RENDER_CONNECTION_ENDPOINT_MISSING',
@@ -626,7 +631,12 @@ export async function detectFaults(spec: CircuitSpec, netlist: Netlist): Promise
   return report;
 }
 
-export async function compileRenderPlan(spec: CircuitSpec, validationReport: ValidationReport): Promise<RenderPlan> {
+export async function compileRenderPlan(
+  spec: CircuitSpec,
+  validationReport: ValidationReport,
+  options: CompileRenderPlanOptions = {}
+): Promise<RenderPlan> {
+  const locale = normalizeRenderPlanLocale(options.locale);
   if (validationReport.status === 'unsupported' && isClarificationOnlySpec(spec)) {
     return RenderPlanSchema.parse({
       title: spec.title,
@@ -703,13 +713,14 @@ export async function compileRenderPlan(spec: CircuitSpec, validationReport: Val
   }];
   renderWarnings.push(...placementWarnings);
 
+  const componentLabels = new Map(renderParts.map((part) => [part.id, part.label]));
   const baseRenderConnections = spec.connections.map((connection) => ({
     id: connection.id,
     from: toRenderEndpoint(connection.from),
     to: toRenderEndpoint(connection.to),
     signal: connection.signal,
     color: connection.color ?? SIGNAL_COLORS[connection.signal] ?? '#2f7df6',
-    education: connection.education ?? explainConnection(connection)
+    education: normalizeConnectionEducation(connection, componentLabels, locale)
   }));
   const endpointLayout = compileEndpointLayout(renderParts, footprints);
   const renderConnections = baseRenderConnections.map((connection, index) => ({
@@ -8601,8 +8612,138 @@ function nearestGridValue(value: number, start: number, end: number, pitch: numb
   return Number((start + steps * pitch).toFixed(6));
 }
 
-function explainConnection(connection: CircuitSpec['connections'][number]) {
-  const label = connection.signal.toUpperCase().replaceAll('-', ' ');
+type ConnectionEducation = NonNullable<CircuitSpec['connections'][number]['education']>;
+
+const KOREAN_SIGNAL_LABELS: Record<string, string> = {
+  'button-input': '버튼 입력',
+  'ground-reference': 'GND 기준',
+  'buzzer-drive': '부저 출력',
+  'common-ground': '공통 GND',
+  'i2c-data': 'I2C 데이터(SDA)',
+  'i2c-clock': 'I2C 클록(SCL)',
+  power: '전원',
+  ground: 'GND',
+  gpio: '디지털 신호',
+  digital: '디지털 신호',
+  pwm: 'PWM 출력',
+  analog: '아날로그 신호',
+  pulse: '펄스 신호',
+  data: '데이터 신호',
+  clock: '클록 신호',
+  uart: 'UART 신호',
+  spi: 'SPI 신호',
+  'spi-data': 'SPI 데이터',
+  'spi-clock': 'SPI 클록',
+  'single-wire-data': '단일 데이터선',
+  'clocked-data': '클록 데이터',
+  'chip-select': '칩 선택'
+};
+
+const KOREAN_SIGNAL_TERMS: Record<string, string> = {
+  button: '버튼',
+  input: '입력',
+  ground: 'GND',
+  reference: '기준',
+  buzzer: '부저',
+  drive: '출력',
+  common: '공통',
+  power: '전원',
+  gpio: '디지털 신호',
+  digital: '디지털',
+  pwm: 'PWM',
+  analog: '아날로그',
+  pulse: '펄스',
+  data: '데이터',
+  clock: '클록',
+  uart: 'UART',
+  spi: 'SPI',
+  i2c: 'I2C',
+  chip: '칩',
+  select: '선택',
+  single: '단일',
+  wire: '선',
+  clocked: '클록'
+};
+
+const KOREAN_SIGNAL_EXPLANATIONS: Record<string, { why: string; missing: string }> = {
+  'button-input': {
+    why: 'Arduino가 버튼을 눌렀는지 읽으려면 이 입력 경로가 필요합니다.',
+    missing: '이 선이 빠지면 버튼을 눌러도 입력 상태가 Arduino에 전달되지 않습니다.'
+  },
+  'ground-reference': {
+    why: '버튼 입력은 기준 GND가 있어야 HIGH/LOW 상태를 안정적으로 구분할 수 있습니다.',
+    missing: '이 선이 빠지면 입력이 떠서 버튼 동작이 불안정하거나 읽히지 않을 수 있습니다.'
+  },
+  'buzzer-drive': {
+    why: 'Arduino 출력 핀이 부저 + 단자에 신호를 보내야 소리를 낼 수 있습니다.',
+    missing: '이 선이 빠지면 부저에 출력 신호가 가지 않아 소리가 나지 않습니다.'
+  },
+  'common-ground': {
+    why: '전류가 다시 GND로 돌아오는 길이 있어야 회로가 닫히고 동작을 믿을 수 있습니다.',
+    missing: '이 선이 빠지면 전류가 돌아올 경로가 끊겨 부품이 켜지지 않거나 시뮬레이션 동작을 검증할 수 없습니다.'
+  },
+  'i2c-data': {
+    why: 'SDA 데이터선이 있어야 Arduino가 I2C 장치에 표시할 내용을 보낼 수 있습니다.',
+    missing: '이 선이 빠지면 I2C 장치가 데이터를 받지 못해 화면이나 센서 읽기가 갱신되지 않습니다.'
+  },
+  'i2c-clock': {
+    why: 'SCL 클록선이 있어야 Arduino와 I2C 장치가 데이터를 읽는 박자를 맞출 수 있습니다.',
+    missing: '이 선이 빠지면 I2C 통신 박자가 맞지 않아 장치가 안정적으로 동작하지 않습니다.'
+  },
+  power: {
+    why: '부품이 켜지고 동작하려면 낮은 전압의 전원 경로가 필요합니다.',
+    missing: '이 선이 빠지면 해당 부품에 전원이 들어가지 않아 동작을 확인할 수 없습니다.'
+  },
+  ground: {
+    why: '전류가 다시 GND로 돌아오는 길이 있어야 닫힌 회로가 됩니다.',
+    missing: '이 선이 빠지면 전류가 돌아올 경로가 끊겨 부품 동작을 믿을 수 없습니다.'
+  },
+  gpio: {
+    why: 'Arduino 핀의 HIGH/LOW 신호가 부품으로 전달되어야 수업용 동작을 만들 수 있습니다.',
+    missing: '이 선이 빠지면 Arduino 신호가 부품에 전달되지 않아 의도한 동작이 일어나지 않습니다.'
+  },
+  pwm: {
+    why: 'PWM 신호가 전달되어야 밝기, 소리, 움직임처럼 시간에 따른 출력을 조절할 수 있습니다.',
+    missing: '이 선이 빠지면 PWM 제어 신호가 전달되지 않아 출력 변화를 확인할 수 없습니다.'
+  }
+};
+
+function normalizeConnectionEducation(
+  connection: CircuitSpec['connections'][number],
+  componentLabels: Map<string, string>,
+  locale: RenderPlanLocale
+): ConnectionEducation {
+  const fallback = explainConnection(connection, { locale, componentLabels });
+  if (locale === 'en') {
+    return connection.education ?? fallback;
+  }
+  if (connection.education && educationHasKoreanText(connection.education)) {
+    return connection.education;
+  }
+  return fallback;
+}
+
+function explainConnection(
+  connection: CircuitSpec['connections'][number],
+  options: { locale?: RenderPlanLocale; componentLabels?: Map<string, string> } = {}
+): ConnectionEducation {
+  const locale = normalizeRenderPlanLocale(options.locale);
+  if (locale === 'ko') {
+    const label = connectionSignalLabel(connection.signal, 'ko');
+    const explanation = KOREAN_SIGNAL_EXPLANATIONS[connection.signal] ?? {
+      why: `${label} 경로가 회로 목적에 맞게 연결되어야 수업용 동작을 검증할 수 있습니다.`,
+      missing: '이 연결이 빠지면 회로 경로가 끊겨 의도한 동작이나 시뮬레이션 결과를 믿기 어렵습니다.'
+    };
+    return {
+      label,
+      title: `이 ${label} 연결이 중요합니다`,
+      what: `${formatConnectionEndpoint(connection.from, options.componentLabels)}에서 ${formatConnectionEndpoint(connection.to, options.componentLabels)}로 이어지는 ${label} 연결입니다.`,
+      why: explanation.why,
+      missing: explanation.missing
+    };
+  }
+
+  const label = connectionSignalLabel(connection.signal, 'en');
   return {
     label,
     title: `This ${connection.signal} connection matters`,
@@ -8610,6 +8751,34 @@ function explainConnection(connection: CircuitSpec['connections'][number]) {
     why: 'The validated circuit needs this path for the lesson behavior.',
     missing: 'If this wire is missing, the simulated behavior may not work.'
   };
+}
+
+function normalizeRenderPlanLocale(locale: RenderPlanLocale | undefined): RenderPlanLocale {
+  return locale === 'en' ? 'en' : 'ko';
+}
+
+function connectionSignalLabel(signal: string, locale: RenderPlanLocale) {
+  if (locale === 'en') {
+    return signal.toUpperCase().replaceAll('-', ' ');
+  }
+  return KOREAN_SIGNAL_LABELS[signal] ?? signal
+    .split('-')
+    .map((term) => KOREAN_SIGNAL_TERMS[term] ?? term.toUpperCase())
+    .join(' ');
+}
+
+function formatConnectionEndpoint(
+  endpoint: CircuitSpec['connections'][number]['from'],
+  componentLabels: Map<string, string> | undefined
+) {
+  const componentLabel = componentLabels?.get(endpoint.componentId) ?? endpoint.componentId;
+  return `${componentLabel} ${endpoint.pin}`;
+}
+
+function educationHasKoreanText(education: ConnectionEducation) {
+  return [education.title, education.what, education.why, education.missing].some((value) =>
+    /[가-힣]/.test(value)
+  );
 }
 
 function explainPin(role: string) {
