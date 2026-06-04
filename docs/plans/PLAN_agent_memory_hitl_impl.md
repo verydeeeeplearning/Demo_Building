@@ -1,6 +1,7 @@
 # Implementation Plan: Agent Memory (checkpointer) + HITL Clarification (interrupt)
 
-**Status**: Ready to build
+**Status**: Phases 1, 2a–2d, 3 COMPLETE (commits 1da1bfb, bbad5a8, 64a1136, ec6bcf5, db9be3d, c38c0b9, 7dc2d8f).
+Interactive narrowing works end to end (interrupt-based HITL + forceCapabilityId re-grounding + client chips/resume + session persistence). Remaining: US-6 (10-query local e2e -> .docx report).
 **Design doc**: `docs/plans/PLAN_session_and_interactive_clarification.md` (the why). This doc is the **how**.
 **Rule**: framework-native only; re-verify each API against the docs while coding (`CLAUDE.md`).
 
