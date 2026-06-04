@@ -59,7 +59,7 @@ function imageSection(id) {
   if (existsSync(png)) {
     out.push(new Paragraph({
       alignment: AlignmentType.CENTER,
-      children: [new ImageRun({ data: readFileSync(png), transformation: { width: 560, height: 360 } })]
+      children: [new ImageRun({ type: 'png', data: readFileSync(png), transformation: { width: 560, height: 360 } })]
     }));
   } else {
     out.push(body('(no simulation image — this turn did not build a runnable circuit)', { italics: true }));
