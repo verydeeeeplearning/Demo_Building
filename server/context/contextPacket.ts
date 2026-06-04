@@ -41,6 +41,11 @@ import {
   buildSupportBundleEvidence,
   bundleEvidenceBlocksSynthesis
 } from './supportBundleEvidence.ts';
+import {
+  buildKnownHardwareTerms,
+  detectUnresolvedHardwareMentions,
+  type UnresolvedHardwareMention
+} from './unresolvedHardwareMentions.ts';
 // Type-only import: the pipeline-mode flag is resolved by the caller and passed via deps, so the
 // context layer keeps no runtime dependency on the agent layer.
 import type { AgentPipelineMode } from '../agent/agentPipelineMode.ts';
@@ -1445,13 +1450,43 @@ export async function buildContextPacket(
     shouldLoadSimulationPrimitives ? loadSimulationPrimitives() : Promise.resolve([] as SimulationPrimitive[]),
     shouldLoadRenderFootprints ? loadRenderFootprints() : Promise.resolve({} as Record<string, RenderFootprintEntry>)
   ]);
+  const unresolvedHardwareMentions = unsupportedSignals.length > 0
+    ? []
+    : detectUnresolvedHardwareMentions(
+      contextualMessage,
+      buildKnownHardwareTerms(registry)
+    );
+  const unresolvedHardwareSupportGaps = unresolvedHardwareMentions.map((mention) =>
+    `Unknown explicit hardware "${mention.phrase}" is not present in the verified H-eduware hardware registry. Ask for a supported substitute or verified hardware data before synthesis.`
+  );
+  const unresolvedHardwareAmbiguity = unresolvedHardwareMentions.map((mention) =>
+    `Unknown explicit hardware requires clarification: ${mention.phrase}.`
+  );
+  const fallbackRouteSupportGaps = routeRequiresCompleteBundleOrComposition(contextRouteV2.routeId)
+    && selectedBundles.length === 0
+    ? ['General supported-hardware fallback cannot authorize validated synthesis without a complete v2 bundle or composition proof.']
+    : [];
+  const resolvedSupportGaps = unique([
+    ...supportGaps,
+    ...fallbackRouteSupportGaps,
+    ...unresolvedHardwareSupportGaps
+  ]);
+  const resolvedIntentHints = unresolvedHardwareAmbiguity.length > 0
+    ? {
+      ...intentHints,
+      ambiguity: unique([
+        ...intentHints.ambiguity,
+        ...unresolvedHardwareAmbiguity
+      ])
+    }
+    : intentHints;
   const intentSpec = extractIntentSignals({
     message,
     locale,
-    intentHints,
+    intentHints: resolvedIntentHints,
     capabilityMatches,
     unsupportedSignals,
-    supportGaps
+    supportGaps: resolvedSupportGaps
   });
   const selectedBundlePartIds = selectedBundles.length > 0
     ? new Set(selectedBundles.flatMap((bundle) =>
@@ -1467,7 +1502,7 @@ export async function buildContextPacket(
   // for. legacy mode keeps the exact current filter.
   const baseCandidateIds = new Set(['arduino-uno', 'breadboard-half']);
   const selectedRouteIsCompositional = contextRouteV2.tier === 'compositional-context';
-  const rawCandidateParts = selectCandidateParts(registry, searchedParts, intentHints, unsupportedSignals, capabilityMatches, explicitPartIds)
+  const rawCandidateParts = selectCandidateParts(registry, searchedParts, resolvedIntentHints, unsupportedSignals, capabilityMatches, explicitPartIds)
     .filter((part) => {
       if (!selectedBundlePartIds) return true;
       if (pipelineMode === 'legacy') return selectedBundlePartIds.has(part.id);
@@ -1476,6 +1511,9 @@ export async function buildContextPacket(
       return selectedBundlePartIds.has(part.id);
     });
   const explicitBundlePartIds = explicitOptionalPartIdsForV2(selectedBundles, explicitPartIds);
+  let candidateSourceMode: 'selected-bundle' | 'registry-search' | 'composition' = selectedBundles.length > 0
+    ? 'selected-bundle'
+    : 'registry-search';
   let candidateParts = selectedBundles.length > 0
     ? compactCandidatePartsForV2(rawCandidateParts, selectedBundles, explicitBundlePartIds)
     : rawCandidateParts;
@@ -1487,8 +1525,10 @@ export async function buildContextPacket(
     const composed = await selectContextByComposition({ message: contextualMessage }, { registrySource });
     if (composed.candidateParts.length > 0) {
       candidateParts = composed.candidateParts;
+      candidateSourceMode = 'composition';
     }
   }
+  candidateParts = filterCandidatePartsForUnresolvedHardware(candidateParts, unresolvedHardwareMentions);
   const simulationPrimitives = selectedBundles.length > 0
     ? selectSimulationPrimitivesById(allSimulationPrimitives, selectedBundles.flatMap((bundle) => bundle.manifest.simulationPrimitives))
     : selectSimulationPrimitives(allSimulationPrimitives, capabilityMatches, candidateParts);
@@ -1507,7 +1547,7 @@ export async function buildContextPacket(
     renderFootprints,
     requiredContextIds,
     unsupportedSignals,
-    supportGaps,
+    supportGaps: resolvedSupportGaps,
     visualLibraryMentions,
     indexVersion: index.version,
     contextRoute,
@@ -1523,9 +1563,9 @@ export async function buildContextPacket(
     candidateParts,
     renderFootprints,
     unsupportedSignals,
-    supportGaps,
+    supportGaps: resolvedSupportGaps,
     supportBundles,
-    ambiguity: intentHints.ambiguity,
+    ambiguity: resolvedIntentHints.ambiguity,
     requiredSourceTypes: sourceTypesForPlan(retrievalPlan, index),
     retrievalWarnings: retrievalPlan.warnings
   });
@@ -1533,14 +1573,14 @@ export async function buildContextPacket(
     locale,
     message,
     intentSpec,
-    intentHints,
+    intentHints: resolvedIntentHints,
     capabilityMatches,
     candidateParts,
     simulationPrimitives,
     renderFootprints,
     requiredContextIds,
     unsupportedSignals,
-    supportGaps,
+    supportGaps: resolvedSupportGaps,
     visualLibraryMentions,
     selectedBundles,
     supportBundles,
@@ -1555,21 +1595,137 @@ export async function buildContextPacket(
     locale,
     studentMessage: message,
     intentSpec,
-    intentHints,
+    intentHints: resolvedIntentHints,
     capabilityMatches,
     candidateParts,
     simulationPrimitives,
     renderFootprints,
     requiredContextIds,
     unsupportedSignals,
-    supportGaps,
+    supportGaps: resolvedSupportGaps,
     supportBundles,
     contextRoute,
     retrievalPlan,
     contextTrace,
     contextCoverage,
+    metadata: buildContextPacketMetadata({
+      pipelineMode,
+      selectedBundles,
+      candidateParts,
+      candidateSourceMode,
+      explicitPartIds,
+      baseCandidateIds,
+      unresolvedHardwareMentions,
+      fallbackRouteSupportGaps,
+      contextRoute,
+      supportBundles
+    }),
     promptBlock
   });
+}
+
+function buildContextPacketMetadata({
+  pipelineMode,
+  selectedBundles,
+  candidateParts,
+  candidateSourceMode,
+  explicitPartIds,
+  baseCandidateIds,
+  unresolvedHardwareMentions,
+  fallbackRouteSupportGaps,
+  contextRoute,
+  supportBundles
+}: {
+  pipelineMode: AgentPipelineMode;
+  selectedBundles: ContextBundleV2[];
+  candidateParts: PartCapability[];
+  candidateSourceMode: 'selected-bundle' | 'registry-search' | 'composition';
+  explicitPartIds: Set<string>;
+  baseCandidateIds: Set<string>;
+  unresolvedHardwareMentions: UnresolvedHardwareMention[];
+  fallbackRouteSupportGaps: string[];
+  contextRoute: ContextRoute;
+  supportBundles: SupportBundleEvidence[];
+}) {
+  const selectedBundleIds = selectedBundles.map((bundle) => bundle.manifest.bundleId);
+
+  return {
+    pipelineMode,
+    selectedBundleIds,
+    candidateProvenance: candidateParts.map((part) => ({
+      partId: part.id,
+      source: candidateProvenanceSource({
+        partId: part.id,
+        candidateSourceMode,
+        explicitPartIds,
+        baseCandidateIds,
+        selectedBundles
+      }),
+      bundleIds: selectedBundleIdsForPart(part.id, selectedBundles),
+      explicit: explicitPartIds.has(part.id)
+    })),
+    unknownHardwareMentions: unresolvedHardwareMentions.map((mention) => ({
+      phrase: mention.phrase,
+      normalized: mention.token.toLowerCase(),
+      reason: `Unknown ${mention.noun} is not present in the verified hardware registry.`
+    })),
+    fallbackRoute: fallbackRouteSupportGaps.length > 0
+      ? {
+        routeId: contextRoute.routeId,
+        reason: fallbackRouteSupportGaps[0]
+      }
+      : null,
+    supportBundleStatus: Object.fromEntries(
+      supportBundles.map((bundle) => [
+        bundle.capabilityId,
+        {
+          bundleId: bundle.bundleId,
+          supportLevel: bundle.supportLevel,
+          status: bundle.status,
+          missingArtifacts: bundle.missingArtifacts
+        }
+      ])
+    )
+  };
+}
+
+function candidateProvenanceSource({
+  partId,
+  candidateSourceMode,
+  explicitPartIds,
+  baseCandidateIds,
+  selectedBundles
+}: {
+  partId: string;
+  candidateSourceMode: 'selected-bundle' | 'registry-search' | 'composition';
+  explicitPartIds: Set<string>;
+  baseCandidateIds: Set<string>;
+  selectedBundles: ContextBundleV2[];
+}): 'selected-bundle' | 'composition' | 'registry-search' | 'base' | 'explicit-request' {
+  if (explicitPartIds.has(partId)) {
+    return 'explicit-request';
+  }
+  if (baseCandidateIds.has(partId)) {
+    return 'base';
+  }
+  if (candidateSourceMode === 'composition') {
+    return 'composition';
+  }
+  if (selectedBundleIdsForPart(partId, selectedBundles).length > 0) {
+    return 'selected-bundle';
+  }
+  return 'registry-search';
+}
+
+function selectedBundleIdsForPart(partId: string, selectedBundles: ContextBundleV2[]) {
+  return selectedBundles
+    .filter((bundle) => {
+      const partIds = bundle.manifest.allowedParts.length > 0
+        ? bundle.manifest.allowedParts
+        : bundle.manifest.requiredParts;
+      return partIds.includes(partId);
+    })
+    .map((bundle) => bundle.manifest.bundleId);
 }
 
 function buildContextualRoutingMessage(input: BuildContextPacketInput) {
@@ -1823,6 +1979,10 @@ function capabilityIdsMatch(
   }
 
   return requiredCapabilityIds.some((capabilityId) => matchedCapabilityIds.has(capabilityId));
+}
+
+function routeRequiresCompleteBundleOrComposition(routeId: string) {
+  return routeId === 'supported-hardware-general';
 }
 
 function buildContextRouteV2({
@@ -2304,6 +2464,56 @@ function selectCandidateParts(
   return [...candidateIds]
     .map((id) => byId.get(id))
     .filter((part): part is PartCapability => Boolean(part));
+}
+
+function filterCandidatePartsForUnresolvedHardware(
+  parts: PartCapability[],
+  unresolvedHardwareMentions: UnresolvedHardwareMention[]
+) {
+  if (unresolvedHardwareMentions.length === 0) {
+    return parts;
+  }
+
+  return parts.filter((part) =>
+    !unresolvedHardwareMentions.some((mention) => unresolvedMentionMatchesPart(mention, part))
+  );
+}
+
+function unresolvedMentionMatchesPart(mention: UnresolvedHardwareMention, part: PartCapability) {
+  const searchable = [
+    part.id,
+    part.label,
+    part.kind,
+    part.family,
+    ...part.aliases,
+    ...part.capabilities
+  ].join(' ').toLowerCase();
+
+  if (mention.noun === 'sensor') {
+    return part.kind === 'input' && /sensor|input|rfid|adc|encoder|keypad|switch|button/.test(searchable);
+  }
+
+  if (mention.noun === 'driver') {
+    return /driver|mosfet|h-?bridge|motor-control|switched-load|step-dir/.test(searchable);
+  }
+
+  if (mention.noun === 'display') {
+    return part.kind === 'output' && /display|oled|lcd|tft|segment|matrix|neopixel|led-array/.test(searchable);
+  }
+
+  if (mention.noun === 'shield') {
+    return /shield/.test(searchable);
+  }
+
+  if (mention.noun === 'module') {
+    return /module/.test(searchable);
+  }
+
+  if (mention.noun === 'board') {
+    return /board|controller/.test(searchable);
+  }
+
+  return false;
 }
 
 function compactCandidatePartsForV2(

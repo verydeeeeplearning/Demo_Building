@@ -28,6 +28,19 @@ test('context packet grounds an OLED display request with v2 bundle metadata and
   assert.doesNotMatch(packet.promptBlock, /"pinAnchors"\s*:/);
 });
 
+test('context packet prioritizes explicit NeoPixel ring requests over generic LED routing', async () => {
+  const packet = await buildContextPacket({
+    message: 'Arduino Uno로 NeoPixel 12 LED 링에 빨강 초록 파랑 패턴을 표시하는 회로를 만들어줘.',
+    locale: 'ko'
+  });
+
+  assert.equal(packet.contextRoute.routeId, 'v2-addressable-led-display-output');
+  assert.ok(packet.capabilityMatches.some((capability) => capability.id === 'addressable-led-display-output'));
+  assert.ok(packet.candidateParts.some((part) => part.id === 'neopixel-ring-12'));
+  assert.equal(packet.contextCoverage.synthesisEligibility.status, 'eligible');
+  assert.equal(packet.supportGaps.length, 0);
+});
+
 test('context packet includes verified support data for supported capabilities', async () => {
   const packet = await buildContextPacket({
     message: 'LED를 깜빡이는 회로를 만들고 싶어',

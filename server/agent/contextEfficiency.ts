@@ -130,7 +130,12 @@ export async function measureContextEfficiency(
   );
   const elapsedNs = Number(process.hrtime.bigint() - startedAt);
 
-  const tools = createHeduwareAgentTools({});
+  const tools = createHeduwareAgentTools({
+    contextCoverage: packet.contextCoverage,
+    candidateParts: packet.candidateParts,
+    allowedContextSourceIds: packet.retrievalPlan.sourceIds,
+    supportBundles: packet.supportBundles
+  });
   const createDeepAgentCount = await countDeepAgentConstructionSites();
 
   return {

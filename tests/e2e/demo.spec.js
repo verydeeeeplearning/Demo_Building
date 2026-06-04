@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { PNG } from 'pngjs';
+import { loadMockOledProject } from './mockOledProject.js';
 
 function countNonBackgroundPixels(buffer) {
   const image = PNG.sync.read(buffer);
@@ -98,14 +99,14 @@ test('student can complete the H-eduware demo path through the live agent bounda
   await expect(page.getByTestId('stage-canvas')).toHaveCount(0);
   await expect(page.locator('[data-action="run"]')).toBeDisabled();
 
-  await page.locator('[data-action="load-demo"]').first().click();
+  await loadMockOledProject(page);
   await expect(page.getByTestId('requirement-markdown')).toBeVisible();
   await expect(page.getByTestId('requirement-markdown')).toContainText('Arduino');
   await expect(page.getByTestId('requirement-markdown')).toContainText('I2C OLED');
   await expect(page.getByTestId('ai-panel')).toContainText(/OLED|행사 이름|event name/);
   await expect(page.getByTestId('ai-panel')).not.toContainText('Arduino Uno D8로 LED');
   await expect(page.getByTestId('file-explorer')).toBeVisible();
-  await expect(page.getByTestId('file-explorer')).toContainText('requirements/demo-oled.md');
+  await expect(page.getByTestId('file-explorer')).toContainText('requirements/oled-name-display.md');
 
   await page.locator('#idea-input').fill('show some text on a little screen');
   await page.locator('[data-action="send-idea"]').getByRole('button').click();
@@ -121,7 +122,7 @@ test('student can complete the H-eduware demo path through the live agent bounda
     expect(assistantText).toMatch(/OPENAI_API_KEY|server|서버|Deepagents/i);
   }
 
-  await page.locator('[data-action="load-demo"]').first().click();
+  await loadMockOledProject(page);
   await page.locator('[data-tab="Files"]').click();
   await expect(page.getByTestId('requirement-markdown')).toContainText('Arduino');
   await expect(page.getByTestId('file-explorer')).toBeVisible();
@@ -129,7 +130,7 @@ test('student can complete the H-eduware demo path through the live agent bounda
   await page.locator('[data-tab="PCB"]').click();
   await expect(page.getByTestId('part-library')).toBeVisible();
   await expect(page.getByTestId('file-explorer')).toHaveCount(0);
-  await expect(page.locator('[data-testid="part-thumbnail"][data-thumbnail-renderer="canvas-isometric"]')).toHaveCount(5);
+  await expect(page.locator('[data-testid="part-thumbnail"][data-thumbnail-renderer="canvas-isometric"]')).toHaveCount(3);
 
   const stageCanvas = page.getByTestId('stage-canvas');
   await expect(stageCanvas).toBeVisible();

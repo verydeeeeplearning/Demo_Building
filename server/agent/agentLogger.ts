@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { appendFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
@@ -6,8 +6,11 @@ import type {
   AgentConversationContext,
   AgentMessageRequest,
   AgentRunResult,
-  ContextPacket
+  ContextPacket,
+  TutorMessageRequest,
+  TutorMessageResponse
 } from './schemas.ts';
+import { redactSensitiveLogText } from './logRedaction.ts';
 
 type AgentLogLevel = 'silent' | 'info' | 'debug';
 
@@ -21,12 +24,19 @@ type AgentLogEvent =
   | 'requirement.analysis.recovered'
   | 'requirement.doc.authored'
   | 'requirement.doc.authoring.failed'
+  | 'agent.llm.handoff'
+  | 'agent.llm.completed'
+  | 'agent.structured_output.parsed'
   | 'agent.synthesis.attempt'
   | 'agent.synthesis.structured_output_missing'
   | 'agent.tool.call'
+  | 'agent.simulation.compiled'
   | 'agent.validation.completed'
   | 'agent.response.sent'
-  | 'agent.request.failed';
+  | 'agent.request.failed'
+  | 'tutor.request.received'
+  | 'tutor.response.sent'
+  | 'tutor.request.failed';
 
 type AgentLogPayload = Record<string, unknown>;
 
@@ -78,24 +88,37 @@ export function requestLogSummary(request: AgentMessageRequest) {
 }
 
 export function contextPacketLogSummary(contextPacket: ContextPacket) {
+  const metadata = contextPacket.metadata;
   return {
+    pipelineMode: metadata.pipelineMode,
     contextRouteId: contextPacket.contextRoute.routeId,
     capabilityIds: contextPacket.capabilityMatches.map((capability) => capability.id),
     supportLevels: Object.fromEntries(
       contextPacket.capabilityMatches.map((capability) => [capability.id, capability.supportLevel])
     ),
+    selectedBundleIds: metadata.selectedBundleIds,
     candidatePartIds: contextPacket.candidateParts.map((part) => part.id),
-    supportGaps: contextPacket.supportGaps,
-    unsupportedSignals: contextPacket.unsupportedSignals,
+    candidateProvenance: metadata.candidateProvenance,
+    unknownHardwareMentions: metadata.unknownHardwareMentions.map((mention) => redactSensitiveLogText(mention.phrase) ?? ''),
+    fallbackRoute: metadata.fallbackRoute
+      ? {
+        ...metadata.fallbackRoute,
+        reason: redactSensitiveLogText(metadata.fallbackRoute.reason) ?? ''
+      }
+      : null,
+    supportBundleStatus: metadata.supportBundleStatus,
+    supportGaps: contextPacket.supportGaps.map((gap) => redactSensitiveLogText(gap) ?? ''),
+    unsupportedSignals: contextPacket.unsupportedSignals.map((signal) => redactSensitiveLogText(signal) ?? ''),
     synthesisEligibility: contextPacket.contextCoverage.synthesisEligibility.status,
-    synthesisEligibilityReason: contextPacket.contextCoverage.synthesisEligibility.reason,
+    synthesisEligibilityReason: redactSensitiveLogText(contextPacket.contextCoverage.synthesisEligibility.reason) ?? '',
     sufficientFor: contextPacket.contextCoverage.sufficientFor,
-    contextWarnings: contextPacket.contextCoverage.warnings
+    contextWarnings: contextPacket.contextCoverage.warnings.map((warning) => redactSensitiveLogText(warning) ?? '')
   };
 }
 
 export function resultLogSummary(result: AgentRunResult) {
   return {
+    servingStatus: result.servingStatus ?? null,
     validationStatus: result.validationReport.status,
     buildRunnableStatus: result.buildRunnableReport.status,
     simulationStatus: result.simulationPlan.status,
@@ -107,6 +130,55 @@ export function resultLogSummary(result: AgentRunResult) {
     firstSupportedAlternativeGoalPreview: preview(result.supportedAlternatives[0]?.goal),
     clarificationPreview: preview(result.clarification ?? undefined),
     assistantPreview: preview(result.assistantMessages[0])
+  };
+}
+
+export function tutorRequestLogSummary(request: TutorMessageRequest) {
+  const artifacts = request.artifacts;
+  return {
+    sessionId: request.sessionId ?? null,
+    locale: request.locale ?? 'ko',
+    running: request.running,
+    questionPreview: preview(request.question),
+    targetId: request.target.id,
+    targetType: request.target.type,
+    targetPartId: request.target.partId ?? null,
+    targetConnectionId: request.target.connectionId ?? null,
+    targetSignal: request.target.signal ?? null,
+    targetLabelPreview: preview(request.target.label),
+    circuitTitlePreview: preview(request.circuitTitle),
+    validationStatus: artifacts.validationReport.status,
+    simulationStatus: artifacts.simulationPlan.status,
+    buildRunnableStatus: artifacts.buildRunnableReport?.status ?? null,
+    solverGateMode: artifacts.solverGateResult?.mode ?? null,
+    solverGateBuildReady: artifacts.solverGateResult?.buildReady ?? null,
+    synthesisEligibility: artifacts.contextCoverage?.synthesisEligibility.status ?? null,
+    contextSourceIds: artifacts.contextTrace.map((entry) => entry.sourceId),
+    contextSourceTypes: artifacts.contextTrace.map((entry) => entry.sourceType),
+    componentCount: artifacts.circuitSpec.components.length,
+    currentPathCount: artifacts.simulationPlan.currentPaths.length
+  };
+}
+
+export function tutorResultLogSummary(result: TutorMessageResponse) {
+  return {
+    sessionId: result.sessionId,
+    mode: result.mode,
+    servingStatus: result.servingStatus ?? null,
+    fallbackReasonPreview: preview(redactSensitiveLogText(result.fallbackReason)),
+    structuredOutputStatus: tutorStructuredOutputStatus(result),
+    groundingCount: result.grounding.length,
+    groundingPreview: result.grounding.slice(0, 8),
+    suggestedQuestionCount: result.suggestedQuestions.length,
+    messageChars: result.message.length,
+    messageHash: stableHash(result.message)
+  };
+}
+
+export function errorLogSummary(error: unknown) {
+  return {
+    errorName: error instanceof Error ? error.name : 'UnknownError',
+    errorMessage: redactSensitiveLogText(error instanceof Error ? error.message : 'Unknown server error')
   };
 }
 
@@ -123,6 +195,81 @@ export function langSmithMetadata({
     traceId,
     ...requestLogSummary(request),
     ...contextPacketLogSummary(contextPacket)
+  };
+}
+
+export function llmHandoffLogSummary({
+  stage,
+  agentName,
+  runName,
+  threadId,
+  inputKind,
+  systemPrompt,
+  userPrompt,
+  contextPacket,
+  attempt,
+  previousErrors = [],
+  requirementRoute,
+  toolNames = [],
+  subagentNames = []
+}: {
+  stage: string;
+  agentName: string;
+  runName: string;
+  threadId: string;
+  inputKind: 'messages' | 'command-resume';
+  systemPrompt: string;
+  userPrompt: string;
+  contextPacket: ContextPacket;
+  attempt?: number;
+  previousErrors?: string[];
+  requirementRoute?: string;
+  toolNames?: string[];
+  subagentNames?: string[];
+}) {
+  const promptChars = [systemPrompt, userPrompt].join('\n\n').length;
+  return {
+    stage,
+    agentName,
+    runName,
+    threadId,
+    inputKind,
+    attempt: attempt ?? null,
+    requirementRoute: requirementRoute ?? null,
+    contextRouteId: contextPacket.contextRoute.routeId,
+    capabilityIds: contextPacket.capabilityMatches.map((capability) => capability.id),
+    candidatePartIds: contextPacket.candidateParts.map((part) => part.id),
+    toolNames,
+    subagentNames,
+    previousErrorCount: previousErrors.length,
+    previousErrors: previousErrors.slice(0, 8).map((error) => preview(error, 120)),
+    prompt: {
+      systemChars: systemPrompt.length,
+      userChars: userPrompt.length,
+      totalChars: promptChars,
+      contextBlockChars: contextPacket.promptBlock.length,
+      maxChars: contextPacket.retrievalPlan.maxPromptChars,
+      remainingChars: contextPacket.retrievalPlan.maxPromptChars - promptChars,
+      systemHash: stableHash(systemPrompt),
+      userHash: stableHash(userPrompt)
+    }
+  };
+}
+
+export function llmOutputLogSummary(output: unknown) {
+  const record = output && typeof output === 'object' ? output as Record<string, unknown> : {};
+  const structured = record.structuredResponse ?? record.structured_response;
+  const messages = Array.isArray(record.messages) ? record.messages : [];
+  const assistantText = latestAssistantText(messages);
+  return {
+    hasStructuredResponse: structured !== undefined && structured !== null,
+    structuredResponseKeys: structured && typeof structured === 'object'
+      ? Object.keys(structured as Record<string, unknown>).sort()
+      : [],
+    messageCount: messages.length,
+    toolCallNames: uniqueToolCallNames(messages),
+    assistantTextChars: assistantText?.length ?? 0,
+    assistantTextHash: assistantText ? stableHash(assistantText) : null
   };
 }
 
@@ -168,8 +315,78 @@ function preview(value: string | undefined, maxLength = 160) {
     return null;
   }
 
-  const normalized = value.replace(/\s+/g, ' ').trim();
+  const normalized = (redactSensitiveLogText(value) ?? '').replace(/\s+/g, ' ').trim();
   return normalized.length > maxLength
     ? `${normalized.slice(0, maxLength - 1)}…`
     : normalized;
+}
+
+function stableHash(value: string) {
+  return createHash('sha256').update(value).digest('hex');
+}
+
+function tutorStructuredOutputStatus(result: TutorMessageResponse) {
+  if (result.servingStatus === 'live_tutor_answer') {
+    return 'parsed';
+  }
+  if (result.servingStatus === 'live_tutor_fallback') {
+    return 'fallback';
+  }
+  return 'not_used';
+}
+
+function uniqueToolCallNames(messages: unknown[]) {
+  const names = new Set<string>();
+  for (const message of messages) {
+    for (const call of toolCallsForMessage(message)) {
+      if (call.name) {
+        names.add(call.name);
+      }
+    }
+  }
+  return [...names];
+}
+
+function latestAssistantText(messages: unknown[]) {
+  for (const message of [...messages].reverse()) {
+    if (toolCallsForMessage(message).length > 0) {
+      continue;
+    }
+    const text = messageContentText(message);
+    if (text) {
+      return text;
+    }
+  }
+  return null;
+}
+
+function toolCallsForMessage(message: unknown): Array<{ name?: string; args?: unknown }> {
+  const record = message && typeof message === 'object' ? message as Record<string, unknown> : {};
+  const kwargs = record.kwargs && typeof record.kwargs === 'object' ? kwargsRecord(record.kwargs) : {};
+  const calls = record.tool_calls ?? kwargs.tool_calls;
+  return Array.isArray(calls) ? calls as Array<{ name?: string; args?: unknown }> : [];
+}
+
+function messageContentText(message: unknown) {
+  const record = message && typeof message === 'object' ? message as Record<string, unknown> : {};
+  const kwargs = record.kwargs && typeof record.kwargs === 'object' ? kwargsRecord(record.kwargs) : {};
+  const content = record.content ?? kwargs.content;
+
+  if (typeof content === 'string') {
+    return content.trim() || null;
+  }
+  if (Array.isArray(content)) {
+    const text = content
+      .map((part) => part && typeof part === 'object' && typeof (part as Record<string, unknown>).text === 'string'
+        ? (part as Record<string, string>).text
+        : '')
+      .join('\n')
+      .trim();
+    return text || null;
+  }
+  return null;
+}
+
+function kwargsRecord(value: object): Record<string, unknown> {
+  return value as Record<string, unknown>;
 }

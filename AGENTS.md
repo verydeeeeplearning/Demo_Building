@@ -77,19 +77,39 @@ Access 1002k tokens of past work via get_observations([IDs]) or mem-search skill
 
 ## Framework-native agent work (non-negotiable)
 
-When implementing or modifying the Deep Agents / LangChain agent (`server/agent/*`, especially
-`deepAgentRuntime.ts`), ALWAYS consult the official documentation first and use the framework's
-native mechanism — never hand-roll a bespoke equivalent.
+This repository's core agent engine is built on the LangChain ecosystem:
+LangChain, LangGraph, Deep Agents, and LangSmith. Treat these as first-class
+runtime infrastructure, not incidental dependencies.
+
+When implementing or modifying agent behavior (`server/agent/*`, `server/context/*`,
+agent observability/evaluation code, and especially `server/agent/deepAgentRuntime.ts`),
+ALWAYS consult the official documentation for the affected LangChain ecosystem
+component first, verify the current TypeScript/JavaScript pattern and signatures,
+and use the framework-native mechanism — never hand-roll a bespoke equivalent.
+
+If the official framework-native path is unclear, surface that uncertainty before
+writing custom glue. Do not implement from memory when the behavior depends on
+LangChain, LangGraph, Deep Agents, or LangSmith runtime semantics.
 
 - **Memory** → LangGraph **checkpointer + `thread_id`** (short-term) and **`Store`/`BaseStore`**
   (long-term). Not a manual `recentTurns` re-injection or hand-folded running summary.
 - **Clarification / narrowing / "역제안"** → LangGraph **`interrupt()` + `Command({ resume })`** HITL.
   Not a custom field the LLM is hoped to fill; not a hardcoded menu in `.ts`.
 - **Stateful subagent** → subagent `checkpointer: true` + `toolCallLimitMiddleware`.
+- **Tracing / observability / evals** → LangSmith official tracing, metadata, dataset, and
+  evaluation patterns. Not ad-hoc prompt logging or secret-bearing traces.
 - **Curated content** lives in the `agent-context/` data layer, never in application code.
-- Docs to cite (context7): `/langchain-ai/deepagentsjs`, `/websites/langchain_oss_javascript_langgraph`.
+- Docs to cite/check before agent implementation:
+  - Repo workflow anchor: `docs/agent-request-to-simulation-workflow.md`
+    (ordered request-to-simulation flow, context layer role, LangChain ecosystem
+    usage, and logging checkpoints)
+  - Context7: `/langchain-ai/deepagentsjs` (Deep Agents, TypeScript)
+  - Context7: `/websites/langchain_oss_javascript_langgraph` (LangGraph, JavaScript)
+  - Official web docs: LangChain JS, LangGraph JS, Deep Agents JS, and LangSmith docs
 
-Query the docs for the exact pattern + signatures before writing agent code. See `CLAUDE.md`.
+Query the docs for the exact pattern + signatures before writing agent code, and
+mention the consulted official docs in implementation notes when the change
+depends on ecosystem behavior. See `CLAUDE.md`.
 
 ## Source of truth
 
@@ -104,6 +124,10 @@ Query the docs for the exact pattern + signatures before writing agent code. See
 - See `docs/README.md` for the index of living reference documents (observability,
   Deepagents architecture anchor, Korean UX copy guide, solver-gate design) and the
   active plans under `docs/plans/`.
+- Before changing the main chat serving path from user requirement to final simulation,
+  read `docs/agent-request-to-simulation-workflow.md` and keep its ordered flow,
+  context-layer responsibilities, LangChain ecosystem usage, and logging checkpoints
+  current.
 - Keep additions focused on what changed, why it changed, where the relevant files are,
   and how to verify the work. Update the living reference docs in place instead of adding
   dated snapshots unless the user explicitly asks for one.

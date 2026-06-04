@@ -15,6 +15,16 @@ export const en = {
     student: 'student',
     assistant: 'assistant'
   },
+  servingStatus: {
+    buildable_original: 'Build-ready',
+    needs_clarification: 'Needs one choice',
+    unsupported: 'Not supported yet',
+    review_only_diagnostic: 'Review only',
+    safe_equivalent: 'Safe equivalent',
+    local_tutor_answer: 'Local circuit evidence',
+    live_tutor_answer: 'Live tutor',
+    live_tutor_fallback: 'Local fallback'
+  },
   aiPanel: {
     kicker: 'AI interview',
     titleLoaded: 'From idea to circuit',

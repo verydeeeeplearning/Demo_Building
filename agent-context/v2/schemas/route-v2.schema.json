@@ -16,13 +16,16 @@
         "properties": {
           "routeId": { "type": "string", "minLength": 1 },
           "priority": { "type": "integer" },
+          "tier": { "type": "string", "enum": ["primary-output", "compositional-context"] },
           "policyOnly": { "type": "boolean" },
+          "budget": { "type": "string", "enum": ["minimal", "standard", "full"] },
           "when": {
             "type": "object",
             "additionalProperties": false,
             "required": ["capabilityIds", "supportLevels", "modalities"],
             "properties": {
               "capabilityIds": { "type": "array", "items": { "type": "string" } },
+              "capabilityMatchMode": { "type": "string", "enum": ["any", "all"] },
               "supportLevels": {
                 "type": "array",
                 "items": { "type": "string", "enum": ["supported", "partial", "planned", "unsupported"] }

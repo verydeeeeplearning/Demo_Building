@@ -26,6 +26,8 @@ import {
   contextPacketLogSummary,
   createAgentTraceId,
   langSmithMetadata,
+  llmHandoffLogSummary,
+  llmOutputLogSummary,
   logAgentEvent,
   resultLogSummary
 } from './agentLogger.ts';
@@ -43,6 +45,8 @@ import {
   validateCircuitSpec
 } from './circuitTools.ts';
 import { createHeduwareAgentTools } from './deepAgentTools.ts';
+
+type HeduwareAgentToolsOptions = NonNullable<Parameters<typeof createHeduwareAgentTools>[0]>;
 import {
   compactBlocksWithinAssembledBudget,
   foldRunningSummary,
@@ -60,6 +64,7 @@ import {
   CircuitSpecSchema,
   ClarificationRequestSchema,
   RequirementDocSchema,
+  ServingStatusSchema,
   SupportedAlternativeSchema,
   type AgentEvent,
   type AgentMessageRequest,
@@ -67,7 +72,9 @@ import {
   type BuildRunnableReport,
   type CircuitSpec,
   type ClarificationRequest,
+  type ContextCoverageReport,
   type RequirementDoc,
+  type SolverGateResult,
   type SupportedAlternative
 } from './schemas.ts';
 
@@ -277,7 +284,8 @@ export function agentRuntimeHealth() {
 }
 
 export async function buildAgentPromptBudgetAudits(request: AgentMessageRequest) {
-  const contextPacket = await buildContextPacket(request);
+  const pipelineMode = getAgentPipelineMode();
+  const contextPacket = await buildContextPacket(request, { pipelineMode });
   const [operatingMemory, contextIndex] = await Promise.all([
     readContextDoc('agent-operating-memory'),
     readContextDoc('context-index')
@@ -288,20 +296,37 @@ export async function buildAgentPromptBudgetAudits(request: AgentMessageRequest)
     allowedContextSourceIds: contextPacket.retrievalPlan.sourceIds,
     supportBundles: contextPacket.supportBundles
   };
-  const subagents = createSubagents(toolOptions);
+  const subagents = pipelineMode === 'legacy' ? createSubagents(toolOptions) : [];
   const requirementSystemPrompt = buildRequirementAnalysisSystemPrompt({
     locale: request.locale ?? 'ko',
     contextPacketBlock: contextPacket.promptBlock
   });
   const requirementUserPrompt = buildRequirementAnalysisUserPrompt(request);
-  const synthesisSystemPrompt = buildSystemPrompt({
-    locale: request.locale ?? 'ko',
+  const synthesisExtraBlocks = [renderSubagentPromptBudgetText(subagents)];
+  const buildSynthesisSystemPrompt = (blocks: SystemContextBlocks): string =>
+    buildSystemPrompt({
+      locale: request.locale ?? 'ko',
+      operatingMemory: blocks.operatingMemory,
+      coordinatorPrompt: blocks.coordinatorPrompt,
+      registrySummary: blocks.registrySummary,
+      contextPacketBlock: blocks.contextPacketBlock
+    });
+  const synthesisRawBlocks: SystemContextBlocks = {
     operatingMemory: compactRuntimeOperatingMemory(operatingMemory),
     coordinatorPrompt: compactRuntimeContextIndex(contextIndex),
     registrySummary: buildRegistrySummary(contextPacket.candidateParts),
     contextPacketBlock: contextPacket.promptBlock
-  });
+  };
   const synthesisUserPrompt = buildAgentUserPrompt(request, { attempt: 1, previousErrors: [] });
+  const synthesisBlocks = compactBlocksForAssembledPrompt({
+    stage: 'synthesis',
+    contextPacket,
+    rawBlocks: synthesisRawBlocks,
+    buildSystemPromptFrom: buildSynthesisSystemPrompt,
+    userPrompt: synthesisUserPrompt,
+    extraPromptBlocks: synthesisExtraBlocks
+  });
+  const synthesisSystemPrompt = buildSynthesisSystemPrompt(synthesisBlocks);
 
   return {
     contextPacket,
@@ -317,7 +342,7 @@ export async function buildAgentPromptBudgetAudits(request: AgentMessageRequest)
         contextPacket,
         systemPrompt: synthesisSystemPrompt,
         userPrompt: synthesisUserPrompt,
-        extraPromptBlocks: [renderSubagentPromptBudgetText(subagents)]
+        extraPromptBlocks: synthesisExtraBlocks
       })
     ]
   };
@@ -503,27 +528,34 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
     extraPromptBlocks: synthesisExtraBlocks
   });
 
+  const agentTools = createHeduwareAgentTools(toolOptions);
+  const agentName = 'h-eduware-deepagent';
+  const agentRunName = 'h-eduware-circuit-synthesis';
+  const agentThreadId = sessionId;
   const agent = deepAgentFactory({
     model,
-    tools: createHeduwareAgentTools(toolOptions),
+    tools: agentTools,
     subagents,
     responseFormat: toolStrategy(LiveAgentDraftSchema),
     systemPrompt: synthesisSystemPrompt,
     // Conversation memory: the thread (thread_id = sessionId) carries prior turns so the agent no
     // longer depends on the client re-sending history. See conversationCheckpointer above.
     checkpointer: options.deps?.checkpointer ?? conversationCheckpointer,
-    name: 'h-eduware-deepagent',
-    middleware: pipelineMode !== 'legacy'
-      ? [createObservabilityMiddleware((event) => {
-          logAgentEvent('agent.tool.call', {
-            traceId,
-            sessionId,
-            tool: event.tool,
-            status: event.status,
-            ...(event.error !== undefined ? { error: event.error } : {})
-          });
-        })]
-      : undefined
+    name: agentName,
+    middleware: [createObservabilityMiddleware((event) => {
+      logAgentEvent('agent.tool.call', {
+        traceId,
+        sessionId,
+        tool: event.tool,
+        status: event.status,
+        durationMs: event.durationMs,
+        inputHash: event.inputHash,
+        inputChars: event.inputChars,
+        ...(event.outputHash !== undefined ? { outputHash: event.outputHash } : {}),
+        ...(event.outputChars !== undefined ? { outputChars: event.outputChars } : {}),
+        ...(event.error !== undefined ? { error: event.error } : {})
+      });
+    })]
   });
 
   try {
@@ -555,8 +587,27 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
       const invokeInput = request.resume && attempt === 1
         ? new Command({ resume: request.resume })
         : { messages: [{ role: 'user', content: userPrompt }] };
+      logAgentEvent('agent.llm.handoff', {
+        traceId,
+        sessionId,
+        ...llmHandoffLogSummary({
+          stage: 'synthesis',
+          agentName,
+          runName: agentRunName,
+          threadId: agentThreadId,
+          inputKind: request.resume && attempt === 1 ? 'command-resume' : 'messages',
+          systemPrompt: synthesisSystemPrompt,
+          userPrompt,
+          contextPacket,
+          attempt,
+          previousErrors,
+          requirementRoute: requirementAnalysis.route,
+          toolNames: toolNamesFor(agentTools),
+          subagentNames: subagentNamesFor(subagents)
+        })
+      });
       const output = await agent.invoke(invokeInput, {
-        runName: 'h-eduware-circuit-synthesis',
+        runName: agentRunName,
         tags: langSmithTags('synthesis', contextPacket),
         metadata: {
           ...baseMetadata,
@@ -566,8 +617,18 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
           previousErrorCount: previousErrors.length
         },
         configurable: {
-          thread_id: sessionId
+          thread_id: agentThreadId
         }
+      });
+      logAgentEvent('agent.llm.completed', {
+        traceId,
+        sessionId,
+        stage: 'synthesis',
+        agentName,
+        runName: agentRunName,
+        threadId: agentThreadId,
+        attempt,
+        ...llmOutputLogSummary(output)
       });
       // HITL: the agent called ask_to_narrow -> the graph paused. Surface the question/options to the
       // client as an awaiting_input turn instead of parsing a (non-existent) draft.
@@ -575,7 +636,18 @@ async function runLiveAgent(request: AgentMessageRequest, options: AgentRunOptio
       if (interruptPayload) {
         throw new AgentInterruptSignal(interruptPayload);
       }
-      return parseLiveAgentDraft(output);
+      const draft = parseLiveAgentDraft(output);
+      logAgentEvent('agent.structured_output.parsed', {
+        traceId,
+        sessionId,
+        stage: 'synthesis',
+        agentName,
+        runName: agentRunName,
+        threadId: agentThreadId,
+        attempt,
+        ...liveDraftLogSummary(draft)
+      });
+      return draft;
     }
     });
   } catch (error) {
@@ -601,7 +673,7 @@ async function runRequirementAnalysisAgent({
   request: AgentMessageRequest;
   contextPacket: Awaited<ReturnType<typeof buildContextPacket>>;
   model: BaseChatModel;
-  toolOptions: Parameters<typeof createHeduwareAgentTools>[0];
+  toolOptions: HeduwareAgentToolsOptions;
   metadata: Record<string, unknown>;
   deepAgentFactory: DeepAgentFactory;
 }): Promise<RequirementAnalysis> {
@@ -635,32 +707,73 @@ async function runRequirementAnalysisAgent({
     userPrompt
   });
 
+  const analyzerTools = createHeduwareAgentTools(toolOptions);
+  const agentName = 'h-eduware-requirement-analysis-agent';
+  const runName = 'h-eduware-requirement-analysis';
+  const threadId = `${sessionId}:requirement-analysis`;
   const analyzer = deepAgentFactory({
     model,
-    tools: createHeduwareAgentTools(toolOptions),
+    tools: analyzerTools,
     responseFormat: toolStrategy(RequirementAnalysisSchema),
     systemPrompt,
-    name: 'h-eduware-requirement-analysis-agent'
+    name: agentName
   });
 
+  logAgentEvent('agent.llm.handoff', {
+    traceId,
+    sessionId,
+    ...llmHandoffLogSummary({
+      stage: 'requirement-analysis',
+      agentName,
+      runName,
+      threadId,
+      inputKind: 'messages',
+      systemPrompt,
+      userPrompt,
+      contextPacket,
+      toolNames: toolNamesFor(analyzerTools)
+    })
+  });
   const output = await analyzer.invoke({
     messages: [{
       role: 'user',
       content: userPrompt
     }]
   }, {
-    runName: 'h-eduware-requirement-analysis',
+    runName,
     tags: langSmithTags('requirement-analysis', contextPacket),
     metadata: {
       ...metadata,
       traceId
     },
     configurable: {
-      thread_id: `${sessionId}:requirement-analysis`
+      thread_id: threadId
     }
   });
+  logAgentEvent('agent.llm.completed', {
+    traceId,
+    sessionId,
+    stage: 'requirement-analysis',
+    agentName,
+    runName,
+    threadId,
+    ...llmOutputLogSummary(output)
+  });
 
-  return parseRequirementAnalysis(output);
+  const analysis = parseRequirementAnalysis(output);
+  logAgentEvent('agent.structured_output.parsed', {
+    traceId,
+    sessionId,
+    stage: 'requirement-analysis',
+    agentName,
+    runName,
+    threadId,
+    requirementRoute: analysis.route,
+    requirementConfidence: analysis.confidence,
+    blockingReason: analysis.blockingReason,
+    agentEventCount: analysis.agentEvents.length
+  });
+  return analysis;
 }
 
 function requireLiveConfig() {
@@ -887,21 +1000,61 @@ async function authorRequirementDoc(input: {
   // No circuit-building tools and no structured-tool responseFormat: the authoring agent emits the
   // RequirementDoc as a JSON answer (the structured-tool seam did not populate structuredResponse for
   // this model). parseRequirementDoc extracts the JSON from the message content.
+  const agentName = 'h-eduware-requirement-doc-agent';
+  const runName = 'h-eduware-requirement-doc';
+  const threadId = `${input.sessionId}:requirement-doc`;
   const author = input.deepAgentFactory({
     model: input.model,
     tools: [],
     systemPrompt,
-    name: 'h-eduware-requirement-doc-agent'
+    name: agentName
+  });
+  logAgentEvent('agent.llm.handoff', {
+    traceId: input.traceId,
+    sessionId: input.sessionId,
+    ...llmHandoffLogSummary({
+      stage: 'requirement-doc',
+      agentName,
+      runName,
+      threadId,
+      inputKind: 'messages',
+      systemPrompt,
+      userPrompt,
+      contextPacket: input.contextPacket,
+      toolNames: []
+    })
   });
   const output = await author.invoke({
     messages: [{ role: 'user', content: userPrompt }]
   }, {
-    runName: 'h-eduware-requirement-doc',
+    runName,
     tags: langSmithTags('requirement-analysis', input.contextPacket),
     metadata: { ...input.metadata, traceId: input.traceId },
-    configurable: { thread_id: `${input.sessionId}:requirement-doc` }
+    configurable: { thread_id: threadId }
   });
-  return parseRequirementDoc(output);
+  logAgentEvent('agent.llm.completed', {
+    traceId: input.traceId,
+    sessionId: input.sessionId,
+    stage: 'requirement-doc',
+    agentName,
+    runName,
+    threadId,
+    ...llmOutputLogSummary(output)
+  });
+  const doc = parseRequirementDoc(output);
+  logAgentEvent('agent.structured_output.parsed', {
+    traceId: input.traceId,
+    sessionId: input.sessionId,
+    stage: 'requirement-doc',
+    agentName,
+    runName,
+    threadId,
+    controller: doc.controller,
+    requiredPartCount: doc.intendedParts.filter((part) => part.required).length,
+    intendedPartCount: doc.intendedParts.length,
+    verbatimConstraintCount: doc.verbatimConstraints.length
+  });
+  return doc;
 }
 
 /** Pull the model's textual answer out of a deepagents/langgraph invoke result, across shapes. */
@@ -1103,6 +1256,26 @@ async function finalizeAgentResult({
         }
       : {}
   );
+  logAgentEvent('agent.simulation.compiled', {
+    traceId,
+    sessionId,
+    circuitSpecId: circuitSpec.id,
+    sourceCircuitSpecId: sourceCircuitSpec.id,
+    safeEquivalent: Boolean(safeEquivalentSpec),
+    validationStatus: effectiveValidationReport.status,
+    validationErrorCount: effectiveValidationReport.errors.length,
+    validationWarningCount: effectiveValidationReport.warnings.length,
+    netCount: netlist.nets.length,
+    currentPathCount: simulationPlan.currentPaths.length,
+    renderPartCount: renderPlan.parts.length,
+    renderConnectionCount: renderPlan.connections.length,
+    simulationStatus: simulationPlan.status,
+    buildRunnableStatus: runnableReport.status,
+    buildRunnable: runnableReport.runnable,
+    solverMode: solverGateResult.mode,
+    solverBuildReady: solverGateResult.buildReady,
+    solverVisibleSimulation: solverGateResult.visibleSimulation
+  });
   // Faithful chain (US-005): when the agent authored a requirement document, surface it FIRST in the
   // 문서 tab (the requirement that drove synthesis), then the realized circuit details below it — one
   // model, two views. Flag off (requirementDoc undefined) => unchanged post-synthesis doc.
@@ -1125,11 +1298,18 @@ async function finalizeAgentResult({
   const studentMessage = toConciseStudentMessage(
     sanitizeStudentFacingAssistantMessage(assistantMessage, request.locale ?? 'ko')
   );
+  const servingStatus = deriveServingStatus({
+    contextCoverage: contextPacket.contextCoverage,
+    buildRunnableReport: runnableReport,
+    solverGateResult,
+    unsupportedItems: circuitSpec.unsupportedItems
+  });
 
   return AgentRunResultSchema.parse({
     traceId,
     sessionId,
     mode: 'live',
+    servingStatus,
     assistantMessages: [studentMessage],
     agentEvents: normalizeEvents([
       coordinatorEvent,
@@ -1190,6 +1370,10 @@ export function buildCasualChatResult({
     sessionId,
     mode: 'live',
     responseKind: 'chat',
+    servingStatus: deriveServingStatus({
+      contextCoverage: contextPacket.contextCoverage,
+      unsupportedItems: placeholderSpec.unsupportedItems
+    }),
     assistantMessages: [reply],
     agentEvents: [{
       type: 'coordinator',
@@ -1743,6 +1927,31 @@ function langSmithTags(stage: string, contextPacket: Awaited<ReturnType<typeof b
     ...contextPacket.capabilityMatches.map((capability) => `capability:${capability.id}`),
     `eligibility:${contextPacket.contextCoverage.synthesisEligibility.status}`
   ];
+}
+
+function liveDraftLogSummary(draft: LiveAgentDraft) {
+  const spec = draft.circuitSpec;
+  return {
+    responseKind: draft.responseKind,
+    clarificationPresent: Boolean(draft.clarification),
+    circuitSpecId: spec?.id ?? null,
+    componentCount: spec?.components.length ?? 0,
+    connectionCount: spec?.connections.length ?? 0,
+    unsupportedItemCount: spec?.unsupportedItems.length ?? 0,
+    clarificationNeedCount: spec?.clarificationNeeds.length ?? 0,
+    agentEventCount: draft.agentEvents.length,
+    supportedAlternativeCount: draft.supportedAlternatives.length
+  };
+}
+
+function toolNamesFor(tools: Array<{ name?: unknown }>) {
+  return tools
+    .map((agentTool) => agentTool.name)
+    .filter((name): name is string => typeof name === 'string' && name.length > 0);
+}
+
+function subagentNamesFor(subagents: SubAgent[]) {
+  return subagents.map((subagent) => subagent.name);
 }
 
 function buildPreflightDraftFromAnalysis(
@@ -2407,7 +2616,7 @@ function renderSubagentPromptBudgetText(subagents: SubAgent[]) {
   ].filter(Boolean).join('\n')).join('\n\n');
 }
 
-function createSubagents(toolOptions: Parameters<typeof createHeduwareAgentTools>[0] = {}): SubAgent[] {
+function createSubagents(toolOptions: HeduwareAgentToolsOptions): SubAgent[] {
   const tools = () => createHeduwareAgentTools(toolOptions);
   return [
     {
@@ -2504,6 +2713,30 @@ function appendAgentEvents(result: AgentRunResult, events: AgentEvent[]) {
       ...events
     ])
   });
+}
+
+function deriveServingStatus(result: {
+  contextCoverage: ContextCoverageReport;
+  buildRunnableReport?: BuildRunnableReport;
+  solverGateResult?: SolverGateResult;
+  unsupportedItems?: string[];
+}): z.infer<typeof ServingStatusSchema> {
+  if (
+    result.solverGateResult?.mode === 'safe_equivalent_simulation'
+    || result.solverGateResult?.buildReadyScope === 'displayed_equivalent'
+  ) {
+    return 'safe_equivalent';
+  }
+
+  if (result.contextCoverage.synthesisEligibility.status !== 'eligible') {
+    return result.unsupportedItems?.length ? 'unsupported' : 'needs_clarification';
+  }
+
+  if (result.buildRunnableReport?.runnable) {
+    return 'buildable_original';
+  }
+
+  return 'review_only_diagnostic';
 }
 
 function summarizeValidationErrors(errors: string[]) {

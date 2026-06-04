@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { runAgent } from '../../server/agent/deepAgentRuntime.ts';
+import { loadLocalAgentEnv } from '../../server/localEnv.ts';
 import { loadInCatalogCorpus } from '../fixtures/inCatalogCorpus.ts';
 import type { AgentMessageRequest } from '../../server/agent/schemas.ts';
 
@@ -10,15 +11,18 @@ import type { AgentMessageRequest } from '../../server/agent/schemas.ts';
 // (with OPENAI_API_KEY + H_EDUWARE_AGENT_MODEL set) BEFORE flipping the production default to `next`
 // or deleting the enumerated routes — neither of which the default (no-live) gate may do.
 //
-// Run with:  npm run check:live   (file matches tests/unit/*.live.test.ts; skips without a key)
+// Run with:  npm run check:live   (sets H_EDUWARE_RUN_LIVE_TESTS=1; skips otherwise or without a key)
 //
 // Targets (Success Criteria): structured-output first-shot >= 95%, post-fallback = 100% (never a
 // 502). A representative sample keeps the live cost bounded; widen SAMPLE_SIZE for a full run.
 
-const CONFIGURED = Boolean(process.env.OPENAI_API_KEY && process.env.H_EDUWARE_AGENT_MODEL);
+loadLocalAgentEnv();
+
+const LIVE_TESTS_ENABLED = process.env.H_EDUWARE_RUN_LIVE_TESTS === '1';
+const CONFIGURED = LIVE_TESTS_ENABLED && Boolean(process.env.OPENAI_API_KEY && process.env.H_EDUWARE_AGENT_MODEL);
 const SAMPLE_SIZE = Number(process.env.H_EDUWARE_LIVE_SAMPLE ?? '8');
 
-void test('live smoke: corpus runs under `next` with no 502 and reports first-shot/fallback/route metrics', { skip: !CONFIGURED && 'no OPENAI_API_KEY / H_EDUWARE_AGENT_MODEL — opt-in live test' }, async () => {
+void test('live smoke: corpus runs under `next` with no 502 and reports first-shot/fallback/route metrics', { skip: !CONFIGURED && 'set H_EDUWARE_RUN_LIVE_TESTS=1 plus OPENAI_API_KEY / H_EDUWARE_AGENT_MODEL to run opt-in live test' }, async () => {
   const previousMode = process.env.H_EDUWARE_AGENT_PIPELINE;
   process.env.H_EDUWARE_AGENT_PIPELINE = 'next';
   try {

@@ -65,6 +65,7 @@ const state = {
     hoveredRawTarget: null,
     selectedRawTarget: null,
     chatMessages: [],
+    suggestedQuestions: null,
     tutorThinking: false,
     chatOpen: false
   }
@@ -363,6 +364,7 @@ function renderAiPanel() {
         <span>${t('aiPanel.runtimeLabel', {}, state.locale)}</span>
         <strong>${formatRuntimeModeForDisplay()}</strong>
       </div>
+      ${renderServingStatusBadge(state.agentResult)}
       ${renderRuntimeWarning()}
       <form class="idea-form" data-action="send-idea">
         <label for="idea-input">${interview.status === 'interviewing' ? t('aiPanel.replyLabel', {}, state.locale) : t('aiPanel.ideaLabel', {}, state.locale)}</label>
@@ -459,6 +461,18 @@ function renderRuntimeWarning() {
   `;
 }
 
+function renderServingStatusBadge(result) {
+  if (!result?.servingStatus) {
+    return '';
+  }
+  const label = t(`servingStatus.${result.servingStatus}`, {}, state.locale);
+  return `
+    <div class="serving-status" data-testid="serving-status" data-status="${escapeHtml(result.servingStatus)}">
+      ${escapeHtml(label)}
+    </div>
+  `;
+}
+
 function refreshRuntimeModeLabel() {
   const label = app.querySelector('.ai-runtime strong');
   if (!label) {
@@ -495,6 +509,7 @@ function renderMessage(message) {
     <article class="message ${escapeHtml(message.role)}">
       <span>${escapeHtml(t(`roles.${message.role}`, {}, state.locale))}</span>
       <p>${escapeHtml(message.text)}</p>
+      ${renderTutorStatus(message)}
     </article>
   `;
 }
@@ -1105,6 +1120,7 @@ function renderCircuitChatDrawer() {
   const target = currentInspectorTarget();
   const targetLabel = chatTargetLabel(target);
   const messages = state.inspector.chatMessages;
+  const suggestedQuestions = state.inspector.suggestedQuestions ?? target.questions;
 
   return `
     <section id="circuit-chat-panel" class="circuit-chat-drawer" data-testid="tutor-chat" role="dialog" aria-label="${t('inspector.chatTitle', {}, state.locale)}">
@@ -1122,7 +1138,7 @@ function renderCircuitChatDrawer() {
       </div>
       <section class="inspector-suggestions" data-testid="inspector-suggestions">
         <div class="panel-kicker">${t('inspector.suggestions', {}, state.locale)}</div>
-        ${target.questions.map((question) => `
+        ${suggestedQuestions.map((question) => `
           <button class="inspector-question" type="button" data-action="suggested-question" data-question="${escapeHtml(question)}">${escapeHtml(question)}</button>
         `).join('')}
       </section>
@@ -1147,7 +1163,20 @@ function renderTutorMessage(message) {
     <article class="tutor-message ${message.role}" data-testid="tutor-message">
       <span>${message.role === 'student' ? t('inspector.student', {}, state.locale) : t('inspector.tutor', {}, state.locale)}</span>
       <p>${escapeHtml(message.text)}</p>
+      ${renderTutorStatus(message)}
     </article>
+  `;
+}
+
+function renderTutorStatus(message) {
+  if (message.role !== 'assistant' || !message.servingStatus) {
+    return '';
+  }
+  const label = t(`servingStatus.${message.servingStatus}`, {}, state.locale);
+  return `
+    <small class="tutor-status" data-testid="tutor-status" data-status="${escapeHtml(message.servingStatus)}">
+      ${escapeHtml(label)}
+    </small>
   `;
 }
 
@@ -1513,7 +1542,7 @@ async function submitAgentMessage(message, { resume } = {}) {
           .map((text) => ({ role: 'assistant', text }))
       )
     };
-    state.awaitingConfirmation = canShowScene;
+    state.awaitingConfirmation = canShowScene && (!groundedResult.servingStatus || isBuildableServingStatus(groundedResult));
   } catch (error) {
     const messageText = formatAgentErrorMessage(error, state.locale, { studentMessage: message });
     state.interview = {
@@ -1558,7 +1587,10 @@ async function answerCurrentArtifactQuestion(message) {
       ...state.interview,
       messages: state.interview.messages.concat({
         role: 'assistant',
-        text: response.message
+        text: response.message,
+        mode: response.mode,
+        servingStatus: response.servingStatus,
+        fallbackReason: response.fallbackReason
       })
     };
   } catch (error) {
@@ -1581,6 +1613,9 @@ function nextAgentThreadMessages(message) {
 }
 
 function canBuildAgentResult(result) {
+  if (result?.servingStatus && !isBuildableServingStatus(result)) {
+    return false;
+  }
   if (result?.solverGateResult) {
     if (result.solverGateResult.controls || result.solverGateResult.buildReadyScope) {
       return solverGateBuildReady(result.solverGateResult);
@@ -1588,6 +1623,10 @@ function canBuildAgentResult(result) {
     return solverGateBuildReady(result.solverGateResult) && result.buildRunnableReport?.runnable === true;
   }
   return result?.buildRunnableReport?.runnable === true;
+}
+
+function isBuildableServingStatus(result) {
+  return result?.servingStatus === 'buildable_original' || result?.servingStatus === 'safe_equivalent';
 }
 
 function canShowAgentScene(result) {
@@ -1614,6 +1653,9 @@ function canRunLoadedProject() {
     return false;
   }
   const circuit = activeDraftOrProjectCircuit() || activeCircuit();
+  if (circuit?.servingStatus && !isBuildableServingStatus(circuit)) {
+    return false;
+  }
   if (circuit?.solverGateResult) {
     if (circuit.solverGateResult.controls || circuit.solverGateResult.buildReadyScope) {
       return solverGateRunEnabled(circuit.solverGateResult);
@@ -1967,6 +2009,7 @@ function createProjectFromAgentResult(result) {
     simulationPlan: result.simulationPlan,
     buildRunnableReport: result.buildRunnableReport,
     solverGateResult: result.solverGateResult,
+    servingStatus: result.servingStatus,
     renderWarnings,
     circuitSpec: result.circuitSpec,
     contextTrace: result.contextTrace || [],
@@ -2056,6 +2099,7 @@ function artifactSnapshotFromAgentResult(result, source) {
     validationReport: result.validationReport,
     buildRunnableReport: result.buildRunnableReport,
     solverGateResult: result.solverGateResult,
+    servingStatus: result.servingStatus,
     renderPlan: result.renderPlan,
     simulationPlan: result.simulationPlan
   };
@@ -2178,6 +2222,7 @@ function selectCircuitTarget(rawTarget) {
   state.selectedCurrentPathId = rawTarget?.connectionId ?? null;
   if (previousKey !== nextKey) {
     state.inspector.chatMessages = [];
+    state.inspector.suggestedQuestions = null;
   }
   refreshInspectorRail();
   syncSelectedTargetPresentation();
@@ -2199,6 +2244,7 @@ function stepCurrentFlow() {
   };
   state.inspector.hoveredRawTarget = state.inspector.selectedRawTarget;
   state.inspector.chatMessages = [];
+  state.inspector.suggestedQuestions = null;
   state.simulationPlaying = true;
   state.running = true;
   state.activeTab = 'PCB';
@@ -2226,8 +2272,14 @@ async function submitTutorQuestion(question) {
 
   state.inspector.chatMessages = state.inspector.chatMessages.concat({
     role: 'assistant',
-    text: response.message
+    text: response.message,
+    mode: response.mode,
+    servingStatus: response.servingStatus,
+    fallbackReason: response.fallbackReason
   });
+  state.inspector.suggestedQuestions = response.suggestedQuestions?.length
+    ? response.suggestedQuestions
+    : target.questions;
   state.inspector.tutorThinking = false;
   refreshInspectorRail();
 }
@@ -2317,6 +2369,7 @@ function switchLocale(locale) {
     ? createProjectFromAgentResult(state.agentResult)
     : createLocalizedProject(nextLocale);
   state.inspector.chatMessages = [];
+  state.inspector.suggestedQuestions = null;
   state.inspector.tutorThinking = false;
   state.inspector.chatOpen = false;
   state.interactionMode = 'orbit';
@@ -2467,6 +2520,7 @@ function resetInspectorState() {
   state.inspector.hoveredRawTarget = null;
   state.inspector.selectedRawTarget = null;
   state.inspector.chatMessages = [];
+  state.inspector.suggestedQuestions = null;
   state.inspector.tutorThinking = false;
   state.inspector.chatOpen = false;
   state.simulationPlaying = false;

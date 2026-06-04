@@ -57,21 +57,13 @@
       "alwaysInclude": [
         "memory:agent-rules",
         "policy:safety",
+        "policy:clarification",
         "policy:truthfulness",
-        "data:capability-graph",
-        "data:topology-templates",
-        "registry:part-capabilities",
-        "reference:board-topology",
-        "reference:protocol-rules",
-        "reference:validation-rules",
-        "reference:simulation-recipes",
-        "reference:rendering-footprints",
-        "simulation:primitives",
-        "rendering:render-footprints"
+        "data:capability-graph"
       ],
-      "maxPromptChars": 38000,
-      "budget": "full",
-      "reason": "Supported hardware fallback loads the complete bounded synthesis, validation, rendering, and simulation bundle."
+      "maxPromptChars": 7000,
+      "budget": "minimal",
+      "reason": "Supported hardware fallback keeps only policy and graph context; complete bundle or composition proof is required before validated synthesis."
     },
     {
       "routeId": "v2-addressable-led-display-output",

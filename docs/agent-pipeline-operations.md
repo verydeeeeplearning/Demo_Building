@@ -36,9 +36,13 @@ All changes below are flag-gated; the default `legacy` mode remains byte-for-byt
    - Set `OPENAI_API_KEY` and `H_EDUWARE_AGENT_MODEL`
    - Run `npm run check:live`
    - This executes the opt-in live smoke test in `tests/unit/agentPipeline.live.test.ts`
+     and the category simulation matrix in `tests/unit/agentCategorySimulation.live.test.ts`
    - Confirm: post-fallback completion = 100% (never a 502)
    - Confirm: structured-output first-shot ≈ ≥95%
+   - Confirm: live category matrix passes supported-circuit, safe-equivalent, and
+     clarification guardrails
    - Optionally widen the sample size with `H_EDUWARE_LIVE_SAMPLE` environment variable if desired
+   - Optionally limit category cases with `H_EDUWARE_LIVE_CATEGORY_LIMIT` while debugging
 
 2. **Human reviewer sign-off**
    - Required before proceeding to destructive route deletion

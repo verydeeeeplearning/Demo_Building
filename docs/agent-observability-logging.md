@@ -11,10 +11,11 @@ Local logs are off by default. Enable them when running the agent server:
 H_EDUWARE_AGENT_LOG_LEVEL=debug H_EDUWARE_AGENT_LOG_JSON=true H_EDUWARE_AGENT_MODEL=gpt-5.4-mini npm run agent:dev
 ```
 
-Each `/api/agent/message` request receives a `traceId`. The server logs JSON
-events to stdout and, by default, to `.local/agent-traces/agent-events.jsonl`.
-Override the file path with `H_EDUWARE_AGENT_LOG_FILE=/path/to/events.jsonl`, or
-set `H_EDUWARE_AGENT_LOG_FILE=false` to disable the file sink.
+Each `/api/agent/message` and `/api/agent/explain-target` request receives a
+`traceId`. The server logs JSON events to stdout and, by default, to
+`.local/agent-traces/agent-events.jsonl`. Override the file path with
+`H_EDUWARE_AGENT_LOG_FILE=/path/to/events.jsonl`, or set
+`H_EDUWARE_AGENT_LOG_FILE=false` to disable the file sink.
 
 Useful local inspection commands:
 
@@ -28,14 +29,23 @@ The log includes these events:
 - `agent.request.received`
 - `context.packet.built`
 - `requirement.analysis.completed`
+- `agent.llm.handoff`
+- `agent.llm.completed`
+- `agent.structured_output.parsed`
 - `agent.synthesis.attempt`
+- `agent.tool.call`
+- `agent.simulation.compiled`
 - `agent.validation.completed`
 - `agent.response.sent`
 - `agent.request.failed`
+- `tutor.request.received`
+- `tutor.response.sent`
+- `tutor.request.failed`
 
-The local log intentionally stores previews and route metadata only. It does
-not log API keys, environment values, raw prompts, full context packets, or full
-student transcripts.
+The local log intentionally stores previews, hashes, and route metadata only. It
+does not log API keys, environment values, raw prompts, full context packets,
+full tutor answers, or full student transcripts. Failure summaries redact
+API-key-shaped values before writing local logs.
 
 Useful fields include:
 
@@ -52,6 +62,30 @@ Useful fields include:
 - `validationStatus`
 - `renderPartCount`
 - `currentPathCount`
+- `pipelineMode`
+- `selectedBundleIds`
+- `candidatePartIds`
+- `candidateProvenance`
+- `unknownHardwareMentions`
+- `fallbackRoute`
+- `supportBundleStatus`
+- `servingStatus`
+
+`agent.llm.handoff` stores stage, agent name, LangGraph `thread_id`, prompt
+lengths, prompt hashes, route, candidate parts, tool names, and subagent names.
+It does not store raw prompt text. `agent.llm.completed` stores structured-output
+presence, message count, tool call names, assistant text hash, and assistant text
+length. `agent.tool.call` stores tool name, status, duration, input hash/size,
+and output hash/size. `agent.simulation.compiled` stores the validation,
+netlist, render, simulation, runnable, and solver-gate summary for the final
+artifact.
+
+Tutor logs use the same privacy boundary. `tutor.request.received` records the
+selected target id/type/signal, validation/simulation/runnable gate status,
+solver gate mode/build readiness, context source ids/types, current-path count,
+and a question preview. `tutor.response.sent` records local/live/fallback mode,
+`servingStatus`, redacted fallback preview, structured-output status, grounding
+count, suggested-question count, and tutor message hash/length.
 
 ## LangSmith
 
@@ -89,3 +123,6 @@ keys or full prompts.
 
 LangSmith traces may include prompts and model inputs. Keep it enabled only in
 local/dev environments where that data exposure is acceptable.
+
+For the full ordered request-to-simulation workflow and live category gate, see
+[`agent-request-to-simulation-workflow.md`](agent-request-to-simulation-workflow.md).

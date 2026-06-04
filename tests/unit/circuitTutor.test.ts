@@ -101,6 +101,7 @@ test('tutor agent returns deterministic grounded explanations for selected circu
   const response = await runTutorAgent(request);
 
   assert.equal(response.mode, 'local');
+  assert.equal(response.servingStatus, 'local_tutor_answer');
   assert.match(response.sessionId, /^tutor-/);
   assert.match(response.message, /current/i);
   assert.ok(response.grounding.includes('connection:oled-power'));
@@ -161,6 +162,7 @@ test('tutor agent can use opt-in live mode without changing the default local pa
     });
 
     assert.equal(response.mode, 'live');
+    assert.equal(response.servingStatus, 'live_tutor_answer');
     assert.equal(response.message, 'Live tutor answer grounded in the selected OLED power connection.');
     assert.ok(response.grounding.includes('live-deepagents-tutor'));
     assert.ok(response.grounding.includes('current-path:oled-module-current'));
@@ -182,10 +184,54 @@ test('tutor agent falls back to local grounding when opt-in live tutor fails', a
     });
 
     assert.equal(response.mode, 'local');
+    assert.equal(response.servingStatus, 'live_tutor_fallback');
+    assert.equal(response.fallbackReason, 'live tutor failed');
     assert.match(response.message, /current/i);
     assert.ok(response.grounding.includes('connection:oled-power'));
     assert.ok(response.grounding.includes('current-path:oled-module-current'));
     assert.equal(response.grounding.includes('live-deepagents-tutor'), false);
+  } finally {
+    restoreEnv('H_EDUWARE_TUTOR_MODE', previousMode);
+  }
+});
+
+test('tutor agent falls back when live tutor draft violates structured output', async () => {
+  const previousMode = process.env.H_EDUWARE_TUTOR_MODE;
+  process.env.H_EDUWARE_TUTOR_MODE = 'live';
+
+  try {
+    const response = await runTutorAgent(request, {
+      liveDraftProvider: async () => ({
+        message: '',
+        suggestedQuestions: ['Why does the OLED need 5V?']
+      })
+    });
+
+    assert.equal(response.mode, 'local');
+    assert.equal(response.servingStatus, 'live_tutor_fallback');
+    assert.equal(response.fallbackReason, 'malformed live tutor response');
+    assert.ok(response.grounding.includes('connection:oled-power'));
+    assert.equal(response.grounding.includes('live-deepagents-tutor'), false);
+  } finally {
+    restoreEnv('H_EDUWARE_TUTOR_MODE', previousMode);
+  }
+});
+
+test('tutor agent redacts live failure details before returning fallback reason', async () => {
+  const previousMode = process.env.H_EDUWARE_TUTOR_MODE;
+  process.env.H_EDUWARE_TUTOR_MODE = 'live';
+
+  try {
+    const response = await runTutorAgent(request, {
+      liveDraftProvider: async () => {
+        throw new Error('OPENAI_API_KEY sk-test-secret H_EDUWARE_AGENT_MODEL question: How does current flow here?');
+      }
+    });
+
+    assert.equal(response.mode, 'local');
+    assert.equal(response.servingStatus, 'live_tutor_fallback');
+    assert.doesNotMatch(response.fallbackReason ?? '', /sk-test-secret|OPENAI_API_KEY|H_EDUWARE_AGENT_MODEL|How does current flow/);
+    assert.match(response.fallbackReason ?? '', /\[redacted\]/);
   } finally {
     restoreEnv('H_EDUWARE_TUTOR_MODE', previousMode);
   }

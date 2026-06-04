@@ -4,6 +4,7 @@
 // coral accent chips, pill CTA.
 
 import { createLogoLockup } from './heduwareLogo.js';
+import { createFocusTrap } from './focusTrap.js';
 import { getLocale, t } from './i18n.js';
 
 const STORAGE_KEY = 'hEduwareWelcomeSeen';
@@ -56,6 +57,7 @@ export function mountWelcomePopup(host, { onDismiss, locale = getLocale() } = {}
   document.body.classList.add('has-modal');
 
   let disposed = false;
+  let focusTrap = null;
 
   function close(reason) {
     if (disposed) {
@@ -63,6 +65,7 @@ export function mountWelcomePopup(host, { onDismiss, locale = getLocale() } = {}
     }
     disposed = true;
     document.removeEventListener('keydown', onKeydown);
+    focusTrap?.release({ restoreFocus: false });
     document.body.classList.remove('has-modal');
     overlay.remove();
     markWelcomeSeen();
@@ -85,6 +88,12 @@ export function mountWelcomePopup(host, { onDismiss, locale = getLocale() } = {}
   overlay.querySelector('[data-testid="welcome-dismiss"]').addEventListener('click', () => close('dismiss'));
 
   document.addEventListener('keydown', onKeydown);
+  focusTrap = createFocusTrap(overlay, {
+    onEscape(event) {
+      event.preventDefault();
+      close('escape');
+    }
+  });
 
   // Move focus to the primary action for keyboard users.
   overlay.querySelector('[data-testid="welcome-dismiss"]').focus();

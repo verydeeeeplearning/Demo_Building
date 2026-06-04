@@ -878,6 +878,32 @@ export const ContextRouteSchema = z.object({
   reason: z.string().min(1)
 });
 
+export const ContextPacketMetadataSchema = z.object({
+  pipelineMode: z.enum(['legacy', 'shadow', 'next']).default('legacy'),
+  selectedBundleIds: z.array(z.string().min(1)).default([]),
+  candidateProvenance: z.array(z.object({
+    partId: z.string().min(1),
+    source: z.enum(['selected-bundle', 'composition', 'registry-search', 'base', 'explicit-request', 'unknown-filtered']),
+    bundleIds: z.array(z.string().min(1)).default([]),
+    explicit: z.boolean().default(false)
+  })).default([]),
+  unknownHardwareMentions: z.array(z.object({
+    phrase: z.string().min(1),
+    normalized: z.string().min(1).optional(),
+    reason: z.string().min(1).optional()
+  })).default([]),
+  fallbackRoute: z.object({
+    routeId: z.string().min(1),
+    reason: z.string().min(1)
+  }).nullable().default(null),
+  supportBundleStatus: z.record(z.string(), z.object({
+    bundleId: z.string().min(1).nullable(),
+    supportLevel: z.enum(['supported', 'partial', 'planned', 'unsupported']),
+    status: z.enum(['complete', 'missing', 'incomplete']),
+    missingArtifacts: z.array(z.string().min(1)).default([])
+  })).default({})
+});
+
 export const RetrievalPlanSchema = z.object({
   sourceIds: z.array(z.string().min(1)).default([]),
   omittedSourceIds: z.array(z.string().min(1)).default([]),
@@ -910,6 +936,14 @@ export const ContextPacketSchema = z.object({
   retrievalPlan: RetrievalPlanSchema,
   contextTrace: z.array(ContextTraceEntrySchema).min(1),
   contextCoverage: ContextCoverageReportSchema,
+  metadata: ContextPacketMetadataSchema.default({
+    pipelineMode: 'legacy',
+    selectedBundleIds: [],
+    candidateProvenance: [],
+    unknownHardwareMentions: [],
+    fallbackRoute: null,
+    supportBundleStatus: {}
+  }),
   promptBlock: z.string().min(1)
 });
 
@@ -1007,6 +1041,23 @@ export const ClarificationRequestSchema = z.object({
   options: z.array(ClarificationOptionSchema).default([])
 });
 
+export const ServingStatusSchema = z.enum([
+  'buildable_original',
+  'needs_clarification',
+  'unsupported',
+  'review_only_diagnostic',
+  'safe_equivalent',
+  'local_tutor_answer',
+  'live_tutor_answer',
+  'live_tutor_fallback'
+]);
+
+export const TutorServingStatusSchema = z.enum([
+  'local_tutor_answer',
+  'live_tutor_answer',
+  'live_tutor_fallback'
+]);
+
 export const AgentRunResultSchema = z.object({
   traceId: z.string().min(1).optional(),
   sessionId: z.string().min(1),
@@ -1016,6 +1067,7 @@ export const AgentRunResultSchema = z.object({
   // placeholder circuitSpec (schema requires >=1 component) that the frontend never renders.
   // 'awaiting_input' = the agent paused (interrupt) to ask the student to narrow; see clarificationRequest.
   responseKind: z.enum(['circuit', 'chat', 'awaiting_input']).default('circuit'),
+  servingStatus: ServingStatusSchema.optional(),
   assistantMessages: z.array(z.string()),
   agentEvents: z.array(AgentEventSchema),
   clarification: z.string().nullable(),
@@ -1097,6 +1149,9 @@ export const TutorArtifactsSchema = z.object({
   circuitSpec: CircuitSpecSchema,
   validationReport: ValidationReportSchema,
   simulationPlan: SimulationPlanSchema,
+  contextCoverage: ContextCoverageReportSchema.optional(),
+  buildRunnableReport: BuildRunnableReportSchema.optional(),
+  solverGateResult: SolverGateResultSchema.optional(),
   contextTrace: z.array(ContextTraceEntrySchema).default([])
 });
 
@@ -1126,6 +1181,8 @@ export const TutorMessageRequestSchema = z.preprocess((value) => {
 export const TutorMessageResponseSchema = z.object({
   sessionId: z.string().min(1),
   mode: z.enum(['local', 'live']),
+  servingStatus: TutorServingStatusSchema.optional(),
+  fallbackReason: z.string().max(240).optional(),
   message: z.string().min(1),
   grounding: z.array(z.string()),
   suggestedQuestions: z.array(z.string())
@@ -1135,6 +1192,7 @@ export type AgentMessageRequest = z.infer<typeof AgentMessageRequestSchema>;
 export type AgentConversationContext = z.infer<typeof AgentConversationContextSchema>;
 export type AgentEvent = z.infer<typeof AgentEventSchema>;
 export type AgentRunResult = z.infer<typeof AgentRunResultSchema>;
+export type ServingStatus = z.infer<typeof ServingStatusSchema>;
 export type BuildRunnableReport = z.infer<typeof BuildRunnableReportSchema>;
 export type SolverAttempt = z.infer<typeof SolverAttemptSchema>;
 export type SolverGateResult = z.infer<typeof SolverGateResultSchema>;

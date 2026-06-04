@@ -20,7 +20,10 @@ import {
   validateCircuitSpec
 } from '../../server/agent/circuitTools.ts';
 import { CircuitSpecSchema, type CircuitSpec, type PartCapability } from '../../server/agent/schemas.ts';
-import { createHeduwareAgentTools } from '../../server/agent/deepAgentTools.ts';
+import {
+  createHeduwareAgentTools,
+  createUnscopedHeduwareAgentToolsForTests
+} from '../../server/agent/deepAgentTools.ts';
 import {
   buildAgentPromptBudgetAudits,
   AgentStructuredOutputError,
@@ -36,6 +39,40 @@ import {
   loadSimulationPrimitives,
   loadTopologyTemplates
 } from '../../server/context/contextLayer.ts';
+
+type ScopedToolOptions = NonNullable<Parameters<typeof createHeduwareAgentTools>[0]>;
+
+function scopedToolOptions(overrides: Partial<ScopedToolOptions> = {}): ScopedToolOptions {
+  return {
+    contextCoverage: {
+      status: 'sufficient',
+      score: 1,
+      requiredSourceTypes: [],
+      presentSourceTypes: [],
+      missingSourceTypes: [],
+      warnings: [],
+      sufficientFor: ['valid_circuit_synthesis'],
+      synthesisEligibility: {
+        status: 'eligible',
+        reason: 'Test-scoped context coverage is sufficient.'
+      }
+    },
+    candidateParts: [],
+    allowedContextSourceIds: [],
+    supportBundles: [],
+    ...overrides
+  };
+}
+
+async function partCapabilities(partIds: string[]): Promise<PartCapability[]> {
+  const registry = await getPartRegistry();
+  const byId = new Map(registry.map((part) => [part.id, part]));
+  return partIds.map((partId) => {
+    const part = byId.get(partId);
+    assert.ok(part, `${partId} registry entry exists`);
+    return part;
+  });
+}
 
 const diverseSpecs: Array<[CircuitSpec, string]> = [
   [oledCircuit(), 'oled-i2c-096'],
@@ -3971,7 +4008,9 @@ test('context coverage gate blocks response-sufficient reports that are not synt
 });
 
 test('Deepagents validation tool is context-bound and returns gated validation', async () => {
-  const tools = createHeduwareAgentTools({
+  const allowed = await partCapabilities(['arduino-uno', 'breadboard-half', 'resistor-220', 'led-5mm']);
+  const tools = createHeduwareAgentTools(scopedToolOptions({
+    candidateParts: allowed,
     contextCoverage: {
       status: 'sufficient',
       score: 1,
@@ -3985,7 +4024,7 @@ test('Deepagents validation tool is context-bound and returns gated validation',
         reason: 'This request has only enough context for an unsupported response.'
       }
     }
-  });
+  }));
   const validateTool = tools.find((tool) => tool.name === 'validate_circuit_spec');
   assert.ok(validateTool, 'validate_circuit_spec tool exists');
 
@@ -4011,9 +4050,9 @@ test('Deepagents detect_faults tool applies the same candidate part gate', async
       { id: 'oled-display', partId: 'oled-i2c-096', label: 'Unrequested OLED display', designator: 'DISP1' }
     ]
   };
-  const tools = createHeduwareAgentTools({
+  const tools = createHeduwareAgentTools(scopedToolOptions({
     candidateParts: allowed
-  } as Parameters<typeof createHeduwareAgentTools>[0]);
+  }));
   const detectTool = tools.find((tool) => tool.name === 'detect_faults');
   assert.ok(detectTool, 'detect_faults tool exists');
 
@@ -4046,9 +4085,9 @@ test('Deepagents current path tool does not trust caller-supplied validation rep
     warnings: [],
     validatedCurrentPathIds: ['led-forward-current']
   };
-  const tools = createHeduwareAgentTools({
+  const tools = createHeduwareAgentTools(scopedToolOptions({
     candidateParts: allowed
-  } as Parameters<typeof createHeduwareAgentTools>[0]);
+  }));
   const pathTool = tools.find((tool) => tool.name === 'estimate_current_paths');
   assert.ok(pathTool, 'estimate_current_paths tool exists');
 
@@ -4062,7 +4101,7 @@ test('Deepagents current path tool does not trust caller-supplied validation rep
 });
 
 test('Deepagents simulation tool returns runnable gate evidence with the simulation plan', async () => {
-  const tools = createHeduwareAgentTools();
+  const tools = createUnscopedHeduwareAgentToolsForTests();
   const simulationTool = tools.find((tool) => tool.name === 'compile_simulation_plan');
   assert.ok(simulationTool, 'compile_simulation_plan tool exists');
 
@@ -4096,9 +4135,9 @@ test('Deepagents netlist tool blocks route-outside components before exposing ne
       connection('oled-scl', 'arduino-uno', 'A5/SCL', 'oled-display', 'SCL', 'i2c-clock')
     ]
   });
-  const tools = createHeduwareAgentTools({
+  const tools = createHeduwareAgentTools(scopedToolOptions({
     candidateParts: allowed
-  } as Parameters<typeof createHeduwareAgentTools>[0]);
+  }));
   const netlistTool = tools.find((tool) => tool.name === 'build_netlist');
   assert.ok(netlistTool, 'build_netlist tool exists');
 
@@ -4117,9 +4156,9 @@ test('Deepagents part search tool is bounded to context packet candidate parts',
   assert.ok(led, 'LED registry entry exists');
   assert.ok(resistor, 'resistor registry entry exists');
 
-  const tools = createHeduwareAgentTools({
+  const tools = createHeduwareAgentTools(scopedToolOptions({
     candidateParts: [led, resistor]
-  } as Parameters<typeof createHeduwareAgentTools>[0]);
+  }));
   const searchTool = tools.find((tool) => tool.name === 'search_part_capabilities');
   assert.ok(searchTool, 'search_part_capabilities tool exists');
 
@@ -4134,9 +4173,9 @@ test('Deepagents part search tool is bounded to context packet candidate parts',
 });
 
 test('Deepagents context document tool is bounded to retrieval plan source ids', async () => {
-  const tools = createHeduwareAgentTools({
+  const tools = createHeduwareAgentTools(scopedToolOptions({
     allowedContextSourceIds: ['policy:safety-policy']
-  } as Parameters<typeof createHeduwareAgentTools>[0]);
+  }));
   const readTool = tools.find((tool) => tool.name === 'read_context_doc');
   assert.ok(readTool, 'read_context_doc tool exists');
 
@@ -4151,9 +4190,9 @@ test('Deepagents context document tool is bounded to retrieval plan source ids',
 });
 
 test('Deepagents context tool can read selected v2 bundle summary but not unselected bundles', async () => {
-  const tools = createHeduwareAgentTools({
+  const tools = createHeduwareAgentTools(scopedToolOptions({
     allowedContextSourceIds: ['bundle:digital-light-output']
-  });
+  }));
   const readTool = tools.find((tool) => tool.name === 'read_context_doc');
   assert.ok(readTool);
 
@@ -4166,7 +4205,7 @@ test('Deepagents context tool can read selected v2 bundle summary but not unsele
 });
 
 test('Deepagents support bundle tool is bounded to current capability matches', async () => {
-  const tools = createHeduwareAgentTools({
+  const tools = createHeduwareAgentTools(scopedToolOptions({
     supportBundles: [{
       capabilityId: 'digital-light-output',
       bundleId: 'digital-light-output-starter',
@@ -4180,7 +4219,7 @@ test('Deepagents support bundle tool is bounded to current capability matches', 
       sourceTiers: ['manufacturer-official'],
       promptSummary: 'digital-light-output has complete verified hardware support data.'
     }]
-  });
+  }));
   const bundleTool = tools.find((tool) => tool.name === 'load_support_bundle_evidence');
   assert.ok(bundleTool, 'load_support_bundle_evidence tool should exist');
 

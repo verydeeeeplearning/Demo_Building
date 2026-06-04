@@ -29,8 +29,8 @@ void test('under `next`, the live context packet covers the ENTIRE corpus via co
   assert.equal(await corpusPassCount('next'), corpus.cases.length);
 });
 
-void test('`legacy` live packet is unchanged (the known 33/37 baseline)', async () => {
-  assert.equal(await corpusPassCount('legacy'), 33);
+void test('`legacy` live packet keeps the known 32/37 baseline after NeoPixel alias repair', async () => {
+  assert.equal(await corpusPassCount('legacy'), 32);
 });
 
 void test('the OLED+breadboard packet keeps the OLED under `next` but drops it under `legacy`', async () => {

@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { PNG } from 'pngjs';
+import { loadMockOledProject } from './mockOledProject.js';
 
 async function distinctThumbnailColors(page, selector) {
   return page.evaluate(async (sel) => {
@@ -195,7 +196,7 @@ async function dismissWelcome(page) {
 }
 
 async function loadDemo(page) {
-  await page.locator('[data-action="load-demo"]').first().click();
+  await loadMockOledProject(page);
 }
 
 async function forceOfflineAgent(page) {
@@ -1043,6 +1044,51 @@ function casualStartAgentResultFixture() {
   };
 }
 
+function unknownHardwareClarificationAgentResultFixture() {
+  const fixture = casualStartAgentResultFixture();
+  return {
+    ...fixture,
+    sessionId: 'session-unknown-hardware-e2e',
+    servingStatus: 'needs_clarification',
+    assistantMessages: [
+      'XYZ123 sensor is not in the verified H-eduware hardware registry yet. Choose a supported sensor or provide verified hardware data before I can build the circuit.'
+    ],
+    clarification: 'Choose a supported sensor before synthesis.',
+    contextCoverage: {
+      ...fixture.contextCoverage,
+      sufficientFor: ['clarification_response', 'unsupported_response'],
+      synthesisEligibility: {
+        status: 'ineligible',
+        reason: 'Unknown explicit hardware XYZ123 sensor requires clarification before synthesis.'
+      },
+      warnings: ['Context support gap: Unknown explicit hardware XYZ123 sensor.']
+    },
+    circuitSpec: {
+      ...fixture.circuitSpec,
+      id: 'unknown-hardware-clarification',
+      title: 'Unknown hardware clarification',
+      unsupportedItems: [],
+      clarificationNeeds: ['XYZ123 sensor is not verified.']
+    },
+    validationReport: {
+      ...fixture.validationReport,
+      errors: ['Context support gap: XYZ123 sensor is not verified.']
+    },
+    buildRunnableReport: {
+      status: 'blocked',
+      runnable: false,
+      reasons: ['Unknown explicit hardware XYZ123 sensor requires clarification before synthesis.'],
+      validationStatus: 'unsupported',
+      simulationStatus: 'unsupported',
+      renderWarningCount: 0,
+      renderBlockingWarningCount: 0,
+      renderPartCount: 0,
+      currentPathCount: 0,
+      expectedStateCount: 0
+    }
+  };
+}
+
 test('welcome popup shows on first visit and stays gone after reload', async ({ page }) => {
   const guards = attachGuards(page);
 
@@ -1408,6 +1454,36 @@ test('AI chat accepts casual start messages without pretending they are circuit 
   assertClean(guards);
 });
 
+test('unknown hardware request asks for clarification instead of showing build confirmation', async ({ page }) => {
+  const guards = attachGuards(page);
+  await page.route('http://127.0.0.1:8787/api/agent/health', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true, defaultMode: 'deepagents-live', provider: 'openai', model: 'test-model', hasServerKey: true })
+    });
+  });
+  await page.route('http://127.0.0.1:8787/api/agent/message', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(unknownHardwareClarificationAgentResultFixture())
+    });
+  });
+  await dismissWelcome(page);
+
+  await page.locator('#idea-input').fill('Use XYZ123 sensor to show value on OLED.');
+  await page.locator('[data-action="send-idea"]').getByRole('button').click();
+
+  await expect(page.locator('.message.assistant').last()).toContainText(/XYZ123|verified|supported sensor/i);
+  await expect(page.getByTestId('serving-status')).toHaveAttribute('data-status', 'needs_clarification');
+  await expect(page.locator('[data-action="confirm"]')).toHaveCount(0);
+  await expect(page.locator('[data-action="run"]')).toBeDisabled();
+  await expect(page.getByTestId('stage-canvas')).toHaveCount(0);
+
+  assertClean(guards);
+});
+
 test('AI runtime warns when the live agent server is older than source files', async ({ page }) => {
   const guards = attachGuards(page);
   await page.route('http://127.0.0.1:8787/api/agent/health', async (route) => {
@@ -1471,6 +1547,9 @@ test('LED draft follow-up keeps state, builds on natural confirmation, and answe
   const guards = attachGuards(page);
   const messageRequests = [];
 
+  await page.addInitScript(() => {
+    localStorage.setItem('hEduwareAgentServer', 'enabled');
+  });
   await page.route('http://127.0.0.1:8787/api/agent/health', async (route) => {
     await route.fulfill({
       status: 200,
@@ -1484,6 +1563,21 @@ test('LED draft follow-up keeps state, builds on natural confirmation, and answe
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify(validLedBlinkAgentResultFixture())
+    });
+  });
+  await page.route('http://127.0.0.1:8787/api/agent/explain-target', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        sessionId: 'main-chat-tutor-fallback',
+        mode: 'local',
+        servingStatus: 'live_tutor_fallback',
+        fallbackReason: 'live tutor failed',
+        message: 'The LED path is grounded by the built circuit: D9 drives the LED through the resistor, then returns to GND.',
+        grounding: ['validation-report', 'simulation-plan'],
+        suggestedQuestions: []
+      })
     });
   });
 
@@ -1508,6 +1602,7 @@ test('LED draft follow-up keeps state, builds on natural confirmation, and answe
   await page.locator('#idea-input').fill('전선 연결이 안되도 상관없니?');
   await page.locator('[data-action="send-idea"]').getByRole('button').click();
   await expect(page.locator('.message.assistant').last()).toContainText(/LED|연결|wire|missing|GND|D9/i);
+  await expect(page.locator('.message.assistant').last().getByTestId('tutor-status')).toHaveAttribute('data-status', 'live_tutor_fallback');
   await expect(page.locator('.message.assistant').last()).not.toContainText(/structured circuit draft|Deepagents did not return/i);
 
   await page.locator('[data-tab="PCB"]').click();
@@ -2147,6 +2242,46 @@ test('circuit inspector lets students discuss a selected simulated connection', 
 
   await page.locator('[data-inspect-type="part"][data-inspect-id="oled-display"]').click();
   await expect(page.getByTestId('inspector-selected')).toContainText('OLED');
+
+  assertClean(guards);
+});
+
+test('circuit inspector renders live tutor suggested questions when server mode is enabled', async ({ page }) => {
+  const guards = attachGuards(page);
+  let tutorRequestBody = null;
+  await page.addInitScript(() => {
+    localStorage.setItem('hEduwareAgentServer', 'enabled');
+  });
+  await page.route('http://127.0.0.1:8787/api/agent/explain-target', async (route) => {
+    tutorRequestBody = route.request().postDataJSON();
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        sessionId: 'tutor-live-e2e',
+        mode: 'live',
+        servingStatus: 'live_tutor_answer',
+        message: 'Live tutor answer grounded in the selected I2C SDA connection.',
+        grounding: ['connection:oled-sda', 'live-deepagents-tutor'],
+        suggestedQuestions: ['Why is SDA paired with SCL?', 'How can I verify this signal?']
+      })
+    });
+  });
+
+  await dismissWelcome(page);
+  await loadDemo(page);
+  await page.locator('[data-tab="PCB"]').click();
+  await page.locator('[data-inspect-type="connection"][data-inspect-id="oled-sda"]').click();
+  await page.getByTestId('circuit-chat-toggle').click();
+
+  await page.getByTestId('inspector-suggestions').getByRole('button').first().click();
+  await expect(page.getByTestId('tutor-thread')).toContainText('Live tutor answer grounded');
+  await expect(page.getByTestId('tutor-status')).toHaveAttribute('data-status', 'live_tutor_answer');
+  await expect(page.getByTestId('inspector-suggestions')).toContainText('Why is SDA paired with SCL?');
+  await expect(page.getByTestId('inspector-suggestions')).toContainText('How can I verify this signal?');
+  await expect.poll(() => tutorRequestBody?.artifacts?.contextCoverage?.synthesisEligibility?.status).toBe('eligible');
+  await expect.poll(() => tutorRequestBody?.artifacts?.buildRunnableReport?.runnable).toBe(true);
+  await expect.poll(() => tutorRequestBody?.artifacts?.solverGateResult?.buildReady).toBe(true);
 
   assertClean(guards);
 });

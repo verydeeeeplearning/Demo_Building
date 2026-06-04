@@ -202,8 +202,10 @@
     "id": "addressable-led-display-output",
     "supportLevel": "supported",
     "positivePhrases": [
+      "neopixel",
       "neopixel ring",
       "ws2812 ring",
+      "네오픽셀",
       "addressable led",
       "rgb led ring",
       "12 led ring",

@@ -107,9 +107,41 @@ void test('createObservabilityMiddleware captures tool call events via callback'
   const echoEvent = captured.find((e) => e.tool === 'echo');
   assert.ok(echoEvent !== undefined, `callback must capture an event for the echo tool; got: ${JSON.stringify(captured)}`);
   assert.equal(echoEvent.status, 'ok', 'echo tool event must have status "ok"');
+  assert.match(String(echoEvent.inputHash), /^[0-9a-f]{64}$/);
+  assert.match(String(echoEvent.outputHash), /^[0-9a-f]{64}$/);
+  assert.ok(Number(echoEvent.durationMs) >= 0);
+  assert.ok(Number(echoEvent.outputChars) > 0);
 
   console.log(
     `[phase6.2] observability middleware: captured events=${JSON.stringify(captured)} ` +
       '=> wrapToolCall fires callback with correct tool name and status.'
   );
+});
+
+void test('createObservabilityMiddleware redacts tool call error events', async () => {
+  const captured: ObservabilityEvent[] = [];
+  const middleware = createObservabilityMiddleware((event) => {
+    captured.push(event);
+  });
+
+  await assert.rejects(
+    async () => middleware.wrapToolCall!(
+      {
+        toolCall: {
+          name: 'fail_with_secret',
+          args: { message: 'sk-testsecret1234567890' }
+        }
+      } as any,
+      async () => {
+        throw new Error('tool failed for sk-testsecret1234567890');
+      }
+    )
+  );
+
+  const failEvent = captured.find((event) => event.tool === 'fail_with_secret');
+  assert.ok(failEvent, `callback must capture failing tool event; got ${JSON.stringify(captured)}`);
+  assert.equal(failEvent.status, 'error');
+  assert.equal(failEvent.error, 'tool failed for [redacted-api-key]');
+  assert.doesNotMatch(JSON.stringify(failEvent), /sk-testsecret1234567890/);
+  assert.match(String(failEvent.inputHash), /^[0-9a-f]{64}$/);
 });

@@ -6,11 +6,15 @@
   --c-coral: #ff7759;
   --c-soft-coral: #ffad9b;
   --c-blue: #1863dc;
+  --c-focus: var(--c-blue);
   --c-canvas: #ffffff;
   --c-stone: #eeece7;
+  --cream: var(--c-stone);
   --c-card-border: #f2f2f2;
   --c-hairline: #dedbd4;
-  --c-muted: #6f6f68;
+  --c-muted: #62625c;
+  --muted: var(--c-muted);
+  --c-slate: #343a46;
   --c-ink: #212121;
   --shell-top: 106px;
 }
@@ -49,7 +53,7 @@ button:disabled {
 button:focus-visible,
 textarea:focus-visible,
 a:focus-visible {
-  outline: 2px solid var(--c-coral);
+  outline: 2px solid var(--c-focus);
   outline-offset: 3px;
 }
 
@@ -134,10 +138,11 @@ a:focus-visible {
 }
 
 .language-option {
-  min-width: 42px;
+  min-width: 44px;
+  min-height: 44px;
   border: 0;
   border-radius: 999px;
-  padding: 7px 9px;
+  padding: 9px 10px;
   background: transparent;
   color: var(--c-muted);
   font-size: 11px;
@@ -303,6 +308,18 @@ a:focus-visible {
 .ai-runtime strong {
   font-size: 13px;
   font-weight: 500;
+}
+
+.serving-status {
+  width: fit-content;
+  max-width: 100%;
+  border: 1px solid rgba(55, 48, 43, 0.18);
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--c-ink);
+  font-size: 12px;
+  line-height: 1.2;
 }
 
 .idea-form {
@@ -1074,6 +1091,18 @@ a:focus-visible {
   line-height: 1.45;
 }
 
+.tutor-status {
+  display: inline-block;
+  margin-top: 7px;
+  border: 1px solid var(--c-hairline);
+  border-radius: 999px;
+  padding: 3px 7px;
+  color: var(--c-muted);
+  background: #fbfaf7;
+  font-size: 11px;
+  line-height: 1;
+}
+
 .tutor-form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -1458,10 +1487,10 @@ body.has-modal {
 .library-close,
 .share-close {
   position: absolute;
-  top: 14px;
-  right: 16px;
-  width: 34px;
-  height: 34px;
+  top: 12px;
+  right: 14px;
+  width: 44px;
+  height: 44px;
   border: 0;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.12);

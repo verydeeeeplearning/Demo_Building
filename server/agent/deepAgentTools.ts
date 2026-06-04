@@ -57,21 +57,58 @@ const SearchInputSchema = z.object({
   limit: z.number().int().positive().max(20).default(8)
 });
 
-type HeduwareAgentToolOptions = {
-  contextCoverage?: ContextCoverageReport;
-  candidateParts?: PartCapability[];
-  allowedContextSourceIds?: string[];
-  supportBundles?: SupportBundleEvidence[];
+export type ScopedHeduwareAgentToolOptions = {
+  contextCoverage: ContextCoverageReport;
+  candidateParts: PartCapability[];
+  allowedContextSourceIds: string[];
+  supportBundles: SupportBundleEvidence[];
   requestScope?: RequestScope;
   locale?: 'ko' | 'en';
 };
 
-export function createHeduwareAgentTools(options: HeduwareAgentToolOptions = {}) {
+type InternalToolOptions = ScopedHeduwareAgentToolOptions & {
+  allowUnscopedContext: boolean;
+};
+
+export function createHeduwareAgentTools(options: ScopedHeduwareAgentToolOptions) {
+  if (
+    !options
+    || !options.contextCoverage
+    || !Array.isArray(options.candidateParts)
+    || !Array.isArray(options.allowedContextSourceIds)
+    || !Array.isArray(options.supportBundles)
+  ) {
+    throw new Error('SCOPED_TOOL_OPTIONS_REQUIRED: live H-eduware tools require contextCoverage, candidateParts, allowedContextSourceIds, and supportBundles.');
+  }
+  return createTools({ ...options, allowUnscopedContext: false });
+}
+
+export function createUnscopedHeduwareAgentToolsForTests() {
+  return createTools({
+    contextCoverage: {
+      status: 'sufficient',
+      score: 1,
+      sufficientFor: ['valid_circuit_synthesis'],
+      synthesisEligibility: {
+        status: 'eligible',
+        reason: 'Explicit test-only unscoped tool construction.'
+      },
+      requiredSourceTypes: [],
+      presentSourceTypes: [],
+      missingSourceTypes: [],
+      warnings: []
+    },
+    candidateParts: [],
+    allowedContextSourceIds: [],
+    supportBundles: [],
+    allowUnscopedContext: true
+  });
+}
+
+function createTools(options: InternalToolOptions) {
   const validateWithContext = async (spec: CircuitSpec): Promise<ValidationReport> => {
-    const validationReport = applyCandidatePartGate(await validateCircuitSpec(spec), spec, options.candidateParts);
-    return options.contextCoverage
-      ? applyContextCoverageGate(validationReport, options.contextCoverage)
-      : validationReport;
+    const validationReport = applyScopedCandidatePartGate(await validateCircuitSpec(spec), spec, options);
+    return applyContextCoverageGate(validationReport, options.contextCoverage);
   };
 
   return [
@@ -103,7 +140,7 @@ export function createHeduwareAgentTools(options: HeduwareAgentToolOptions = {})
       }
     ),
     tool(
-      async () => asJson(await loadContextIndex()),
+      async () => asJson(await loadContextIndexBounded(options)),
       {
         name: 'load_context_index',
         description: 'Load the H-eduware context-layer index. Use this before reading detailed context docs.',
@@ -174,12 +211,12 @@ export function createHeduwareAgentTools(options: HeduwareAgentToolOptions = {})
     ),
     tool(
       async ({ spec }) => {
-        const report = applyCandidatePartGate(
+        const report = applyScopedCandidatePartGate(
           await detectFaults(spec, await buildNetlist(spec)),
           spec,
-          options.candidateParts
+          options
         );
-        return asJson(options.contextCoverage ? applyContextCoverageGate(report, options.contextCoverage) : report);
+        return asJson(applyContextCoverageGate(report, options.contextCoverage));
       },
       {
         name: 'detect_faults',
@@ -221,8 +258,36 @@ export function createHeduwareAgentTools(options: HeduwareAgentToolOptions = {})
   ];
 }
 
-function loadSupportBundleEvidenceBounded(capabilityId: string, options: HeduwareAgentToolOptions) {
-  const supportBundles = options.supportBundles ?? [];
+function applyScopedCandidatePartGate(
+  validationReport: ValidationReport,
+  spec: CircuitSpec,
+  options: InternalToolOptions
+): ValidationReport {
+  if (options.allowUnscopedContext) {
+    return validationReport;
+  }
+
+  if (options.candidateParts.length === 0) {
+    return ValidationReportSchema.parse({
+      ...validationReport,
+      status: 'invalid',
+      errors: uniqueStrings([
+        ...validationReport.errors,
+        'CONTEXT_CANDIDATE_SCOPE_EMPTY: The current ContextPacket did not select any buildable candidate parts, so live agent tools cannot validate, netlist, render, or simulate this circuit draft.'
+      ]),
+      warnings: uniqueStrings([
+        ...validationReport.warnings,
+        'CONTEXT_CANDIDATE_PART_WARNING: Circuit drafts may only use parts selected by the current ContextPacket candidateParts.'
+      ]),
+      validatedCurrentPathIds: []
+    });
+  }
+
+  return applyCandidatePartGate(validationReport, spec, options.candidateParts);
+}
+
+function loadSupportBundleEvidenceBounded(capabilityId: string, options: InternalToolOptions) {
+  const supportBundles = options.supportBundles;
   const evidence = supportBundles.find((bundle) => bundle.capabilityId === capabilityId);
   if (!evidence) {
     return {
@@ -235,13 +300,45 @@ function loadSupportBundleEvidenceBounded(capabilityId: string, options: Heduwar
   return evidence;
 }
 
-async function readContextDocBounded(id: string, options: HeduwareAgentToolOptions) {
+async function loadContextIndexBounded(options: InternalToolOptions) {
+  const index = await loadContextIndex();
+  if (options.allowUnscopedContext) {
+    return index;
+  }
+
+  const allowedEntries = options.allowedContextSourceIds
+    .map((sourceId) => findContextEntry(index, sourceId))
+    .filter((entry): entry is ContextEntry => Boolean(entry));
+  const allowedKeys = new Set(allowedEntries.flatMap((entry) => entryKeys(entry)));
+  const filterEntries = (entries: ContextEntry[]) => entries.filter((entry) =>
+    entryKeys(entry).some((key) => allowedKeys.has(key))
+  );
+
+  return {
+    ...index,
+    memory: filterEntries(index.memory),
+    skills: filterEntries(index.skills),
+    references: filterEntries(index.references),
+    data: filterEntries(index.data),
+    routing: filterEntries(index.routing)
+  };
+}
+
+async function readContextDocBounded(id: string, options: InternalToolOptions) {
   if (id.startsWith('bundle:')) {
     return readContextBundleDocBounded(id, options);
   }
 
-  if (!options.allowedContextSourceIds) {
+  if (options.allowUnscopedContext) {
     return readContextDoc(id);
+  }
+
+  if (options.allowedContextSourceIds.length === 0) {
+    return asJson({
+      error: 'CONTEXT_SCOPE_EMPTY',
+      requestedId: id,
+      allowedSourceIds: []
+    });
   }
 
   const index = await loadContextIndex();
@@ -265,8 +362,22 @@ async function readContextDocBounded(id: string, options: HeduwareAgentToolOptio
   return readContextDoc(requestedEntry.id);
 }
 
-async function readContextBundleDocBounded(id: string, options: HeduwareAgentToolOptions) {
-  const allowed = options.allowedContextSourceIds?.includes(id) ?? true;
+async function readContextBundleDocBounded(id: string, options: InternalToolOptions) {
+  if (options.allowUnscopedContext) {
+    const bundleId = id.slice('bundle:'.length);
+    const bundle = await loadContextBundleV2(bundleId);
+    return renderContextBundleDoc(bundle);
+  }
+
+  if (options.allowedContextSourceIds.length === 0) {
+    return asJson({
+      error: 'CONTEXT_SCOPE_EMPTY',
+      requestedId: id,
+      allowedSourceIds: []
+    });
+  }
+
+  const allowed = options.allowedContextSourceIds.includes(id);
   if (!allowed) {
     return asJson({
       error: 'CONTEXT_DOC_NOT_IN_RETRIEVAL_PLAN',
@@ -277,6 +388,10 @@ async function readContextBundleDocBounded(id: string, options: HeduwareAgentToo
 
   const bundleId = id.slice('bundle:'.length);
   const bundle = await loadContextBundleV2(bundleId);
+  return renderContextBundleDoc(bundle);
+}
+
+function renderContextBundleDoc(bundle: Awaited<ReturnType<typeof loadContextBundleV2>>) {
   return [
     bundle.summary,
     '',
@@ -299,10 +414,14 @@ function entryKeys(entry: ContextEntry) {
   return [entry.id, entry.sourceId, ...entry.aliases];
 }
 
-async function searchContextBoundPartCapabilities(query: string, options: HeduwareAgentToolOptions) {
+async function searchContextBoundPartCapabilities(query: string, options: InternalToolOptions) {
   const matches = await searchPartCapabilities(query);
-  if (!options.candidateParts) {
+  if (options.allowUnscopedContext) {
     return matches;
+  }
+
+  if (options.candidateParts.length === 0) {
+    return [];
   }
 
   const candidateIds = new Set(options.candidateParts.map((part) => part.id));
@@ -312,15 +431,17 @@ async function searchContextBoundPartCapabilities(query: string, options: Heduwa
     .map((part) => candidateById.get(part.id) ?? part);
 }
 
-async function compileSimulationArtifacts(spec: CircuitSpec, options: HeduwareAgentToolOptions = {}) {
-  const rawValidationReport: ValidationReport = applyCandidatePartGate(
+function uniqueStrings(values: string[]) {
+  return [...new Set(values)];
+}
+
+async function compileSimulationArtifacts(spec: CircuitSpec, options: InternalToolOptions) {
+  const rawValidationReport: ValidationReport = applyScopedCandidatePartGate(
     await validateCircuitSpec(spec),
     spec,
-    options.candidateParts
+    options
   );
-  const validationReport = options.contextCoverage
-    ? applyContextCoverageGate(rawValidationReport, options.contextCoverage)
-    : rawValidationReport;
+  const validationReport = applyContextCoverageGate(rawValidationReport, options.contextCoverage);
   const netlist = await buildNetlist(spec);
   const currentPaths = await estimateCurrentPaths(spec, netlist, validationReport);
   const renderPlan = await compileRenderPlan(spec, validationReport);

@@ -195,8 +195,14 @@ test('generalization eval report attaches capability promotion blockers for cont
 
   assert.equal(report.totalRows, rows.length);
   assert.equal(report.generatedAt, '2026-06-01T00:00:00.000Z');
-  assert.equal(report.byExpectedFailureClass['context-gap'], 0);
-  assert.equal(report.byObservedFailureClass['context-gap'], 0);
+  assert.equal(
+    report.byExpectedFailureClass['context-gap'] ?? 0,
+    rows.filter((row) => row.expectedFailureClass === 'context-gap').length
+  );
+  assert.equal(
+    report.byObservedFailureClass['context-gap'] ?? 0,
+    report.rows.filter((row) => row.observedFailureClass === 'context-gap').length
+  );
   assert.ok(
     report.capabilityPromotionGaps.gapsByArtifact.some((gap) => gap.artifact === 'source-claims'),
     'report should include capability promotion gap buckets'

@@ -15,6 +15,16 @@ export const ko = {
     student: '학생',
     assistant: 'AI'
   },
+  servingStatus: {
+    buildable_original: '빌드 가능',
+    needs_clarification: '선택 필요',
+    unsupported: '지원 안 됨',
+    review_only_diagnostic: '검토 전용',
+    safe_equivalent: '안전 대체',
+    local_tutor_answer: '로컬 근거',
+    live_tutor_answer: '라이브 튜터',
+    live_tutor_fallback: '로컬 대체'
+  },
   aiPanel: {
     kicker: 'AI 설계 상담',
     titleLoaded: '아이디어를 회로로',

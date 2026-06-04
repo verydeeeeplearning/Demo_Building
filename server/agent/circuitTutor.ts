@@ -42,14 +42,19 @@ export async function runTutorAgent(
     return TutorMessageResponseSchema.parse({
       ...localResponse,
       mode: 'live',
+      servingStatus: 'live_tutor_answer',
       message: parsed.message,
       grounding: uniqueStrings([...localResponse.grounding, 'live-deepagents-tutor']),
       suggestedQuestions: parsed.suggestedQuestions.length > 0
         ? parsed.suggestedQuestions
         : localResponse.suggestedQuestions
     });
-  } catch (_error) {
-    return localResponse;
+  } catch (error) {
+    return TutorMessageResponseSchema.parse({
+      ...localResponse,
+      servingStatus: 'live_tutor_fallback',
+      fallbackReason: redactTutorFallbackReason(error)
+    });
   }
 }
 
@@ -62,6 +67,7 @@ function buildLocalTutorResponse(request: TutorMessageRequest): TutorMessageResp
   return TutorMessageResponseSchema.parse({
     sessionId: request.sessionId ?? `tutor-${randomUUID()}`,
     mode: 'local',
+    servingStatus: 'local_tutor_answer',
     message: locale === 'ko'
       ? koreanResponse(target, artifacts, flags)
       : englishResponse(target, artifacts, flags),
@@ -161,6 +167,9 @@ function buildLiveTutorUserPrompt(
       circuitSpec: request.artifacts.circuitSpec,
       validationReport: request.artifacts.validationReport,
       simulationPlan: request.artifacts.simulationPlan,
+      contextCoverage: request.artifacts.contextCoverage,
+      buildRunnableReport: request.artifacts.buildRunnableReport,
+      solverGateResult: request.artifacts.solverGateResult,
       contextTrace: request.artifacts.contextTrace
     },
     deterministicBaseline: {
@@ -173,6 +182,17 @@ function buildLiveTutorUserPrompt(
       suggestedQuestions: '0-3 short follow-up questions'
     }
   });
+}
+
+function redactTutorFallbackReason(error: unknown) {
+  const raw = error instanceof Error ? error.message : 'live tutor failed';
+  if (error instanceof z.ZodError) {
+    return 'malformed live tutor response';
+  }
+  if (/OPENAI_API_KEY|H_EDUWARE_AGENT_MODEL|sk-[A-Za-z0-9_-]+/.test(raw)) {
+    return 'live tutor configuration unavailable [redacted]';
+  }
+  return 'live tutor failed';
 }
 
 function modelGenerationOptions(modelName: string) {
